@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>True, False or Never? — Grammar in Context Week 1</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #0C2340;
+    --gold: #AE9142;
+    --lgold: #D4B97A;
+    --cream: #F8F5EF;
+    --white: #ffffff;
+    --bg: #F3F4F6;
+    --surface: #ffffff;
+    --surface2: #F9FAFB;
+    --text-primary: #111827;
+    --text-secondary: #6B7280;
+    --border: rgba(0,0,0,0.1);
+    --border-strong: rgba(0,0,0,0.18);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111827;
+      --surface: #1F2937;
+      --surface2: #374151;
+      --text-primary: #F9FAFB;
+      --text-secondary: #9CA3AF;
+      --border: rgba(255,255,255,0.1);
+      --border-strong: rgba(255,255,255,0.2);
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  #game-root {
+    width: 100%;
+    max-width: 620px;
+  }
+
+  .header {
+    background: var(--navy);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem 0.9rem;
+    margin-bottom: 1rem;
+    border-bottom: 3px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .header-left { display: flex; flex-direction: column; gap: 2px; }
+  .header-label {
+    font-size: 10px; font-weight: 600; color: var(--lgold);
+    letter-spacing: 1.5px; text-transform: uppercase;
+  }
+  .header-title { font-size: 18px; font-weight: 600; color: #fff; }
+  .header-sub { font-size: 12px; color: var(--lgold); }
+  .round-badge {
+    background: var(--gold);
+    color: var(--navy);
+    font-size: 12px; font-weight: 600;
+    padding: 6px 14px;
+    border-radius: var(--radius-md);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .score-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+  .score-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 10px 6px;
+    text-align: center;
+  }
+  .score-card-label {
+    font-size: 10px; color: var(--text-secondary);
+    margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.8px;
+  }
+  .score-card-val { font-size: 22px; font-weight: 600; color: var(--text-primary); }
+  .score-card-val.gold { color: var(--gold); }
+
+  .progress-bar-wrap {
+    background: var(--surface);
+    border-radius: 999px;
+    height: 6px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    border: 0.5px solid var(--border);
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--gold);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+  }
+
+  .sentence-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-left: 4px solid var(--gold);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.25rem 1rem;
+    margin-bottom: 1rem;
+  }
+  .sentence-tag {
+    font-size: 11px; font-weight: 600; color: var(--text-secondary);
+    letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;
+  }
+  .sentence-text {
+    font-size: 19px; font-weight: 600; color: var(--text-primary);
+    line-height: 1.5;
+  }
+
+  .vote-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+  .vote-btn {
+    padding: 0.9rem 1rem;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--border-strong);
+    background: var(--surface);
+    font-size: 15px; font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    color: var(--text-primary);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .vote-btn:hover:not(:disabled) {
+    background: var(--surface2);
+    border-color: var(--border-strong);
+  }
+  .vote-btn:active:not(:disabled) { transform: scale(0.97); }
+  .vote-btn:disabled { cursor: default; }
+  .vote-btn.correct-choice { background: #1A5C1A; border-color: #1A5C1A; color: #fff; }
+  .vote-btn.wrong-choice   { background: #8B1A1A; border-color: #8B1A1A; color: #fff; }
+  .vote-btn.neutral-dim    { opacity: 0.4; }
+
+  .explanation {
+    border-radius: var(--radius-md);
+    padding: 0.85rem 1rem;
+    font-size: 14px; line-height: 1.6;
+    margin-bottom: 1rem;
+    display: none;
+    border: 0.5px solid var(--border);
+  }
+  .explanation.correct-exp { background: #EAF3DE; color: #1A4007; border-color: #3B6D11; }
+  .explanation.wrong-exp   { background: #FCEBEB; color: #501313; border-color: #A32D2D; }
+  .explanation.shown { display: block; }
+  .exp-label { font-weight: 700; margin-bottom: 4px; font-size: 13px; }
+
+  .next-btn {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 15px; font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    display: none;
+    letter-spacing: 0.3px;
+  }
+  .next-btn.shown { display: block; }
+  .next-btn:hover { opacity: 0.88; }
+  .next-btn:active { transform: scale(0.98); }
+
+  .results-screen { display: none; }
+  .results-screen.shown { display: block; }
+
+  .results-header {
+    background: var(--navy);
+    border-radius: var(--radius-lg);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    border-bottom: 3px solid var(--gold);
+  }
+  .results-trophy { font-size: 52px; margin-bottom: 0.5rem; }
+  .results-title { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 0.5rem; }
+  .results-score-big { font-size: 58px; font-weight: 700; color: var(--gold); line-height: 1; }
+  .results-score-label { font-size: 14px; color: var(--lgold); margin-bottom: 0.75rem; }
+  .results-sub { font-size: 14px; color: var(--lgold); line-height: 1.6; max-width: 420px; margin: 0 auto; }
+
+  .results-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .restart-btn {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    background: var(--navy);
+    color: #fff;
+    border: 2px solid var(--gold);
+    border-radius: var(--radius-md);
+    font-size: 15px; font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 1.25rem;
+    letter-spacing: 0.3px;
+    transition: opacity 0.15s;
+  }
+  .restart-btn:hover { opacity: 0.88; }
+
+  .breakdown-title {
+    font-size: 11px; font-weight: 600; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+  }
+  .breakdown-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 0;
+    border-bottom: 0.5px solid var(--border);
+    font-size: 13px; line-height: 1.45;
+  }
+  .bd-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; font-weight: 700; }
+  .bd-icon.pass { color: #3B6D11; }
+  .bd-icon.fail { color: #A32D2D; }
+  .bd-sentence { color: var(--text-primary); font-weight: 500; }
+  .bd-note { font-size: 12px; color: var(--text-secondary); margin-top: 3px; line-height: 1.4; }
+
+  .footer {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+  }
+
+  @media (max-width: 400px) {
+    .score-card-val { font-size: 18px; }
+    .sentence-text { font-size: 16px; }
+    .results-score-big { font-size: 44px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="game-root">
+
+  <!-- GAME SCREEN -->
+  <div id="game-screen">
+    <div class="header">
+      <div class="header-left">
+        <span class="header-label">Grammar in Context · Week 1</span>
+        <span class="header-title">True, False or Never?</span>
+        <span class="header-sub">Is the grammar correct or wrong?</span>
+      </div>
+      <span class="round-badge" id="round-badge">Round 1 of 12</span>
+    </div>
+
+    <div class="score-row">
+      <div class="score-card">
+        <div class="score-card-label">Correct</div>
+        <div class="score-card-val gold" id="sc-correct">0</div>
+      </div>
+      <div class="score-card">
+        <div class="score-card-label">Wrong</div>
+        <div class="score-card-val" id="sc-wrong">0</div>
+      </div>
+      <div class="score-card">
+        <div class="score-card-label">Streak</div>
+        <div class="score-card-val" id="sc-streak">0</div>
+      </div>
+      <div class="score-card">
+        <div class="score-card-label">Best streak</div>
+        <div class="score-card-val" id="sc-best">0</div>
+      </div>
+    </div>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+
+    <div class="sentence-card">
+      <div class="sentence-tag">Is this sentence grammatically correct?</div>
+      <div class="sentence-text" id="sentence-text"></div>
+    </div>
+
+    <div class="vote-row">
+      <button class="vote-btn" id="btn-correct" onclick="vote(true)">
+        ✓&nbsp; Correct
+      </button>
+      <button class="vote-btn" id="btn-wrong" onclick="vote(false)">
+        ✗&nbsp; Wrong
+      </button>
+    </div>
+
+    <div class="explanation" id="explanation">
+      <div class="exp-label" id="exp-label"></div>
+      <div id="exp-body"></div>
+    </div>
+
+    <button class="next-btn" id="next-btn" onclick="nextRound()">Next round →</button>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div class="results-screen" id="results-screen">
+    <div class="results-header">
+      <div class="results-trophy" id="trophy-icon">★</div>
+      <div class="results-title" id="results-title">Game over!</div>
+      <div class="results-score-big" id="results-score"></div>
+      <div class="results-score-label">out of 12 correct</div>
+      <div class="results-sub" id="results-sub"></div>
+    </div>
+
+    <div class="results-stats" id="results-stats"></div>
+
+    <button class="restart-btn" onclick="restart()">↺ &nbsp;Play again</button>
+
+    <div class="breakdown-title">Round-by-round breakdown</div>
+    <div id="breakdown-list"></div>
+  </div>
+
+  <div class="footer">
+    Grammar in Context — Independent Level &nbsp;·&nbsp; Week 1 &nbsp;·&nbsp;
+    Approach International Student Center®
+  </div>
+
+</div>
+
+<script>
+const rounds = [
+  {
+    s: "I have seen him yesterday.",
+    correct: false,
+    exp: "\"Yesterday\" signals a specific past time, so we need simple past: \"I saw him yesterday.\""
+  },
+  {
+    s: "She is knowing the answer.",
+    correct: false,
+    exp: "\"Know\" is a stative verb — it describes a mental state, not an action. Correct: \"She knows the answer.\""
+  },
+  {
+    s: "Have you eaten already?",
+    correct: true,
+    exp: "Correct! Present perfect + \"already\" — used when something happened sooner than expected."
+  },
+  {
+    s: "I am understanding this grammar now.",
+    correct: false,
+    exp: "\"Understand\" is stative — it describes a mental state, not an action. Correct: \"I understand this grammar now.\""
+  },
+  {
+    s: "She has lived in Boston since 2019.",
+    correct: true,
+    exp: "Correct! Present perfect + \"since\" connects a past starting point to the present."
+  },
+  {
+    s: "They are usually eating dinner at 7pm.",
+    correct: false,
+    exp: "Habits and routines use present simple, not continuous. Correct: \"They usually eat dinner at 7pm.\""
+  },
+  {
+    s: "I've just finished my homework.",
+    correct: true,
+    exp: "Correct! Present perfect + \"just\" — the action was completed very recently."
+  },
+  {
+    s: "He has seen that movie last week.",
+    correct: false,
+    exp: "\"Last week\" is a specific past time — use simple past: \"He saw that movie last week.\""
+  },
+  {
+    s: "We have never visited Japan.",
+    correct: true,
+    exp: "Correct! Present perfect + \"never\" — a life experience (or lack of one) up to the present moment."
+  },
+  {
+    s: "I am wanting a cup of coffee.",
+    correct: false,
+    exp: "\"Want\" is a stative verb — it expresses a feeling, not an action. Correct: \"I want a cup of coffee.\""
+  },
+  {
+    s: "Have they arrived yet?",
+    correct: true,
+    exp: "Correct! Present perfect + \"yet\" — asking about an expected action, checking if it has happened."
+  },
+  {
+    s: "She already has submitted the form.",
+    correct: false,
+    exp: "Word order error: \"already\" goes between \"have\" and the past participle. Correct: \"She has already submitted the form.\""
+  }
+];
+
+let current = 0, score = 0, wrong = 0, streak = 0, bestStreak = 0;
+let userAnswers = [], answered = false;
+
+function render() {
+  const r = rounds[current];
+  document.getElementById('sentence-text').textContent = '\u201c' + r.s + '\u201d';
+  document.getElementById('round-badge').textContent = 'Round ' + (current + 1) + ' of ' + rounds.length;
+  document.getElementById('progress-fill').style.width = Math.round((current / rounds.length) * 100) + '%';
+  document.getElementById('explanation').className = 'explanation';
+  document.getElementById('next-btn').className = 'next-btn';
+  const bc = document.getElementById('btn-correct');
+  const bw = document.getElementById('btn-wrong');
+  bc.className = 'vote-btn';
+  bw.className = 'vote-btn';
+  bc.disabled = false;
+  bw.disabled = false;
+  answered = false;
+}
+
+function vote(userSaysCorrect) {
+  if (answered) return;
+  answered = true;
+  const r = rounds[current];
+  const isRight = (userSaysCorrect === r.correct);
+
+  if (isRight) { score++; streak++; if (streak > bestStreak) bestStreak = streak; }
+  else { wrong++; streak = 0; }
+  userAnswers.push({ round: current, passed: isRight });
+
+  document.getElementById('sc-correct').textContent = score;
+  document.getElementById('sc-wrong').textContent = wrong;
+  document.getElementById('sc-streak').textContent = streak;
+  document.getElementById('sc-best').textContent = bestStreak;
+
+  const bc = document.getElementById('btn-correct');
+  const bw = document.getElementById('btn-wrong');
+  bc.disabled = true; bw.disabled = true;
+
+  if (r.correct) {
+    bc.className = 'vote-btn correct-choice';
+    bw.className = 'vote-btn neutral-dim';
+  } else {
+    bw.className = 'vote-btn correct-choice';
+    bc.className = 'vote-btn neutral-dim';
+  }
+
+  const expEl = document.getElementById('explanation');
+  document.getElementById('exp-label').textContent = isRight ? '✓  Correct!' : '✗  Not quite.';
+  document.getElementById('exp-body').textContent = r.exp;
+  expEl.className = 'explanation shown ' + (isRight ? 'correct-exp' : 'wrong-exp');
+
+  const nb = document.getElementById('next-btn');
+  nb.className = 'next-btn shown';
+  nb.textContent = current < rounds.length - 1 ? 'Next round \u2192' : 'See results \u2192';
+}
+
+function nextRound() {
+  current++;
+  if (current >= rounds.length) showResults();
+  else render();
+}
+
+function showResults() {
+  document.getElementById('game-screen').style.display = 'none';
+  const rs = document.getElementById('results-screen');
+  rs.className = 'results-screen shown';
+  document.getElementById('results-score').textContent = score;
+
+  const pct = Math.round((score / rounds.length) * 100);
+  let trophy, title, sub;
+  if (pct === 100) {
+    trophy = '★'; title = 'Perfect score!';
+    sub = 'Outstanding! You got every single one right. You clearly have a strong grip on present tenses and stative verbs.';
+  } else if (pct >= 75) {
+    trophy = '◆'; title = 'Great work!';
+    sub = 'Strong performance! Review the rounds you missed below and you\'ll be unstoppable. Best streak: ' + bestStreak + '.';
+  } else if (pct >= 50) {
+    trophy = '●'; title = 'Good effort!';
+    sub = 'You\'re getting there! Focus on stative verbs and time expressions — those are the tricky spots. Best streak: ' + bestStreak + '.';
+  } else {
+    trophy = '○'; title = 'Keep practising!';
+    sub = 'This grammar takes time — don\'t worry. Read the explanations below carefully and try again. Best streak: ' + bestStreak + '.';
+  }
+  document.getElementById('trophy-icon').textContent = trophy;
+  document.getElementById('results-title').textContent = title;
+  document.getElementById('results-sub').textContent = sub;
+
+  const statsData = [
+    { label: 'Correct', val: score },
+    { label: 'Wrong', val: wrong },
+    { label: 'Best streak', val: bestStreak },
+  ];
+  const statsEl = document.getElementById('results-stats');
+  statsEl.innerHTML = statsData.map(s =>
+    '<div class="score-card"><div class="score-card-label">' + s.label + '</div>' +
+    '<div class="score-card-val' + (s.label === 'Correct' ? ' gold' : '') + '">' + s.val + '</div></div>'
+  ).join('');
+
+  const bd = document.getElementById('breakdown-list');
+  bd.innerHTML = '';
+  userAnswers.forEach((a, i) => {
+    const r = rounds[a.round];
+    const div = document.createElement('div');
+    div.className = 'breakdown-item';
+    div.innerHTML =
+      '<span class="bd-icon ' + (a.passed ? 'pass' : 'fail') + '">' + (a.passed ? '✓' : '✗') + '</span>' +
+      '<div><div class="bd-sentence">' + (i + 1) + '.  \u201c' + r.s + '\u201d</div>' +
+      '<div class="bd-note">' + (a.passed ? 'Correct \u2014 well done!' : r.exp) + '</div></div>';
+    bd.appendChild(div);
+  });
+}
+
+function restart() {
+  current = 0; score = 0; wrong = 0; streak = 0; bestStreak = 0; userAnswers = [];
+  ['sc-correct','sc-wrong','sc-streak','sc-best'].forEach(id => document.getElementById(id).textContent = '0');
+  document.getElementById('results-screen').className = 'results-screen';
+  document.getElementById('game-screen').style.display = '';
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
