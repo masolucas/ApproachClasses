@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signs & Safety — Matching Game</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:   #0C2340;
+    --gold:   #AE9142;
+    --lgold:  #F9F5EA;
+    --white:  #FFFFFF;
+    --bg:     #F4F4F4;
+    --card:   #FFFFFF;
+    --border: #DDDDDD;
+    --text:   #1A1A1A;
+    --muted:  #666666;
+    --hint:   #999999;
+    --success-bg:   #EAF5EE;
+    --success-border:#1A6B3C;
+    --success-text: #1A6B3C;
+    --danger-bg:    #FCEBEB;
+    --danger-border:#A32D2D;
+    --danger-text:  #A32D2D;
+    --warn-bg:      #FEF9EC;
+    --warn-border:  #BA7517;
+    --warn-text:    #854F0B;
+    --radius:  10px;
+    --radius-lg: 14px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:     #161616;
+      --card:   #1E1E1E;
+      --border: #333333;
+      --text:   #EFEFEF;
+      --muted:  #AAAAAA;
+      --hint:   #666666;
+      --success-bg:   #0D2618;
+      --success-border:#1A6B3C;
+      --success-text: #5DCAA5;
+      --danger-bg:    #200D0D;
+      --danger-border:#A32D2D;
+      --danger-text:  #F09595;
+      --warn-bg:      #1E1600;
+      --warn-border:  #BA7517;
+      --warn-text:    #FAC775;
+      --lgold: #2A2010;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ── Header ─────────────────────────────────────────────── */
+  .site-header {
+    background: var(--navy);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .site-header-left { display: flex; align-items: center; gap: 12px; }
+  .logo-pill {
+    background: var(--gold);
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 6px;
+    letter-spacing: 0.03em;
+  }
+  .site-title { color: white; font-size: 16px; font-weight: 500; }
+  .site-sub   { color: #D4B97A; font-size: 12px; margin-top: 2px; }
+  .header-right { color: #D4B97A; font-size: 12px; text-align: right; }
+
+  /* ── Main layout ─────────────────────────────────────────── */
+  .main {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+  }
+
+  /* ── Mode bar ────────────────────────────────────────────── */
+  .mode-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .mb {
+    flex: 1;
+    padding: 9px;
+    font-size: 13px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    border: 0.5px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    transition: all 0.15s;
+    font-weight: 400;
+  }
+  .mb.active {
+    background: var(--navy);
+    color: white;
+    border-color: var(--navy);
+    font-weight: 500;
+  }
+  .mb:hover:not(.active) { background: var(--bg); }
+
+  /* ── Score bar ───────────────────────────────────────────── */
+  .scorebar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .round-badge {
+    background: var(--gold);
+    color: white;
+    border-radius: var(--radius);
+    padding: 5px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .pill {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 5px 12px;
+    font-size: 13px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .pill b { color: var(--text); font-weight: 600; }
+  .streak-pill {
+    background: var(--warn-bg);
+    border: 0.5px solid var(--warn-border);
+    border-radius: var(--radius);
+    padding: 5px 12px;
+    font-size: 13px;
+    color: var(--warn-text);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .pbar {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+    min-width: 60px;
+  }
+  .pfill {
+    height: 100%;
+    background: var(--navy);
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+
+  /* ── Definition / prompt card ────────────────────────────── */
+  .def-card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px 22px;
+    margin-bottom: 18px;
+  }
+  .def-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .def-label {
+    font-size: 11px;
+    color: var(--hint);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-weight: 600;
+  }
+  .def-num { font-size: 12px; color: var(--hint); }
+  .def-text {
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.55;
+  }
+  .sign-prompt {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 4px;
+  }
+  .sign-icon-lg {
+    width: 54px;
+    height: 54px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+  .sign-word-lg {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+
+  /* ── Options grid ────────────────────────────────────────── */
+  .opts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .ob {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 10px;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.12s, border-color 0.12s, transform 0.1s;
+    min-height: 72px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .ob:hover:not(:disabled) {
+    background: var(--bg);
+    border-color: var(--navy);
+    transform: translateY(-2px);
+  }
+  .ob:active:not(:disabled) { transform: scale(0.97); }
+  .ob:disabled { cursor: default; }
+  .ob.correct { background: var(--success-bg); border-color: var(--success-border); }
+  .ob.wrong   { background: var(--danger-bg);  border-color: var(--danger-border); }
+  .ob.reveal  { background: var(--success-bg); border-color: var(--success-border); opacity: 0.6; }
+  .si {
+    width: 40px; height: 40px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .sw {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.02em;
+    line-height: 1.35;
+  }
+  .sw.correct { color: var(--success-text); }
+  .sw.wrong   { color: var(--danger-text); }
+  .sw.reveal  { color: var(--success-text); }
+
+  /* ── Feedback bar ────────────────────────────────────────── */
+  .fb {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    margin-bottom: 18px;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .fb.empty   { background: var(--bg); color: var(--hint); border: 0.5px solid var(--border); }
+  .fb.correct { background: var(--success-bg); color: var(--success-text); border: 0.5px solid var(--success-border); }
+  .fb.wrong   { background: var(--danger-bg);  color: var(--danger-text);  border: 0.5px solid var(--danger-border); }
+  .fbi { font-size: 18px; flex-shrink: 0; }
+
+  /* ── Next button ─────────────────────────────────────────── */
+  .nb {
+    width: 100%;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: var(--radius);
+    cursor: pointer;
+    border: none;
+    background: var(--navy);
+    color: white;
+    transition: opacity 0.15s, transform 0.1s;
+    letter-spacing: 0.01em;
+  }
+  .nb:hover:not(:disabled) { opacity: 0.88; }
+  .nb:active:not(:disabled) { transform: scale(0.98); }
+  .nb:disabled { opacity: 0.3; cursor: default; }
+
+  /* ── Round end / Final end cards ─────────────────────────── */
+  .round-end, .end-card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px 24px;
+    text-align: center;
+  }
+  .re-score, .end-score {
+    font-size: 52px;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 6px 0 4px;
+    line-height: 1;
+  }
+  .re-label, .end-label {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 18px;
+  }
+  .end-msg {
+    font-size: 15px;
+    color: var(--text);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    text-align: left;
+    background: var(--lgold);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .missed-wrap { margin: 14px 0 20px; text-align: left; }
+  .missed-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--hint);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .missed-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--radius);
+    background: var(--danger-bg);
+    border: 0.5px solid var(--danger-border);
+    margin-bottom: 7px;
+    font-size: 13px;
+    color: var(--danger-text);
+    line-height: 1.4;
+  }
+  .missed-icon {
+    width: 30px; height: 30px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .missed-word { font-weight: 700; color: var(--danger-text); }
+  .perfect-note {
+    padding: 12px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--success-text);
+    background: var(--success-bg);
+    border: 0.5px solid var(--success-border);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    font-weight: 500;
+  }
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .rb {
+    padding: 11px 26px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: var(--radius);
+    cursor: pointer;
+    border: 1.5px solid var(--navy);
+    background: var(--navy);
+    color: white;
+    transition: opacity 0.15s;
+    letter-spacing: 0.01em;
+  }
+  .rb:hover { opacity: 0.85; }
+  .rb.outline { background: transparent; color: var(--navy); }
+  .rb.outline:hover { background: var(--bg); }
+
+  /* ── Round progress dots ──────────────────────────────────── */
+  .round-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+  .dot.done   { background: var(--success-border); }
+  .dot.active { background: var(--navy); }
+
+  @media (max-width: 480px) {
+    .site-header { padding: 12px 16px; }
+    .main { padding: 16px 12px 40px; }
+    .opts { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .ob { min-height: 64px; padding: 10px 8px; }
+    .sw { font-size: 11px; }
+    .re-score, .end-score { font-size: 44px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-left">
+    <div class="logo-pill">APPROACH</div>
+    <div>
+      <div class="site-title">Signs &amp; Safety — Matching Game</div>
+      <div class="site-sub">Survival English &amp; Success Skills · Week 2</div>
+    </div>
+  </div>
+  <div class="header-right">Basic Level · A1 / A2<br>30 signs · 3 rounds</div>
+</header>
+
+<main class="main">
+
+  <div class="mode-bar">
+    <button class="mb active" id="mA" onclick="setMode('def2sign')">Definition → Sign</button>
+    <button class="mb"        id="mB" onclick="setMode('sign2def')">Sign → Definition</button>
+  </div>
+
+  <div class="scorebar">
+    <div class="round-badge" id="roundBadge">Round 1 / 3</div>
+    <div class="pill">Score: <b id="scoreNum">0</b></div>
+    <div class="pill">Correct: <b id="correctNum">0</b> / <b id="totalNum">10</b></div>
+    <div class="streak-pill" id="streakPill" style="display:none">Streak: <b id="streakNum">0</b></div>
+    <div class="pbar"><div class="pfill" id="progFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="round-dots" id="roundDots">
+    <div class="dot active" id="dot0"></div>
+    <div class="dot"        id="dot1"></div>
+    <div class="dot"        id="dot2"></div>
+  </div>
+
+  <div id="gameArea"></div>
+
+</main>
+
+<script>
+const ALL_SIGNS = [
+  {word:"STOP",            icon:"🛑", bg:"#FFEBEE", def:"Come to a complete stop. Do not move forward. Used at intersections and dangerous entry points."},
+  {word:"EXIT",            icon:"🚪", bg:"#E8F5E9", def:"You can leave through this door. This is the way out of the building or area."},
+  {word:"NO ENTRY",        icon:"⛔", bg:"#FFEBEE", def:"You must not go through this entrance. Entry is not allowed from this direction."},
+  {word:"CAUTION",         icon:"⚠️", bg:"#FFFDE7", def:"Be careful. There is a possible danger ahead. Slow down and pay attention to your surroundings."},
+  {word:"WET FLOOR",       icon:"💧", bg:"#E3F2FD", def:"The floor is slippery. Water or liquid is on the floor. Walk carefully to avoid falling."},
+  {word:"DO NOT TOUCH",    icon:"🚫", bg:"#FFEBEE", def:"Do not touch this object. It may be hot, sharp, fragile, or dangerous."},
+  {word:"PUSH / PULL",     icon:"↔️", bg:"#F3E5F5", def:"The door opens this way. Try pushing or pulling to open the door correctly."},
+  {word:"EMPLOYEES ONLY",  icon:"🔒", bg:"#FFF3E0", def:"This area is only for people who work here. Entering without permission may cost you your job."},
+  {word:"DANGER",          icon:"☠️", bg:"#FFEBEE", def:"Serious danger. You could be hurt or killed. Do not enter or touch anything in this area."},
+  {word:"EMERGENCY EXIT",  icon:"🟢", bg:"#E8F5E9", def:"Use this door to leave the building in an emergency. Never block it or use it as a shortcut."},
+  {word:"OUT OF ORDER",    icon:"🔧", bg:"#F5F5F5", def:"This machine or door does not work right now. Do not use it — find another option."},
+  {word:"KEEP OUT",        icon:"🚷", bg:"#FFEBEE", def:"This area is closed. You cannot go in. Stay out — entry is forbidden."},
+  {word:"NO SMOKING",      icon:"🚭", bg:"#FFEBEE", def:"Smoking is not allowed in this area. You must go outside or to a designated smoking zone."},
+  {word:"FIRE EXTINGUISHER",icon:"🧯",bg:"#FFEBEE", def:"A fire extinguisher is located here. Use it only in case of fire — pull the pin and aim at the base."},
+  {word:"FIRST AID",       icon:"➕", bg:"#E8F5E9", def:"A first aid kit is here. Use it for minor injuries like cuts, burns, or bruises."},
+  {word:"HIGH VOLTAGE",    icon:"⚡", bg:"#FFFDE7", def:"There is electricity here that can kill you. Do not touch any wires, panels, or equipment."},
+  {word:"SLIPPERY SURFACE",icon:"🏂", bg:"#E3F2FD", def:"The surface here is slippery, even when dry. Walk slowly and wear appropriate shoes."},
+  {word:"BIOHAZARD",       icon:"☣️", bg:"#FFEBEE", def:"There are biological materials here that can cause disease. Do not touch anything without protection."},
+  {word:"NO PHOTOGRAPHY",  icon:"📵", bg:"#FFEBEE", def:"Taking photos or videos is not allowed in this area. Put your phone away."},
+  {word:"HANDICAP ACCESS", icon:"♿", bg:"#E3F2FD", def:"This entrance or space is accessible for people with disabilities. Please do not block it."},
+  {word:"SPEED LIMIT",     icon:"🔢", bg:"#E8F5E9", def:"Do not drive faster than this number. This is the maximum speed allowed on this road."},
+  {word:"DO NOT ENTER",    icon:"🔴", bg:"#FFEBEE", def:"You cannot go into this area from this direction. It is one-way or restricted. Find another route."},
+  {word:"FLAMMABLE",       icon:"🔥", bg:"#FFF3E0", def:"This material can catch fire very easily. Keep it away from heat, sparks, and open flames."},
+  {word:"HARD HAT REQUIRED",icon:"⛑️",bg:"#FFFDE7", def:"You must wear a hard hat in this area. Falling objects can cause serious head injuries."},
+  {word:"NO PARKING",      icon:"🅿️", bg:"#FFEBEE", def:"You cannot park your car here. You may receive a ticket or your car may be towed."},
+  {word:"QUIET ZONE",      icon:"🔇", bg:"#E8EAF6", def:"Please be quiet in this area. People here need silence — for studying, sleeping, or medical recovery."},
+  {word:"WASH HANDS",      icon:"🧼", bg:"#E0F7FA", def:"You must wash your hands before continuing. This prevents the spread of germs and illness."},
+  {word:"MAX CAPACITY",    icon:"👥", bg:"#F3E5F5", def:"This room or vehicle cannot hold more than a certain number of people at the same time."},
+  {word:"ONE WAY",         icon:"➡️", bg:"#E8F5E9", def:"Traffic or people must move in only one direction here. Do not go the opposite way."},
+  {word:"WATCH YOUR STEP", icon:"👣", bg:"#FFFDE7", def:"There is a step, drop, or uneven surface here. Look down and be careful when walking through."},
+];
+
+const ROUND_SETS = [
+  [0,1,2,3,4,5,6,7,8,9],
+  [10,11,12,13,14,15,16,17,18,19],
+  [20,21,22,23,24,25,26,27,28,29],
+];
+const PER_ROUND = 10;
+const TOTAL_ROUNDS = 3;
+
+let mode = "def2sign";
+let round = 0;
+let roundSigns = [];
+let queue = [];
+let current = null;
+let options = [];
+let answered = false;
+let score = 0;
+let totalCorrect = 0;
+let roundCorrect = 0;
+let streak = 0;
+let bestStreak = 0;
+let qIdx = 0;
+let missedThisRound = [];
+let allMissed = [];
+
+function setMode(m) {
+  mode = m;
+  document.getElementById("mA").classList.toggle("active", m === "def2sign");
+  document.getElementById("mB").classList.toggle("active", m === "sign2def");
+  startGame();
+}
+
+function shuffle(a) {
+  const b = [...a];
+  for (let i = b.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [b[i], b[j]] = [b[j], b[i]];
+  }
+  return b;
+}
+
+function startGame() {
+  round = 0; score = 0; totalCorrect = 0; streak = 0; bestStreak = 0; allMissed = [];
+  updateDots();
+  startRound();
+}
+
+function startRound() {
+  roundSigns = ROUND_SETS[round].map(i => ALL_SIGNS[i]);
+  queue = shuffle(roundSigns);
+  qIdx = 0; roundCorrect = 0; missedThisRound = [];
+  updateStats();
+  nextQ();
+}
+
+function updateDots() {
+  for (let i = 0; i < TOTAL_ROUNDS; i++) {
+    const d = document.getElementById("dot" + i);
+    d.classList.remove("done", "active");
+    if (i < round) d.classList.add("done");
+    else if (i === round) d.classList.add("active");
+  }
+}
+
+function updateStats() {
+  document.getElementById("scoreNum").textContent = score;
+  document.getElementById("correctNum").textContent = roundCorrect;
+  document.getElementById("totalNum").textContent = PER_ROUND;
+  document.getElementById("roundBadge").textContent = "Round " + (round + 1) + " / " + TOTAL_ROUNDS;
+  document.getElementById("progFill").style.width = Math.round((qIdx / PER_ROUND) * 100) + "%";
+  const sp = document.getElementById("streakPill");
+  if (streak >= 2) {
+    sp.style.display = "";
+    document.getElementById("streakNum").textContent = streak;
+  } else {
+    sp.style.display = "none";
+  }
+}
+
+function getDistractors(correct, pool) {
+  return shuffle(pool.filter(s => s.word !== correct.word)).slice(0, 3);
+}
+
+function nextQ() {
+  if (qIdx >= PER_ROUND) { showRoundEnd(); return; }
+  current = queue[qIdx];
+  options = shuffle([current, ...getDistractors(current, ALL_SIGNS)]);
+  answered = false;
+  render();
+}
+
+function render() {
+  const ga = document.getElementById("gameArea");
+  const isD = mode === "def2sign";
+
+  const prompt = isD
+    ? `<div class="def-card">
+        <div class="def-top">
+          <div class="def-label">Which sign matches this definition?</div>
+          <div class="def-num">${qIdx + 1} / ${PER_ROUND}</div>
+        </div>
+        <div class="def-text">${current.def}</div>
+      </div>`
+    : `<div class="def-card">
+        <div class="def-top">
+          <div class="def-label">What does this sign mean?</div>
+          <div class="def-num">${qIdx + 1} / ${PER_ROUND}</div>
+        </div>
+        <div class="sign-prompt">
+          <div class="sign-icon-lg" style="background:${current.bg}">${current.icon}</div>
+          <div class="sign-word-lg">${current.word}</div>
+        </div>
+      </div>`;
+
+  const btns = options.map((opt, i) => {
+    const inner = isD
+      ? `<div class="si" style="background:${opt.bg}">${opt.icon}</div><span class="sw" id="sw${i}">${opt.word}</span>`
+      : `<span class="sw" id="sw${i}" style="font-size:12px;line-height:1.4;text-align:center">${opt.def}</span>`;
+    return `<button class="ob" id="ob${i}" onclick="pick(${i})">${inner}</button>`;
+  }).join("");
+
+  const nextLabel = qIdx + 1 < PER_ROUND ? "Next question →" : "See round results →";
+
+  ga.innerHTML = `
+    ${prompt}
+    <div class="opts">${btns}</div>
+    <div class="fb empty" id="fb">
+      <span class="fbi" id="fbi">—</span>
+      <span id="fbt">Choose the correct answer above.</span>
+    </div>
+    <button class="nb" id="nb" onclick="advance()" disabled>${nextLabel}</button>`;
+}
+
+function pick(i) {
+  if (answered) return;
+  answered = true;
+  const chosen = options[i];
+  const right = chosen.word === current.word;
+
+  if (right) {
+    const bonus = streak >= 2 ? streak * 2 : 0;
+    score += 10 + bonus;
+    totalCorrect++; roundCorrect++; streak++;
+    if (streak > bestStreak) bestStreak = streak;
+    document.getElementById("ob" + i).classList.add("correct");
+    const sw = document.getElementById("sw" + i); if (sw) sw.classList.add("correct");
+    document.getElementById("fb").className = "fb correct";
+    document.getElementById("fbi").textContent = "✓";
+    const bonusMsg = bonus > 0 ? " (+" + bonus + " streak bonus!)" : "";
+    document.getElementById("fbt").textContent = "Correct!" + (streak >= 2 ? " " + streak + " in a row!" : " Well done.") + bonusMsg;
+  } else {
+    streak = 0;
+    missedThisRound.push(current);
+    allMissed.push(current);
+    document.getElementById("ob" + i).classList.add("wrong");
+    const sw = document.getElementById("sw" + i); if (sw) sw.classList.add("wrong");
+    options.forEach((opt, j) => {
+      if (options[j].word === current.word) {
+        document.getElementById("ob" + j).classList.add("reveal");
+        const rsw = document.getElementById("sw" + j); if (rsw) rsw.classList.add("reveal");
+      }
+    });
+    document.getElementById("fb").className = "fb wrong";
+    document.getElementById("fbi").textContent = "✗";
+    document.getElementById("fbt").textContent = "The correct answer is: " + current.word;
+  }
+
+  options.forEach((_, j) => document.getElementById("ob" + j).disabled = true);
+  document.getElementById("nb").disabled = false;
+  updateStats();
+}
+
+function advance() {
+  qIdx++;
+  updateStats();
+  nextQ();
+}
+
+function showRoundEnd() {
+  document.getElementById("progFill").style.width = "100%";
+  const pct = Math.round((roundCorrect / PER_ROUND) * 100);
+  const isLast = round === TOTAL_ROUNDS - 1;
+
+  let roundMsg = "";
+  if (pct === 100)     roundMsg = "Flawless round! No mistakes.";
+  else if (pct >= 80)  roundMsg = "Great work this round!";
+  else if (pct >= 60)  roundMsg = "Good effort — review the signs below before moving on.";
+  else                  roundMsg = "Keep going — study the signs below carefully.";
+
+  const missedHTML = missedThisRound.length === 0
+    ? `<div class="perfect-note">Perfect round — no mistakes!</div>`
+    : `<div class="missed-wrap">
+        <div class="missed-title">Signs to review (${missedThisRound.length}):</div>
+        ${missedThisRound.map(s => `
+          <div class="missed-item">
+            <div class="missed-icon" style="background:${s.bg}">${s.icon}</div>
+            <div>
+              <div class="missed-word">${s.word}</div>
+              <div style="font-size:12px;margin-top:2px;color:var(--danger-text)">${s.def}</div>
+            </div>
+          </div>`).join("")}
+      </div>`;
+
+  const nextLabel = isLast
+    ? "See final results →"
+    : "Round " + (round + 2) + ": next 10 signs →";
+
+  document.getElementById("gameArea").innerHTML = `
+    <div class="round-end">
+      <div class="def-label">Round ${round + 1} of ${TOTAL_ROUNDS} complete</div>
+      <div class="re-score">${roundCorrect} / ${PER_ROUND}</div>
+      <div class="re-label">${pct}% correct &nbsp;·&nbsp; ${roundMsg}</div>
+      ${missedHTML}
+      <div class="btn-row">
+        <button class="rb outline" onclick="replayRound()">Replay this round</button>
+        <button class="rb" onclick="${isLast ? "showFinalEnd()" : "nextRound()"}">${nextLabel}</button>
+      </div>
+    </div>`;
+}
+
+function replayRound() {
+  qIdx = 0; roundCorrect = 0; missedThisRound = [];
+  queue = shuffle(roundSigns);
+  updateStats();
+  nextQ();
+}
+
+function nextRound() {
+  round++;
+  updateDots();
+  startRound();
+}
+
+function showFinalEnd() {
+  const pct = Math.round((totalCorrect / 30) * 100);
+
+  let msg = "";
+  if (pct === 100)    msg = "Incredible! You got every single sign correct across all 3 rounds. You are ready to read any sign in the US!";
+  else if (pct >= 85) msg = "Excellent work! You know most of these signs. Review the ones you missed — they appear in real life every day.";
+  else if (pct >= 65) msg = "Good job finishing all 3 rounds! Keep practicing the signs you missed. Every one you learn makes you safer and more independent.";
+  else                 msg = "You finished all 3 rounds — that takes effort! Every sign you learn protects you. Play again to improve your score.";
+
+  const uniqueMissed = [...new Map(allMissed.map(s => [s.word, s])).values()];
+  const missedHTML = uniqueMissed.length === 0
+    ? `<div class="perfect-note">No mistakes at all — incredible!</div>`
+    : `<div class="missed-wrap">
+        <div class="missed-title">Signs to keep studying (${uniqueMissed.length}):</div>
+        ${uniqueMissed.map(s => `
+          <div class="missed-item">
+            <div class="missed-icon" style="background:${s.bg}">${s.icon}</div>
+            <div>
+              <div class="missed-word">${s.word}</div>
+              <div style="font-size:12px;margin-top:2px;color:var(--danger-text)">${s.def}</div>
+            </div>
+          </div>`).join("")}
+      </div>`;
+
+  document.getElementById("gameArea").innerHTML = `
+    <div class="end-card">
+      <div class="def-label">All 3 rounds complete &nbsp;·&nbsp; 30 signs</div>
+      <div class="end-score">${totalCorrect} / 30</div>
+      <div class="re-label">
+        ${pct}% correct &nbsp;·&nbsp; Score: ${score}
+        ${bestStreak >= 3 ? "&nbsp;·&nbsp; Best streak: " + bestStreak : ""}
+      </div>
+      <div class="end-msg">${msg}</div>
+      ${missedHTML}
+      <div class="btn-row">
+        <button class="rb outline" onclick="startGame()">Play again from the start</button>
+      </div>
+    </div>`;
+
+  for (let i = 0; i < TOTAL_ROUNDS; i++) {
+    const d = document.getElementById("dot" + i);
+    d.classList.remove("active");
+    d.classList.add("done");
+  }
+  document.getElementById("progFill").style.width = "100%";
+}
+
+startGame();
+</script>
+</body>
+</html>
