@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic or Thesis? — Sorting Game</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #0c2340;
+    --med-blue: #143865;
+    --bright-blue: #1c4f8f;
+    --gold: #ae9142;
+    --gold-light: #d4b96a;
+    --red: #c0392b;
+    --red-soft: #e74c3c;
+    --green: #27774e;
+    --green-soft: #2ecc71;
+    --light-sky: #edf2f9;
+    --warm-white: #faf8f3;
+    --card-bg: #ffffff;
+    --text-dark: #1a1a2e;
+    --text-mid: #4a4a5a;
+    --text-light: #8a8a9a;
+    --shadow: 0 4px 20px rgba(12,35,64,0.10);
+    --shadow-hover: 0 8px 32px rgba(12,35,64,0.18);
+    --shadow-drop: 0 12px 40px rgba(12,35,64,0.25);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--warm-white);
+    color: var(--text-dark);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--blue);
+    padding: 1.5rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gold);
+  }
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .header h1 {
+    font-family: 'DM Serif Display', serif;
+    color: #fff;
+    font-size: 2rem;
+    letter-spacing: -0.5px;
+  }
+  .header h1 span { color: var(--gold); }
+  .header-meta {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+  }
+  .header-badge {
+    background: var(--med-blue);
+    color: var(--gold);
+    padding: 0.35rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .timer-display {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    min-width: 70px;
+    text-align: center;
+  }
+  .timer-display.urgent { color: var(--red-soft); animation: pulse 1s infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* ── Score Bar ── */
+  .score-bar {
+    max-width: 1200px;
+    margin: 1rem auto 0;
+    padding: 0 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .score-info {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+  }
+  .score-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .score-chip .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  .dot-placed { background: var(--bright-blue); }
+  .dot-remaining { background: var(--gold); }
+
+  .btn {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: var(--gold);
+    color: var(--blue);
+    padding: 0.6rem 1.4rem;
+  }
+  .btn-primary:hover { background: var(--gold-light); }
+  .btn-secondary {
+    background: var(--light-sky);
+    color: var(--bright-blue);
+    padding: 0.6rem 1.2rem;
+  }
+  .btn-secondary:hover { background: #dce8f5; }
+  .btn-success {
+    background: var(--green);
+    color: #fff;
+    padding: 0.7rem 2rem;
+    font-size: 1rem;
+  }
+  .btn-success:hover { background: #2e8a58; }
+  .btn-group { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+  /* ── Instructions ── */
+  .instructions {
+    max-width: 1200px;
+    margin: 1rem auto;
+    padding: 0 1rem;
+  }
+  .instructions-box {
+    background: var(--light-sky);
+    border-left: 4px solid var(--bright-blue);
+    border-radius: 0 10px 10px 0;
+    padding: 1rem 1.5rem;
+    font-size: 0.9rem;
+    color: var(--text-mid);
+    line-height: 1.6;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+  .instructions-box .icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 0.1rem; }
+  .instructions-box strong { color: var(--blue); }
+
+  /* ── Game Area ── */
+  .game-area {
+    max-width: 1200px;
+    margin: 1rem auto 2rem;
+    padding: 0 1rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  /* ── Card Pool ── */
+  .card-pool {
+    background: #fff;
+    border-radius: 14px;
+    padding: 1.2rem;
+    box-shadow: var(--shadow);
+    border: 2px dashed #d0d5dd;
+  }
+  .pool-label {
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-light);
+    margin-bottom: 0.8rem;
+  }
+  .pool-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    min-height: 50px;
+  }
+
+  /* ── Statement Cards ── */
+  .card {
+    background: var(--card-bg);
+    border: 2px solid #e0e4ea;
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    cursor: grab;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+    position: relative;
+    max-width: 350px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .card:hover {
+    box-shadow: var(--shadow-hover);
+    border-color: var(--bright-blue);
+    transform: translateY(-2px);
+  }
+  .card.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg) scale(1.04);
+    box-shadow: var(--shadow-drop);
+    z-index: 100;
+  }
+  .card .card-num {
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    background: var(--blue);
+    color: #fff;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 0.65rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Result states */
+  .card.correct {
+    border-color: var(--green-soft);
+    background: #f0faf4;
+  }
+  .card.correct::after {
+    content: '✓';
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: var(--green);
+    color: #fff;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card.incorrect {
+    border-color: var(--red-soft);
+    background: #fef2f2;
+  }
+  .card.incorrect::after {
+    content: '✗';
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: var(--red);
+    color: #fff;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card .correct-label {
+    display: none;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-top: 0.4rem;
+    padding-top: 0.3rem;
+    border-top: 1px dashed #ccc;
+  }
+  .card.incorrect .correct-label {
+    display: block;
+    color: var(--red);
+  }
+
+  /* ── Drop Zones ── */
+  .zones {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .drop-zone {
+    border-radius: 14px;
+    min-height: 260px;
+    padding: 0;
+    transition: all 0.3s;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .zone-header {
+    padding: 0.8rem 1rem;
+    text-align: center;
+  }
+  .zone-header h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    color: #fff;
+    margin-bottom: 0.15rem;
+  }
+  .zone-header p {
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.75);
+    font-style: italic;
+  }
+  .zone-body {
+    background: #fff;
+    padding: 0.8rem;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border: 3px dashed transparent;
+    border-top: none;
+    border-radius: 0 0 14px 14px;
+    transition: all 0.3s;
+  }
+  .zone-body.drag-over {
+    border-color: var(--bright-blue);
+    background: var(--light-sky);
+  }
+  .zone-body .placeholder {
+    color: var(--text-light);
+    font-size: 0.8rem;
+    text-align: center;
+    padding: 2rem 0.5rem;
+    font-style: italic;
+    opacity: 0.6;
+  }
+
+  .zone-topic .zone-header { background: var(--red); }
+  .zone-weak .zone-header { background: var(--gold); }
+  .zone-strong .zone-header { background: var(--green); }
+
+  .zone-body .card { max-width: 100%; }
+
+  /* ── Results Overlay ── */
+  .results-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(12, 35, 64, 0.85);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(6px);
+    animation: fadeIn 0.4s;
+  }
+  .results-overlay.show { display: flex; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .results-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 2.5rem;
+    max-width: 520px;
+    width: 90%;
+    text-align: center;
+    animation: slideUp 0.5s 0.1s both;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+  }
+  .results-card .emoji { font-size: 3.5rem; margin-bottom: 0.5rem; }
+  .results-card h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem;
+    color: var(--blue);
+    margin-bottom: 0.3rem;
+  }
+  .results-card .subtitle {
+    color: var(--text-mid);
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+  }
+  .score-big {
+    font-family: 'DM Serif Display', serif;
+    font-size: 4rem;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .score-big span { font-size: 1.5rem; color: var(--text-light); }
+  .score-label {
+    font-size: 0.85rem;
+    color: var(--text-mid);
+    margin-bottom: 0.3rem;
+  }
+  .time-result {
+    font-size: 0.9rem;
+    color: var(--text-mid);
+    margin-bottom: 1.5rem;
+  }
+  .results-actions { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
+
+  /* ── Discussion slide ── */
+  .discussion-section {
+    display: none;
+    max-width: 1200px;
+    margin: 1.5rem auto;
+    padding: 0 1rem;
+  }
+  .discussion-section.show { display: block; }
+  .discussion-box {
+    background: var(--blue);
+    border-radius: 14px;
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .discussion-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--gold);
+  }
+  .discussion-box h3 {
+    font-family: 'DM Serif Display', serif;
+    color: #fff;
+    font-size: 1.3rem;
+    margin-bottom: 0.8rem;
+  }
+  .discussion-box p {
+    color: var(--gold-light);
+    font-size: 1.05rem;
+    font-style: italic;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .zones { grid-template-columns: 1fr; }
+    .header h1 { font-size: 1.4rem; }
+    .card { font-size: 0.8rem; }
+    .results-card { padding: 1.8rem; }
+    .score-big { font-size: 3rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<div class="header">
+  <div class="header-inner">
+    <h1>Topic or <span>Thesis</span>?</h1>
+    <div class="header-meta">
+      <span class="header-badge">Week 2 · Sorting Game</span>
+      <div class="timer-display" id="timer">0:00</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SCORE BAR ═══ -->
+<div class="score-bar">
+  <div class="score-info">
+    <div class="score-chip"><span class="dot dot-placed"></span> Sorted: <strong id="placedCount">0</strong>/12</div>
+    <div class="score-chip"><span class="dot dot-remaining"></span> Remaining: <strong id="remainingCount">12</strong></div>
+  </div>
+  <div class="btn-group">
+    <button class="btn btn-secondary" onclick="resetGame()">↻ Reset</button>
+    <button class="btn btn-secondary" onclick="shufflePool()">🔀 Shuffle</button>
+    <button class="btn btn-success" id="checkBtn" onclick="checkAnswers()" disabled>Check Answers ✓</button>
+  </div>
+</div>
+
+<!-- ═══ INSTRUCTIONS ═══ -->
+<div class="instructions" id="instructionsBox">
+  <div class="instructions-box">
+    <span class="icon">💡</span>
+    <div><strong>Drag each card</strong> into the column where you think it belongs: <strong style="color:var(--red)">Topic</strong> (just a subject), <strong style="color:var(--gold)">Weak Thesis</strong> (vague or obvious claim), or <strong style="color:var(--green)">Strong Thesis</strong> (specific, debatable, arguable). Sort all 12 cards, then click <strong>Check Answers</strong>!</div>
+  </div>
+</div>
+
+<!-- ═══ GAME AREA ═══ -->
+<div class="game-area">
+  <!-- Card Pool -->
+  <div class="card-pool">
+    <div class="pool-label">📋 Statement Cards — drag to sort</div>
+    <div class="pool-cards" id="cardPool"></div>
+  </div>
+
+  <!-- Drop Zones -->
+  <div class="zones">
+    <div class="drop-zone zone-topic">
+      <div class="zone-header">
+        <h3>🔴 Topic</h3>
+        <p>Just a subject — no claim</p>
+      </div>
+      <div class="zone-body" id="zone-topic" data-zone="topic">
+        <div class="placeholder">Drop topic cards here</div>
+      </div>
+    </div>
+    <div class="drop-zone zone-weak">
+      <div class="zone-header">
+        <h3>🟡 Weak Thesis</h3>
+        <p>A claim, but vague or obvious</p>
+      </div>
+      <div class="zone-body" id="zone-weak" data-zone="weak">
+        <div class="placeholder">Drop weak thesis cards here</div>
+      </div>
+    </div>
+    <div class="drop-zone zone-strong">
+      <div class="zone-header">
+        <h3>🟢 Strong Thesis</h3>
+        <p>Specific, debatable, arguable</p>
+      </div>
+      <div class="zone-body" id="zone-strong" data-zone="strong">
+        <div class="placeholder">Drop strong thesis cards here</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DISCUSSION SECTION ═══ -->
+<div class="discussion-section" id="discussionSection">
+  <div class="discussion-box">
+    <h3>💬 Class Discussion</h3>
+    <p>"What made the strong thesis statements different from the weak ones? What patterns did you notice?"</p>
+  </div>
+</div>
+
+<!-- ═══ RESULTS OVERLAY ═══ -->
+<div class="results-overlay" id="resultsOverlay">
+  <div class="results-card">
+    <div class="emoji" id="resultsEmoji">🏆</div>
+    <h2 id="resultsTitle">Nice Work!</h2>
+    <p class="subtitle" id="resultsSubtitle">Here's how you did</p>
+    <div class="score-label">Your Score</div>
+    <div class="score-big"><span id="scoreNum">0</span> <span>/ 12</span></div>
+    <p class="time-result" id="timeResult"></p>
+    <div class="results-actions">
+      <button class="btn btn-secondary" onclick="closeResults()">Review Answers</button>
+      <button class="btn btn-primary" onclick="closeResults(); resetGame();">Play Again</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══ CARD DATA ═══
+const CARDS = [
+  // TOPICS (4)
+  { id: 1,  text: "Social media",                                                          answer: "topic" },
+  { id: 2,  text: "Public transportation in São Paulo",                                     answer: "topic" },
+  { id: 3,  text: "Climate change and the environment",                                     answer: "topic" },
+  { id: 4,  text: "Remote work",                                                           answer: "topic" },
+
+  // WEAK THESIS (4)
+  { id: 5,  text: "Social media has both advantages and disadvantages.",                     answer: "weak" },
+  { id: 6,  text: "Everyone should exercise more often.",                                    answer: "weak" },
+  { id: 7,  text: "Remote work is good for some people and bad for others.",                 answer: "weak" },
+  { id: 8,  text: "Climate change is an important issue that affects us all.",               answer: "weak" },
+
+  // STRONG THESIS (4)
+  { id: 9,  text: "Social media reduces face-to-face communication skills in teenagers because it replaces in-person interaction with superficial online exchanges.", answer: "strong" },
+  { id: 10, text: "Remote work increases productivity for most professionals because it eliminates commuting and reduces workplace distractions.",                  answer: "strong" },
+  { id: 11, text: "Cities should invest in expanding public transit systems because reliable transportation reduces carbon emissions and increases access to employment.", answer: "strong" },
+  { id: 12, text: "Daily exercise improves academic focus for university students because physical activity increases blood flow to the brain and reduces stress hormones.", answer: "strong" },
+];
+
+const ANSWER_LABELS = {
+  topic: "Topic",
+  weak: "Weak Thesis",
+  strong: "Strong Thesis"
+};
+
+// ═══ STATE ═══
+let timerInterval = null;
+let seconds = 0;
+let gameChecked = false;
+let draggedCard = null;
+
+// ═══ INIT ═══
+function initGame() {
+  gameChecked = false;
+  seconds = 0;
+  clearInterval(timerInterval);
+  document.getElementById("timer").textContent = "0:00";
+  document.getElementById("timer").classList.remove("urgent");
+  document.getElementById("checkBtn").disabled = true;
+  document.getElementById("discussionSection").classList.remove("show");
+  document.getElementById("instructionsBox").style.display = "";
+
+  const pool = document.getElementById("cardPool");
+  pool.innerHTML = "";
+
+  // Shuffle cards
+  const shuffled = [...CARDS].sort(() => Math.random() - 0.5);
+
+  shuffled.forEach((card, i) => {
+    const el = createCardElement(card, i + 1);
+    pool.appendChild(el);
+  });
+
+  // Clear zones
+  ["topic", "weak", "strong"].forEach(z => {
+    const zone = document.getElementById(`zone-${z}`);
+    zone.innerHTML = '<div class="placeholder">Drop cards here</div>';
+  });
+
+  updateCounts();
+  startTimer();
+}
+
+function createCardElement(card, num) {
+  const el = document.createElement("div");
+  el.className = "card";
+  el.draggable = true;
+  el.dataset.id = card.id;
+  el.dataset.answer = card.answer;
+  el.innerHTML = `<span class="card-num">${num}</span>${card.text}<div class="correct-label"></div>`;
+
+  // Drag events
+  el.addEventListener("dragstart", onDragStart);
+  el.addEventListener("dragend", onDragEnd);
+
+  // Touch events for mobile
+  el.addEventListener("touchstart", onTouchStart, { passive: false });
+  el.addEventListener("touchmove", onTouchMove, { passive: false });
+  el.addEventListener("touchend", onTouchEnd);
+
+  return el;
+}
+
+// ═══ DRAG & DROP ═══
+function onDragStart(e) {
+  if (gameChecked) return e.preventDefault();
+  draggedCard = e.target.closest(".card");
+  draggedCard.classList.add("dragging");
+  e.dataTransfer.effectAllowed = "move";
+  e.dataTransfer.setData("text/plain", draggedCard.dataset.id);
+}
+
+function onDragEnd(e) {
+  if (draggedCard) draggedCard.classList.remove("dragging");
+  draggedCard = null;
+  document.querySelectorAll(".zone-body").forEach(z => z.classList.remove("drag-over"));
+}
+
+// Zone drag events
+document.addEventListener("DOMContentLoaded", () => {
+  const zones = document.querySelectorAll(".zone-body");
+  zones.forEach(zone => {
+    zone.addEventListener("dragover", e => {
+      if (gameChecked) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      zone.classList.add("drag-over");
+    });
+    zone.addEventListener("dragleave", () => zone.classList.remove("drag-over"));
+    zone.addEventListener("drop", e => {
+      e.preventDefault();
+      zone.classList.remove("drag-over");
+      if (gameChecked || !draggedCard) return;
+      // Remove placeholder
+      const ph = zone.querySelector(".placeholder");
+      if (ph) ph.remove();
+      zone.appendChild(draggedCard);
+      draggedCard.classList.remove("dragging");
+      draggedCard = null;
+      updateCounts();
+    });
+  });
+
+  // Allow dropping back to pool
+  const pool = document.getElementById("cardPool");
+  pool.addEventListener("dragover", e => {
+    if (gameChecked) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  });
+  pool.addEventListener("drop", e => {
+    e.preventDefault();
+    if (gameChecked || !draggedCard) return;
+    pool.appendChild(draggedCard);
+    draggedCard.classList.remove("dragging");
+    draggedCard = null;
+    updateCounts();
+    // Re-add placeholders to empty zones
+    restorePlaceholders();
+  });
+
+  initGame();
+});
+
+// ═══ TOUCH SUPPORT ═══
+let touchClone = null;
+let touchStartX, touchStartY;
+
+function onTouchStart(e) {
+  if (gameChecked) return;
+  const card = e.target.closest(".card");
+  if (!card) return;
+  draggedCard = card;
+  const touch = e.touches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+
+  // Create floating clone
+  touchClone = card.cloneNode(true);
+  touchClone.style.position = "fixed";
+  touchClone.style.width = card.offsetWidth + "px";
+  touchClone.style.zIndex = 9999;
+  touchClone.style.pointerEvents = "none";
+  touchClone.style.opacity = "0.9";
+  touchClone.style.transform = "rotate(2deg) scale(1.05)";
+  touchClone.style.boxShadow = "0 12px 40px rgba(0,0,0,0.25)";
+  touchClone.style.left = (touch.clientX - card.offsetWidth / 2) + "px";
+  touchClone.style.top = (touch.clientY - 30) + "px";
+  document.body.appendChild(touchClone);
+
+  card.style.opacity = "0.3";
+  e.preventDefault();
+}
+
+function onTouchMove(e) {
+  if (!touchClone) return;
+  const touch = e.touches[0];
+  touchClone.style.left = (touch.clientX - draggedCard.offsetWidth / 2) + "px";
+  touchClone.style.top = (touch.clientY - 30) + "px";
+
+  // Highlight zone under finger
+  document.querySelectorAll(".zone-body").forEach(z => z.classList.remove("drag-over"));
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (el) {
+    const zone = el.closest(".zone-body");
+    if (zone) zone.classList.add("drag-over");
+  }
+  e.preventDefault();
+}
+
+function onTouchEnd(e) {
+  if (!touchClone || !draggedCard) return;
+  const touch = e.changedTouches[0];
+  document.querySelectorAll(".zone-body").forEach(z => z.classList.remove("drag-over"));
+
+  if (touchClone.parentNode) touchClone.parentNode.removeChild(touchClone);
+  touchClone = null;
+  draggedCard.style.opacity = "1";
+
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (el) {
+    const zone = el.closest(".zone-body");
+    const pool = el.closest(".pool-cards") || el.closest(".card-pool");
+    if (zone && !gameChecked) {
+      const ph = zone.querySelector(".placeholder");
+      if (ph) ph.remove();
+      zone.appendChild(draggedCard);
+    } else if (pool) {
+      document.getElementById("cardPool").appendChild(draggedCard);
+      restorePlaceholders();
+    }
+  }
+  draggedCard = null;
+  updateCounts();
+}
+
+// ═══ HELPERS ═══
+function updateCounts() {
+  const poolCards = document.getElementById("cardPool").querySelectorAll(".card").length;
+  const placed = 12 - poolCards;
+  document.getElementById("placedCount").textContent = placed;
+  document.getElementById("remainingCount").textContent = poolCards;
+  document.getElementById("checkBtn").disabled = poolCards > 0;
+}
+
+function restorePlaceholders() {
+  ["topic", "weak", "strong"].forEach(z => {
+    const zone = document.getElementById(`zone-${z}`);
+    if (zone.querySelectorAll(".card").length === 0 && !zone.querySelector(".placeholder")) {
+      const ph = document.createElement("div");
+      ph.className = "placeholder";
+      ph.textContent = "Drop cards here";
+      zone.appendChild(ph);
+    }
+  });
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  seconds = 0;
+  timerInterval = setInterval(() => {
+    seconds++;
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    const timerEl = document.getElementById("timer");
+    timerEl.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+    if (seconds >= 80) timerEl.classList.add("urgent");
+  }, 1000);
+}
+
+function shufflePool() {
+  if (gameChecked) return;
+  const pool = document.getElementById("cardPool");
+  const cards = [...pool.querySelectorAll(".card")];
+  cards.sort(() => Math.random() - 0.5);
+  cards.forEach(c => pool.appendChild(c));
+}
+
+function resetGame() {
+  initGame();
+}
+
+// ═══ CHECK ANSWERS ═══
+function checkAnswers() {
+  clearInterval(timerInterval);
+  gameChecked = true;
+
+  let score = 0;
+  const allCards = document.querySelectorAll(".card");
+
+  allCards.forEach(card => {
+    card.draggable = false;
+    const zone = card.closest(".zone-body");
+    if (!zone) return;
+
+    const placedIn = zone.dataset.zone;
+    const correctAnswer = card.dataset.answer;
+
+    if (placedIn === correctAnswer) {
+      card.classList.add("correct");
+      score++;
+    } else {
+      card.classList.add("incorrect");
+      card.querySelector(".correct-label").textContent = `→ Correct: ${ANSWER_LABELS[correctAnswer]}`;
+    }
+  });
+
+  // Show results
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+
+  document.getElementById("scoreNum").textContent = score;
+  document.getElementById("timeResult").textContent = `Time: ${m}:${s.toString().padStart(2, '0')}`;
+
+  if (score === 12) {
+    document.getElementById("resultsEmoji").textContent = "🏆";
+    document.getElementById("resultsTitle").textContent = "Perfect Score!";
+    document.getElementById("resultsSubtitle").textContent = "You nailed every single one!";
+  } else if (score >= 9) {
+    document.getElementById("resultsEmoji").textContent = "🌟";
+    document.getElementById("resultsTitle").textContent = "Excellent!";
+    document.getElementById("resultsSubtitle").textContent = "You really understand the difference.";
+  } else if (score >= 6) {
+    document.getElementById("resultsEmoji").textContent = "👍";
+    document.getElementById("resultsTitle").textContent = "Good Effort!";
+    document.getElementById("resultsSubtitle").textContent = "Review the ones you missed — you're getting there.";
+  } else {
+    document.getElementById("resultsEmoji").textContent = "💪";
+    document.getElementById("resultsTitle").textContent = "Keep Practicing!";
+    document.getElementById("resultsSubtitle").textContent = "Check the corrections and try again.";
+  }
+
+  document.getElementById("resultsOverlay").classList.add("show");
+  document.getElementById("instructionsBox").style.display = "none";
+  document.getElementById("discussionSection").classList.add("show");
+}
+
+function closeResults() {
+  document.getElementById("resultsOverlay").classList.remove("show");
+}
+</script>
+
+</body>
+</html>
