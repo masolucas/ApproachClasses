@@ -306,8 +306,26 @@
     font-size: 13px;
     color: var(--ink);
     line-height: 1.55;
-    resize: vertical;
+    resize: none;
+    overflow: hidden;
     transition: border-color 0.15s ease, background 0.15s ease;
+  }
+
+  /* Mirror div — hidden on screen, swapped in for print so content flows naturally. */
+  .note-mirror {
+    display: none;
+    width: 100%;
+    min-height: 72px;
+    border: 1px solid var(--border);
+    background: var(--light-warm-white);
+    padding: 12px 14px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    box-sizing: border-box;
   }
 
   .note-field textarea:focus {
@@ -590,7 +608,11 @@
       margin-bottom: 3px;
     }
     .note-field textarea {
-      min-height: 38px;
+      display: none !important;
+    }
+    .note-field .note-mirror {
+      display: block !important;
+      min-height: 32px;
       padding: 6px 8px;
       font-size: 10px;
       line-height: 1.35;
@@ -786,8 +808,44 @@
 </div>
 
 <script>
+  // Auto-resize textareas on screen, and maintain a mirror <div> per textarea that
+  // is swapped in for print (textareas don't flow content reliably in print engines).
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }
+
+  function createMirror(textarea) {
+    const mirror = document.createElement('div');
+    mirror.className = 'note-mirror';
+    mirror.setAttribute('aria-hidden', 'true');
+    mirror.textContent = textarea.value;
+    textarea.insertAdjacentElement('afterend', mirror);
+    textarea._mirror = mirror;
+  }
+
+  function syncMirror(textarea) {
+    if (textarea._mirror) {
+      // Use textContent so newlines are preserved via white-space:pre-wrap.
+      textarea._mirror.textContent = textarea.value;
+    }
+  }
+
+  function initTextareas() {
+    document.querySelectorAll('textarea').forEach(el => {
+      el.style.resize = 'none';
+      el.style.overflow = 'hidden';
+      createMirror(el);
+      autoResize(el);
+      el.addEventListener('input', () => {
+        autoResize(el);
+        syncMirror(el);
+      });
+    });
+  }
+  document.addEventListener('DOMContentLoaded', initTextareas);
+
   // Mark empty date inputs so the print stylesheet can hide the mm/dd/yyyy hint.
-  // Using beforeprint/afterprint covers both the button and browser keyboard shortcuts.
   function markEmptyDates() {
     document.querySelectorAll('input[type="date"]').forEach(el => {
       if (!el.value) el.classList.add('is-empty');
@@ -799,14 +857,17 @@
       el.classList.remove('is-empty');
     });
   }
-  window.addEventListener('beforeprint', markEmptyDates);
+
+  // Before print: sync all mirrors (in case of programmatic value changes) + mark empty dates.
+  window.addEventListener('beforeprint', () => {
+    markEmptyDates();
+    document.querySelectorAll('textarea').forEach(syncMirror);
+  });
   window.addEventListener('afterprint', unmarkEmptyDates);
 
   function saveAsPDF() {
     // The browser's print dialog includes "Save as PDF" as a destination option
-    // on all major platforms (Chrome, Edge, Safari, Firefox on desktop; mobile browsers
-    // expose it via the share sheet).
-    markEmptyDates();
+    // on all major platforms. Mobile browsers expose it via the share sheet.
     window.print();
   }
 
@@ -814,6 +875,10 @@
     if (!confirm('Clear all fields? This cannot be undone.')) return;
     document.querySelectorAll('#formPage input, #formPage textarea').forEach(el => {
       el.value = '';
+      if (el.tagName === 'TEXTAREA') {
+        autoResize(el);
+        syncMirror(el);
+      }
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
