@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>QR Forge — Generate &amp; Download QR Codes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root {
+    --bg: #f4f1ea;
+    --ink: #1a1a1a;
+    --paper: #fdfcf8;
+    --accent: #ff5b35;
+    --muted: #6b6657;
+    --line: #1a1a1a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: 'Fraunces', Georgia, serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 32px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(255, 91, 53, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(26, 26, 26, 0.04) 0%, transparent 40%);
+  }
+
+  .frame {
+    width: 100%;
+    max-width: 720px;
+  }
+
+  header {
+    border-bottom: 2px solid var(--line);
+    padding-bottom: 16px;
+    margin-bottom: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  header .dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: clamp(48px, 9vw, 96px);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
+  }
+
+  h1 em {
+    font-style: italic;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  .subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 40px;
+    letter-spacing: 0.02em;
+  }
+
+  .card {
+    background: var(--paper);
+    border: 2px solid var(--line);
+    padding: 32px;
+    box-shadow: 8px 8px 0 var(--line);
+    margin-bottom: 32px;
+  }
+
+  label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 14px;
+    border: 1.5px solid var(--line);
+    background: var(--bg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--ink);
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(255, 91, 53, 0.15);
+  }
+
+  .controls {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 14px 24px;
+    border: 1.5px solid var(--line);
+    background: var(--ink);
+    color: var(--paper);
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+
+  button:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 var(--accent);
+  }
+
+  button:active {
+    transform: translate(0, 0);
+    box-shadow: none;
+  }
+
+  button.secondary {
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .output {
+    text-align: center;
+    padding: 40px 32px;
+  }
+
+  .output.empty {
+    color: var(--muted);
+    font-style: italic;
+    font-size: 16px;
+  }
+
+  #qrcode {
+    display: inline-block;
+    padding: 20px;
+    background: white;
+    border: 1.5px solid var(--line);
+  }
+
+  #qrcode img, #qrcode canvas {
+    display: block;
+  }
+
+  .meta {
+    margin-top: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  footer {
+    margin-top: auto;
+    padding-top: 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-align: center;
+    width: 100%;
+    max-width: 720px;
+  }
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <header>
+    <span><span class="dot"></span>QR FORGE / V1</span>
+    <span>EST. 2026</span>
+  </header>
+
+  <h1>Make a <em>QR</em>.<br>Save the <em>PNG</em>.</h1>
+  <p class="subtitle">// Paste any text or URL below. Generate. Download.</p>
+
+  <div class="card">
+    <label for="text">Input</label>
+    <textarea id="text" placeholder="https://example.com  —  or any text you'd like to encode..."></textarea>
+    <div class="controls">
+      <button id="generate">Generate</button>
+      <button id="download" class="secondary" disabled>Download PNG</button>
+      <button id="clear" class="secondary">Clear</button>
+    </div>
+  </div>
+
+  <div class="card output empty" id="output">
+    <div id="placeholder">Your QR code will appear here</div>
+    <div id="qrcode" style="display:none;"></div>
+    <div class="meta" id="meta" style="display:none;"></div>
+  </div>
+</div>
+
+<footer>Single-file · Client-side · No data leaves your browser</footer>
+
+<script>
+  const textInput = document.getElementById('text');
+  const generateBtn = document.getElementById('generate');
+  const downloadBtn = document.getElementById('download');
+  const clearBtn = document.getElementById('clear');
+  const output = document.getElementById('output');
+  const placeholder = document.getElementById('placeholder');
+  const qrcodeDiv = document.getElementById('qrcode');
+  const meta = document.getElementById('meta');
+
+  let qrInstance = null;
+
+  function generate() {
+    const text = textInput.value.trim();
+    if (!text) {
+      textInput.focus();
+      return;
+    }
+
+    qrcodeDiv.innerHTML = '';
+    qrInstance = new QRCode(qrcodeDiv, {
+      text: text,
+      width: 280,
+      height: 280,
+      colorDark: '#1a1a1a',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+
+    placeholder.style.display = 'none';
+    qrcodeDiv.style.display = 'inline-block';
+    output.classList.remove('empty');
+    downloadBtn.disabled = false;
+
+    meta.style.display = 'block';
+    meta.textContent = `// ${text.length} characters encoded`;
+  }
+
+  function download() {
+    const canvas = qrcodeDiv.querySelector('canvas');
+    const img = qrcodeDiv.querySelector('img');
+    let dataUrl;
+
+    if (canvas) {
+      dataUrl = canvas.toDataURL('image/png');
+    } else if (img) {
+      dataUrl = img.src;
+    } else {
+      return;
+    }
+
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = 'qrcode.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function clearAll() {
+    textInput.value = '';
+    qrcodeDiv.innerHTML = '';
+    qrcodeDiv.style.display = 'none';
+    placeholder.style.display = 'block';
+    output.classList.add('empty');
+    meta.style.display = 'none';
+    downloadBtn.disabled = true;
+    textInput.focus();
+  }
+
+  generateBtn.addEventListener('click', generate);
+  downloadBtn.addEventListener('click', download);
+  clearBtn.addEventListener('click', clearAll);
+
+  textInput.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      generate();
+    }
+  });
+</script>
+
+</body>
+</html>
