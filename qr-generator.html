@@ -3,323 +3,168 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>QR Forge — Generate &amp; Download QR Codes</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>QR Code Generator</title>
+
+<!-- Tailwind CSS (required by Preline UI) -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Preline UI CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/preline@2.4.1/dist/preline.min.css" />
+
+<!-- QR code library -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<style>
-  :root {
-    --bg: #f4f1ea;
-    --ink: #1a1a1a;
-    --paper: #fdfcf8;
-    --accent: #ff5b35;
-    --muted: #6b6657;
-    --line: #1a1a1a;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html, body { height: 100%; }
-
-  body {
-    font-family: 'Fraunces', Georgia, serif;
-    background: var(--bg);
-    color: var(--ink);
-    min-height: 100vh;
-    padding: 32px 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background-image:
-      radial-gradient(circle at 20% 10%, rgba(255, 91, 53, 0.08) 0%, transparent 40%),
-      radial-gradient(circle at 80% 90%, rgba(26, 26, 26, 0.04) 0%, transparent 40%);
-  }
-
-  .frame {
-    width: 100%;
-    max-width: 720px;
-  }
-
-  header {
-    border-bottom: 2px solid var(--line);
-    padding-bottom: 16px;
-    margin-bottom: 40px;
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  header .dot {
-    display: inline-block;
-    width: 8px; height: 8px;
-    background: var(--accent);
-    border-radius: 50%;
-    margin-right: 6px;
-    vertical-align: middle;
-  }
-
-  h1 {
-    font-family: 'Fraunces', serif;
-    font-weight: 300;
-    font-size: clamp(48px, 9vw, 96px);
-    line-height: 0.95;
-    letter-spacing: -0.03em;
-    margin-bottom: 8px;
-  }
-
-  h1 em {
-    font-style: italic;
-    font-weight: 500;
-    color: var(--accent);
-  }
-
-  .subtitle {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    color: var(--muted);
-    margin-bottom: 40px;
-    letter-spacing: 0.02em;
-  }
-
-  .card {
-    background: var(--paper);
-    border: 2px solid var(--line);
-    padding: 32px;
-    box-shadow: 8px 8px 0 var(--line);
-    margin-bottom: 32px;
-  }
-
-  label {
-    display: block;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 10px;
-  }
-
-  textarea {
-    width: 100%;
-    min-height: 120px;
-    padding: 14px;
-    border: 1.5px solid var(--line);
-    background: var(--bg);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
-    color: var(--ink);
-    resize: vertical;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-
-  textarea:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(255, 91, 53, 0.15);
-  }
-
-  .controls {
-    display: flex;
-    gap: 12px;
-    margin-top: 20px;
-    flex-wrap: wrap;
-  }
-
-  button {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 14px 24px;
-    border: 1.5px solid var(--line);
-    background: var(--ink);
-    color: var(--paper);
-    cursor: pointer;
-    transition: transform 0.1s, box-shadow 0.1s;
-  }
-
-  button:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 4px 4px 0 var(--accent);
-  }
-
-  button:active {
-    transform: translate(0, 0);
-    box-shadow: none;
-  }
-
-  button.secondary {
-    background: var(--paper);
-    color: var(--ink);
-  }
-
-  button:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-  }
-
-  .output {
-    text-align: center;
-    padding: 40px 32px;
-  }
-
-  .output.empty {
-    color: var(--muted);
-    font-style: italic;
-    font-size: 16px;
-  }
-
-  #qrcode {
-    display: inline-block;
-    padding: 20px;
-    background: white;
-    border: 1.5px solid var(--line);
-  }
-
-  #qrcode img, #qrcode canvas {
-    display: block;
-  }
-
-  .meta {
-    margin-top: 20px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 0.05em;
-  }
-
-  footer {
-    margin-top: auto;
-    padding-top: 32px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    text-align: center;
-    width: 100%;
-    max-width: 720px;
-  }
-</style>
 </head>
-<body>
+<body class="bg-gray-50 dark:bg-neutral-900 min-h-screen">
 
-<div class="frame">
-  <header>
-    <span><span class="dot"></span>QR FORGE / V1</span>
-    <span>EST. 2026</span>
-  </header>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
 
-  <h1>Make a <em>QR</em>.<br>Save the <em>PNG</em>.</h1>
-  <p class="subtitle">// Paste any text or URL below. Generate. Download.</p>
-
-  <div class="card">
-    <label for="text">Input</label>
-    <textarea id="text" placeholder="https://example.com  —  or any text you'd like to encode..."></textarea>
-    <div class="controls">
-      <button id="generate">Generate</button>
-      <button id="download" class="secondary" disabled>Download PNG</button>
-      <button id="clear" class="secondary">Clear</button>
+    <!-- Header -->
+    <div class="mb-8 text-center">
+      <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 dark:text-neutral-200">
+        QR Code Generator
+      </h1>
+      <p class="mt-2 text-sm text-gray-600 dark:text-neutral-400">
+        Type any text or URL, then download the result as a PNG.
+      </p>
     </div>
+
+    <!-- Card -->
+    <div class="bg-white border border-gray-200 rounded-xl shadow-2xs dark:bg-neutral-800 dark:border-neutral-700">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 sm:p-8">
+
+        <!-- Left: Input -->
+        <div class="flex flex-col">
+          <label for="qr-text" class="block text-sm font-medium mb-2 text-gray-800 dark:text-white">
+            Your text or URL
+          </label>
+
+          <textarea
+            id="qr-text"
+            class="py-3 px-4 block w-full grow border border-gray-200 rounded-lg sm:text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 resize-none"
+            rows="8"
+            placeholder="https://example.com"
+          ></textarea>
+
+          <div class="mt-4 flex flex-wrap gap-2">
+            <button
+              id="generate-btn"
+              type="button"
+              class="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-hidden focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
+            >
+              <svg class="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+              Generate
+            </button>
+
+            <button
+              id="clear-btn"
+              type="button"
+              class="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-2xs hover:bg-gray-50 focus:outline-hidden focus:bg-gray-50 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-700"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Output -->
+        <div class="flex flex-col items-center justify-center bg-gray-50 dark:bg-neutral-900 border border-dashed border-gray-200 dark:border-neutral-700 rounded-lg p-6 min-h-[320px]">
+
+          <!-- Placeholder -->
+          <div id="placeholder" class="text-center">
+            <svg class="mx-auto size-12 text-gray-300 dark:text-neutral-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+            <p class="mt-3 text-sm text-gray-500 dark:text-neutral-400">
+              Your QR code will appear here
+            </p>
+          </div>
+
+          <!-- QR display -->
+          <div id="qr-wrapper" class="hidden flex-col items-center gap-4">
+            <div id="qrcode" class="p-3 bg-white rounded-lg"></div>
+            <button
+              id="download-btn"
+              type="button"
+              class="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-gray-800 text-white hover:bg-gray-900 focus:outline-hidden focus:bg-gray-900 dark:bg-white dark:text-neutral-800 dark:hover:bg-neutral-200"
+            >
+              <svg class="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+              Download PNG
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <p class="mt-6 text-center text-xs text-gray-500 dark:text-neutral-500">
+      Runs entirely in your browser — nothing is uploaded.
+    </p>
+
   </div>
 
-  <div class="card output empty" id="output">
-    <div id="placeholder">Your QR code will appear here</div>
-    <div id="qrcode" style="display:none;"></div>
-    <div class="meta" id="meta" style="display:none;"></div>
-  </div>
-</div>
+  <!-- Preline UI JS -->
+  <script src="https://cdn.jsdelivr.net/npm/preline@2.4.1/dist/preline.min.js"></script>
 
-<footer>Single-file · Client-side · No data leaves your browser</footer>
+  <script>
+    const textInput = document.getElementById('qr-text');
+    const generateBtn = document.getElementById('generate-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const downloadBtn = document.getElementById('download-btn');
+    const placeholder = document.getElementById('placeholder');
+    const qrWrapper = document.getElementById('qr-wrapper');
+    const qrcodeDiv = document.getElementById('qrcode');
 
-<script>
-  const textInput = document.getElementById('text');
-  const generateBtn = document.getElementById('generate');
-  const downloadBtn = document.getElementById('download');
-  const clearBtn = document.getElementById('clear');
-  const output = document.getElementById('output');
-  const placeholder = document.getElementById('placeholder');
-  const qrcodeDiv = document.getElementById('qrcode');
-  const meta = document.getElementById('meta');
+    function generate() {
+      const text = textInput.value.trim();
+      if (!text) {
+        textInput.focus();
+        return;
+      }
 
-  let qrInstance = null;
+      qrcodeDiv.innerHTML = '';
+      new QRCode(qrcodeDiv, {
+        text: text,
+        width: 240,
+        height: 240,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
 
-  function generate() {
-    const text = textInput.value.trim();
-    if (!text) {
+      placeholder.classList.add('hidden');
+      qrWrapper.classList.remove('hidden');
+      qrWrapper.classList.add('flex');
+    }
+
+    function download() {
+      const canvas = qrcodeDiv.querySelector('canvas');
+      const img = qrcodeDiv.querySelector('img');
+      const dataUrl = canvas ? canvas.toDataURL('image/png') : (img ? img.src : null);
+      if (!dataUrl) return;
+
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = 'qrcode.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function clearAll() {
+      textInput.value = '';
+      qrcodeDiv.innerHTML = '';
+      qrWrapper.classList.add('hidden');
+      qrWrapper.classList.remove('flex');
+      placeholder.classList.remove('hidden');
       textInput.focus();
-      return;
     }
 
-    qrcodeDiv.innerHTML = '';
-    qrInstance = new QRCode(qrcodeDiv, {
-      text: text,
-      width: 280,
-      height: 280,
-      colorDark: '#1a1a1a',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.H
+    generateBtn.addEventListener('click', generate);
+    downloadBtn.addEventListener('click', download);
+    clearBtn.addEventListener('click', clearAll);
+
+    textInput.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') generate();
     });
-
-    placeholder.style.display = 'none';
-    qrcodeDiv.style.display = 'inline-block';
-    output.classList.remove('empty');
-    downloadBtn.disabled = false;
-
-    meta.style.display = 'block';
-    meta.textContent = `// ${text.length} characters encoded`;
-  }
-
-  function download() {
-    const canvas = qrcodeDiv.querySelector('canvas');
-    const img = qrcodeDiv.querySelector('img');
-    let dataUrl;
-
-    if (canvas) {
-      dataUrl = canvas.toDataURL('image/png');
-    } else if (img) {
-      dataUrl = img.src;
-    } else {
-      return;
-    }
-
-    const link = document.createElement('a');
-    link.href = dataUrl;
-    link.download = 'qrcode.png';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  function clearAll() {
-    textInput.value = '';
-    qrcodeDiv.innerHTML = '';
-    qrcodeDiv.style.display = 'none';
-    placeholder.style.display = 'block';
-    output.classList.add('empty');
-    meta.style.display = 'none';
-    downloadBtn.disabled = true;
-    textInput.focus();
-  }
-
-  generateBtn.addEventListener('click', generate);
-  downloadBtn.addEventListener('click', download);
-  clearBtn.addEventListener('click', clearAll);
-
-  textInput.addEventListener('keydown', (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-      generate();
-    }
-  });
-</script>
+  </script>
 
 </body>
 </html>
