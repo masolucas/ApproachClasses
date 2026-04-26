@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz 1 — Grammar in Context Week 2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #0C2340;
+    --gold: #AE9142;
+    --lgold: #D4B97A;
+    --cream: #F8F5EF;
+    --white: #ffffff;
+    --bg: #F3F4F6;
+    --surface: #ffffff;
+    --surface2: #F9FAFB;
+    --text-primary: #111827;
+    --text-secondary: #6B7280;
+    --text-tertiary: #9CA3AF;
+    --border: rgba(0,0,0,0.1);
+    --border-strong: rgba(0,0,0,0.18);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --green: #1A5C1A;
+    --green-bg: #EAF3DE;
+    --green-text: #1A4007;
+    --red: #8B1A1A;
+    --red-bg: #FCEBEB;
+    --red-text: #501313;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111827;
+      --surface: #1F2937;
+      --surface2: #374151;
+      --text-primary: #F9FAFB;
+      --text-secondary: #9CA3AF;
+      --text-tertiary: #6B7280;
+      --border: rgba(255,255,255,0.1);
+      --border-strong: rgba(255,255,255,0.2);
+      --green-bg: #1F3A12;
+      --green-text: #C0DD97;
+      --red-bg: #3D0E0E;
+      --red-text: #F7C1C1;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem 1rem 3rem;
+    line-height: 1.5;
+  }
+
+  #quiz-root {
+    width: 100%;
+    max-width: 720px;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--navy);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem 1.1rem;
+    margin-bottom: 1rem;
+    border-bottom: 3px solid var(--gold);
+  }
+  .header-label {
+    font-size: 10px; font-weight: 600; color: var(--lgold);
+    letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px;
+  }
+  .header-title { font-size: 22px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+  .header-sub { font-size: 13px; color: var(--lgold); }
+
+  /* INSTRUCTIONS BANNER */
+  .instructions {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-left: 4px solid var(--gold);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .instructions h3 {
+    font-size: 13px; font-weight: 600; color: var(--text-primary);
+    margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.8px;
+  }
+  .instructions ul { padding-left: 1.2rem; font-size: 14px; color: var(--text-secondary); }
+  .instructions li { margin-bottom: 4px; }
+
+  /* PROGRESS BAR */
+  .progress-row {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 1.25rem;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .progress-bar-wrap {
+    flex: 1;
+    background: var(--surface);
+    border-radius: 999px;
+    height: 6px;
+    overflow: hidden;
+    border: 0.5px solid var(--border);
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--gold);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+  }
+  .progress-text { font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+
+  /* NAME INPUT */
+  .name-block {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .name-block label {
+    font-size: 13px; font-weight: 600; color: var(--text-primary);
+    flex-shrink: 0;
+  }
+  .name-block input {
+    flex: 1;
+    min-width: 180px;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: inherit;
+  }
+  .name-block input:focus {
+    outline: 2px solid var(--gold);
+    outline-offset: 1px;
+  }
+
+  /* QUESTION CARD */
+  .question {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1.25rem 1rem;
+    margin-bottom: 0.85rem;
+  }
+  .question-num {
+    font-size: 11px; font-weight: 600; color: var(--gold);
+    letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 6px;
+  }
+  .question-text {
+    font-size: 16px; font-weight: 500; color: var(--text-primary);
+    margin-bottom: 0.85rem; line-height: 1.55;
+  }
+  .question-context {
+    font-size: 12px; color: var(--text-tertiary);
+    font-style: italic; margin-top: 4px;
+  }
+
+  /* MC OPTIONS */
+  .options { display: flex; flex-direction: column; gap: 6px; }
+  .option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 0.65rem 0.85rem;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-primary);
+    line-height: 1.45;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .option:hover:not(.locked) { background: var(--surface2); border-color: var(--border-strong); }
+  .option input[type="radio"] {
+    margin: 2px 0 0 0;
+    accent-color: var(--gold);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .option.selected { border-color: var(--gold); background: var(--cream); }
+  .option.locked { cursor: default; }
+  .option.correct-option { background: var(--green-bg); border-color: var(--green); color: var(--green-text); }
+  .option.incorrect-option { background: var(--red-bg); border-color: var(--red); color: var(--red-text); }
+  .option-letter {
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 18px;
+    flex-shrink: 0;
+  }
+  .option.correct-option .option-letter { color: var(--green); }
+  .option.incorrect-option .option-letter { color: var(--red); }
+
+  /* GAP FILL INPUT */
+  .gap-fill {
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .gap-fill input[type="text"] {
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    background: var(--surface);
+    color: var(--text-primary);
+    font-family: inherit;
+  }
+  .gap-fill input[type="text"]:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 2px rgba(174, 145, 66, 0.15);
+  }
+  .gap-fill input[type="text"]:disabled { cursor: default; }
+  .gap-fill input.correct-input {
+    background: var(--green-bg); border-color: var(--green); color: var(--green-text); font-weight: 600;
+  }
+  .gap-fill input.incorrect-input {
+    background: var(--red-bg); border-color: var(--red); color: var(--red-text);
+    text-decoration: line-through;
+  }
+  .correct-answer-shown {
+    font-size: 13px;
+    color: var(--green-text);
+    font-weight: 600;
+    padding: 6px 0 0;
+  }
+  .accept-list { font-size: 12px; color: var(--text-tertiary); font-style: italic; }
+
+  /* FEEDBACK */
+  .feedback {
+    margin-top: 0.85rem;
+    padding: 0.7rem 0.9rem;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    line-height: 1.55;
+    border: 0.5px solid var(--border);
+    display: none;
+  }
+  .feedback.shown { display: block; }
+  .feedback.correct { background: var(--green-bg); color: var(--green-text); border-color: var(--green); }
+  .feedback.incorrect { background: var(--red-bg); color: var(--red-text); border-color: var(--red); }
+  .feedback-label { font-weight: 700; margin-bottom: 2px; }
+
+  /* SUBMIT BUTTON */
+  .submit-row {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .submit-btn {
+    width: 100%;
+    padding: 0.95rem 1rem;
+    background: var(--navy);
+    color: #fff;
+    border: 2px solid var(--gold);
+    border-radius: var(--radius-md);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .submit-btn:hover:not(:disabled) { opacity: 0.9; }
+  .submit-btn:active:not(:disabled) { transform: scale(0.99); }
+  .submit-btn:disabled {
+    background: var(--text-tertiary); border-color: var(--text-tertiary);
+    cursor: not-allowed;
+  }
+  .submit-warning {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: center;
+  }
+
+  /* RESULTS */
+  .results { display: none; }
+  .results.shown { display: block; }
+  .results-header {
+    background: var(--navy);
+    border-radius: var(--radius-lg);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    border-bottom: 3px solid var(--gold);
+  }
+  .results-trophy { font-size: 52px; margin-bottom: 0.5rem; color: var(--gold); }
+  .results-title { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 0.5rem; }
+  .results-score-big { font-size: 58px; font-weight: 700; color: var(--gold); line-height: 1; }
+  .results-score-label { font-size: 14px; color: var(--lgold); margin-bottom: 0.5rem; }
+  .results-percent {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--navy);
+    padding: 4px 14px;
+    border-radius: var(--radius-md);
+    font-size: 13px; font-weight: 700;
+    margin-bottom: 1rem;
+  }
+  .results-grade {
+    font-size: 20px; font-weight: 700; color: var(--gold); margin-bottom: 0.75rem;
+  }
+  .results-sub {
+    font-size: 14px; color: var(--lgold);
+    line-height: 1.6; max-width: 480px; margin: 0 auto;
+  }
+
+  .results-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 1.25rem;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px 8px;
+    text-align: center;
+  }
+  .stat-card-label {
+    font-size: 10px; color: var(--text-secondary);
+    margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.8px;
+  }
+  .stat-card-val { font-size: 24px; font-weight: 700; color: var(--text-primary); }
+  .stat-card-val.gold { color: var(--gold); }
+
+  .breakdown-title {
+    font-size: 11px; font-weight: 600; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .restart-btn, .review-btn {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+    transition: opacity 0.15s;
+  }
+  .restart-btn {
+    background: var(--navy);
+    color: #fff;
+    border: 2px solid var(--gold);
+  }
+  .review-btn {
+    background: var(--surface);
+    color: var(--text-primary);
+    border: 1.5px solid var(--border-strong);
+  }
+  .restart-btn:hover, .review-btn:hover { opacity: 0.85; }
+
+  /* AUTO-SUBMIT STATUS BLOCK */
+  .submit-status-block {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-lg);
+    margin-bottom: 1rem;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .submit-status-block.pending { background: var(--surface); border-color: var(--border-strong); }
+  .submit-status-block.success { background: var(--green-bg); border-color: var(--green); }
+  .submit-status-block.failed  { background: var(--red-bg);   border-color: var(--red); }
+  .submit-status-icon {
+    font-size: 28px;
+    flex-shrink: 0;
+    width: 40px;
+    text-align: center;
+  }
+  .submit-status-block.pending .submit-status-icon {
+    animation: spin 1.2s linear infinite;
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  .submit-status-text { flex: 1; min-width: 0; }
+  .submit-status-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 2px;
+    color: var(--text-primary);
+  }
+  .submit-status-block.success .submit-status-title { color: var(--green-text); }
+  .submit-status-block.failed  .submit-status-title { color: var(--red-text); }
+  .submit-status-sub {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  .submit-status-block.success .submit-status-sub { color: var(--green-text); opacity: 0.85; }
+  .submit-status-block.failed  .submit-status-sub { color: var(--red-text); opacity: 0.85; }
+
+  /* COLLAPSIBLE BACKUP CODE */
+  .result-code-details { margin-bottom: 1rem; }
+  .result-code-summary {
+    cursor: pointer;
+    padding: 0.6rem 0.85rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    color: var(--text-secondary);
+    list-style: none;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .result-code-summary:hover { background: var(--surface2); }
+  .result-code-summary::-webkit-details-marker { display: none; }
+  .result-code-details[open] .result-code-summary {
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    border-bottom: none;
+  }
+  .result-code-details[open] .result-code-block {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    margin-bottom: 0;
+    border-top-color: var(--border);
+  }
+
+  /* RESULT CODE BLOCK */
+  .result-code-block {
+    background: var(--surface);
+    border: 2px solid var(--gold);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .result-code-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .result-code-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .result-code-row input {
+    flex: 1;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11px;
+    background: var(--bg);
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .copy-btn {
+    padding: 0.6rem 1rem;
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .copy-btn:hover { opacity: 0.88; }
+  .copy-btn.copied { background: #1A5C1A; }
+  .result-code-hint {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+
+  /* FOOTER */
+  .footer {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+  }
+
+  @media (max-width: 480px) {
+    .stat-card-val { font-size: 20px; }
+    .results-score-big { font-size: 44px; }
+    .question-text { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="quiz-root">
+
+  <!-- QUIZ SCREEN -->
+  <div id="quiz-screen">
+    <div class="header">
+      <div class="header-label">Grammar in Context · Week 2</div>
+      <div class="header-title">Quiz 1 — Week 1 Review</div>
+      <div class="header-sub">Present tenses · Stative verbs · Present perfect simple</div>
+    </div>
+
+    <div class="instructions">
+      <h3>Instructions</h3>
+      <ul>
+        <li>Answer all 15 questions. The quiz is worth 15 points (1 pt per question).</li>
+        <li>Read each question carefully — for gap-fill items, write only the missing word(s).</li>
+        <li>Spelling counts! Capitalization does not.</li>
+        <li>You'll see your score and detailed feedback at the end.</li>
+      </ul>
+    </div>
+
+    <div class="name-block">
+      <label for="student-name">Your name:</label>
+      <input type="text" id="student-name" placeholder="Type your name to begin..." />
+    </div>
+
+    <div class="progress-row">
+      <span class="progress-text" id="progress-text">0 / 15 answered</span>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div id="questions-container"></div>
+
+    <div class="submit-row">
+      <button class="submit-btn" id="submit-btn" onclick="submitQuiz()" disabled>
+        Submit quiz →
+      </button>
+      <div class="submit-warning" id="submit-warning">Answer all questions to submit.</div>
+    </div>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div class="results" id="results-screen">
+    <div class="results-header">
+      <div class="results-trophy" id="trophy-icon">★</div>
+      <div class="results-title" id="results-title">Quiz complete!</div>
+      <div class="results-score-big" id="results-score">0</div>
+      <div class="results-score-label">out of 15 points</div>
+      <div class="results-percent" id="results-percent">0%</div>
+      <div class="results-grade" id="results-grade">—</div>
+      <div class="results-sub" id="results-sub"></div>
+    </div>
+
+    <div class="results-stats">
+      <div class="stat-card">
+        <div class="stat-card-label">Correct</div>
+        <div class="stat-card-val gold" id="stat-correct">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Wrong</div>
+        <div class="stat-card-val" id="stat-wrong">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Score</div>
+        <div class="stat-card-val" id="stat-percent">0%</div>
+      </div>
+    </div>
+
+    <!-- AUTO-SUBMIT STATUS BLOCK -->
+    <div class="submit-status-block" id="submit-status-block">
+      <div class="submit-status-icon" id="submit-status-icon">⏳</div>
+      <div class="submit-status-text">
+        <div class="submit-status-title" id="submit-status-title">Submitting your results...</div>
+        <div class="submit-status-sub" id="submit-status-sub">Please wait a moment.</div>
+      </div>
+    </div>
+
+    <!-- RESULT CODE BLOCK — fallback for teacher dashboard -->
+    <details class="result-code-details" id="result-code-details">
+      <summary class="result-code-summary">
+        <span>📋  Submission failed? Click here for a backup code</span>
+      </summary>
+      <div class="result-code-block">
+        <div class="result-code-label">Your backup result code:</div>
+        <div class="result-code-row">
+          <input type="text" id="result-code-input" readonly value="" />
+          <button class="copy-btn" id="copy-btn" onclick="copyCode()">Copy</button>
+        </div>
+        <div class="result-code-hint">Only use this if your auto-submission failed. Your teacher can paste it into the class dashboard.</div>
+      </div>
+    </details>
+
+    <button class="review-btn" onclick="toggleReview()" id="review-btn">
+      ▼ &nbsp;Show detailed review
+    </button>
+    <button class="restart-btn" onclick="restartQuiz()">↺ &nbsp;Try again</button>
+
+    <div id="review-section" style="display: none;">
+      <div class="breakdown-title">Question-by-question review</div>
+      <div id="review-list"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Grammar in Context — Independent Level &nbsp;·&nbsp; Week 1 Review &nbsp;·&nbsp;
+    Approach International Student Center®
+  </div>
+
+</div>
+
+<script>
+const questions = [
+  // ===== PRESENT SIMPLE vs CONTINUOUS (3 items) =====
+  {
+    type: "mc",
+    text: "Maria ____________ at a hospital downtown. She starts her shift at 7 am every day.",
+    options: ["work", "is working", "works", "are working"],
+    correct: 2,
+    fb: "'Works' is correct. Habits and routines (every day) take Present Simple."
+  },
+  {
+    type: "mc",
+    text: "Look! The children ____________ in the park right now.",
+    options: ["play", "plays", "are playing", "is playing"],
+    correct: 2,
+    fb: "'Are playing' is correct. The signal 'right now' indicates an action in progress, so we use Present Continuous."
+  },
+  {
+    type: "gap",
+    text: "Right now, Carlos ____________ (study) for his English exam.",
+    accept: ["is studying", "'s studying", "is studyng"], // typo tolerance
+    canonical: "is studying",
+    fb: "Use Present Continuous (is studying) for an action happening now."
+  },
+
+  // ===== STATIVE VERBS (3 items) =====
+  {
+    type: "mc",
+    text: "Choose the CORRECT sentence:",
+    options: [
+      "I am knowing the answer to this question.",
+      "I know the answer to this question.",
+      "I'm knowing the answer to this question.",
+      "I knowing the answer to this question."
+    ],
+    correct: 1,
+    fb: "'Know' is a stative verb — it describes a mental state, not an action. Stative verbs don't take continuous form."
+  },
+  {
+    type: "mc",
+    text: "Which sentence contains an ERROR?",
+    options: [
+      "She wants a new bicycle.",
+      "He understands the lesson.",
+      "They are loving this movie.",
+      "I believe you are right."
+    ],
+    correct: 2,
+    fb: "'Are loving' is incorrect. 'Love' is a stative verb (an emotion) and doesn't normally take continuous form. Correct: 'They love this movie.'"
+  },
+  {
+    type: "gap",
+    text: "He ____________ (not / understand) the assignment. Can you help him?",
+    accept: ["doesn't understand", "does not understand"],
+    canonical: "doesn't understand",
+    fb: "'Understand' is stative — use Present Simple, not continuous."
+  },
+
+  // ===== PRESENT PERFECT SIMPLE — Form (3 items) =====
+  {
+    type: "mc",
+    text: "I ____________ that movie three times.",
+    options: ["have seen", "has seen", "have saw", "am seeing"],
+    correct: 0,
+    fb: "'Have seen' is correct. Present perfect = have/has + past participle. The past participle of 'see' is 'seen'."
+  },
+  {
+    type: "gap",
+    text: "She ____________ (live) in Boston for five years. (Use present perfect)",
+    accept: ["has lived", "'s lived"],
+    canonical: "has lived",
+    fb: "Present perfect with 'for' connects a past starting point to the present: 'has lived'."
+  },
+  {
+    type: "gap",
+    text: "We ____________ (not / finish) the project. (Use present perfect)",
+    accept: ["have not finished", "haven't finished"],
+    canonical: "haven't finished",
+    fb: "Negative form: have/has + not + past participle. Both 'have not finished' and 'haven't finished' are accepted."
+  },
+
+  // ===== ADVERBS (just / already / yet / ever / never) — 3 items =====
+  {
+    type: "mc",
+    text: "____________ you ____________ tried Brazilian food? It's delicious!",
+    options: [
+      "Did / ever",
+      "Have / ever",
+      "Are / ever",
+      "Have / never"
+    ],
+    correct: 1,
+    fb: "'Have you ever tried...?' is the correct form for asking about a life experience using present perfect + 'ever'."
+  },
+  {
+    type: "mc",
+    text: "I've ____________ finished my homework, so I can watch TV now.",
+    options: ["yet", "ever", "just", "never"],
+    correct: 2,
+    fb: "'Just' means 'very recently' — it fits the context of finishing something a moment ago. 'Already' would also work."
+  },
+  {
+    type: "gap",
+    text: "Have you eaten ____________? It's almost 2 pm! (Use the adverb that means 'expected, but I'm checking')",
+    accept: ["yet"],
+    canonical: "yet",
+    fb: "'Yet' is used in questions and negatives to ask about an expected but possibly not-completed action."
+  },
+
+  // ===== PPS vs SIMPLE PAST (3 items) =====
+  {
+    type: "mc",
+    text: "Which sentence is CORRECT?",
+    options: [
+      "I have seen him yesterday.",
+      "I saw him yesterday.",
+      "I am seeing him yesterday.",
+      "I have been seeing him yesterday."
+    ],
+    correct: 1,
+    fb: "'Yesterday' is a specific past time, so we use Simple Past, not Present Perfect."
+  },
+  {
+    type: "mc",
+    text: "Choose the CORRECT option:",
+    options: [
+      "She has worked here since 2020 — she still works here today.",
+      "She has worked here in 2020.",
+      "She worked here since 2020.",
+      "She has been worked here since 2020."
+    ],
+    correct: 0,
+    fb: "Present perfect with 'since' connects a past start to the present (still true now). The other options have errors with time markers or form."
+  },
+  {
+    type: "gap",
+    text: "Last summer, my family ____________ (travel) to Brazil. We had an amazing time.",
+    accept: ["traveled", "travelled"],
+    canonical: "traveled",
+    fb: "'Last summer' is a specific past time → use Simple Past. Both 'traveled' (US) and 'travelled' (UK) are accepted."
+  }
+];
+
+let userAnswers = new Array(questions.length).fill(null);
+let submitted = false;
+
+function renderQuestions() {
+  const container = document.getElementById('questions-container');
+  container.innerHTML = '';
+
+  questions.forEach((q, i) => {
+    const qDiv = document.createElement('div');
+    qDiv.className = 'question';
+    qDiv.id = 'q-' + i;
+
+    const qNum = document.createElement('div');
+    qNum.className = 'question-num';
+    qNum.textContent = 'Question ' + (i + 1) + ' of ' + questions.length +
+                       (q.type === 'mc' ? ' · Multiple Choice' : ' · Gap-Fill');
+    qDiv.appendChild(qNum);
+
+    const qText = document.createElement('div');
+    qText.className = 'question-text';
+    qText.textContent = q.text;
+    qDiv.appendChild(qText);
+
+    if (q.type === 'mc') {
+      const opts = document.createElement('div');
+      opts.className = 'options';
+      q.options.forEach((opt, j) => {
+        const lbl = document.createElement('label');
+        lbl.className = 'option';
+        lbl.id = 'q-' + i + '-opt-' + j;
+        const letter = String.fromCharCode(65 + j); // A, B, C, D
+
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = 'q-' + i;
+        radio.value = j;
+        radio.onchange = () => selectOption(i, j);
+
+        const letterSpan = document.createElement('span');
+        letterSpan.className = 'option-letter';
+        letterSpan.textContent = letter;
+
+        const textSpan = document.createElement('span');
+        textSpan.textContent = opt;
+
+        lbl.appendChild(radio);
+        lbl.appendChild(letterSpan);
+        lbl.appendChild(textSpan);
+        opts.appendChild(lbl);
+      });
+      qDiv.appendChild(opts);
+    } else {
+      // gap-fill
+      const gap = document.createElement('div');
+      gap.className = 'gap-fill';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.id = 'q-' + i + '-input';
+      input.placeholder = 'Type your answer here...';
+      input.oninput = () => onGapInput(i);
+      gap.appendChild(input);
+      qDiv.appendChild(gap);
+    }
+
+    const fb = document.createElement('div');
+    fb.className = 'feedback';
+    fb.id = 'q-' + i + '-fb';
+    qDiv.appendChild(fb);
+
+    container.appendChild(qDiv);
+  });
+}
+
+function selectOption(qIdx, optIdx) {
+  if (submitted) return;
+  userAnswers[qIdx] = optIdx;
+
+  // Update visual selection
+  const q = questions[qIdx];
+  q.options.forEach((_, j) => {
+    const lbl = document.getElementById('q-' + qIdx + '-opt-' + j);
+    lbl.classList.toggle('selected', j === optIdx);
+  });
+
+  updateProgress();
+}
+
+function onGapInput(qIdx) {
+  if (submitted) return;
+  const val = document.getElementById('q-' + qIdx + '-input').value.trim();
+  userAnswers[qIdx] = val.length > 0 ? val : null;
+  updateProgress();
+}
+
+function updateProgress() {
+  const answered = userAnswers.filter(a => a !== null).length;
+  const total = questions.length;
+  const pct = Math.round((answered / total) * 100);
+  document.getElementById('progress-text').textContent = answered + ' / ' + total + ' answered';
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  const btn = document.getElementById('submit-btn');
+  const warn = document.getElementById('submit-warning');
+  if (answered === total) {
+    btn.disabled = false;
+    warn.textContent = 'Ready to submit. Click above to see your score.';
+  } else {
+    btn.disabled = true;
+    warn.textContent = (total - answered) + ' question(s) remaining. Answer all to submit.';
+  }
+}
+
+function normaliseAnswer(s) {
+  return s.toLowerCase()
+    .replace(/[\u2018\u2019]/g, "'")    // smart single quotes → straight
+    .replace(/[\u201C\u201D]/g, '"')   // smart double quotes
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function gradeQuestion(qIdx) {
+  const q = questions[qIdx];
+  const ans = userAnswers[qIdx];
+  if (q.type === 'mc') {
+    return ans === q.correct;
+  } else {
+    if (!ans) return false;
+    const normUser = normaliseAnswer(ans);
+    return q.accept.some(acc => normaliseAnswer(acc) === normUser);
+  }
+}
+
+function submitQuiz() {
+  if (submitted) return;
+  submitted = true;
+
+  let score = 0;
+  questions.forEach((q, i) => {
+    const isRight = gradeQuestion(i);
+    if (isRight) score++;
+    showQuestionFeedback(i, isRight);
+  });
+
+  showResults(score);
+}
+
+function showQuestionFeedback(qIdx, isRight) {
+  const q = questions[qIdx];
+  const fb = document.getElementById('q-' + qIdx + '-fb');
+  fb.className = 'feedback shown ' + (isRight ? 'correct' : 'incorrect');
+  fb.innerHTML = '<div class="feedback-label">' +
+    (isRight ? '✓ Correct!' : '✗ Not quite.') +
+    '</div>' + q.fb;
+
+  if (q.type === 'mc') {
+    q.options.forEach((_, j) => {
+      const lbl = document.getElementById('q-' + qIdx + '-opt-' + j);
+      lbl.classList.add('locked');
+      const radio = lbl.querySelector('input[type="radio"]');
+      radio.disabled = true;
+
+      if (j === q.correct) {
+        lbl.classList.add('correct-option');
+      } else if (j === userAnswers[qIdx]) {
+        lbl.classList.add('incorrect-option');
+      }
+    });
+  } else {
+    const input = document.getElementById('q-' + qIdx + '-input');
+    input.disabled = true;
+    if (isRight) {
+      input.classList.add('correct-input');
+    } else {
+      input.classList.add('incorrect-input');
+      const ans = document.createElement('div');
+      ans.className = 'correct-answer-shown';
+      ans.textContent = '✓ Correct answer: ' + q.canonical;
+      input.parentElement.appendChild(ans);
+    }
+  }
+}
+
+function showResults(score) {
+  document.getElementById('quiz-screen').style.display = 'none';
+  const r = document.getElementById('results-screen');
+  r.className = 'results shown';
+
+  const total = questions.length;
+  const pct = Math.round((score / total) * 100);
+
+  document.getElementById('results-score').textContent = score;
+  document.getElementById('results-percent').textContent = pct + '%';
+  document.getElementById('stat-correct').textContent = score;
+  document.getElementById('stat-wrong').textContent = total - score;
+  document.getElementById('stat-percent').textContent = pct + '%';
+
+  // Grade based on Approach grading scale
+  let grade, trophy, title, sub;
+  if (pct >= 90) {
+    grade = 'A · Outstanding'; trophy = '★'; title = 'Outstanding!';
+    sub = 'You\'ve mastered Week 1\'s grammar. Excellent work — keep this up and you\'ll cruise through the rest of the course!';
+  } else if (pct >= 80) {
+    grade = 'B · Above Average'; trophy = '◆'; title = 'Great work!';
+    sub = 'Solid performance with only minor errors. Review the questions you missed below — you\'re very close to mastery.';
+  } else if (pct >= 70) {
+    grade = 'C · Satisfactory'; trophy = '●'; title = 'Good effort!';
+    sub = 'You\'ve got the basics. Focus on the areas where you struggled — particularly stative verbs and adverb placement. Practice will get you there.';
+  } else if (pct >= 60) {
+    grade = 'D · Below Expectations'; trophy = '▲'; title = 'Needs more practice';
+    sub = 'You\'ll want to review Week 1 carefully before moving on. Talk to your teacher about which areas to focus on. Don\'t worry — you can do this!';
+  } else {
+    grade = 'F · Insufficient'; trophy = '○'; title = 'Let\'s review together';
+    sub = 'Don\'t be discouraged! This material takes time. Read through the explanations below carefully, and ask your teacher for extra support during office hours.';
+  }
+
+  document.getElementById('trophy-icon').textContent = trophy;
+  document.getElementById('results-title').textContent = title;
+  document.getElementById('results-grade').textContent = grade;
+  document.getElementById('results-sub').textContent = sub;
+
+  // Generate result code for teacher dashboard
+  const studentName = (document.getElementById('student-name').value || 'Anonymous').trim();
+  const perQuestion = userAnswers.map((_, i) => gradeQuestion(i) ? '1' : '0').join('');
+  const payload = {
+    v: 1,                         // version
+    n: studentName,               // name
+    s: score,                     // score
+    t: questions.length,          // total
+    p: pct,                       // percent
+    g: grade.split(' ')[0],       // letter grade only
+    d: new Date().toISOString(),  // timestamp
+    q: perQuestion,               // per-question results bitstring
+    qz: 'W1Q1'                    // quiz id
+  };
+
+  // Encode as base64 for compactness
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  const resultCode = 'AISC-W1Q1-' + encoded;
+  document.getElementById('result-code-input').value = resultCode;
+
+  // Auto-submit to Google Forms (silent)
+  submitToGoogleForm(payload);
+
+  // Build review list
+  const reviewList = document.getElementById('review-list');
+  reviewList.innerHTML = '';
+  questions.forEach((q, i) => {
+    const isRight = gradeQuestion(i);
+    const item = document.createElement('div');
+    item.className = 'question';
+    item.style.marginBottom = '0.5rem';
+
+    let userDisplay, correctDisplay;
+    if (q.type === 'mc') {
+      userDisplay = userAnswers[i] !== null ? q.options[userAnswers[i]] : '(no answer)';
+      correctDisplay = q.options[q.correct];
+    } else {
+      userDisplay = userAnswers[i] || '(no answer)';
+      correctDisplay = q.canonical;
+    }
+
+    item.innerHTML =
+      '<div class="question-num" style="color: ' + (isRight ? 'var(--green)' : 'var(--red)') + ';">' +
+        (isRight ? '✓ Correct' : '✗ Incorrect') + ' · Question ' + (i + 1) +
+      '</div>' +
+      '<div class="question-text" style="font-size: 14px;">' + q.text + '</div>' +
+      '<div style="font-size: 13px; margin-bottom: 4px;">' +
+        '<strong>Your answer:</strong> <span style="color: ' + (isRight ? 'var(--green-text)' : 'var(--red-text)') + ';">' + userDisplay + '</span>' +
+      '</div>' +
+      (isRight ? '' :
+        '<div style="font-size: 13px; margin-bottom: 4px;"><strong>Correct answer:</strong> <span style="color: var(--green-text);">' + correctDisplay + '</span></div>') +
+      '<div style="font-size: 12px; color: var(--text-secondary); font-style: italic; margin-top: 6px;">' + q.fb + '</div>';
+
+    reviewList.appendChild(item);
+  });
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── GOOGLE FORMS AUTO-SUBMIT ──────────────────────────────────────────────
+const GOOGLE_FORM = {
+  url: 'https://docs.google.com/forms/d/e/1FAIpQLSdezXVOfFTujYqpA6QNUHL-hI889BHWTUmz96aeeKMPxj747g/formResponse',
+  fields: {
+    name:        'entry.760776173',
+    score:       'entry.1464683379',
+    total:       'entry.1565887508',
+    percent:     'entry.755444786',
+    grade:       'entry.67875078',
+    perQuestion: 'entry.649402483',
+    submittedAt: 'entry.1418957567',
+    quizId:      'entry.1191853816'
+  },
+  timeoutMs: 8000
+};
+
+function setSubmitStatus(state, title, sub) {
+  const block = document.getElementById('submit-status-block');
+  const icon  = document.getElementById('submit-status-icon');
+  const t     = document.getElementById('submit-status-title');
+  const s     = document.getElementById('submit-status-sub');
+  block.className = 'submit-status-block ' + state;
+  if (state === 'pending') icon.textContent = '⏳';
+  if (state === 'success') icon.textContent = '✓';
+  if (state === 'failed')  icon.textContent = '⚠';
+  t.textContent = title;
+  s.textContent = sub;
+}
+
+function submitToGoogleForm(payload) {
+  setSubmitStatus('pending', 'Submitting your results...', 'Please wait a moment.');
+
+  const formData = new FormData();
+  formData.append(GOOGLE_FORM.fields.name,        payload.n);
+  formData.append(GOOGLE_FORM.fields.score,       String(payload.s));
+  formData.append(GOOGLE_FORM.fields.total,       String(payload.t));
+  formData.append(GOOGLE_FORM.fields.percent,     String(payload.p));
+  formData.append(GOOGLE_FORM.fields.grade,       payload.g);
+  formData.append(GOOGLE_FORM.fields.perQuestion, payload.q);
+  formData.append(GOOGLE_FORM.fields.submittedAt, payload.d);
+  formData.append(GOOGLE_FORM.fields.quizId,      payload.qz);
+
+  // Race fetch against a timeout so we always show a final status.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), GOOGLE_FORM.timeoutMs);
+
+  fetch(GOOGLE_FORM.url, {
+    method: 'POST',
+    mode: 'no-cors',          // browser blocks reading the response, but submission still goes through
+    body: formData,
+    signal: controller.signal
+  })
+  .then(() => {
+    clearTimeout(timeoutId);
+    // With no-cors, we can't actually inspect the response — but a resolved promise
+    // means the network request completed. Treat that as success.
+    setSubmitStatus(
+      'success',
+      'Results submitted ✓',
+      'Your teacher has automatically received your score.'
+    );
+  })
+  .catch((err) => {
+    clearTimeout(timeoutId);
+    console.warn('Google Forms submission failed:', err);
+    setSubmitStatus(
+      'failed',
+      'Auto-submission failed',
+      'No worries — please give the backup code below to your teacher.'
+    );
+    // Auto-open the fallback code section so it's right there for the student
+    const details = document.getElementById('result-code-details');
+    if (details) details.open = true;
+  });
+}
+
+function copyCode() {
+  const input = document.getElementById('result-code-input');
+  input.select();
+  input.setSelectionRange(0, 99999); // mobile
+  let success = false;
+  try {
+    success = document.execCommand('copy');
+  } catch (e) { success = false; }
+
+  // Modern clipboard API as fallback
+  if (!success && navigator.clipboard) {
+    navigator.clipboard.writeText(input.value).then(() => {
+      flashCopied();
+    });
+    return;
+  }
+  if (success) flashCopied();
+}
+
+function flashCopied() {
+  const btn = document.getElementById('copy-btn');
+  const originalText = btn.textContent;
+  btn.textContent = '✓ Copied!';
+  btn.classList.add('copied');
+  setTimeout(() => {
+    btn.textContent = originalText;
+    btn.classList.remove('copied');
+  }, 1800);
+}
+
+function toggleReview() {
+  const sec = document.getElementById('review-section');
+  const btn = document.getElementById('review-btn');
+  if (sec.style.display === 'none') {
+    sec.style.display = 'block';
+    btn.innerHTML = '▲ &nbsp;Hide detailed review';
+  } else {
+    sec.style.display = 'none';
+    btn.innerHTML = '▼ &nbsp;Show detailed review';
+  }
+}
+
+function restartQuiz() {
+  userAnswers = new Array(questions.length).fill(null);
+  submitted = false;
+  document.getElementById('results-screen').className = 'results';
+  document.getElementById('quiz-screen').style.display = '';
+  document.getElementById('student-name').value = '';
+  document.getElementById('progress-text').textContent = '0 / ' + questions.length + ' answered';
+  document.getElementById('progress-fill').style.width = '0%';
+  document.getElementById('submit-btn').disabled = true;
+  document.getElementById('submit-warning').textContent = 'Answer all questions to submit.';
+  // Reset auto-submit status
+  setSubmitStatus('pending', 'Submitting your results...', 'Please wait a moment.');
+  const details = document.getElementById('result-code-details');
+  if (details) details.open = false;
+  renderQuestions();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+renderQuestions();
+</script>
+</body>
+</html>
