@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Mission 3 · AI as Outline Partner · ApproachUSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --nd-blue: #0c2340;
+    --nd-blue-light: #143865;
+    --nd-gold: #ae9142;
+    --warm-white: #efe9d9;
+    --light-warm: #f8f4ec;
+    --paper: #faf6ec;
+    --ink: #1a1a1a;
+    --ink-soft: #3d3d3d;
+    --muted: #6a6a6a;
+    --m3-color: #d89e00;
+    --m3-color-soft: #fdf3d0;
+
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    line-height: 1.5;
+    padding-bottom: 80px;
+  }
+
+  /* Top bar */
+  .top-bar {
+    background: var(--nd-blue);
+    color: var(--warm-white);
+    padding: 16px 20px;
+    border-bottom: 3px solid var(--m3-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .top-bar-inner { display: flex; align-items: center; justify-content: space-between; }
+  .top-eyebrow { font-family: var(--mono); font-size: 9px; letter-spacing: 0.25em; color: var(--nd-gold); text-transform: uppercase; }
+  .top-title { font-family: var(--serif); font-size: 16px; font-style: italic; color: var(--warm-white); margin-top: 2px; }
+  .timer-pill { background: rgba(174, 145, 66, 0.2); border: 1px solid var(--nd-gold); color: var(--nd-gold); font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.15em; padding: 6px 12px; border-radius: 20px; text-transform: uppercase; white-space: nowrap; }
+
+  /* Hero */
+  .hero {
+    padding: 40px 24px 30px;
+    background: var(--nd-blue);
+    color: var(--warm-white);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(216, 158, 0, 0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .mission-badge { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .mission-num-circle {
+    width: 38px; height: 38px; border-radius: 50%; background: var(--m3-color);
+    color: var(--nd-blue); display: flex; align-items: center; justify-content: center;
+    font-family: var(--serif); font-style: italic; font-weight: 700; font-size: 20px;
+  }
+  .mission-meta {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.25em;
+    color: var(--nd-gold); text-transform: uppercase;
+  }
+  .hero h1 {
+    font-family: var(--serif); font-size: 42px; font-weight: 500;
+    line-height: 1.05; letter-spacing: -0.015em; margin-bottom: 18px; color: var(--warm-white);
+  }
+  .hero h1 em { font-style: italic; color: var(--m3-color); }
+  .hero-intro {
+    font-family: var(--serif); font-size: 18px; line-height: 1.45; opacity: 0.9;
+  }
+
+  /* Critical rule banner */
+  .rule-banner {
+    background: var(--m3-color);
+    color: var(--nd-blue);
+    padding: 18px 20px;
+    text-align: center;
+  }
+  .rule-banner-eyebrow {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .rule-banner-text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 19px;
+    line-height: 1.3;
+    font-weight: 600;
+  }
+
+  /* Deliverable */
+  .deliverable-card {
+    margin: 30px 20px 0;
+    background: rgba(174, 145, 66, 0.08);
+    border-left: 3px solid var(--nd-gold);
+    padding: 16px 18px;
+    border-radius: 4px;
+  }
+  .deliverable-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.3em; color: var(--nd-gold); text-transform: uppercase; margin-bottom: 6px; }
+  .deliverable-text { font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--ink); line-height: 1.4; }
+
+  /* Step section */
+  .step-section { padding: 36px 20px 0; }
+  .step-header-block {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--m3-color);
+  }
+  .step-num {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 600;
+    font-size: 44px;
+    color: var(--m3-color);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .step-meta {
+    flex: 1;
+  }
+  .step-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+  }
+  .step-title {
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--nd-blue);
+    line-height: 1.15;
+    margin-top: 2px;
+  }
+  .step-body {
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+
+  /* Topic list */
+  .topic-list {
+    background: white;
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 12px;
+    border: 1px solid rgba(174, 145, 66, 0.3);
+  }
+  .topic-list-title {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--nd-gold);
+    margin-bottom: 10px;
+  }
+  .topic-item {
+    padding: 10px 12px;
+    margin: 4px 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: var(--serif);
+    font-size: 16px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s ease;
+    border: 1.5px solid transparent;
+  }
+  .topic-item:hover {
+    background: var(--m3-color-soft);
+  }
+  .topic-item.selected {
+    background: var(--m3-color-soft);
+    border-color: var(--m3-color);
+  }
+  .topic-radio {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--m3-color);
+    border-radius: 50%;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .topic-item.selected .topic-radio::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    background: var(--m3-color);
+    border-radius: 50%;
+  }
+  .topic-input-row {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(174, 145, 66, 0.2);
+  }
+  .topic-input-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--nd-blue);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .topic-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid rgba(174, 145, 66, 0.3);
+    border-radius: 6px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+    background: var(--light-warm);
+    outline: none;
+  }
+  .topic-input:focus { border-color: var(--m3-color); background: white; }
+
+  /* Brainstorm input */
+  .brainstorm-input {
+    width: 100%;
+    padding: 12px;
+    border: 1.5px solid rgba(174, 145, 66, 0.3);
+    border-radius: 6px;
+    font-family: var(--serif);
+    font-size: 16px;
+    background: white;
+    outline: none;
+    margin-bottom: 8px;
+    transition: border-color 0.2s ease;
+  }
+  .brainstorm-input:focus { border-color: var(--m3-color); }
+  .brainstorm-list { margin-top: 14px; }
+  .brainstorm-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .brainstorm-num {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 600;
+    font-size: 22px;
+    color: var(--m3-color);
+    width: 24px;
+    flex-shrink: 0;
+    text-align: center;
+  }
+
+  /* Prompt boxes (reuse pattern) */
+  .prompt-box {
+    margin-top: 12px;
+    background: var(--nd-blue);
+    color: var(--warm-white);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .prompt-header {
+    background: var(--m3-color);
+    color: var(--nd-blue);
+    padding: 8px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .prompt-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+  }
+  .copy-btn {
+    background: var(--nd-blue);
+    border: 1px solid var(--nd-blue);
+    color: var(--warm-white);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .copy-btn:active, .copy-btn.copied { background: var(--warm-white); color: var(--nd-blue); }
+  .prompt-body {
+    padding: 16px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+    line-height: 1.45;
+    color: var(--warm-white);
+  }
+  .prompt-body strong {
+    color: var(--m3-color);
+    background: rgba(216, 158, 0, 0.15);
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-style: normal;
+    font-weight: 600;
+  }
+  .prompt-note {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  /* Mark-up legend */
+  .markup-legend {
+    background: white;
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 12px;
+    border: 1px solid rgba(174, 145, 66, 0.3);
+  }
+  .markup-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(174, 145, 66, 0.15);
+  }
+  .markup-row:last-child { border-bottom: none; }
+  .markup-symbol {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 18px;
+  }
+  .markup-symbol.keep { background: #d4edda; color: #26890c; }
+  .markup-symbol.modify { background: #fff3cd; color: #d89e00; }
+  .markup-symbol.reject { background: #f8d7da; color: #c0392b; }
+  .markup-content { flex: 1; }
+  .markup-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    color: var(--nd-blue);
+    margin-bottom: 4px;
+  }
+  .markup-desc {
+    font-family: var(--serif);
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.4;
+  }
+
+  /* Callout */
+  .callout {
+    margin: 36px 20px 0;
+    background: linear-gradient(135deg, #fef9e8 0%, #f5eed2 100%);
+    border-radius: 10px;
+    padding: 22px 20px;
+    border-left: 4px solid var(--nd-gold);
+  }
+  .callout-icon { font-size: 22px; margin-bottom: 8px; }
+  .callout-title { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; color: var(--nd-blue); margin-bottom: 10px; }
+  .callout-text { font-family: var(--serif); font-style: italic; font-size: 17px; line-height: 1.45; color: var(--ink); }
+
+  /* Checklist */
+  .checklist-section { padding: 36px 20px 0; }
+  .checklist {
+    background: var(--warm-white);
+    border-radius: 10px;
+    padding: 20px 18px;
+    border: 1px solid rgba(174, 145, 66, 0.3);
+  }
+  .checklist-title {
+    font-family: var(--mono); font-size: 10px; font-weight: 600;
+    letter-spacing: 0.3em; text-transform: uppercase; color: var(--nd-gold);
+    margin-bottom: 14px;
+  }
+  .checklist-item {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(174, 145, 66, 0.15);
+  }
+  .checklist-item:last-child { border-bottom: none; }
+  .checklist-checkbox {
+    width: 22px; height: 22px;
+    border: 2px solid var(--m3-color);
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s ease;
+  }
+  .checklist-checkbox.checked { background: var(--m3-color); }
+  .checklist-checkbox.checked::after {
+    content: '✓'; color: var(--nd-blue); font-weight: bold; font-size: 14px;
+  }
+  .checklist-label {
+    font-family: var(--serif); font-size: 16px;
+    color: var(--ink); line-height: 1.4; flex: 1;
+  }
+  .checklist-checkbox.checked + .checklist-label {
+    text-decoration: line-through; opacity: 0.5;
+  }
+
+  /* Footer hint */
+  .footer-hint {
+    margin: 50px 20px 0;
+    text-align: center;
+    padding: 24px 20px;
+    border-top: 1px solid rgba(174, 145, 66, 0.3);
+  }
+  .footer-hint-text {
+    font-family: var(--serif); font-style: italic;
+    font-size: 16px; color: var(--muted); line-height: 1.5;
+  }
+  .footer-hint-eyebrow {
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.3em;
+    color: var(--nd-gold); text-transform: uppercase; margin-bottom: 8px;
+  }
+
+  /* Toast */
+  .copy-toast {
+    position: fixed; bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--nd-blue); color: var(--warm-white);
+    padding: 14px 26px; border-radius: 30px;
+    font-family: var(--sans); font-size: 14px; font-weight: 600;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+    z-index: 200;
+    transition: transform 0.35s ease;
+    border: 1px solid var(--nd-gold);
+  }
+  .copy-toast.visible { transform: translateX(-50%) translateY(0); }
+
+  @media (min-width: 700px) {
+    body {
+      max-width: 720px;
+      margin: 0 auto;
+      box-shadow: 0 0 40px rgba(0,0,0,0.08);
+    }
+    .hero h1 { font-size: 52px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top-bar">
+  <div class="top-bar-inner">
+    <div>
+      <div class="top-eyebrow">MISSION 03</div>
+      <div class="top-title">AI as Outline Partner</div>
+    </div>
+    <div class="timer-pill">⏱ 35 MIN</div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="mission-badge">
+    <div class="mission-num-circle">3</div>
+    <div class="mission-meta">OUTLINE WITH AI · 35 MIN</div>
+  </div>
+  <h1>AI as your<br><em>outline partner.</em></h1>
+  <p class="hero-intro">You'll use AI to build an outline for a 400-word essay. But first, you brainstorm without AI — so you have your own ideas to compare against.</p>
+</section>
+
+<div class="rule-banner">
+  <div class="rule-banner-eyebrow">CRITICAL RULE</div>
+  <div class="rule-banner-text">Brainstorm your own ideas first.<br>Only then bring AI in.</div>
+</div>
+
+<div class="deliverable-card">
+  <div class="deliverable-label">✓ DELIVERABLE</div>
+  <div class="deliverable-text">5 personal points + AI brainstorm + AI outline + marked-up outline in your Process Journal — Section 3.</div>
+</div>
+
+<!-- STEP 1 -->
+<section class="step-section">
+  <div class="step-header-block">
+    <div class="step-num">1</div>
+    <div class="step-meta">
+      <div class="step-tag">PICK YOUR TOPIC · 1 MIN</div>
+      <div class="step-title">Choose one expository topic.</div>
+    </div>
+  </div>
+  <div class="step-body">Tap to select. These are real expository topics for working professionals — informative or analytical, not personal narrative.</div>
+
+  <div class="topic-list">
+    <div class="topic-list-title">10 TOPICS · CHOOSE ONE</div>
+    <div class="topic-item" onclick="selectTopic(this)"><div class="topic-radio"></div><span>How remote work changed Brazilian offices</span></div>
+    <div class="topic-item" onclick="selectTopic(this)"><div class="topic-radio"></div><span>Why English fluency affects salary in São Paulo</span></div>
+    <div class="topic-item" onclick="selectTopic(this)"><div class="topic-radio"></div><span>The benefits of public transportation in big cities</span></div>
+    <div class="topic-item" onclick="selectTopic(this)"><div class="topic-radio"></div><span>How streaming services replaced cable TV</span></div>
+    <div class="topic-item" onclick="selectTopic(this)"><div class="topic-radio"></div><span>Why small businesses need digital marketing</span></div>
+    <div class="topic-item" onclick="selectTopic(this)"><div class="topic-radio"></div><span>The role of soft skills in the modern workplace</span></div>
+    <div class="topic-item" onclick="selectTopic(this)"><div class="topic-radio"></div><span>How social media affects political opinion</span></div>
+    <div class="topic-item" onclick="selectTopic(this)"><div class="topic-radio"></div><span>The impact of AI on entry-level jobs</span></div>
+    <div class="topic-item" onclick="selectTopic(this)"><div class="topic-radio"></div><span>Why financial literacy should be taught in schools</span></div>
+    <div class="topic-item" onclick="selectTopic(this)"><div class="topic-radio"></div><span>How travel changes the way people see their own culture</span></div>
+
+    <div class="topic-input-row">
+      <div class="topic-input-label">MY TOPIC</div>
+      <input type="text" class="topic-input" id="my-topic" placeholder="Type your topic here…">
+    </div>
+  </div>
+</section>
+
+<!-- STEP 2 -->
+<section class="step-section">
+  <div class="step-header-block">
+    <div class="step-num">2</div>
+    <div class="step-meta">
+      <div class="step-tag">BRAINSTORM WITHOUT AI · 5 MIN</div>
+      <div class="step-title">Write 5 things only you know.</div>
+    </div>
+  </div>
+  <div class="step-body">Before you talk to Claude, write 5 things <strong>you</strong> personally know or believe about your topic. These are the ideas only you have. Don't skip this.</div>
+
+  <div class="brainstorm-list">
+    <div class="brainstorm-row">
+      <div class="brainstorm-num">1</div>
+      <input type="text" class="brainstorm-input" placeholder="Your first idea…">
+    </div>
+    <div class="brainstorm-row">
+      <div class="brainstorm-num">2</div>
+      <input type="text" class="brainstorm-input" placeholder="Your second idea…">
+    </div>
+    <div class="brainstorm-row">
+      <div class="brainstorm-num">3</div>
+      <input type="text" class="brainstorm-input" placeholder="Your third idea…">
+    </div>
+    <div class="brainstorm-row">
+      <div class="brainstorm-num">4</div>
+      <input type="text" class="brainstorm-input" placeholder="Your fourth idea…">
+    </div>
+    <div class="brainstorm-row">
+      <div class="brainstorm-num">5</div>
+      <input type="text" class="brainstorm-input" placeholder="Your fifth idea…">
+    </div>
+  </div>
+</section>
+
+<!-- STEP 3 -->
+<section class="step-section">
+  <div class="step-header-block">
+    <div class="step-num">3</div>
+    <div class="step-meta">
+      <div class="step-tag">BRAINSTORM WITH AI · 8 MIN</div>
+      <div class="step-title">Now ask Claude.</div>
+    </div>
+  </div>
+  <div class="step-body">Open Claude. Use this prompt — replace the bracketed text with your own topic.</div>
+
+  <div class="prompt-box">
+    <div class="prompt-header">
+      <div class="prompt-label">📋 COPY AND FILL IN</div>
+      <button class="copy-btn" onclick="copyPrompt(this, 'p3')">COPY</button>
+    </div>
+    <div class="prompt-body" id="p3">I'm writing a 400-word expository essay on <strong>[YOUR TOPIC]</strong> for an audience of working adults in Brazil who speak English at B2/C1 level. Brainstorm 5 angles I could take on this topic. Be specific — not generic.</div>
+  </div>
+  <div class="prompt-note">Paste Claude's response into your Journal under: <em>Entry 4 — Section 3 — AI Brainstorm</em>.</div>
+</section>
+
+<!-- STEP 4 -->
+<section class="step-section">
+  <div class="step-header-block">
+    <div class="step-num">4</div>
+    <div class="step-meta">
+      <div class="step-tag">ASK FOR AN OUTLINE · 8 MIN</div>
+      <div class="step-title">Get the structure.</div>
+    </div>
+  </div>
+  <div class="step-body">Choose ONE of Claude's angles (or — even better — one of YOUR original 5 ideas). Then ask Claude to outline it.</div>
+
+  <div class="prompt-box">
+    <div class="prompt-header">
+      <div class="prompt-label">📋 COPY AND FILL IN</div>
+      <button class="copy-btn" onclick="copyPrompt(this, 'p4')">COPY</button>
+    </div>
+    <div class="prompt-body" id="p4">Give me a 5-paragraph outline for a 400-word expository essay arguing that <strong>[YOUR THESIS]</strong>. For each paragraph, give me: (a) topic sentence, (b) 2 supporting points, (c) a transition to the next paragraph.</div>
+  </div>
+  <div class="prompt-note">Paste the outline into your Journal under: <em>Entry 4 — Section 3 — AI Outline</em>.</div>
+</section>
+
+<!-- STEP 5 -->
+<section class="step-section">
+  <div class="step-header-block">
+    <div class="step-num">5</div>
+    <div class="step-meta">
+      <div class="step-tag">CRITICAL EVALUATION · 8 MIN</div>
+      <div class="step-title">Mark up the outline.</div>
+    </div>
+  </div>
+  <div class="step-body">Read Claude's outline carefully. Use 3 colors (or 3 symbols) to mark every line.</div>
+
+  <div class="markup-legend">
+    <div class="markup-row">
+      <div class="markup-symbol keep">✓</div>
+      <div class="markup-content">
+        <div class="markup-label">KEEP</div>
+        <div class="markup-desc">Strong, specific, true to what you want to say.</div>
+      </div>
+    </div>
+    <div class="markup-row">
+      <div class="markup-symbol modify">✎</div>
+      <div class="markup-content">
+        <div class="markup-label">MODIFY</div>
+        <div class="markup-desc">Useful but not quite right. Note WHAT you'd change.</div>
+      </div>
+    </div>
+    <div class="markup-row">
+      <div class="markup-symbol reject">✗</div>
+      <div class="markup-content">
+        <div class="markup-label">REJECT</div>
+        <div class="markup-desc">Generic, off-topic, factually shaky, or not your voice. Note WHY.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="callout">
+  <div class="callout-icon">⚡</div>
+  <div class="callout-title">THE TEST</div>
+  <div class="callout-text">If you marked everything KEEP, you didn't push back hard enough. A good editor rejects something. So should you.</div>
+</div>
+
+<!-- STEP 6 -->
+<section class="step-section">
+  <div class="step-header-block">
+    <div class="step-num">6</div>
+    <div class="step-meta">
+      <div class="step-tag">PAIR CHECK · 5 MIN</div>
+      <div class="step-title">Trade journals.</div>
+    </div>
+  </div>
+  <div class="step-body">Find your partner. Read each other's marked-up outlines. Ask: <em>Did they push back enough? Did they accept too much?</em> Give one specific suggestion.</div>
+</section>
+
+<section class="checklist-section">
+  <div class="checklist">
+    <div class="checklist-title">BEFORE YOU MOVE ON</div>
+    <div class="checklist-item">
+      <div class="checklist-checkbox" onclick="toggleCheck(this)"></div>
+      <div class="checklist-label">I picked a topic and wrote it down</div>
+    </div>
+    <div class="checklist-item">
+      <div class="checklist-checkbox" onclick="toggleCheck(this)"></div>
+      <div class="checklist-label">I wrote 5 personal points BEFORE asking AI</div>
+    </div>
+    <div class="checklist-item">
+      <div class="checklist-checkbox" onclick="toggleCheck(this)"></div>
+      <div class="checklist-label">I got an AI brainstorm and pasted it in my Journal</div>
+    </div>
+    <div class="checklist-item">
+      <div class="checklist-checkbox" onclick="toggleCheck(this)"></div>
+      <div class="checklist-label">I got an AI outline and pasted it in my Journal</div>
+    </div>
+    <div class="checklist-item">
+      <div class="checklist-checkbox" onclick="toggleCheck(this)"></div>
+      <div class="checklist-label">I marked it up: KEEP / MODIFY / REJECT (with reasons)</div>
+    </div>
+    <div class="checklist-item">
+      <div class="checklist-checkbox" onclick="toggleCheck(this)"></div>
+      <div class="checklist-label">My partner reviewed my mark-up</div>
+    </div>
+  </div>
+</section>
+
+<div class="footer-hint">
+  <div class="footer-hint-eyebrow">WHEN YOU'RE DONE</div>
+  <div class="footer-hint-text">Look up at the projector.<br>Mission 4 is the writing mission. Get ready.</div>
+</div>
+
+<div class="copy-toast" id="copy-toast">✓ Copied to clipboard</div>
+
+<script>
+function selectTopic(el) {
+  document.querySelectorAll('.topic-item').forEach(t => t.classList.remove('selected'));
+  el.classList.add('selected');
+  // Auto-fill the topic input
+  const text = el.querySelector('span').textContent;
+  document.getElementById('my-topic').value = text;
+}
+
+function copyPrompt(btn, id) {
+  // Get plain text (preserves the "[YOUR TOPIC]" placeholders, not styled HTML)
+  const text = document.getElementById(id).innerText;
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => showCopyFeedback(btn)).catch(() => fallbackCopy(text, btn));
+  } else {
+    fallbackCopy(text, btn);
+  }
+}
+function fallbackCopy(text, btn) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); showCopyFeedback(btn); } catch (e) { console.error(e); }
+  document.body.removeChild(ta);
+}
+function showCopyFeedback(btn) {
+  btn.classList.add('copied');
+  btn.textContent = '✓ COPIED';
+  const toast = document.getElementById('copy-toast');
+  toast.classList.add('visible');
+  setTimeout(() => {
+    btn.classList.remove('copied');
+    btn.textContent = 'COPY';
+    toast.classList.remove('visible');
+  }, 2200);
+}
+function toggleCheck(box) { box.classList.toggle('checked'); }
+</script>
+
+</body>
+</html>

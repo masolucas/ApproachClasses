@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Mission 2 · What AI Cannot Do · ApproachUSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --nd-blue: #0c2340;
+    --nd-blue-light: #143865;
+    --nd-blue-deep: #081629;
+    --nd-gold: #ae9142;
+    --nd-gold-bright: #d39f10;
+    --warm-white: #efe9d9;
+    --light-warm: #f8f4ec;
+    --paper: #faf6ec;
+    --ink: #1a1a1a;
+    --ink-soft: #3d3d3d;
+    --muted: #6a6a6a;
+    --m2-color: #1368ce;
+    --m2-color-soft: #e1e8f2;
+
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    line-height: 1.5;
+    padding-bottom: 80px;
+  }
+
+  /* Top bar */
+  .top-bar {
+    background: var(--nd-blue);
+    color: var(--warm-white);
+    padding: 16px 20px;
+    border-bottom: 3px solid var(--m2-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .top-bar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .top-eyebrow {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+  }
+  .top-title {
+    font-family: var(--serif);
+    font-size: 16px;
+    font-style: italic;
+    color: var(--warm-white);
+    margin-top: 2px;
+  }
+  .timer-pill {
+    background: rgba(174, 145, 66, 0.2);
+    border: 1px solid var(--nd-gold);
+    color: var(--nd-gold);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    padding: 6px 12px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* Hero */
+  .hero {
+    padding: 40px 24px 30px;
+    background: var(--nd-blue);
+    color: var(--warm-white);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(19, 104, 206, 0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .mission-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .mission-num-circle {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--m2-color);
+    color: var(--warm-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 600;
+    font-size: 20px;
+  }
+  .mission-meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+  }
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: 44px;
+    font-weight: 500;
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    margin-bottom: 18px;
+    color: var(--warm-white);
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--nd-gold);
+  }
+  .hero-intro {
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.45;
+    opacity: 0.9;
+  }
+
+  /* Partner setup banner */
+  .partner-banner {
+    margin: 0;
+    background: var(--m2-color);
+    color: var(--warm-white);
+    padding: 18px 20px;
+    text-align: center;
+  }
+  .partner-banner-icon { font-size: 22px; margin-bottom: 4px; }
+  .partner-banner-text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 17px;
+    line-height: 1.4;
+  }
+
+  /* Deliverable */
+  .deliverable-card {
+    margin: 30px 20px 0;
+    background: rgba(174, 145, 66, 0.08);
+    border-left: 3px solid var(--nd-gold);
+    padding: 16px 18px;
+    border-radius: 4px;
+  }
+  .deliverable-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .deliverable-text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+    color: var(--ink);
+    line-height: 1.4;
+  }
+
+  /* Section */
+  .section { padding: 36px 20px 0; }
+  .section-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-family: var(--serif);
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--nd-blue);
+    margin-bottom: 12px;
+    line-height: 1.1;
+  }
+  .section-intro {
+    font-family: var(--serif);
+    font-size: 17px;
+    color: var(--ink-soft);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  /* Prompt cards */
+  .prompt-card {
+    margin-bottom: 24px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(12, 35, 64, 0.08);
+    border: 1px solid rgba(174, 145, 66, 0.15);
+    background: white;
+  }
+  .prompt-card-header {
+    background: var(--nd-blue);
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .prompt-card-num {
+    width: 32px;
+    height: 32px;
+    border: 2px solid var(--m2-color);
+    border-radius: 50%;
+    color: var(--warm-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 600;
+    font-size: 16px;
+    flex-shrink: 0;
+    background: var(--m2-color);
+  }
+  .prompt-card-meta {
+    flex: 1;
+  }
+  .prompt-card-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+  }
+  .prompt-card-title {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-style: italic;
+    color: var(--warm-white);
+    margin-top: 2px;
+  }
+  .prompt-box {
+    background: var(--paper);
+    padding: 16px;
+    border-bottom: 1px solid rgba(174, 145, 66, 0.2);
+  }
+  .prompt-box-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--m2-color);
+    margin-bottom: 8px;
+  }
+  .prompt-text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+    line-height: 1.45;
+    color: var(--ink);
+  }
+  .prompt-actions {
+    padding: 12px 16px;
+    background: white;
+    display: flex;
+    justify-content: flex-end;
+  }
+  .copy-btn {
+    background: var(--m2-color);
+    border: none;
+    color: white;
+    padding: 8px 18px;
+    border-radius: 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .copy-btn:active, .copy-btn.copied {
+    background: var(--nd-gold);
+  }
+  .prompt-watch {
+    background: var(--m2-color-soft);
+    padding: 12px 16px;
+    border-top: 1px solid rgba(19, 104, 206, 0.2);
+  }
+  .prompt-watch-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    color: var(--m2-color);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .prompt-watch-text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--nd-blue);
+    line-height: 1.4;
+  }
+
+  /* Evaluation grid */
+  .grid-section {
+    padding: 36px 20px 0;
+  }
+  .eval-grid {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(174, 145, 66, 0.3);
+  }
+  .grid-row {
+    border-bottom: 1px solid rgba(174, 145, 66, 0.2);
+  }
+  .grid-row:last-child { border-bottom: none; }
+  .grid-row-header {
+    background: var(--nd-blue);
+    color: var(--warm-white);
+    padding: 12px 16px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .grid-row-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--m2-color);
+    text-transform: uppercase;
+    background: var(--m2-color);
+    color: var(--warm-white);
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 8px;
+    font-weight: 600;
+  }
+  .grid-cell {
+    padding: 14px 16px;
+  }
+  .grid-cell-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .grid-input {
+    width: 100%;
+    min-height: 70px;
+    padding: 10px 12px;
+    border: 1px solid rgba(174, 145, 66, 0.3);
+    border-radius: 6px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 15px;
+    color: var(--ink);
+    background: var(--light-warm);
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+  .grid-input:focus {
+    border-color: var(--m2-color);
+    background: white;
+  }
+  .grid-cell.bad .grid-cell-label { color: #c0392b; }
+  .grid-cell.good .grid-cell-label { color: #26890c; }
+
+  /* Discussion callout */
+  .callout {
+    margin: 36px 20px 0;
+    background: linear-gradient(135deg, #fef9e8 0%, #f5eed2 100%);
+    border-radius: 10px;
+    padding: 22px 20px;
+    border-left: 4px solid var(--nd-gold);
+    box-shadow: 0 2px 8px rgba(174, 145, 66, 0.1);
+  }
+  .callout-icon { font-size: 22px; margin-bottom: 8px; }
+  .callout-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--nd-blue);
+    margin-bottom: 10px;
+  }
+  .callout-text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 17px;
+    line-height: 1.45;
+    color: var(--ink);
+  }
+
+  /* Checklist */
+  .checklist-section { padding: 36px 20px 0; }
+  .checklist {
+    background: var(--warm-white);
+    border-radius: 10px;
+    padding: 20px 18px;
+    border: 1px solid rgba(174, 145, 66, 0.3);
+  }
+  .checklist-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--nd-gold);
+    margin-bottom: 14px;
+  }
+  .checklist-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(174, 145, 66, 0.15);
+  }
+  .checklist-item:last-child { border-bottom: none; }
+  .checklist-checkbox {
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--m2-color);
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .checklist-checkbox.checked { background: var(--m2-color); }
+  .checklist-checkbox.checked::after {
+    content: '✓';
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+  }
+  .checklist-label {
+    font-family: var(--serif);
+    font-size: 16px;
+    color: var(--ink);
+    line-height: 1.4;
+    flex: 1;
+  }
+  .checklist-checkbox.checked + .checklist-label {
+    text-decoration: line-through;
+    opacity: 0.5;
+  }
+
+  /* Footer hint */
+  .footer-hint {
+    margin: 50px 20px 0;
+    text-align: center;
+    padding: 24px 20px;
+    border-top: 1px solid rgba(174, 145, 66, 0.3);
+  }
+  .footer-hint-text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .footer-hint-eyebrow {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  /* Toast */
+  .copy-toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--nd-blue);
+    color: var(--warm-white);
+    padding: 14px 26px;
+    border-radius: 30px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+    z-index: 200;
+    transition: transform 0.35s ease;
+    border: 1px solid var(--nd-gold);
+  }
+  .copy-toast.visible {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  @media (min-width: 700px) {
+    body {
+      max-width: 720px;
+      margin: 0 auto;
+      box-shadow: 0 0 40px rgba(0,0,0,0.08);
+    }
+    .hero h1 { font-size: 56px; }
+    .section-title { font-size: 34px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top-bar">
+  <div class="top-bar-inner">
+    <div>
+      <div class="top-eyebrow">MISSION 02</div>
+      <div class="top-title">What AI Cannot Do</div>
+    </div>
+    <div class="timer-pill">⏱ 30 MIN</div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="mission-badge">
+    <div class="mission-num-circle">2</div>
+    <div class="mission-meta">FIND THE CRACKS · 30 MINUTES</div>
+  </div>
+  <h1>What AI<br><em>cannot do.</em></h1>
+  <p class="hero-intro">You'll discover AI's limits — by hand. Four prompts. Four very different results. By the end, you'll have a personal sense of what AI can and cannot do for writing.</p>
+</section>
+
+<div class="partner-banner">
+  <div class="partner-banner-icon">👥</div>
+  <div class="partner-banner-text">Find a partner.<br>One of you prompts. The other takes notes.<br>Switch roles after Prompt 2.</div>
+</div>
+
+<div class="deliverable-card">
+  <div class="deliverable-label">✓ DELIVERABLE</div>
+  <div class="deliverable-text">Completed evaluation grid + 4 prompt-response pairs in your Process Journal — Section 2.</div>
+</div>
+
+<section class="section">
+  <div class="section-eyebrow">PART 1 · RUN THE PROMPTS</div>
+  <h2 class="section-title">Four prompts. Run them in order.</h2>
+  <p class="section-intro">Type each prompt into Claude. Read the response together. Make a quick note of what you observed before moving to the next.</p>
+
+  <!-- PROMPT 1 -->
+  <div class="prompt-card">
+    <div class="prompt-card-header">
+      <div class="prompt-card-num">1</div>
+      <div class="prompt-card-meta">
+        <div class="prompt-card-tag">VAGUE</div>
+        <div class="prompt-card-title">Almost no context</div>
+      </div>
+    </div>
+    <div class="prompt-box">
+      <div class="prompt-box-label">📋 PROMPT</div>
+      <div class="prompt-text" id="p1">Write something about education.</div>
+    </div>
+    <div class="prompt-actions">
+      <button class="copy-btn" onclick="copyPrompt(this, 'p1')">COPY</button>
+    </div>
+    <div class="prompt-watch">
+      <div class="prompt-watch-label">⚡ WATCH FOR</div>
+      <div class="prompt-watch-text">How generic does it get? Does it pick a direction on its own — or stay neutral?</div>
+    </div>
+  </div>
+
+  <!-- PROMPT 2 -->
+  <div class="prompt-card">
+    <div class="prompt-card-header">
+      <div class="prompt-card-num">2</div>
+      <div class="prompt-card-meta">
+        <div class="prompt-card-tag">SPECIFIC</div>
+        <div class="prompt-card-title">Audience and constraints</div>
+      </div>
+    </div>
+    <div class="prompt-box">
+      <div class="prompt-box-label">📋 PROMPT</div>
+      <div class="prompt-text" id="p2">Write a 100-word paragraph for Brazilian high school students about why studying English helps their future career. Use a friendly, motivating tone.</div>
+    </div>
+    <div class="prompt-actions">
+      <button class="copy-btn" onclick="copyPrompt(this, 'p2')">COPY</button>
+    </div>
+    <div class="prompt-watch">
+      <div class="prompt-watch-label">⚡ WATCH FOR</div>
+      <div class="prompt-watch-text">How much better does AI do when you give it audience + length + tone? Compare to Prompt 1.</div>
+    </div>
+  </div>
+
+  <!-- PROMPT 3 -->
+  <div class="prompt-card">
+    <div class="prompt-card-header">
+      <div class="prompt-card-num">3</div>
+      <div class="prompt-card-meta">
+        <div class="prompt-card-tag">PERSONAL</div>
+        <div class="prompt-card-title">Asks for things AI can't know</div>
+      </div>
+    </div>
+    <div class="prompt-box">
+      <div class="prompt-box-label">📋 PROMPT</div>
+      <div class="prompt-text" id="p3">Write a 100-word paragraph about my grandmother's recipe for feijoada. Include the secret ingredient she always added.</div>
+    </div>
+    <div class="prompt-actions">
+      <button class="copy-btn" onclick="copyPrompt(this, 'p3')">COPY</button>
+    </div>
+    <div class="prompt-watch">
+      <div class="prompt-watch-label">⚡ WATCH FOR</div>
+      <div class="prompt-watch-text">Did AI invent a "secret ingredient" it has no way of knowing? This is hallucination — and it sounds confident.</div>
+    </div>
+  </div>
+
+  <!-- PROMPT 4 -->
+  <div class="prompt-card">
+    <div class="prompt-card-header">
+      <div class="prompt-card-num">4</div>
+      <div class="prompt-card-meta">
+        <div class="prompt-card-tag">CURRENT FACTS</div>
+        <div class="prompt-card-title">Asks about right now</div>
+      </div>
+    </div>
+    <div class="prompt-box">
+      <div class="prompt-box-label">📋 PROMPT</div>
+      <div class="prompt-text" id="p4">What were the top 3 news stories in São Paulo this week? Be specific — give me dates and headlines.</div>
+    </div>
+    <div class="prompt-actions">
+      <button class="copy-btn" onclick="copyPrompt(this, 'p4')">COPY</button>
+    </div>
+    <div class="prompt-watch">
+      <div class="prompt-watch-label">⚡ WATCH FOR</div>
+      <div class="prompt-watch-text">Did AI invent news stories? Refuse? Give vague answers? AI does not know what's happening today.</div>
+    </div>
+  </div>
+</section>
+
+<section class="grid-section">
+  <div class="section-eyebrow">PART 2 · FILL THE GRID</div>
+  <h2 class="section-title">Be specific.</h2>
+  <p class="section-intro" style="padding-bottom: 0;">"Good" and "bad" don't tell us much. Name what AI did well and what it did badly for each prompt.</p>
+
+  <div class="eval-grid" style="margin-top: 24px;">
+    <!-- P1 -->
+    <div class="grid-row">
+      <div class="grid-row-header"><span class="grid-row-tag">P1</span> Vague topic</div>
+      <div class="grid-cell good">
+        <div class="grid-cell-label">✓ DID WELL</div>
+        <textarea class="grid-input" placeholder="What did AI do well on this prompt?"></textarea>
+      </div>
+      <div class="grid-cell bad">
+        <div class="grid-cell-label">✗ DID BADLY</div>
+        <textarea class="grid-input" placeholder="What did AI do badly on this prompt?"></textarea>
+      </div>
+    </div>
+    <!-- P2 -->
+    <div class="grid-row">
+      <div class="grid-row-header"><span class="grid-row-tag">P2</span> Specific + audience</div>
+      <div class="grid-cell good">
+        <div class="grid-cell-label">✓ DID WELL</div>
+        <textarea class="grid-input" placeholder="What did AI do well on this prompt?"></textarea>
+      </div>
+      <div class="grid-cell bad">
+        <div class="grid-cell-label">✗ DID BADLY</div>
+        <textarea class="grid-input" placeholder="What did AI do badly on this prompt?"></textarea>
+      </div>
+    </div>
+    <!-- P3 -->
+    <div class="grid-row">
+      <div class="grid-row-header"><span class="grid-row-tag">P3</span> Personal experience</div>
+      <div class="grid-cell good">
+        <div class="grid-cell-label">✓ DID WELL</div>
+        <textarea class="grid-input" placeholder="What did AI do well on this prompt?"></textarea>
+      </div>
+      <div class="grid-cell bad">
+        <div class="grid-cell-label">✗ DID BADLY</div>
+        <textarea class="grid-input" placeholder="What did AI do badly on this prompt?"></textarea>
+      </div>
+    </div>
+    <!-- P4 -->
+    <div class="grid-row">
+      <div class="grid-row-header"><span class="grid-row-tag">P4</span> Current facts</div>
+      <div class="grid-cell good">
+        <div class="grid-cell-label">✓ DID WELL</div>
+        <textarea class="grid-input" placeholder="What did AI do well on this prompt?"></textarea>
+      </div>
+      <div class="grid-cell bad">
+        <div class="grid-cell-label">✗ DID BADLY</div>
+        <textarea class="grid-input" placeholder="What did AI do badly on this prompt?"></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="callout">
+  <div class="callout-icon">⚡</div>
+  <div class="callout-title">DISCUSS WITH YOUR PARTNER</div>
+  <div class="callout-text">Out of all 4 prompts, which response was most useful to you as a writer? Which was the worst? Be ready to share with the class — the teacher will draw a chart on the board with your discoveries.</div>
+</div>
+
+<section class="checklist-section">
+  <div class="checklist">
+    <div class="checklist-title">BEFORE YOU MOVE ON</div>
+    <div class="checklist-item">
+      <div class="checklist-checkbox" onclick="toggleCheck(this)"></div>
+      <div class="checklist-label">We ran all 4 prompts in Claude</div>
+    </div>
+    <div class="checklist-item">
+      <div class="checklist-checkbox" onclick="toggleCheck(this)"></div>
+      <div class="checklist-label">We pasted all 4 exchanges into our Process Journals (Section 2)</div>
+    </div>
+    <div class="checklist-item">
+      <div class="checklist-checkbox" onclick="toggleCheck(this)"></div>
+      <div class="checklist-label">We filled in every cell of the evaluation grid</div>
+    </div>
+    <div class="checklist-item">
+      <div class="checklist-checkbox" onclick="toggleCheck(this)"></div>
+      <div class="checklist-label">We agreed on which response was best and worst</div>
+    </div>
+  </div>
+</section>
+
+<div class="footer-hint">
+  <div class="footer-hint-eyebrow">WHEN YOU'RE DONE</div>
+  <div class="footer-hint-text">Look up at the projector.<br>The dashboard will guide you to Mission 3.</div>
+</div>
+
+<div class="copy-toast" id="copy-toast">✓ Copied to clipboard</div>
+
+<script>
+function copyPrompt(btn, id) {
+  const text = document.getElementById(id).innerText;
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => showCopyFeedback(btn)).catch(() => fallbackCopy(text, btn));
+  } else {
+    fallbackCopy(text, btn);
+  }
+}
+function fallbackCopy(text, btn) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); showCopyFeedback(btn); } catch (e) { console.error(e); }
+  document.body.removeChild(ta);
+}
+function showCopyFeedback(btn) {
+  btn.classList.add('copied');
+  btn.textContent = '✓ COPIED';
+  const toast = document.getElementById('copy-toast');
+  toast.classList.add('visible');
+  setTimeout(() => {
+    btn.classList.remove('copied');
+    btn.textContent = 'COPY';
+    toast.classList.remove('visible');
+  }, 2200);
+}
+function toggleCheck(box) { box.classList.toggle('checked'); }
+</script>
+
+</body>
+</html>
