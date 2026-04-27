@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Mission 1 · Meet Your AI Partner · ApproachUSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --nd-blue: #0c2340;
+    --nd-blue-light: #143865;
+    --nd-blue-deep: #081629;
+    --nd-gold: #ae9142;
+    --nd-gold-bright: #d39f10;
+    --warm-white: #efe9d9;
+    --light-warm: #f8f4ec;
+    --paper: #faf6ec;
+    --ink: #1a1a1a;
+    --ink-soft: #3d3d3d;
+    --muted: #6a6a6a;
+    --m1-color: #dc3545;
+
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    line-height: 1.5;
+    padding-bottom: 80px;
+  }
+
+  /* ============ HEADER ============ */
+  .top-bar {
+    background: var(--nd-blue);
+    color: var(--warm-white);
+    padding: 16px 20px;
+    border-bottom: 3px solid var(--m1-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .top-bar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 100%;
+  }
+  .top-eyebrow {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+  }
+  .top-title {
+    font-family: var(--serif);
+    font-size: 16px;
+    font-style: italic;
+    color: var(--warm-white);
+    margin-top: 2px;
+  }
+  .timer-pill {
+    background: rgba(174, 145, 66, 0.2);
+    border: 1px solid var(--nd-gold);
+    color: var(--nd-gold);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    padding: 6px 12px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* ============ HERO ============ */
+  .hero {
+    padding: 40px 24px 30px;
+    background: var(--nd-blue);
+    color: var(--warm-white);
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(220, 53, 69, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .mission-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .mission-num-circle {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--m1-color);
+    color: var(--warm-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 600;
+    font-size: 20px;
+  }
+  .mission-meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+  }
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: 44px;
+    font-weight: 500;
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    margin-bottom: 18px;
+    color: var(--warm-white);
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--nd-gold);
+  }
+  .hero-intro {
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.45;
+    color: var(--warm-white);
+    opacity: 0.9;
+  }
+
+  /* ============ DELIVERABLE ============ */
+  .deliverable-card {
+    margin: 30px 20px 0;
+    background: rgba(174, 145, 66, 0.08);
+    border-left: 3px solid var(--nd-gold);
+    padding: 16px 18px;
+    border-radius: 4px;
+  }
+  .deliverable-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .deliverable-text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+    color: var(--ink);
+    line-height: 1.4;
+  }
+
+  /* ============ STEPS ============ */
+  .steps-section {
+    padding: 36px 20px 0;
+  }
+
+  .section-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .section-title {
+    font-family: var(--serif);
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--nd-blue);
+    margin-bottom: 24px;
+    line-height: 1.1;
+  }
+
+  .step {
+    margin-bottom: 28px;
+  }
+  .step-header {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 10px;
+  }
+  .step-num {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 600;
+    font-size: 32px;
+    color: var(--m1-color);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .step-title {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--nd-blue);
+    line-height: 1.2;
+  }
+  .step-body {
+    margin-left: 46px;
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+
+  /* ============ COPY-PROMPT BOX ============ */
+  .prompt-box {
+    margin: 14px 0 0 46px;
+    background: var(--nd-blue);
+    color: var(--warm-white);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(12, 35, 64, 0.2);
+  }
+  .prompt-header {
+    background: var(--m1-color);
+    padding: 8px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .prompt-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--warm-white);
+  }
+  .copy-btn {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: var(--warm-white);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .copy-btn:active {
+    background: var(--warm-white);
+    color: var(--m1-color);
+  }
+  .copy-btn.copied {
+    background: var(--warm-white);
+    color: var(--m1-color);
+  }
+  .prompt-body {
+    padding: 18px 16px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 17px;
+    line-height: 1.45;
+    color: var(--warm-white);
+  }
+
+  /* ============ CALLOUT (the "notice this") ============ */
+  .callout {
+    margin: 36px 20px 0;
+    background: linear-gradient(135deg, #fef9e8 0%, #f5eed2 100%);
+    border-radius: 10px;
+    padding: 22px 20px;
+    border-left: 4px solid var(--nd-gold);
+    box-shadow: 0 2px 8px rgba(174, 145, 66, 0.1);
+  }
+  .callout-icon {
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+  .callout-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--nd-blue);
+    margin-bottom: 10px;
+  }
+  .callout-text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 17px;
+    line-height: 1.45;
+    color: var(--ink);
+  }
+
+  /* ============ DELIVERABLE CHECKLIST ============ */
+  .checklist-section {
+    padding: 36px 20px 0;
+  }
+  .checklist {
+    background: var(--warm-white);
+    border-radius: 10px;
+    padding: 20px 18px;
+    border: 1px solid rgba(174, 145, 66, 0.3);
+  }
+  .checklist-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--nd-gold);
+    margin-bottom: 14px;
+  }
+  .checklist-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(174, 145, 66, 0.15);
+  }
+  .checklist-item:last-child { border-bottom: none; }
+  .checklist-checkbox {
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--m1-color);
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .checklist-checkbox.checked {
+    background: var(--m1-color);
+  }
+  .checklist-checkbox.checked::after {
+    content: '✓';
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+  }
+  .checklist-label {
+    font-family: var(--serif);
+    font-size: 16px;
+    color: var(--ink);
+    line-height: 1.4;
+    flex: 1;
+  }
+  .checklist-checkbox.checked + .checklist-label {
+    text-decoration: line-through;
+    opacity: 0.5;
+  }
+
+  /* ============ BACK TO DASHBOARD HINT ============ */
+  .footer-hint {
+    margin: 50px 20px 0;
+    text-align: center;
+    padding: 24px 20px;
+    border-top: 1px solid rgba(174, 145, 66, 0.3);
+  }
+  .footer-hint-text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .footer-hint-eyebrow {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  /* ============ COPY TOAST ============ */
+  .copy-toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--nd-blue);
+    color: var(--warm-white);
+    padding: 14px 26px;
+    border-radius: 30px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+    z-index: 200;
+    transition: transform 0.35s ease;
+    border: 1px solid var(--nd-gold);
+  }
+  .copy-toast.visible {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* Tablet+ widening */
+  @media (min-width: 700px) {
+    body {
+      max-width: 720px;
+      margin: 0 auto;
+      box-shadow: 0 0 40px rgba(0,0,0,0.08);
+    }
+    .hero h1 { font-size: 56px; }
+    .section-title { font-size: 34px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ TOP BAR ============ -->
+<header class="top-bar">
+  <div class="top-bar-inner">
+    <div>
+      <div class="top-eyebrow">MISSION 01</div>
+      <div class="top-title">Meet Your AI Partner</div>
+    </div>
+    <div class="timer-pill">⏱ 20 MIN</div>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="mission-badge">
+    <div class="mission-num-circle">1</div>
+    <div class="mission-meta">FIRST CONTACT · 20 MINUTES</div>
+  </div>
+  <h1>Meet your<br><em>AI partner.</em></h1>
+  <p class="hero-intro">This is your first conversation with Claude in this class. The goal is simple: introduce yourself to the tool and see what happens.</p>
+</section>
+
+<!-- ============ DELIVERABLE PREVIEW ============ -->
+<div class="deliverable-card">
+  <div class="deliverable-label">✓ DELIVERABLE</div>
+  <div class="deliverable-text">One AI exchange copy-pasted into your Process Journal under "Entry 4 — Section 1."</div>
+</div>
+
+<!-- ============ STEPS ============ -->
+<section class="steps-section">
+  <div class="section-eyebrow">YOUR FIVE STEPS</div>
+  <h2 class="section-title">Take it one move at a time.</h2>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">1</div>
+      <div class="step-title">Open Claude.</div>
+    </div>
+    <div class="step-body">Go to <strong>claude.ai</strong> on your laptop. Make sure you're logged in. You should see a chat box ready for input.</div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">2</div>
+      <div class="step-title">Say hello — your way.</div>
+    </div>
+    <div class="step-body">Type a hello message in your own words. It can be short. Press Enter and read what Claude says back.</div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">3</div>
+      <div class="step-title">Ask the question that matters.</div>
+    </div>
+    <div class="step-body">Now copy the prompt below and paste it into Claude.</div>
+    <div class="prompt-box">
+      <div class="prompt-header">
+        <div class="prompt-label">📋 PROMPT TO COPY</div>
+        <button class="copy-btn" onclick="copyPrompt(this, 'p1')">COPY</button>
+      </div>
+      <div class="prompt-body" id="p1">I'm a student in a writing class. We're starting to use AI as a writing tool today. In two short paragraphs: what are you genuinely good at for writing, and what are you genuinely bad at? Be honest — don't oversell yourself.</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">4</div>
+      <div class="step-title">Save the conversation.</div>
+    </div>
+    <div class="step-body">Copy the entire exchange (your prompt + Claude's response) into your <strong>Process Journal</strong>. Use this heading:<br><br><em style="color: var(--nd-blue);">Entry 4 — Section 1 — Meet Your AI Partner</em></div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">5</div>
+      <div class="step-title">Compare with a partner.</div>
+    </div>
+    <div class="step-body">Find the person sitting next to you. Look at each other's responses from Claude. Did you get the same answer? Different? Discuss for 2 minutes.</div>
+  </div>
+</section>
+
+<!-- ============ NOTICE THIS CALLOUT ============ -->
+<div class="callout">
+  <div class="callout-icon">⚡</div>
+  <div class="callout-title">NOTICE THIS</div>
+  <div class="callout-text">AI gives slightly different answers every time — even to the exact same prompt. This is important. Two students with the same prompt will not get the same essay. That can be useful (variety) and dangerous (you can't rely on AI being consistent).</div>
+</div>
+
+<!-- ============ DONE CHECKLIST ============ -->
+<section class="checklist-section">
+  <div class="checklist">
+    <div class="checklist-title">BEFORE YOU MOVE ON</div>
+    <div class="checklist-item">
+      <div class="checklist-checkbox" onclick="toggleCheck(this)"></div>
+      <div class="checklist-label">I'm logged in to Claude (claude.ai)</div>
+    </div>
+    <div class="checklist-item">
+      <div class="checklist-checkbox" onclick="toggleCheck(this)"></div>
+      <div class="checklist-label">I sent at least one message of my own</div>
+    </div>
+    <div class="checklist-item">
+      <div class="checklist-checkbox" onclick="toggleCheck(this)"></div>
+      <div class="checklist-label">I sent the "what are you good/bad at" prompt</div>
+    </div>
+    <div class="checklist-item">
+      <div class="checklist-checkbox" onclick="toggleCheck(this)"></div>
+      <div class="checklist-label">I pasted the exchange into my Process Journal</div>
+    </div>
+    <div class="checklist-item">
+      <div class="checklist-checkbox" onclick="toggleCheck(this)"></div>
+      <div class="checklist-label">I compared answers with a partner</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER HINT ============ -->
+<div class="footer-hint">
+  <div class="footer-hint-eyebrow">WHEN YOU'RE DONE</div>
+  <div class="footer-hint-text">Look up at the projector.<br>The dashboard will guide you to Mission 2.</div>
+</div>
+
+<!-- ============ COPY TOAST ============ -->
+<div class="copy-toast" id="copy-toast">✓ Copied to clipboard</div>
+
+<script>
+function copyPrompt(btn, id) {
+  const text = document.getElementById(id).innerText;
+
+  // Use clipboard API with fallback
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => {
+      showCopyFeedback(btn);
+    }).catch(() => {
+      fallbackCopy(text, btn);
+    });
+  } else {
+    fallbackCopy(text, btn);
+  }
+}
+
+function fallbackCopy(text, btn) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showCopyFeedback(btn);
+  } catch (e) {
+    console.error('Copy failed', e);
+  }
+  document.body.removeChild(ta);
+}
+
+function showCopyFeedback(btn) {
+  btn.classList.add('copied');
+  btn.textContent = '✓ COPIED';
+
+  const toast = document.getElementById('copy-toast');
+  toast.classList.add('visible');
+
+  setTimeout(() => {
+    btn.classList.remove('copied');
+    btn.textContent = 'COPY';
+    toast.classList.remove('visible');
+  }, 2200);
+}
+
+function toggleCheck(box) {
+  box.classList.toggle('checked');
+}
+</script>
+
+</body>
+</html>

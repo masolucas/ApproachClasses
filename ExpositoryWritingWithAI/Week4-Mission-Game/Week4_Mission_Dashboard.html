@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week 4 Dashboard · AI Enters the Workshop · ApproachUSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Montserrat:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --nd-blue: #0c2340;
+    --nd-blue-light: #143865;
+    --nd-blue-deep: #081629;
+    --nd-gold: #ae9142;
+    --nd-gold-bright: #d39f10;
+    --warm-white: #efe9d9;
+    --light-warm: #f8f4ec;
+    --paper: #f5f0e3;
+
+    --m1-color: #dc3545;  /* red — mission 1 */
+    --m2-color: #1368ce;  /* blue — mission 2 */
+    --m3-color: #d89e00;  /* yellow — mission 3 */
+    --m4-color: #26890c;  /* green — mission 4 */
+    --m5-color: #8e44ad;  /* purple — mission 5 */
+
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: radial-gradient(ellipse at top, var(--nd-blue-light) 0%, var(--nd-blue) 40%, var(--nd-blue-deep) 100%);
+    color: var(--warm-white);
+    min-height: 100vh;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Subtle grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.04;
+    z-index: 1000;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .gold-border {
+    position: fixed;
+    inset: 24px;
+    border: 1px solid var(--nd-gold);
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.35;
+  }
+  .gold-border::before, .gold-border::after {
+    content: '';
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    border: 2px solid var(--nd-gold);
+  }
+  .gold-border::before {
+    top: -8px; left: -8px;
+    border-right: none; border-bottom: none;
+  }
+  .gold-border::after {
+    bottom: -8px; right: -8px;
+    border-left: none; border-top: none;
+  }
+
+  /* ======================================
+     PERSISTENT HEADER
+     ====================================== */
+  .header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    padding: 35px 80px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+    pointer-events: none;
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .monogram {
+    width: 36px; height: 36px;
+    border: 1.5px solid var(--nd-gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-size: 20px;
+    font-style: italic;
+    color: var(--nd-gold);
+    font-weight: 500;
+  }
+  .header-text {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--nd-gold);
+    line-height: 1.4;
+  }
+  .header-text .sub {
+    color: var(--warm-white);
+    opacity: 0.6;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+  }
+
+  .progress-dots {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: rgba(174, 145, 66, 0.25);
+    transition: all 0.5s ease;
+  }
+  .dot.active {
+    background: var(--nd-gold);
+    transform: scale(1.4);
+  }
+  .dot.complete {
+    background: var(--nd-gold-bright);
+  }
+
+  /* ======================================
+     SCREENS
+     ====================================== */
+  .screen {
+    position: fixed;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    padding: 110px 80px 80px;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .screen.active {
+    display: flex;
+    opacity: 1;
+  }
+
+  /* ======================================
+     WELCOME SCREEN
+     ====================================== */
+  #welcome-screen {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .welcome-eyebrow {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--nd-gold);
+    margin-bottom: 70px;
+    opacity: 1;
+    animation: fadeInUp 0.9s ease forwards;
+  }
+
+  .welcome-title {
+    font-family: var(--serif);
+    font-size: clamp(72px, 8vw, 115px);
+    font-weight: 500;
+    line-height: 0.92;
+    letter-spacing: -0.025em;
+    color: var(--warm-white);
+    margin-bottom: 45px;
+    opacity: 1;
+    animation: fadeInUp 1s 0.2s ease forwards;
+  }
+  .welcome-title em {
+    font-style: italic;
+    color: var(--nd-gold);
+    font-weight: 400;
+  }
+
+  .welcome-subtitle {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(22px, 2.6vw, 34px);
+    color: var(--warm-white);
+    opacity: 1;
+    margin-bottom: 70px;
+    animation: fadeInUp 1s 0.4s ease forwards;
+  }
+
+  .welcome-stats {
+    display: flex;
+    gap: 80px;
+    margin-bottom: 90px;
+    opacity: 1;
+    animation: fadeInUp 1s 0.6s ease forwards;
+  }
+  .stat-item {
+    text-align: center;
+  }
+  .stat-value {
+    font-family: var(--serif);
+    font-size: clamp(48px, 6vw, 88px);
+    font-weight: 500;
+    color: var(--nd-gold);
+    line-height: 1;
+    font-style: italic;
+  }
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--warm-white);
+    opacity: 0.6;
+    margin-top: 12px;
+  }
+
+  /* ======================================
+     PRIMARY ACTION BUTTON (the "start" / "next mission" button)
+     ====================================== */
+  .primary-btn {
+    position: relative;
+    background: transparent;
+    border: 2px solid var(--nd-gold);
+    color: var(--warm-white);
+    padding: 22px 60px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    overflow: hidden;
+    min-width: 320px;
+    transition: color 0.35s ease;
+    opacity: 1;
+    animation: fadeInUp 1s 0.85s ease forwards;
+  }
+  .primary-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--nd-gold);
+    transform: translateX(-100%);
+    transition: transform 0.4s ease;
+    z-index: 0;
+  }
+  .primary-btn > * { position: relative; z-index: 1; }
+  .primary-btn:hover::before { transform: translateX(0); }
+  .primary-btn:hover { color: var(--nd-blue); }
+
+  .primary-btn-label {
+    display: block;
+    font-family: var(--serif);
+    font-size: 26px;
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    margin-bottom: 4px;
+  }
+
+  .primary-btn:disabled {
+    border-color: rgba(174, 145, 66, 0.3);
+    color: rgba(239, 233, 217, 0.4);
+    cursor: not-allowed;
+  }
+  .primary-btn:disabled::before { display: none; }
+  .primary-btn:disabled:hover { color: rgba(239, 233, 217, 0.4); }
+
+  /* "next mission" pulsing when ready */
+  .primary-btn.ready {
+    animation: readyPulse 2s ease-in-out infinite;
+  }
+  @keyframes readyPulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(174, 145, 66, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 14px rgba(174, 145, 66, 0);
+    }
+  }
+
+  /* ======================================
+     MISSION SCREEN
+     ====================================== */
+  .mission-screen {
+    flex-direction: row;
+    gap: 80px;
+    align-items: stretch;
+  }
+
+  .mission-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  .mission-right {
+    flex: 1.2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border-left: 1px solid rgba(174, 145, 66, 0.3);
+    padding-left: 50px;
+  }
+
+  .mission-num {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(60px, 7vw, 96px);
+    font-weight: 500;
+    color: var(--mission-color, var(--nd-gold));
+    line-height: 1;
+    margin-bottom: 12px;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: missionFadeIn 0.7s ease forwards;
+  }
+
+  .mission-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--nd-gold);
+    margin-bottom: 30px;
+    opacity: 0;
+    animation: missionFadeIn 0.7s 0.1s ease forwards;
+  }
+
+  .mission-title {
+    font-family: var(--serif);
+    font-size: clamp(48px, 6.5vw, 88px);
+    font-weight: 500;
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+    color: var(--warm-white);
+    margin-bottom: 35px;
+    opacity: 0;
+    animation: missionFadeIn 0.7s 0.2s ease forwards;
+  }
+  .mission-title em {
+    font-style: italic;
+    color: var(--mission-color, var(--nd-gold));
+    font-weight: 500;
+  }
+
+  .mission-description {
+    font-family: var(--serif);
+    font-size: clamp(18px, 1.7vw, 26px);
+    line-height: 1.45;
+    color: var(--warm-white);
+    margin-bottom: 35px;
+    max-width: 700px;
+    opacity: 0.85;
+    opacity: 0;
+    animation: missionFadeIn 0.7s 0.3s ease forwards;
+  }
+
+  .mission-deliverable {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--nd-gold);
+    border-left: 2px solid var(--mission-color, var(--nd-gold));
+    padding: 10px 0 10px 20px;
+    margin-bottom: 50px;
+    opacity: 0;
+    animation: missionFadeIn 0.7s 0.4s ease forwards;
+  }
+  .mission-deliverable .label {
+    display: block;
+    color: var(--warm-white);
+    opacity: 0.5;
+    font-size: 9px;
+    margin-bottom: 6px;
+  }
+  .mission-deliverable .value {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 18px;
+    font-weight: 400;
+    text-transform: none;
+    color: var(--warm-white);
+    letter-spacing: 0;
+  }
+
+  @keyframes missionFadeIn {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ======================================
+     QR CODE PANEL (right side)
+     ====================================== */
+  .control-section-1 {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .control-section-2 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .qr-instruction-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-right: 45px;
+  }
+
+  .qr-eyebrow {
+    font-family: var(--mono);
+    font-size: 22px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--nd-gold);
+    margin-bottom: 65px;
+    opacity: 0;
+    animation: missionFadeIn 0.7s 0.5s ease forwards;
+  }
+
+  .qr-frame {
+    width: 280px;
+    height: 280px;
+    background: var(--warm-white);
+    border: 8px solid var(--mission-color, var(--nd-gold));
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 25px;
+    position: relative;
+    opacity: 0;
+    animation: missionFadeIn 0.7s 0.55s ease forwards;
+  }
+
+  /* Placeholder pattern when no QR is loaded */
+  .qr-placeholder {
+    width: 220px;
+    height: 220px;
+    background-image:
+      repeating-linear-gradient(0deg, var(--nd-blue) 0, var(--nd-blue) 8px, transparent 8px, transparent 16px),
+      repeating-linear-gradient(90deg, var(--nd-blue) 0, var(--nd-blue) 8px, transparent 8px, transparent 16px);
+    background-color: var(--paper);
+    opacity: 0.15;
+    position: relative;
+  }
+  .qr-placeholder::after {
+    content: 'QR CODE\AHERE';
+    white-space: pre;
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    color: var(--nd-blue);
+    text-align: center;
+    opacity: 1;
+  }
+  /* Hide placeholder text when an image is added */
+  .qr-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+  .qr-frame img + .qr-placeholder { display: none; }
+  .qr-frame:has(img) .qr-placeholder { display: none; }
+
+  .qr-instruction {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 18px;
+    color: var(--warm-white);
+    opacity: 0.75;
+    max-width: 320px;
+    line-height: 1.4;
+    margin-bottom: 50px;
+    opacity: 0;
+    animation: missionFadeIn 0.7s 0.6s ease forwards;
+  }
+
+  /* ======================================
+     TIMER (centerpiece when running)
+     ====================================== */
+  .timer-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .timer-display {
+    width: 180px;
+    height: 180px;
+    position: relative;
+    margin-bottom: 30px;
+    display: none;
+  }
+  .timer-display.visible { display: block; }
+
+  .timer-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+  .timer-svg .bg-ring {
+    fill: none;
+    stroke: rgba(174, 145, 66, 0.15);
+    stroke-width: 4;
+  }
+  .timer-svg .fg-ring {
+    fill: none;
+    stroke: var(--nd-gold);
+    stroke-width: 4;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s linear, stroke 0.5s ease;
+  }
+  .timer-svg.warning .fg-ring { stroke: var(--nd-gold-bright); }
+  .timer-svg.danger .fg-ring { stroke: var(--m1-color); }
+
+  .timer-time {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .timer-minutes {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 75px;
+    font-weight: 500;
+    color: var(--warm-white);
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+  .timer-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--nd-gold);
+    margin-top: 8px;
+  }
+
+  /* When timer is COMPLETE */
+  .timer-display.complete .timer-svg .fg-ring {
+    stroke: var(--m4-color);
+    stroke-dashoffset: 0 !important;
+  }
+  .timer-display.complete .timer-minutes {
+    color: var(--m4-color);
+  }
+
+  /* "MISSION COMPLETE" overlay */
+  .mission-complete-message {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 28px;
+    color: var(--m4-color);
+    margin-bottom: 30px;
+    text-align: center;
+    display: none;
+    animation: completeFadeIn 0.6s ease;
+  }
+  .mission-complete-message.visible { display: block; }
+  @keyframes completeFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ======================================
+     TIMER CONTROLS (bottom of right column)
+     ====================================== */
+  .timer-controls {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    justify-content: center;
+    opacity: 0;
+    animation: missionFadeIn 0.7s 0.7s ease forwards;
+  }
+
+  .control-btn {
+    background: transparent;
+    border: 1px solid rgba(174, 145, 66, 0.5);
+    color: var(--warm-white);
+    padding: 12px 22px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 2px;
+  }
+  .control-btn:hover {
+    border-color: var(--nd-gold);
+    color: var(--nd-gold);
+    background: rgba(174, 145, 66, 0.08);
+  }
+
+  .control-btn.start-btn {
+    border-color: var(--nd-gold);
+    color: var(--nd-gold);
+    font-family: var(--serif);
+    font-size: 18px;
+    font-style: italic;
+    letter-spacing: 0;
+    text-transform: none;
+    padding: 14px 32px;
+  }
+  .control-btn.start-btn:hover {
+    background: var(--nd-gold);
+    color: var(--nd-blue);
+  }
+
+  .control-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+  .control-btn:disabled:hover {
+    border-color: rgba(174, 145, 66, 0.3);
+    color: rgba(239, 233, 217, 0.4);
+    background: transparent;
+  }
+
+  .next-mission-btn {
+    margin-top: 20px;
+    opacity: 1;
+    animation: missionFadeIn 0.7s 0.8s ease forwards;
+  }
+
+  /* ======================================
+     CLOSING SCREEN
+     ====================================== */
+  #closing-screen {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .closing-eyebrow {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--nd-gold);
+    margin-bottom: 40px;
+  }
+
+  .closing-title {
+    font-family: var(--serif);
+    font-size: clamp(80px, 12vw, 168px);
+    font-weight: 500;
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+    color: var(--warm-white);
+    margin-bottom: 35px;
+  }
+  .closing-title em {
+    font-style: italic;
+    color: var(--nd-gold);
+  }
+
+  .closing-message {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(22px, 2.6vw, 30px);
+    color: var(--warm-white);
+    opacity: 0.85;
+    margin-bottom: 70px;
+    max-width: 800px;
+    line-height: 1.4;
+  }
+
+  /* ======================================
+     RESPONSIVE
+     ====================================== */
+  @media (max-width: 1100px) {
+    .mission-screen {
+      flex-direction: column;
+      gap: 40px;
+      padding: 90px 50px 50px;
+    }
+    .mission-right {
+      border-left: none;
+      border-top: 1px solid rgba(174, 145, 66, 0.3);
+      padding-left: 0;
+      padding-top: 40px;
+    }
+    .qr-frame { width: 220px; height: 220px; }
+    .qr-placeholder { width: 170px; height: 170px; }
+    .timer-display { width: 220px; height: 220px; }
+    .timer-minutes { font-size: 72px; }
+  }
+
+  @media (max-width: 700px) {
+    .header { padding: 20px 30px 15px; }
+    .screen { padding: 70px 30px 40px; }
+    .welcome-stats { gap: 30px; flex-wrap: wrap; }
+    .progress-dots { display: none; }
+  }
+
+  /* Keyboard hint at bottom-left */
+  .kbd-hint {
+    position: fixed;
+    bottom: 35px;
+    left: 80px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--warm-white);
+    opacity: 0.4;
+    z-index: 50;
+  }
+  .kbd-hint kbd {
+    display: inline-block;
+    padding: 2px 8px;
+    margin: 0 2px;
+    background: rgba(174, 145, 66, 0.15);
+    border: 1px solid rgba(174, 145, 66, 0.3);
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--warm-white);
+  }
+</style>
+</head>
+<body>
+
+<div class="gold-border"></div>
+
+<!-- ============ PERSISTENT HEADER ============ -->
+<header class="header">
+  <div class="header-left">
+    <div class="monogram">A</div>
+    <div class="header-text">
+      WEEK 04 · AI ENTERS THE WORKSHOP
+      <div class="sub">EXPOSITORY WRITING WITH AI · SPRING 2026</div>
+    </div>
+  </div>
+  <div class="progress-dots" id="progress-dots">
+    <!-- 5 dots populated by JS -->
+  </div>
+</header>
+
+<!-- ============ WELCOME SCREEN ============ -->
+<section id="welcome-screen" class="screen active">
+  <div class="welcome-eyebrow">WEEK 04 · MISSION CONTROL</div>
+  <h1 class="welcome-title">AI Enters the<br><em>Workshop.</em></h1>
+  <p class="welcome-subtitle">Five missions. Your words on the page.</p>
+
+  <!--<div class="welcome-stats">
+    <div class="stat-item">
+      <div class="stat-value">5</div>
+      <div class="stat-label">Missions</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">400</div>
+      <div class="stat-label">Words to write</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">1</div>
+      <div class="stat-label">Rule above all</div>
+    </div>
+  </div>-->
+
+  <button class="primary-btn" onclick="startMission(1)">
+    <span class="primary-btn-label">Start Exploring</span>
+    <span>BEGIN MISSION 1 →</span>
+  </button>
+</section>
+
+<!-- ============ MISSION SCREENS (populated by JS) ============ -->
+<section id="mission-1-screen" class="screen mission-screen" style="--mission-color: var(--m1-color);">
+  <div class="mission-left">
+    <div class="mission-num">01</div>
+    <div class="mission-eyebrow">MISSION ONE · 20 MIN</div>
+    <h2 class="mission-title">Meet your <em>AI partner.</em></h2>
+    <p class="mission-description">Your first conversation with Claude in this class. Open the chat. Say hello — your way. Then ask the question that matters most: what is AI genuinely good at, and what is it bad at?</p>
+    <div class="mission-deliverable">
+      <span class="label">DELIVERABLE</span>
+      <span class="value">One AI exchange copy-pasted into your Process Journal under "Entry 4 — Section 1."</span>
+    </div>
+  </div>
+  <div class="mission-right">
+    <div class="control-section-1">
+      <div class="qr-instruction-section">
+        <div class="qr-eyebrow">SCAN TO START</div>
+        <p class="qr-instruction">Point your camera at the code. The full mission opens on your phone.</p>
+      </div>
+      <div class="qr-frame" data-mission="1">
+        <!-- Replace with: <img src="qr-mission-1.png" alt="Mission 1 QR"> -->
+        <div class="qr-placeholder"></div>
+      </div> 
+    </div>
+    <div class="control-section-2">
+      <div class="timer-section">
+        <div class="timer-display" id="timer-1">
+          <svg class="timer-svg" viewBox="0 0 200 200">
+            <circle class="bg-ring" cx="100" cy="100" r="92"></circle>
+            <circle class="fg-ring" id="timer-fg-1" cx="100" cy="100" r="92"
+                    stroke-dasharray="578.05" stroke-dashoffset="0"></circle>
+          </svg>
+          <div class="timer-time">
+            <div class="timer-minutes" id="timer-minutes-1">20:00</div>
+            <div class="timer-label">REMAINING</div>
+          </div>
+        </div>
+        <div class="mission-complete-message" id="complete-1">Mission complete.</div>
+
+        <div class="timer-controls">
+          <button class="control-btn start-btn" id="start-btn-1" onclick="startTimer(1)">Start Mission</button>
+          <button class="control-btn" id="pause-btn-1" onclick="togglePause(1)" disabled>Pause</button>
+          <button class="control-btn" id="addtime-btn-1" onclick="addTime(1, 60)" disabled>+1 min</button>
+        </div>
+      </div>
+      <div class="next-mission-btn-section">
+        <button class="primary-btn next-mission-btn" id="next-btn-1" onclick="goToMission(2)" disabled>
+          <span class="primary-btn-label">Next Mission →</span>
+          <span>MISSION 2: WHAT AI CANNOT DO</span>
+        </button>
+      </div>
+    </div>
+    
+    
+
+    
+  </div>
+</section>
+
+<section id="mission-2-screen" class="screen mission-screen" style="--mission-color: var(--m2-color);">
+  <div class="mission-left">
+    <div class="mission-num">02</div>
+    <div class="mission-eyebrow">MISSION TWO · 30 MIN · WITH A PARTNER</div>
+    <h2 class="mission-title">Find the <em>cracks.</em></h2>
+    <p class="mission-description">Run four very different prompts through Claude with a partner. Watch how it handles each. By the end, you'll have seen — with your own eyes — exactly what AI can and cannot do for writing.</p>
+    <div class="mission-deliverable">
+      <span class="label">DELIVERABLE</span>
+      <span class="value">Completed evaluation grid + 4 prompt-response pairs in your Process Journal — Section 2.</span>
+    </div>
+  </div>
+  <div class="mission-right">
+    <div class="control-section-1">
+      <div class="qr-instruction-section">
+        <div class="qr-eyebrow">SCAN TO START</div>
+        <p class="qr-instruction">Point your camera at the code. The full mission opens on your phone.</p>
+      </div>
+      <div class="qr-frame" data-mission="2">
+        <!-- Replace with: <img src="qr-mission-2.png" alt="Mission 2 QR"> -->
+        <div class="qr-placeholder"></div>
+      </div>
+    </div>
+    <div class="control-section-2">
+      <div class="timer-section">
+          <div class="timer-display" id="timer-2">
+            <svg class="timer-svg" viewBox="0 0 200 200">
+              <circle class="bg-ring" cx="100" cy="100" r="92"></circle>
+              <circle class="fg-ring" id="timer-fg-2" cx="100" cy="100" r="92"
+                      stroke-dasharray="578.05" stroke-dashoffset="0"></circle>
+            </svg>
+            <div class="timer-time">
+              <div class="timer-minutes" id="timer-minutes-2">30:00</div>
+              <div class="timer-label">REMAINING</div>
+            </div>
+          </div>
+          <div class="mission-complete-message" id="complete-2">Mission complete.</div>
+
+          <div class="timer-controls">
+            <button class="control-btn start-btn" id="start-btn-2" onclick="startTimer(2)">Start Mission</button>
+            <button class="control-btn" id="pause-btn-2" onclick="togglePause(2)" disabled>Pause</button>
+            <button class="control-btn" id="addtime-btn-2" onclick="addTime(2, 60)" disabled>+1 min</button>
+          </div>
+        </div>
+        <div class="next-mission-btn-section">
+          <button class="primary-btn next-mission-btn" id="next-btn-2" onclick="goToMission(3)" disabled>
+            <span class="primary-btn-label">Next Mission →</span>
+            <span>MISSION 3: AI AS OUTLINE PARTNER</span>
+          </button>
+        </div>
+    </div>
+    
+  </div>
+</section>
+
+<section id="mission-3-screen" class="screen mission-screen" style="--mission-color: var(--m3-color);">
+  <div class="mission-left">
+    <div class="mission-num">03</div>
+    <div class="mission-eyebrow">MISSION THREE · 35 MIN</div>
+    <h2 class="mission-title">AI as your<br><em>outline partner.</em></h2>
+    <p class="mission-description">Brainstorm your own ideas first. Then bring AI in to brainstorm with you. Then ask Claude for an outline — and mark it up: KEEP, MODIFY, REJECT. The AI gives you bones; you decide what's worth keeping.</p>
+    <div class="mission-deliverable">
+      <span class="label">DELIVERABLE</span>
+      <span class="value">5 personal points + AI brainstorm + AI outline + marked-up outline in your Journal.</span>
+    </div>
+  </div>
+  <div class="mission-right">
+    <div class="control-section-1">
+      <div class="qr-instruction-section">
+        <div class="qr-eyebrow">SCAN TO START</div>
+        <p class="qr-instruction">Point your camera at the code. The full mission opens on your phone.</p>
+      </div>
+      <div class="qr-frame" data-mission="3">
+        <!-- Replace with: <img src="qr-mission-3.png" alt="Mission 3 QR"> -->
+        <div class="qr-placeholder"></div>
+      </div>
+    </div>
+    
+    <div class="control-section-2">
+      <div class="timer-section">
+        <div class="timer-display" id="timer-3">
+          <svg class="timer-svg" viewBox="0 0 200 200">
+            <circle class="bg-ring" cx="100" cy="100" r="92"></circle>
+            <circle class="fg-ring" id="timer-fg-3" cx="100" cy="100" r="92"
+                    stroke-dasharray="578.05" stroke-dashoffset="0"></circle>
+          </svg>
+          <div class="timer-time">
+            <div class="timer-minutes" id="timer-minutes-3">35:00</div>
+            <div class="timer-label">REMAINING</div>
+          </div>
+        </div>
+        <div class="mission-complete-message" id="complete-3">Mission complete.</div>
+
+        <div class="timer-controls">
+          <button class="control-btn start-btn" id="start-btn-3" onclick="startTimer(3)">Start Mission</button>
+          <button class="control-btn" id="pause-btn-3" onclick="togglePause(3)" disabled>Pause</button>
+          <button class="control-btn" id="addtime-btn-3" onclick="addTime(3, 60)" disabled>+1 min</button>
+        </div>
+      </div>
+      <div class="next-mission-btn-section">
+        <button class="primary-btn next-mission-btn" id="next-btn-3" onclick="goToMission(4)" disabled>
+          <span class="primary-btn-label">Next Mission →</span>
+          <span>MISSION 4: YOUR WORDS, THEIR STRUCTURE</span>
+        </button>
+      </div>
+    </div>
+    
+  </div>
+</section>
+
+<section id="mission-4-screen" class="screen mission-screen" style="--mission-color: var(--m4-color);">
+  <div class="mission-left">
+    <div class="mission-num">04</div>
+    <div class="mission-eyebrow">MISSION FOUR · 45 MIN · THE WRITING MISSION</div>
+    <h2 class="mission-title">Your words.<br><em>Their structure.</em></h2>
+    <p class="mission-description">Now the actual writing. Open Google Docs and draft a 400-word expository essay using your marked-up outline. The rule above all rules: AI gave you the bones. <em>You</em> write the body. Every sentence is yours.</p>
+    <div class="mission-deliverable">
+      <span class="label">DELIVERABLE</span>
+      <span class="value">A complete 400-word draft saved in your Google Doc — no AI-pasted sentences.</span>
+    </div>
+  </div>
+  <div class="mission-right">
+    <div class="control-section-1">
+      <div class="qr-instruction-section">
+        <div class="qr-eyebrow">SCAN TO START</div>
+        <p class="qr-instruction">Point your camera at the code. The full mission opens on your phone.</p>
+      </div>
+      <div class="qr-frame" data-mission="4">
+        <!-- Replace with: <img src="qr-mission-4.png" alt="Mission 4 QR"> -->
+        <div class="qr-placeholder"></div>
+      </div>
+    </div>
+    
+    <div class="control-section-2">
+      <div class="timer-section">
+        <div class="timer-display" id="timer-4">
+          <svg class="timer-svg" viewBox="0 0 200 200">
+            <circle class="bg-ring" cx="100" cy="100" r="92"></circle>
+            <circle class="fg-ring" id="timer-fg-4" cx="100" cy="100" r="92"
+                    stroke-dasharray="578.05" stroke-dashoffset="0"></circle>
+          </svg>
+          <div class="timer-time">
+            <div class="timer-minutes" id="timer-minutes-4">45:00</div>
+            <div class="timer-label">REMAINING</div>
+          </div>
+        </div>
+        <div class="mission-complete-message" id="complete-4">Mission complete.</div>
+
+        <div class="timer-controls">
+          <button class="control-btn start-btn" id="start-btn-4" onclick="startTimer(4)">Start Mission</button>
+          <button class="control-btn" id="pause-btn-4" onclick="togglePause(4)" disabled>Pause</button>
+          <button class="control-btn" id="addtime-btn-4" onclick="addTime(4, 60)" disabled>+1 min</button>
+        </div>
+      </div>
+      <div class="next-mission-btn-section">
+          <button class="primary-btn next-mission-btn" id="next-btn-4" onclick="goToMission(5)" disabled>
+          <span class="primary-btn-label">Next Mission →</span>
+          <span>MISSION 5: SAME IDEA, DIFFERENT VOICE</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="mission-5-screen" class="screen mission-screen" style="--mission-color: var(--m5-color);">
+  <div class="mission-left">
+    <div class="mission-num">05</div>
+    <div class="mission-eyebrow">MISSION FIVE · 15 MIN</div>
+    <h2 class="mission-title">Same idea.<br><em>Different voice.</em></h2>
+    <p class="mission-description">Take one simple message. Tell it to AI four times — formal, casual, urgent, apologetic. Watch the same idea become four different voices. This is how you'll prompt for tone for the rest of this course.</p>
+    <div class="mission-deliverable">
+      <span class="label">DELIVERABLE</span>
+      <span class="value">4 tone-variation outputs + a 50-word reflection in your Process Journal.</span>
+    </div>
+  </div>
+  <div class="mission-right">
+    <div class="control-section-1">
+      <div class="qr-instruction-section">
+        <div class="qr-eyebrow">SCAN TO START</div>
+        <p class="qr-instruction">Point your camera at the code. The full mission opens on your phone.</p>
+      </div>
+      <div class="qr-frame" data-mission="5">
+        <!-- Replace with: <img src="qr-mission-5.png" alt="Mission 5 QR"> -->
+        <div class="qr-placeholder"></div>
+      </div>
+    </div>
+
+    <div class="control-section-2">
+      <div class="timer-section">
+        <div class="timer-display" id="timer-5">
+          <svg class="timer-svg" viewBox="0 0 200 200">
+            <circle class="bg-ring" cx="100" cy="100" r="92"></circle>
+            <circle class="fg-ring" id="timer-fg-5" cx="100" cy="100" r="92"
+                    stroke-dasharray="578.05" stroke-dashoffset="0"></circle>
+          </svg>
+          <div class="timer-time">
+            <div class="timer-minutes" id="timer-minutes-5">15:00</div>
+            <div class="timer-label">REMAINING</div>
+          </div>
+        </div>
+        <div class="mission-complete-message" id="complete-5">Mission complete.</div>
+
+        <div class="timer-controls">
+          <button class="control-btn start-btn" id="start-btn-5" onclick="startTimer(5)">Start Mission</button>
+          <button class="control-btn" id="pause-btn-5" onclick="togglePause(5)" disabled>Pause</button>
+          <button class="control-btn" id="addtime-btn-5" onclick="addTime(5, 60)" disabled>+1 min</button>
+        </div>
+      </div>
+      <div class="next-mission-btn-section">
+        <button class="primary-btn next-mission-btn" id="next-btn-5" onclick="goToClosing()" disabled>
+          <span class="primary-btn-label">Finish →</span>
+          <span>CLOSING REFLECTION</span>
+        </button>
+      </div>
+    </div>
+    
+  </div>
+</section>
+
+<!-- ============ CLOSING SCREEN ============ -->
+<section id="closing-screen" class="screen">
+  <div class="closing-eyebrow">FIVE MISSIONS COMPLETE</div>
+  <h1 class="closing-title">Good <em>work.</em></h1>
+  <p class="closing-message">You used AI today — and your writing is still yours.<br>That is the whole point of this course.</p>
+
+  <button class="primary-btn" onclick="resetDashboard()">
+    <span class="primary-btn-label">Reset Dashboard</span>
+    <span>START OVER</span>
+  </button>
+</section>
+
+<div class="kbd-hint">
+  <kbd>SPACE</kbd> START · <kbd>P</kbd> PAUSE · <kbd>→</kbd> NEXT · <kbd>+</kbd> ADD MIN
+</div>
+
+<script>
+// ==============================
+// MISSION CONFIGURATION
+// ==============================
+const MISSIONS = {
+  1: { duration: .20 * 60, color: '#dc3545' },
+  2: { duration: .30 * 60, color: '#1368ce' },
+  3: { duration: .35 * 60, color: '#d89e00' },
+  4: { duration: .45 * 60, color: '#26890c' },
+  5: { duration: .15 * 60, color: '#8e44ad' },
+};
+
+const RING_CIRCUMFERENCE = 578.05; // 2 * PI * 92
+
+// ==============================
+// STATE
+// ==============================
+let currentMission = 0;  // 0 = welcome, 1-5 = mission, 6 = closing
+let timers = {};
+// timers[n] = { interval, secondsRemaining, isPaused, isComplete, totalDuration }
+
+// ==============================
+// PROGRESS DOTS
+// ==============================
+function buildProgressDots() {
+  const container = document.getElementById('progress-dots');
+  container.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    dot.id = `dot-${i}`;
+    container.appendChild(dot);
+  }
+}
+
+function updateProgressDots() {
+  for (let i = 1; i <= 5; i++) {
+    const dot = document.getElementById(`dot-${i}`);
+    if (!dot) continue;
+    dot.classList.remove('active', 'complete');
+    if (i < currentMission) dot.classList.add('complete');
+    else if (i === currentMission) dot.classList.add('active');
+    // also: if mission timer is complete but we're still on it
+    if (timers[i] && timers[i].isComplete && i === currentMission) {
+      dot.classList.add('complete');
+    }
+  }
+}
+
+// ==============================
+// SCREEN MANAGEMENT
+// ==============================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startMission(n) {
+  currentMission = n;
+  showScreen(`mission-${n}-screen`);
+  updateProgressDots();
+}
+
+function goToMission(n) {
+  // Cleanup previous mission's timer if running
+  if (currentMission >= 1 && currentMission <= 5 && timers[currentMission]) {
+    if (timers[currentMission].interval) {
+      clearInterval(timers[currentMission].interval);
+    }
+  }
+  startMission(n);
+}
+
+function goToClosing() {
+  currentMission = 6;
+  showScreen('closing-screen');
+  updateProgressDots();
+}
+
+function resetDashboard() {
+  // Clear all timers
+  Object.values(timers).forEach(t => {
+    if (t.interval) clearInterval(t.interval);
+  });
+  timers = {};
+
+  // Reset all UI states
+  for (let i = 1; i <= 5; i++) {
+    const display = document.getElementById(`timer-${i}`);
+    if (display) {
+      display.classList.remove('visible', 'complete');
+      const svg = display.querySelector('.timer-svg');
+      svg.classList.remove('warning', 'danger');
+      const fg = document.getElementById(`timer-fg-${i}`);
+      fg.style.strokeDashoffset = 0;
+    }
+    const minutes = document.getElementById(`timer-minutes-${i}`);
+    if (minutes) {
+      const mins = MISSIONS[i].duration / 60;
+      minutes.textContent = `${String(mins).padStart(2, '0')}:00`;
+    }
+    const complete = document.getElementById(`complete-${i}`);
+    if (complete) complete.classList.remove('visible');
+    const startBtn = document.getElementById(`start-btn-${i}`);
+    if (startBtn) {
+      startBtn.disabled = false;
+      startBtn.textContent = 'Start Mission';
+    }
+    const pauseBtn = document.getElementById(`pause-btn-${i}`);
+    if (pauseBtn) {
+      pauseBtn.disabled = true;
+      pauseBtn.textContent = 'Pause';
+    }
+    const addBtn = document.getElementById(`addtime-btn-${i}`);
+    if (addBtn) addBtn.disabled = true;
+    const nextBtn = document.getElementById(`next-btn-${i}`);
+    if (nextBtn) {
+      nextBtn.disabled = true;
+      nextBtn.classList.remove('ready');
+    }
+  }
+
+  currentMission = 0;
+  showScreen('welcome-screen');
+  updateProgressDots();
+}
+
+// ==============================
+// TIMER LOGIC
+// ==============================
+function formatTime(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+function updateTimerDisplay(n) {
+  const t = timers[n];
+  if (!t) return;
+  const minutesEl = document.getElementById(`timer-minutes-${n}`);
+  minutesEl.textContent = formatTime(t.secondsRemaining);
+
+  // Update ring
+  const fg = document.getElementById(`timer-fg-${n}`);
+  const progress = t.secondsRemaining / t.totalDuration;
+  fg.style.strokeDashoffset = RING_CIRCUMFERENCE * (1 - progress);
+
+  // Color states
+  const svg = fg.parentElement;
+  const remainingPct = progress;
+  svg.classList.remove('warning', 'danger');
+  if (remainingPct <= 0.1 && remainingPct > 0) {
+    svg.classList.add('danger');
+  } else if (remainingPct <= 0.3) {
+    svg.classList.add('warning');
+  }
+}
+
+function startTimer(n) {
+  if (timers[n] && timers[n].interval) return; // already running
+
+  const display = document.getElementById(`timer-${n}`);
+  display.classList.add('visible');
+
+  // Initialize state
+  if (!timers[n] || timers[n].isComplete) {
+    timers[n] = {
+      secondsRemaining: MISSIONS[n].duration,
+      totalDuration: MISSIONS[n].duration,
+      isPaused: false,
+      isComplete: false,
+      interval: null,
+    };
+  }
+
+  // Update buttons
+  const startBtn = document.getElementById(`start-btn-${n}`);
+  startBtn.disabled = true;
+  startBtn.textContent = 'Running...';
+  document.getElementById(`pause-btn-${n}`).disabled = false;
+  document.getElementById(`addtime-btn-${n}`).disabled = false;
+
+  updateTimerDisplay(n);
+
+  // Tick every second
+  timers[n].interval = setInterval(() => {
+    if (timers[n].isPaused) return;
+    timers[n].secondsRemaining--;
+    updateTimerDisplay(n);
+
+    if (timers[n].secondsRemaining <= 0) {
+      completeTimer(n);
+    }
+  }, 1000);
+}
+
+function togglePause(n) {
+  if (!timers[n]) return;
+  timers[n].isPaused = !timers[n].isPaused;
+  const pauseBtn = document.getElementById(`pause-btn-${n}`);
+  pauseBtn.textContent = timers[n].isPaused ? 'Resume' : 'Pause';
+}
+
+function addTime(n, seconds) {
+  if (!timers[n]) {
+    // Initialize a fresh timer with extra time even if not started
+    timers[n] = {
+      secondsRemaining: MISSIONS[n].duration + seconds,
+      totalDuration: MISSIONS[n].duration + seconds,
+      isPaused: false,
+      isComplete: false,
+      interval: null,
+    };
+    const minutesEl = document.getElementById(`timer-minutes-${n}`);
+    minutesEl.textContent = formatTime(timers[n].secondsRemaining);
+    return;
+  }
+  timers[n].secondsRemaining += seconds;
+  timers[n].totalDuration += seconds;
+
+  // If timer was complete, restart it
+  if (timers[n].isComplete) {
+    timers[n].isComplete = false;
+    const display = document.getElementById(`timer-${n}`);
+    display.classList.remove('complete');
+    document.getElementById(`complete-${n}`).classList.remove('visible');
+
+    // Restart interval
+    if (!timers[n].interval) {
+      timers[n].interval = setInterval(() => {
+        if (timers[n].isPaused) return;
+        timers[n].secondsRemaining--;
+        updateTimerDisplay(n);
+        if (timers[n].secondsRemaining <= 0) completeTimer(n);
+      }, 1000);
+    }
+  }
+
+  updateTimerDisplay(n);
+}
+
+function completeTimer(n) {
+  clearInterval(timers[n].interval);
+  timers[n].interval = null;
+  timers[n].isComplete = true;
+  timers[n].secondsRemaining = 0;
+
+  const display = document.getElementById(`timer-${n}`);
+  display.classList.add('complete');
+
+  // Show "Mission complete" message
+  document.getElementById(`complete-${n}`).classList.add('visible');
+
+  // Disable controls except +1 min
+  document.getElementById(`pause-btn-${n}`).disabled = true;
+
+  // Enable next mission button with pulse
+  const nextBtn = document.getElementById(`next-btn-${n}`);
+  nextBtn.disabled = false;
+  nextBtn.classList.add('ready');
+
+  // Update progress dot
+  updateProgressDots();
+}
+
+// ==============================
+// KEYBOARD SHORTCUTS
+// ==============================
+document.addEventListener('keydown', (e) => {
+  // Skip if typing in an input
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+  const activeScreen = document.querySelector('.screen.active');
+  if (!activeScreen) return;
+
+  // SPACE — start mission timer / start exploring on welcome
+  if (e.key === ' ' || e.key === 'Spacebar') {
+    e.preventDefault();
+    if (activeScreen.id === 'welcome-screen') {
+      startMission(1);
+    } else if (currentMission >= 1 && currentMission <= 5) {
+      const n = currentMission;
+      // If timer not started, start it
+      if (!timers[n] || (!timers[n].interval && !timers[n].isComplete)) {
+        startTimer(n);
+      } else {
+        // toggle pause
+        togglePause(n);
+      }
+    }
+    return;
+  }
+
+  // P — toggle pause on current mission
+  if (e.key === 'p' || e.key === 'P') {
+    if (currentMission >= 1 && currentMission <= 5 && timers[currentMission] && !timers[currentMission].isComplete) {
+      togglePause(currentMission);
+    }
+    return;
+  }
+
+  // → / Enter — go to next mission (when ready)
+  if (e.key === 'ArrowRight' || e.key === 'Enter') {
+    e.preventDefault();
+    if (currentMission >= 1 && currentMission <= 4) {
+      const nextBtn = document.getElementById(`next-btn-${currentMission}`);
+      if (nextBtn && !nextBtn.disabled) {
+        goToMission(currentMission + 1);
+      }
+    } else if (currentMission === 5) {
+      const nextBtn = document.getElementById(`next-btn-5`);
+      if (nextBtn && !nextBtn.disabled) {
+        goToClosing();
+      }
+    }
+    return;
+  }
+
+  // + — add 1 minute to current mission
+  if (e.key === '+' || e.key === '=') {
+    if (currentMission >= 1 && currentMission <= 5) {
+      addTime(currentMission, 60);
+    }
+    return;
+  }
+
+  // ← — go back one mission (manual override)
+  if (e.key === 'ArrowLeft') {
+    if (currentMission > 1 && currentMission <= 5) {
+      // Cleanup current timer
+      if (timers[currentMission] && timers[currentMission].interval) {
+        clearInterval(timers[currentMission].interval);
+        timers[currentMission].interval = null;
+      }
+      currentMission--;
+      showScreen(`mission-${currentMission}-screen`);
+      updateProgressDots();
+    } else if (currentMission === 6) {
+      currentMission = 5;
+      showScreen('mission-5-screen');
+      updateProgressDots();
+    }
+  }
+
+  // R — reset (with confirmation)
+  if (e.key === 'r' || e.key === 'R') {
+    if (confirm('Reset dashboard to welcome screen? Any running timer will be lost.')) {
+      resetDashboard();
+    }
+  }
+});
+
+// ==============================
+// INIT
+// ==============================
+buildProgressDots();
+updateProgressDots();
+</script>
+
+</body>
+</html>
