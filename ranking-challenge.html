@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSR Ranking Challenge</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1a2e;
+  --paper: #f7f4ef;
+  --accent: #2d6a4f;
+  --warn: #c1440e;
+  --muted: #8a8578;
+  --border: #d4cfc7;
+  --moral-bg: #eaf4ec;
+  --moral-c: #1e5c35;
+  --good-bg: #e8f0fa;
+  --good-c: #1e3e7a;
+  --green-bg: #fdf0e8;
+  --green-c: #a33000;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+font-family: ‘DM Sans’, sans-serif;
+background: var(–paper);
+color: var(–ink);
+min-height: 100vh;
+display: flex;
+flex-direction: column;
+}
+
+/* HEADER */
+header {
+background: var(–ink);
+color: #f0ede8;
+padding: 1.5rem 2rem 1.3rem;
+display: flex;
+align-items: center;
+justify-content: space-between;
+flex-wrap: wrap;
+gap: 1rem;
+}
+.header-left .eyebrow {
+font-size: .7rem;
+letter-spacing: .18em;
+text-transform: uppercase;
+color: #7a9a7a;
+margin-bottom: .3rem;
+}
+.header-left h1 {
+font-family: ‘DM Serif Display’, serif;
+font-size: 1.6rem;
+font-weight: 400;
+line-height: 1.1;
+}
+.header-left h1 em { font-style: italic; color: #8dc994; }
+.header-right {
+display: flex;
+align-items: center;
+gap: 1rem;
+flex-wrap: wrap;
+}
+.timer-box {
+display: flex;
+align-items: center;
+gap: .6rem;
+background: rgba(255,255,255,.07);
+border: 1px solid rgba(255,255,255,.15);
+border-radius: 8px;
+padding: .5rem .9rem;
+}
+#timer {
+font-family: ‘DM Serif Display’, serif;
+font-size: 1.4rem;
+color: #fff;
+min-width: 58px;
+text-align: center;
+}
+#timer.urgent { color: #e07c5a; animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
+.tbtn {
+background: none;
+border: 1px solid rgba(255,255,255,.25);
+color: #ccc;
+border-radius: 4px;
+padding: .25rem .6rem;
+font-size: .72rem;
+cursor: pointer;
+font-family: ‘DM Sans’, sans-serif;
+transition: background .15s;
+}
+.tbtn:hover { background: rgba(255,255,255,.1); }
+.progress-badge {
+background: rgba(255,255,255,.1);
+border: 1px solid rgba(255,255,255,.18);
+border-radius: 6px;
+padding: .45rem .9rem;
+font-size: .8rem;
+color: #ddd;
+}
+.progress-badge span { color: #8dc994; font-weight: 600; }
+
+/* CARD STAGE */
+.stage {
+flex: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: flex-start;
+padding: 2rem 1.5rem 1rem;
+gap: 1.5rem;
+}
+
+/* CARD COUNTER */
+.card-counter {
+display: flex;
+gap: .4rem;
+align-items: center;
+}
+.pip {
+width: 9px; height: 9px;
+border-radius: 50%;
+background: var(–border);
+transition: background .3s, transform .3s;
+}
+.pip.done { background: var(–accent); }
+.pip.current { background: var(–ink); transform: scale(1.4); }
+
+/* MAIN CARD */
+.card {
+background: #fff;
+border: 1px solid var(–border);
+border-radius: 14px;
+box-shadow: 0 4px 20px rgba(26,26,46,.10);
+max-width: 660px;
+width: 100%;
+overflow: hidden;
+animation: cardIn .35s cubic-bezier(.22,.68,0,1.2);
+}
+@keyframes cardIn {
+from { opacity: 0; transform: translateY(18px) scale(.97); }
+to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.card-header {
+background: var(–ink);
+color: #f0ede8;
+padding: .75rem 1.4rem;
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+.card-num-label {
+font-size: .7rem;
+letter-spacing: .14em;
+text-transform: uppercase;
+color: #7a9a7a;
+}
+.card-nav {
+display: flex;
+gap: .5rem;
+}
+.nav-btn {
+background: rgba(255,255,255,.1);
+border: 1px solid rgba(255,255,255,.2);
+color: #ccc;
+border-radius: 4px;
+padding: .25rem .65rem;
+font-size: .78rem;
+cursor: pointer;
+font-family: ‘DM Sans’, sans-serif;
+transition: background .15s;
+}
+.nav-btn:hover { background: rgba(255,255,255,.2); }
+.nav-btn:disabled { opacity: .3; cursor: default; }
+
+.card-body { padding: 1.5rem 1.6rem; }
+
+.company-name {
+font-family: ‘DM Serif Display’, serif;
+font-size: 1.35rem;
+font-weight: 400;
+margin-bottom: 1rem;
+line-height: 1.2;
+}
+
+.section-label {
+font-size: .65rem;
+letter-spacing: .14em;
+text-transform: uppercase;
+color: var(–muted);
+margin-bottom: .35rem;
+}
+
+.what-they-do {
+background: #f9f7f4;
+border-radius: 8px;
+padding: .9rem 1.1rem;
+font-size: .88rem;
+line-height: 1.6;
+color: #333;
+margin-bottom: 1rem;
+}
+
+/* REVEAL BUTTON */
+.reveal-btn {
+width: 100%;
+padding: .75rem;
+background: none;
+border: 1.5px dashed var(–border);
+border-radius: 8px;
+font-family: ‘DM Sans’, sans-serif;
+font-size: .85rem;
+color: var(–muted);
+cursor: pointer;
+transition: all .2s;
+text-align: center;
+}
+.reveal-btn:hover {
+border-color: var(–warn);
+color: var(–warn);
+background: var(–green-bg);
+}
+
+.catch-section {
+display: none;
+animation: fadeIn .3s ease;
+}
+.catch-section.open { display: block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+.catch-box {
+background: var(–green-bg);
+border-left: 3px solid var(–warn);
+border-radius: 0 8px 8px 0;
+padding: .9rem 1.1rem;
+font-size: .85rem;
+line-height: 1.6;
+color: #5a2200;
+margin-bottom: 1rem;
+}
+
+.question-box {
+background: var(–good-bg);
+border-radius: 8px;
+padding: .85rem 1.1rem;
+font-size: .84rem;
+font-style: italic;
+color: var(–good-c);
+line-height: 1.55;
+}
+
+/* VOTING SECTION */
+.vote-section {
+display: none;
+margin-top: 1.2rem;
+animation: fadeIn .3s ease;
+}
+.vote-section.open { display: block; }
+
+.vote-label {
+font-size: .72rem;
+letter-spacing: .12em;
+text-transform: uppercase;
+color: var(–muted);
+text-align: center;
+margin-bottom: .75rem;
+}
+
+.vote-buttons {
+display: grid;
+grid-template-columns: 1fr 1fr 1fr;
+gap: .65rem;
+}
+
+.vote-btn {
+padding: .75rem .5rem;
+border-radius: 9px;
+border: 2px solid transparent;
+font-family: ‘DM Sans’, sans-serif;
+font-size: .8rem;
+font-weight: 600;
+cursor: pointer;
+text-align: center;
+transition: all .18s;
+line-height: 1.3;
+}
+.vote-btn:hover { filter: brightness(.93); transform: translateY(-1px); }
+.vote-btn.selected { box-shadow: 0 0 0 3px var(–ink); }
+
+.btn-moral  { background: var(–moral-bg);  color: var(–moral-c);  border-color: #a8d5b0; }
+.btn-good   { background: var(–good-bg);   color: var(–good-c);   border-color: #a0bce8; }
+.btn-green  { background: var(–green-bg);  color: var(–green-c);  border-color: #e8b090; }
+
+.vote-icon { font-size: 1.2rem; display: block; margin-bottom: .3rem; }
+
+/* PLACED BADGE */
+.placed-badge {
+display: none;
+margin-top: .9rem;
+padding: .55rem 1rem;
+border-radius: 7px;
+font-size: .82rem;
+font-weight: 600;
+text-align: center;
+}
+.placed-badge.show { display: block; }
+.placed-moral { background: var(–moral-bg); color: var(–moral-c); }
+.placed-good  { background: var(–good-bg);  color: var(–good-c); }
+.placed-green { background: var(–green-bg); color: var(–green-c); }
+
+/* NEXT BUTTON */
+.next-wrap {
+text-align: center;
+margin-top: 1.1rem;
+}
+.next-btn {
+background: var(–ink);
+color: #fff;
+border: none;
+border-radius: 8px;
+padding: .75rem 2.2rem;
+font-family: ‘DM Sans’, sans-serif;
+font-size: .9rem;
+font-weight: 600;
+cursor: pointer;
+transition: filter .15s, transform .1s;
+display: none;
+}
+.next-btn:hover { filter: brightness(1.2); transform: translateY(-1px); }
+.next-btn.show { display: inline-block; }
+
+/* SCOREBOARD */
+#scoreboard {
+display: none;
+max-width: 660px;
+width: 100%;
+animation: cardIn .35s ease;
+}
+#scoreboard h2 {
+font-family: ‘DM Serif Display’, serif;
+font-size: 1.5rem;
+font-weight: 400;
+margin-bottom: .4rem;
+text-align: center;
+}
+#scoreboard .sub {
+font-size: .82rem;
+color: var(–muted);
+text-align: center;
+margin-bottom: 1.5rem;
+line-height: 1.5;
+}
+.result-card {
+background: #fff;
+border: 1px solid var(–border);
+border-radius: 10px;
+padding: 1rem 1.2rem;
+margin-bottom: .75rem;
+font-size: .83rem;
+}
+.result-card .r-top {
+display: flex;
+align-items: center;
+justify-content: space-between;
+margin-bottom: .4rem;
+flex-wrap: wrap;
+gap: .4rem;
+}
+.r-company { font-weight: 600; font-size: .9rem; }
+.r-yours {
+font-size: .75rem;
+padding: .2rem .65rem;
+border-radius: 4px;
+font-weight: 600;
+}
+.r-moral { background: var(–moral-bg); color: var(–moral-c); }
+.r-good  { background: var(–good-bg);  color: var(–good-c); }
+.r-green { background: var(–green-bg); color: var(–green-c); }
+.r-none  { background: #eee; color: #888; }
+
+.r-key { font-size: .78rem; color: var(–muted); margin-bottom: .3rem; }
+.r-match { font-size: .78rem; font-weight: 600; }
+.match-yes { color: var(–accent); }
+.match-no  { color: var(–warn); }
+.match-amb { color: #b07d00; }
+.r-note { font-size: .76rem; color: #666; margin-top: .3rem; line-height: 1.5; border-top: 1px solid #f0ece6; padding-top: .35rem; }
+
+.restart-btn {
+display: block;
+margin: 1.5rem auto 0;
+background: var(–ink);
+color: #fff;
+border: none;
+border-radius: 8px;
+padding: .8rem 2rem;
+font-family: ‘DM Sans’, sans-serif;
+font-size: .9rem;
+font-weight: 600;
+cursor: pointer;
+}
+.restart-btn:hover { filter: brightness(1.2); }
+
+/* DISCUSS STRIP */
+.discuss-strip {
+background: var(–accent);
+color: #fff;
+padding: .75rem 2rem;
+font-size: .82rem;
+display: flex;
+align-items: center;
+gap: .75rem;
+flex-wrap: wrap;
+cursor: pointer;
+user-select: none;
+}
+.discuss-strip strong { font-weight: 600; }
+.discuss-strip .toggle-icon { margin-left: auto; font-size: 1rem; transition: transform .2s; }
+.discuss-strip.open .toggle-icon { transform: rotate(180deg); }
+
+.discuss-prompts {
+display: none;
+background: #1e4d39;
+color: #d4ead8;
+padding: .9rem 2rem 1.1rem;
+font-size: .82rem;
+line-height: 1.6;
+gap: .6rem;
+flex-wrap: wrap;
+}
+.discuss-prompts.open { display: flex; }
+.dp-item {
+background: rgba(255,255,255,.08);
+border-radius: 7px;
+padding: .6rem .85rem;
+flex: 1 1 240px;
+font-size: .8rem;
+}
+.dp-label { font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: #8dc994; margin-bottom: .25rem; }
+
+@media (max-width: 600px) {
+.vote-buttons { grid-template-columns: 1fr; }
+header { padding: 1rem; }
+.stage { padding: 1rem .75rem; }
+}
+</style>
+
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="eyebrow">Business English · Advanced · Group Discussion</div>
+    <h1>CSR Ranking <em>Challenge</em></h1>
+  </div>
+  <div class="header-right">
+    <div class="timer-box">
+      <span style="color:#7a9a7a;font-size:.85rem">⏱</span>
+      <div id="timer">20:00</div>
+      <button class="tbtn" id="timer-btn" onclick="toggleTimer()">Start</button>
+      <button class="tbtn" onclick="resetTimer()">Reset</button>
+    </div>
+    <div class="progress-badge">Card <span id="prog-cur">1</span> of <span>12</span></div>
+  </div>
+</header>
+
+<!-- DISCUSSION STRIP -->
+
+<div class="discuss-strip" id="discuss-strip" onclick="toggleDiscuss()">
+  <strong>💬 Discussion prompts</strong>
+  <span>— click to expand vocabulary &amp; speaking starters</span>
+  <span class="toggle-icon">▾</span>
+</div>
+<div class="discuss-prompts" id="discuss-prompts">
+  <div class="dp-item"><div class="dp-label">Getting started</div>"Before we decide, what's the most important detail on this card?"</div>
+  <div class="dp-item"><div class="dp-label">Challenge</div>"I see why you think that — but what about the fact that they also…?"</div>
+  <div class="dp-item"><div class="dp-label">Intent vs. impact</div>"Is the company being dishonest, or just incomplete in how they communicate?"</div>
+  <div class="dp-item"><div class="dp-label">Compare</div>"Is this worse or better than the last card? Why?"</div>
+  <div class="dp-item"><div class="dp-label">The tough ones</div>"What would need to be true for this to be Good CSR? What for Greenwashing?"</div>
+  <div class="dp-item"><div class="dp-label">Key vocabulary</div><em>stakeholders · accountability · transparency · due diligence · reputational risk · lip service · impact vs. intent</em></div>
+</div>
+
+<!-- STAGE -->
+
+<div class="stage">
+  <div class="card-counter" id="pip-row"></div>
+
+  <!-- CARD -->
+
+  <div class="card" id="card-el">
+    <div class="card-header">
+      <div class="card-num-label" id="card-num-label">CARD 1 OF 12</div>
+      <div class="card-nav">
+        <button class="nav-btn" id="btn-prev" onclick="goCard(-1)" disabled>← Prev</button>
+        <button class="nav-btn" id="btn-next-nav" onclick="goCard(1)">Next →</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="company-name" id="company-name"></div>
+
+```
+  <div class="section-label">What they do</div>
+  <div class="what-they-do" id="what-they-do"></div>
+
+  <button class="reveal-btn" id="reveal-btn" onclick="revealCatch()">
+    ▾ &nbsp;Reveal the catch — discuss first!
+  </button>
+
+  <div class="catch-section" id="catch-section">
+    <div class="section-label" style="margin-top:.1rem">The catch</div>
+    <div class="catch-box" id="catch-box"></div>
+    <div class="section-label">Discussion question</div>
+    <div class="question-box" id="question-box"></div>
+  </div>
+
+  <!-- VOTING -->
+  <div class="vote-section" id="vote-section">
+    <div class="vote-label">Your group's decision — place this company in:</div>
+    <div class="vote-buttons">
+      <button class="vote-btn btn-moral" onclick="vote('moral')">
+        <span class="vote-icon">⚖️</span>Moral Minimum
+      </button>
+      <button class="vote-btn btn-good" onclick="vote('good')">
+        <span class="vote-icon">✅</span>Good CSR
+      </button>
+      <button class="vote-btn btn-green" onclick="vote('green')">
+        <span class="vote-icon">🌿</span>Greenwashing
+      </button>
+    </div>
+    <div class="placed-badge" id="placed-badge"></div>
+  </div>
+
+  <div class="next-wrap">
+    <button class="next-btn" id="next-btn" onclick="nextCard()">Next card →</button>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- SCOREBOARD (shown at end) -->
+
+  <div id="scoreboard">
+    <h2>📊 Results &amp; Teacher Key</h2>
+    <p class="sub">Ambiguous cases are marked ★ — the goal was the discussion, not the "right" answer.</p>
+    <div id="result-list"></div>
+    <button class="restart-btn" onclick="restart()">↺ Start over</button>
+  </div>
+</div>
+
+<script>
+var CARDS = [
+  {
+    num:1, company:"Outdoor Clothing Brand",
+    action:"Donates 1% of all revenue to environmental causes and uses recycled materials in packaging.",
+    twist:"Its core business encourages frequent international travel to remote destinations, significantly increasing customers' carbon footprints.",
+    question:"Does doing environmental good offset encouraging environmental harm?",
+    intended:"ambiguous", key:"Debatable — Good CSR or Greenwashing",
+    note:"Classic tension: genuine donation vs. a business model that harms the same cause."
+  },
+  {
+    num:2, company:"Global Footwear Company",
+    action:"Runs a \"buy one, give one\" program: for every pair sold, one pair is donated to children in developing countries.",
+    twist:"Development economists argue the donations undercut local cobblers and shoemakers, destroying jobs in recipient communities.",
+    question:"Can a program be both generous and harmful at the same time?",
+    intended:"ambiguous", key:"Debatable — Good CSR or unintended harm",
+    note:"Well-intentioned but with documented negative side-effects. Intent ≠ impact."
+  },
+  {
+    num:3, company:"Fast Fashion Retailer",
+    action:"Launches a \"Conscious Collection\" using 50% recycled fabrics, prominently marketed as eco-friendly.",
+    twist:"The same year, the company increased total production volume by 20%, releasing more garments than ever before.",
+    question:"Is a greener product line meaningful if overall output grows?",
+    intended:"green", key:"Greenwashing",
+    note:"A textbook case: a green label on a small part of a growing, harmful operation."
+  },
+  {
+    num:4, company:"Major E-Commerce Giant",
+    action:"Pledges net-zero carbon emissions by 2040 and invests $2 billion in global reforestation projects.",
+    twist:"Simultaneously spends millions lobbying against state-level emissions regulations that would affect its delivery fleet.",
+    question:"Can a company act on climate and oppose climate policy at the same time?",
+    intended:"green", key:"Greenwashing",
+    note:"Public pledges paired with private opposition to the laws that would enforce them."
+  },
+  {
+    num:5, company:"Global Investment Bank",
+    action:"Provides $500 million in financing for offshore wind farms and solar projects across three continents.",
+    twist:"The same bank is the second-largest lender to new fossil fuel pipeline construction globally.",
+    question:"Does funding green energy cancel out funding fossil fuels?",
+    intended:"ambiguous", key:"Debatable — Greenwashing or Mixed CSR",
+    note:"A numbers question: does the scale of harm outweigh the scale of good?"
+  },
+  {
+    num:6, company:"International Airline",
+    action:"Offers passengers a $3 \"carbon offset\" option at checkout, marketed as making their flight climate neutral.",
+    twist:"An investigation finds the offset credits were purchased from a forest already legally protected — it would never have been cut down anyway.",
+    question:"Is selling a meaningless offset worse than offering nothing at all?",
+    intended:"green", key:"Greenwashing",
+    note:"Fraudulent offsets — among the clearest greenwashing cases in this set."
+  },
+  {
+    num:7, company:"Bottled Water Corporation",
+    action:"Relaunches its entire product line as \"EcoBottle\" — new bottles are 5% lighter, reducing plastic used per unit.",
+    twist:"No changes were made to water sourcing, plastic type, or recycling. Sales volume increased 30% that year.",
+    question:"Does a minor improvement justify a full eco-friendly rebrand?",
+    intended:"green", key:"Greenwashing",
+    note:"A marginal technical improvement used to justify sweeping environmental marketing."
+  },
+  {
+    num:8, company:"Tobacco Conglomerate",
+    action:"Funds a highly publicized anti-smoking campaign targeting teenagers in North America and Europe.",
+    twist:"The same year, the company significantly expanded its advertising and distribution budgets in Southeast Asia and Sub-Saharan Africa.",
+    question:"Is reducing harm in one market ethical if you increase it in another?",
+    intended:"green", key:"Greenwashing",
+    note:"A market-shifting strategy disguised as social responsibility."
+  },
+  {
+    num:9, company:"Consumer Electronics Manufacturer",
+    action:"Conducts a full audit of its 300-supplier supply chain. Three suppliers are dropped for labor violations. The complete audit — including the violations found — is published publicly.",
+    twist:"The transparency was voluntary. The company had no legal obligation to publish the findings.",
+    question:"Does transparency about problems make a company more or less trustworthy?",
+    intended:"good", key:"Good CSR",
+    note:"Rare genuine example: voluntary, costly, transparent, and structural."
+  },
+  {
+    num:10, company:"National Supermarket Chain",
+    action:"Ends contracts with all suppliers using zero-hours contracts for warehouse workers, requiring guaranteed minimum weekly hours.",
+    twist:"Supply costs rise 4%. The company absorbs the increase rather than raise prices, reducing shareholder dividends.",
+    question:"Is a CSR action more credible when it comes at a real financial cost?",
+    intended:"good", key:"Good CSR",
+    note:"The financial sacrifice is exactly what makes this case credible — and debatable."
+  },
+  {
+    num:11, company:"Pharmaceutical Company",
+    action:"Voluntarily licenses a patented HIV drug to generic manufacturers in 50 low-income countries at zero royalty.",
+    twist:"The drug has already recovered its R&D costs many times over through sales in wealthy markets. There is no legal obligation to share the patent.",
+    question:"Is this genuine Good CSR, or the bare moral minimum given the circumstances?",
+    intended:"ambiguous", key:"Debatable — Good CSR or moral minimum",
+    note:"Is voluntary action still 'voluntary' when public pressure is enormous?"
+  },
+  {
+    num:12, company:"Industrial Manufacturing Plant",
+    action:"Installs legally required wastewater filtration systems following a government inspection and compliance order.",
+    twist:"No voluntary action was taken. The plant had operated without the filters for two years before the inspection. No further steps are planned.",
+    question:"Is legal compliance alone ever enough to call a company responsible?",
+    intended:"moral", key:"Moral Minimum",
+    note:"The clearest moral minimum case in the set — zero voluntarism."
+  }
+];
+
+var current = 0;
+var placements = {};
+var catchOpen = false;
+var timerSecs = 20 * 60;
+var timerRunning = false;
+var timerInterval = null;
+
+var LABELS = { moral:"⚖️ Moral Minimum", good:"✅ Good CSR", green:"🌿 Greenwashing" };
+var BADGE_CLASS = { moral:"placed-moral", good:"placed-good", green:"placed-green" };
+
+function init() {
+  buildPips();
+  showCard(0);
+}
+
+function buildPips() {
+  var row = document.getElementById("pip-row");
+  row.innerHTML = "";
+  for (var i = 0; i < CARDS.length; i++) {
+    var d = document.createElement("div");
+    d.className = "pip";
+    d.id = "pip-" + i;
+    row.appendChild(d);
+  }
+}
+
+function updatePips() {
+  for (var i = 0; i < CARDS.length; i++) {
+    var p = document.getElementById("pip-" + i);
+    p.className = "pip" + (i === current ? " current" : (placements[i] ? " done" : ""));
+  }
+}
+
+function showCard(idx) {
+  current = idx;
+  catchOpen = false;
+  var c = CARDS[idx];
+
+  document.getElementById("card-num-label").textContent = "CARD " + c.num + " OF 12";
+  document.getElementById("company-name").textContent = c.company;
+  document.getElementById("what-they-do").textContent = c.action;
+  document.getElementById("catch-box").textContent = c.twist;
+  document.getElementById("question-box").textContent = "❓ " + c.question;
+
+  // Reset reveal
+  document.getElementById("catch-section").className = "catch-section";
+  document.getElementById("reveal-btn").style.display = "block";
+
+  // Show/hide vote section
+  var vs = document.getElementById("vote-section");
+  vs.className = "vote-section";
+
+  // Reset vote buttons highlight
+  var vbtns = document.querySelectorAll(".vote-btn");
+  for (var i = 0; i < vbtns.length; i++) vbtns[i].classList.remove("selected");
+
+  // Restore previous placement if any
+  var badge = document.getElementById("placed-badge");
+  if (placements[idx]) {
+    vs.className = "vote-section open";
+    badge.className = "placed-badge show " + BADGE_CLASS[placements[idx]];
+    badge.textContent = "Placed as: " + LABELS[placements[idx]];
+    // Highlight selected btn
+    var sel = document.querySelector(".btn-" + placements[idx]);
+    if (sel) sel.classList.add("selected");
+    document.getElementById("next-btn").className = "next-btn show";
+  } else {
+    badge.className = "placed-badge";
+    document.getElementById("next-btn").className = "next-btn";
+  }
+
+  // Nav buttons
+  document.getElementById("btn-prev").disabled = idx === 0;
+  document.getElementById("btn-next-nav").disabled = idx === CARDS.length - 1;
+
+  // Progress
+  document.getElementById("prog-cur").textContent = idx + 1;
+
+  // Card animation
+  var cardEl = document.getElementById("card-el");
+  cardEl.style.animation = "none";
+  cardEl.offsetHeight;
+  cardEl.style.animation = "cardIn .35s cubic-bezier(.22,.68,0,1.2)";
+
+  updatePips();
+}
+
+function revealCatch() {
+  document.getElementById("catch-section").className = "catch-section open";
+  document.getElementById("reveal-btn").style.display = "none";
+  document.getElementById("vote-section").className = "vote-section open";
+}
+
+function vote(cat) {
+  placements[current] = cat;
+
+  // Highlight button
+  var btns = document.querySelectorAll(".vote-btn");
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove("selected");
+  document.querySelector(".btn-" + cat).classList.add("selected");
+
+  // Badge
+  var badge = document.getElementById("placed-badge");
+  badge.className = "placed-badge show " + BADGE_CLASS[cat];
+  badge.textContent = "Placed as: " + LABELS[cat];
+
+  // Show next / finish button
+  var nb = document.getElementById("next-btn");
+  if (current === CARDS.length - 1) {
+    nb.textContent = "See results 📊";
+  } else {
+    nb.textContent = "Next card →";
+  }
+  nb.className = "next-btn show";
+
+  updatePips();
+}
+
+function nextCard() {
+  if (current === CARDS.length - 1) {
+    showResults();
+  } else {
+    showCard(current + 1);
+  }
+}
+
+function goCard(dir) {
+  var next = current + dir;
+  if (next >= 0 && next < CARDS.length) showCard(next);
+}
+
+function showResults() {
+  document.getElementById("card-el").style.display = "none";
+  document.getElementById("pip-row").style.display = "none";
+  var sb = document.getElementById("scoreboard");
+  sb.style.display = "block";
+
+  var catLabels = { moral:"Moral Minimum", good:"Good CSR", green:"Greenwashing" };
+  var html = "";
+  CARDS.forEach(function(c, i) {
+    var yours = placements[i];
+    var yourLabel = yours ? catLabels[yours] : "Not placed";
+    var yourClass = yours ? "r-" + yours : "r-none";
+
+    var matchHtml;
+    if (!yours) {
+      matchHtml = '<span class="r-match" style="color:#aaa">— not placed</span>';
+    } else if (c.intended === "ambiguous") {
+      matchHtml = '<span class="r-match match-amb">★ Debatable — both sides valid</span>';
+    } else if (yours === c.intended) {
+      matchHtml = '<span class="r-match match-yes">✓ Matches teacher key</span>';
+    } else {
+      matchHtml = '<span class="r-match match-no">✗ Teacher key: ' + catLabels[c.intended] + '</span>';
+    }
+
+    html += '<div class="result-card">' +
+      '<div class="r-top">' +
+        '<span class="r-company">Card ' + c.num + ' — ' + c.company + '</span>' +
+        '<span class="r-yours ' + yourClass + '">' + yourLabel + '</span>' +
+      '</div>' +
+      '<div class="r-key">Teacher key: <strong>' + c.key + '</strong> &nbsp;&nbsp;' + matchHtml + '</div>' +
+      '<div class="r-note">' + c.note + '</div>' +
+    '</div>';
+  });
+  document.getElementById("result-list").innerHTML = html;
+  sb.scrollIntoView({ behavior:"smooth" });
+}
+
+function restart() {
+  placements = {};
+  current = 0;
+  document.getElementById("scoreboard").style.display = "none";
+  document.getElementById("card-el").style.display = "block";
+  document.getElementById("pip-row").style.display = "flex";
+  resetTimer();
+  init();
+}
+
+function toggleDiscuss() {
+  var strip = document.getElementById("discuss-strip");
+  var panel = document.getElementById("discuss-prompts");
+  var isOpen = panel.classList.contains("open");
+  panel.className = isOpen ? "discuss-prompts" : "discuss-prompts open";
+  strip.className = isOpen ? "discuss-strip" : "discuss-strip open";
+}
+
+// TIMER
+function toggleTimer() {
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById("timer-btn").textContent = "Start";
+  } else {
+    timerRunning = true;
+    document.getElementById("timer-btn").textContent = "Pause";
+    timerInterval = setInterval(function() {
+      timerSecs--;
+      if (timerSecs <= 0) { timerSecs = 0; clearInterval(timerInterval); timerRunning = false; document.getElementById("timer-btn").textContent = "Start"; }
+      renderTimer();
+    }, 1000);
+  }
+}
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerSecs = 20 * 60;
+  document.getElementById("timer-btn").textContent = "Start";
+  renderTimer();
+  document.getElementById("timer").classList.remove("urgent");
+}
+function renderTimer() {
+  var m = Math.floor(timerSecs / 60), s = timerSecs % 60;
+  document.getElementById("timer").textContent = (m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+  if (timerSecs <= 120) document.getElementById("timer").classList.add("urgent");
+  else document.getElementById("timer").classList.remove("urgent");
+}
+
+init();
+</script>
+
+</body>
+</html>
