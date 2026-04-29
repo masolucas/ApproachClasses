@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Online Exam — Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1814;
+    --paper: #f4f1ea;
+    --paper-deep: #ebe6db;
+    --rule: #2a2620;
+    --accent: #b4321f;
+    --warn: #c47a16;
+    --ok: #3a6b3a;
+    --muted: #6b6358;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Fraunces', Georgia, serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    line-height: 1.5;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(180, 50, 31, 0.04) 0%, transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(42, 38, 32, 0.05) 0%, transparent 40%);
+  }
+
+  /* ===== START SCREEN ===== */
+  .start-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .start-card {
+    max-width: 640px;
+    width: 100%;
+    border: 2px solid var(--ink);
+    background: var(--paper);
+    padding: 3.5rem 3rem;
+    position: relative;
+  }
+
+  .start-card::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border: 1px solid var(--ink);
+    pointer-events: none;
+  }
+
+  .stamp {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+    font-weight: 400;
+  }
+
+  .subtitle {
+    font-style: italic;
+    color: var(--muted);
+    margin-bottom: 2rem;
+    font-size: 1.05rem;
+  }
+
+  .rules {
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 1.5rem 0;
+    margin-bottom: 2rem;
+  }
+
+  .rules h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .rules ol {
+    list-style: none;
+    counter-reset: rule;
+  }
+
+  .rules li {
+    counter-increment: rule;
+    padding: 0.5rem 0 0.5rem 2.5rem;
+    position: relative;
+    font-size: 1rem;
+  }
+
+  .rules li::before {
+    content: counter(rule, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 0.55rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  button {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    padding: 1rem 2rem;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s;
+  }
+
+  button:hover { background: var(--accent); }
+
+  /* ===== EXAM SCREEN ===== */
+  .exam-screen { display: none; }
+  .exam-screen.active { display: block; }
+
+  .exam-header {
+    border-bottom: 2px solid var(--ink);
+    padding: 1.25rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--paper);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .exam-title {
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: -0.01em;
+  }
+
+  .monitor {
+    display: flex;
+    gap: 1.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+  }
+
+  .monitor-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.15rem;
+  }
+
+  .monitor-label {
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 0.65rem;
+  }
+
+  .monitor-value {
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  .monitor-value.alert { color: var(--accent); }
+  .monitor-value.warning { color: var(--warn); }
+
+  .exam-body {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 3rem 2rem 6rem;
+  }
+
+  .question {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px dashed var(--rule);
+  }
+
+  .question:last-child { border-bottom: none; }
+
+  .q-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .q-text {
+    font-size: 1.25rem;
+    line-height: 1.4;
+    margin-bottom: 1.5rem;
+    font-weight: 400;
+  }
+
+  .options { display: flex; flex-direction: column; gap: 0.5rem; }
+
+  .option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .option:hover {
+    background: var(--paper-deep);
+    border-color: var(--rule);
+  }
+
+  .option input { accent-color: var(--accent); }
+
+  .option-letter {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 0.75rem;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    font-family: inherit;
+    font-size: 1rem;
+    resize: vertical;
+  }
+
+  textarea:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .submit-btn {
+    max-width: 800px;
+    margin: 2rem auto 0;
+    display: block;
+    background: var(--accent);
+  }
+
+  .submit-btn:hover { background: var(--ink); }
+
+  /* ===== MODAL OVERLAY (when fullscreen exited) ===== */
+  .lockout {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 24, 20, 0.97);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .lockout.active { display: flex; }
+
+  .lockout-card {
+    background: var(--paper);
+    max-width: 480px;
+    padding: 2.5rem;
+    border: 2px solid var(--accent);
+    text-align: center;
+  }
+
+  .lockout-card h2 {
+    color: var(--accent);
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+  }
+
+  .lockout-card p {
+    margin-bottom: 1.5rem;
+    color: var(--muted);
+  }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed;
+    top: 5rem;
+    right: 2rem;
+    background: var(--accent);
+    color: var(--paper);
+    padding: 0.75rem 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    transform: translateX(120%);
+    transition: transform 0.3s;
+    z-index: 50;
+    max-width: 320px;
+  }
+
+  .toast.show { transform: translateX(0); }
+
+  .results {
+    max-width: 640px;
+    margin: 4rem auto;
+    padding: 2.5rem;
+    border: 2px solid var(--ink);
+    background: var(--paper);
+  }
+
+  .results h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+  }
+
+  .results-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px dashed var(--rule);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+  }
+
+  .results-row:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+
+<!-- ===== START SCREEN ===== -->
+<div class="start-screen" id="startScreen">
+  <div class="start-card">
+    <div class="stamp">Examination · Form A · 2026</div>
+    <h1>The <em>Honor</em> Code</h1>
+    <p class="subtitle">A demonstration of in-browser proctoring</p>
+
+    <div class="rules">
+      <h2>Before you begin</h2>
+      <ol>
+        <li>The exam will open in fullscreen mode.</li>
+        <li>Leaving fullscreen will pause the exam and lock the questions.</li>
+        <li>Switching tabs or windows is recorded and reported.</li>
+        <li>You may not refresh, copy, or use developer tools.</li>
+      </ol>
+    </div>
+
+    <button id="startBtn">Begin Examination</button>
+  </div>
+</div>
+
+<!-- ===== EXAM SCREEN ===== -->
+<div class="exam-screen" id="examScreen">
+  <header class="exam-header">
+    <div class="exam-title">Sample Examination</div>
+    <div class="monitor">
+      <div class="monitor-item">
+        <span class="monitor-label">Tab Switches</span>
+        <span class="monitor-value" id="switchCount">0</span>
+      </div>
+      <div class="monitor-item">
+        <span class="monitor-label">Status</span>
+        <span class="monitor-value" id="statusValue">Active</span>
+      </div>
+      <div class="monitor-item">
+        <span class="monitor-label">Time</span>
+        <span class="monitor-value" id="timer">00:00</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="exam-body">
+    <div class="question">
+      <div class="q-number">Question 01</div>
+      <div class="q-text">What is the capital of France?</div>
+      <div class="options">
+        <label class="option"><input type="radio" name="q1" value="a"><span class="option-letter">A</span><span>Madrid</span></label>
+        <label class="option"><input type="radio" name="q1" value="b"><span class="option-letter">B</span><span>Paris</span></label>
+        <label class="option"><input type="radio" name="q1" value="c"><span class="option-letter">C</span><span>Berlin</span></label>
+        <label class="option"><input type="radio" name="q1" value="d"><span class="option-letter">D</span><span>Rome</span></label>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-number">Question 02</div>
+      <div class="q-text">Which of these is a JavaScript framework?</div>
+      <div class="options">
+        <label class="option"><input type="radio" name="q2" value="a"><span class="option-letter">A</span><span>Django</span></label>
+        <label class="option"><input type="radio" name="q2" value="b"><span class="option-letter">B</span><span>Laravel</span></label>
+        <label class="option"><input type="radio" name="q2" value="c"><span class="option-letter">C</span><span>React</span></label>
+        <label class="option"><input type="radio" name="q2" value="d"><span class="option-letter">D</span><span>Flask</span></label>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-number">Question 03</div>
+      <div class="q-text">In your own words, briefly describe what a variable is.</div>
+      <textarea name="q3" placeholder="Write your answer here..."></textarea>
+    </div>
+
+    <button class="submit-btn" id="submitBtn">Submit Examination</button>
+  </main>
+</div>
+
+<!-- ===== LOCKOUT OVERLAY ===== -->
+<div class="lockout" id="lockout">
+  <div class="lockout-card">
+    <h2>Exam Paused</h2>
+    <p>You exited fullscreen mode. Re-enter fullscreen to continue. This event has been recorded.</p>
+    <button id="resumeBtn">Resume Exam</button>
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ===== STATE =====
+  const state = {
+    switches: 0,
+    blurEvents: 0,
+    fullscreenExits: 0,
+    startTime: null,
+    examActive: false,
+    log: []
+  };
+
+  // ===== ELEMENTS =====
+  const startScreen = document.getElementById('startScreen');
+  const examScreen = document.getElementById('examScreen');
+  const lockout = document.getElementById('lockout');
+  const toast = document.getElementById('toast');
+  const switchCountEl = document.getElementById('switchCount');
+  const statusValueEl = document.getElementById('statusValue');
+  const timerEl = document.getElementById('timer');
+
+  // ===== HELPERS =====
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  function logEvent(type, detail = '') {
+    const ts = new Date().toISOString();
+    state.log.push({ ts, type, detail });
+    console.log(`[${ts}] ${type}`, detail);
+    // In a real app: send to your server here
+    // fetch('/api/exam-event', { method: 'POST', body: JSON.stringify({ type, detail }) });
+  }
+
+  function updateSwitchDisplay() {
+    switchCountEl.textContent = state.switches;
+    if (state.switches >= 3) {
+      switchCountEl.classList.add('alert');
+      switchCountEl.classList.remove('warning');
+    } else if (state.switches >= 1) {
+      switchCountEl.classList.add('warning');
+    }
+  }
+
+  // ===== START EXAM =====
+  document.getElementById('startBtn').addEventListener('click', async () => {
+    try {
+      await document.documentElement.requestFullscreen();
+      startScreen.style.display = 'none';
+      examScreen.classList.add('active');
+      state.examActive = true;
+      state.startTime = Date.now();
+      logEvent('exam_started');
+      startTimer();
+    } catch (err) {
+      alert('Fullscreen is required to begin the exam. Please allow fullscreen and try again.');
+    }
+  });
+
+  // ===== TIMER =====
+  function startTimer() {
+    setInterval(() => {
+      if (!state.examActive) return;
+      const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+      const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+      const s = String(elapsed % 60).padStart(2, '0');
+      timerEl.textContent = `${m}:${s}`;
+    }, 1000);
+  }
+
+  // ===== TAB-SWITCH DETECTION =====
+  document.addEventListener('visibilitychange', () => {
+    if (!state.examActive) return;
+    if (document.hidden) {
+      state.switches++;
+      updateSwitchDisplay();
+      logEvent('tab_hidden', `count: ${state.switches}`);
+    } else {
+      logEvent('tab_visible');
+      showToast(`Tab switch detected (${state.switches} total)`);
+    }
+  });
+
+  // Catches alt-tab to other apps
+  window.addEventListener('blur', () => {
+    if (!state.examActive) return;
+    state.blurEvents++;
+    logEvent('window_blur', `count: ${state.blurEvents}`);
+  });
+
+  // ===== FULLSCREEN ENFORCEMENT =====
+  document.addEventListener('fullscreenchange', () => {
+    if (!state.examActive) return;
+    if (!document.fullscreenElement) {
+      state.fullscreenExits++;
+      statusValueEl.textContent = 'PAUSED';
+      statusValueEl.classList.add('alert');
+      lockout.classList.add('active');
+      logEvent('fullscreen_exit', `count: ${state.fullscreenExits}`);
+    } else {
+      statusValueEl.textContent = 'Active';
+      statusValueEl.classList.remove('alert');
+      lockout.classList.remove('active');
+      logEvent('fullscreen_resumed');
+    }
+  });
+
+  document.getElementById('resumeBtn').addEventListener('click', async () => {
+    try {
+      await document.documentElement.requestFullscreen();
+    } catch (err) {
+      alert('Could not re-enter fullscreen.');
+    }
+  });
+
+  // ===== EXTRA: block dev tools shortcuts and right-click =====
+  // Note: these are deterrents, not real security
+  document.addEventListener('contextmenu', e => {
+    if (state.examActive) {
+      e.preventDefault();
+      logEvent('right_click_blocked');
+    }
+  });
+
+  document.addEventListener('keydown', e => {
+    if (!state.examActive) return;
+    // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+    if (e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key)) ||
+        (e.ctrlKey && e.key === 'u')) {
+      e.preventDefault();
+      logEvent('devtools_shortcut_blocked', e.key);
+      showToast('That shortcut is disabled during the exam');
+    }
+  });
+
+  // Warn before refresh/close
+  window.addEventListener('beforeunload', e => {
+    if (state.examActive) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+
+  // ===== SUBMIT =====
+  document.getElementById('submitBtn').addEventListener('click', () => {
+    state.examActive = false;
+    logEvent('exam_submitted');
+
+    // Collect answers
+    const answers = {
+      q1: document.querySelector('[name="q1"]:checked')?.value || null,
+      q2: document.querySelector('[name="q2"]:checked')?.value || null,
+      q3: document.querySelector('[name="q3"]').value
+    };
+
+    // Exit fullscreen
+    if (document.fullscreenElement) document.exitFullscreen();
+
+    // Show summary
+    examScreen.innerHTML = `
+      <div class="results">
+        <h2>Exam Submitted</h2>
+        <p style="margin-bottom: 1.5rem; color: var(--muted); font-style: italic;">
+          Below is the proctoring summary that would be sent to the teacher.
+        </p>
+        <div class="results-row"><span>Tab/window switches</span><span>${state.switches}</span></div>
+        <div class="results-row"><span>Window blur events</span><span>${state.blurEvents}</span></div>
+        <div class="results-row"><span>Fullscreen exits</span><span>${state.fullscreenExits}</span></div>
+        <div class="results-row"><span>Total events logged</span><span>${state.log.length}</span></div>
+        <div class="results-row"><span>Answers submitted</span><span>${Object.values(answers).filter(Boolean).length} / 3</span></div>
+        <p style="margin-top: 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--muted);">
+          Full event log printed to browser console.
+        </p>
+      </div>
+    `;
+    console.log('=== FULL EVENT LOG ===');
+    console.table(state.log);
+    console.log('=== ANSWERS ===');
+    console.log(answers);
+  });
+</script>
+
+</body>
+</html>
