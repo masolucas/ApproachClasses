@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Your Rights Quiz · True or False · Approach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     APPROACH BRAND PALETTE + TOKENS
+     ============================================================ */
+  :root {
+    --nd-blue:      #0c2340;
+    --nd-blue-2:    #143865;
+    --nd-blue-3:    #1c4f8f;
+    --nd-gold:      #ae9142;
+    --nd-gold-2:    #d39f10;
+    --light-sky:    #edf2f9;
+    --warm-white:   #efe9d9;
+    --pale-cream:   #f8f4ec;
+    --green:        #2d6a4f;
+    --red:          #ab100b;
+    --ink:          #1a2332;
+    --muted:        #5b6577;
+
+    --shadow-card:  0 12px 32px rgba(12, 35, 64, 0.10), 0 2px 6px rgba(12, 35, 64, 0.06);
+    --shadow-deep:  0 24px 48px rgba(12, 35, 64, 0.18), 0 4px 12px rgba(12, 35, 64, 0.08);
+
+    --radius:       14px;
+    --radius-lg:    22px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    min-height: 100vh;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--ink);
+    background: var(--pale-cream);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Subtle background — warm cream with a gold radial wash */
+  body {
+    background:
+      radial-gradient(ellipse 80% 60% at 80% 0%, rgba(174,145,66,0.10) 0%, transparent 50%),
+      radial-gradient(ellipse 70% 50% at 0% 100%, rgba(12,35,64,0.06) 0%, transparent 50%),
+      var(--pale-cream);
+    background-attachment: fixed;
+  }
+
+  .display { font-family: 'Fraunces', Georgia, serif; }
+
+  /* ============================================================
+     HEADER  ·  visible on every screen
+     ============================================================ */
+  .top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--nd-blue);
+    color: var(--warm-white);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 12px rgba(12,35,64,0.15);
+  }
+  .top-bar .brand {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--nd-gold);
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .top-bar .week {
+    font-size: 12px;
+    color: var(--warm-white);
+    font-style: italic;
+    opacity: 0.85;
+  }
+
+  /* ============================================================
+     PAGE LAYOUT
+     ============================================================ */
+  .page {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  /* ============================================================
+     SCREEN: NAME GATE
+     ============================================================ */
+  .gate {
+    margin-top: 40px;
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 56px 48px;
+    box-shadow: var(--shadow-deep);
+    border: 1px solid rgba(12,35,64,0.06);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Decorative gold corner accent on gate */
+  .gate::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 120px; height: 120px;
+    background: linear-gradient(135deg, var(--nd-gold) 0%, transparent 60%);
+    opacity: 0.15;
+    border-top-left-radius: var(--radius-lg);
+  }
+
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    font-weight: 700;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .gate h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 900;
+    font-size: clamp(40px, 6vw, 60px);
+    line-height: 1.05;
+    color: var(--nd-blue);
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+  .gate .sub {
+    font-size: 18px;
+    color: var(--muted);
+    margin-bottom: 36px;
+    max-width: 560px;
+    line-height: 1.5;
+  }
+
+  .field-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--nd-gold);
+    margin-bottom: 8px;
+  }
+
+  .name-input {
+    width: 100%;
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 28px;
+    font-weight: 500;
+    padding: 14px 18px;
+    background: var(--pale-cream);
+    border: 2px solid transparent;
+    border-radius: var(--radius);
+    color: var(--nd-blue);
+    transition: all 0.2s ease;
+    outline: none;
+  }
+  .name-input::placeholder { color: rgba(91,101,119,0.5); font-style: italic; }
+  .name-input:focus {
+    background: white;
+    border-color: var(--nd-gold);
+    box-shadow: 0 0 0 4px rgba(174,145,66,0.15);
+  }
+
+  .start-btn {
+    margin-top: 28px;
+    background: var(--nd-blue);
+    color: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border: none;
+    border-radius: var(--radius);
+    padding: 18px 36px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 6px 16px rgba(12,35,64,0.25);
+  }
+  .start-btn:hover:not(:disabled) {
+    background: var(--nd-blue-2);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(12,35,64,0.32);
+  }
+  .start-btn:active:not(:disabled) { transform: translateY(0); }
+  .start-btn:disabled {
+    background: #c0c4cc;
+    color: #f5f5f5;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  .start-btn .arrow {
+    transition: transform 0.2s ease;
+  }
+  .start-btn:hover:not(:disabled) .arrow { transform: translateX(4px); }
+
+  .gate-meta {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(12,35,64,0.08);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px 32px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .gate-meta span { display: inline-flex; align-items: center; gap: 8px; }
+  .gate-meta .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--nd-gold);
+  }
+
+  /* ============================================================
+     SCREEN: GAME
+     ============================================================ */
+  .game { display: none; }
+  .game.active { display: block; animation: fadeIn 0.4s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Player banner */
+  .player-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    border-radius: var(--radius);
+    padding: 14px 20px;
+    box-shadow: var(--shadow-card);
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .player-banner .greet {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    color: var(--nd-blue);
+  }
+  .player-banner .greet b { font-weight: 700; }
+  .player-banner .stats {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .player-banner .stats .stat {
+    display: flex; flex-direction: column; align-items: flex-end;
+  }
+  .player-banner .stats .stat-num {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--nd-blue);
+    line-height: 1;
+  }
+  .player-banner .stats .stat-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--nd-gold);
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  /* Progress bar */
+  .progress-wrap {
+    background: white;
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: var(--shadow-card);
+    margin-bottom: 20px;
+  }
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .progress-meta .q-count {
+    color: var(--nd-blue);
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 700;
+  }
+  .progress-track {
+    height: 8px;
+    background: var(--light-sky);
+    border-radius: 100px;
+    overflow: hidden;
+    position: relative;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--nd-blue) 0%, var(--nd-gold) 100%);
+    border-radius: 100px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0%;
+  }
+
+  /* Question card */
+  .q-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 48px 40px;
+    box-shadow: var(--shadow-deep);
+    margin-bottom: 24px;
+    border: 1px solid rgba(12,35,64,0.06);
+    position: relative;
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .q-card .q-tag {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    font-weight: 700;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .q-card .q-statement {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: clamp(24px, 3.6vw, 36px);
+    font-weight: 500;
+    line-height: 1.25;
+    color: var(--nd-blue);
+    letter-spacing: -0.01em;
+  }
+  .q-card .q-statement::before { content: "“"; color: var(--nd-gold); margin-right: 4px; }
+  .q-card .q-statement::after { content: "”"; color: var(--nd-gold); margin-left: 4px; }
+
+  /* Answer buttons */
+  .answers {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 30px;
+  }
+  @media (max-width: 540px) {
+    .answers { grid-template-columns: 1fr; }
+  }
+  .answer-btn {
+    background: white;
+    border: 2px solid rgba(12,35,64,0.10);
+    border-radius: var(--radius);
+    padding: 26px 20px;
+    cursor: pointer;
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--nd-blue);
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-card);
+    position: relative;
+    overflow: hidden;
+  }
+  .answer-btn::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: transparent;
+    transition: background 0.2s ease;
+  }
+  .answer-btn[data-value="true"]::before { background: var(--nd-blue-3); }
+  .answer-btn[data-value="false"]::before { background: var(--red); }
+  .answer-btn:hover:not(.disabled):not(.locked) {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-deep);
+    border-color: var(--nd-gold);
+  }
+  .answer-btn:active:not(.disabled):not(.locked) { transform: translateY(-1px); }
+  .answer-btn.locked { cursor: default; pointer-events: none; }
+
+  /* Reveal states */
+  .answer-btn.correct {
+    background: var(--green);
+    color: white;
+    border-color: var(--green);
+    animation: pulseGreen 0.5s ease;
+  }
+  .answer-btn.correct::before { background: rgba(255,255,255,0.4); }
+  .answer-btn.wrong {
+    background: var(--red);
+    color: white;
+    border-color: var(--red);
+    animation: shake 0.4s ease;
+  }
+  .answer-btn.wrong::before { background: rgba(255,255,255,0.4); }
+  .answer-btn.faded { opacity: 0.4; }
+
+  @keyframes pulseGreen {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  /* Feedback panel — shown after answering */
+  .feedback {
+    background: white;
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    box-shadow: var(--shadow-card);
+    margin-bottom: 24px;
+    border-left: 5px solid var(--nd-gold);
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .feedback.show { display: block; }
+  .feedback .verdict {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .feedback .verdict.correct { color: var(--green); }
+  .feedback .verdict.wrong { color: var(--red); }
+  .feedback .verdict .icon {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 16px;
+  }
+  .feedback .verdict.correct .icon { background: var(--green); }
+  .feedback .verdict.wrong .icon { background: var(--red); }
+  .feedback .explain { color: var(--ink); font-size: 15px; line-height: 1.55; }
+  .feedback .explain b { color: var(--nd-blue); }
+
+  .next-btn {
+    background: var(--nd-gold);
+    color: var(--nd-blue);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    border: none;
+    border-radius: var(--radius);
+    padding: 14px 28px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .next-btn:hover {
+    background: var(--nd-gold-2);
+    transform: translateY(-1px);
+  }
+
+  /* ============================================================
+     SCREEN: RESULTS
+     ============================================================ */
+  .results { display: none; }
+  .results.active { display: block; animation: fadeIn 0.4s ease; }
+
+  .results-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 56px 48px;
+    box-shadow: var(--shadow-deep);
+    text-align: center;
+    margin-top: 40px;
+    border: 1px solid rgba(12,35,64,0.06);
+    position: relative;
+    overflow: hidden;
+  }
+  .results-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 200px; height: 6px;
+    background: linear-gradient(90deg, var(--nd-blue) 0%, var(--nd-gold) 100%);
+    border-radius: 0 0 100px 100px;
+  }
+
+  .results-card .eyebrow { margin-bottom: 16px; }
+
+  .score-display {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(80px, 16vw, 140px);
+    font-weight: 900;
+    color: var(--nd-blue);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    margin: 8px 0;
+  }
+  .score-display .slash { color: var(--nd-gold); margin: 0 6px; font-weight: 500; }
+  .score-display .total { color: var(--muted); font-weight: 500; }
+
+  .score-msg {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--nd-blue);
+    margin-bottom: 14px;
+    letter-spacing: -0.01em;
+  }
+  .score-sub {
+    font-size: 16px;
+    color: var(--muted);
+    line-height: 1.5;
+    max-width: 480px;
+    margin: 0 auto 32px;
+  }
+
+  .submit-status {
+    margin-top: 24px;
+    padding: 14px 20px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    color: var(--muted);
+    background: var(--light-sky);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .submit-status.saved { background: rgba(45,106,79,0.10); color: var(--green); }
+  .submit-status.error { background: rgba(171,16,11,0.08); color: var(--red); }
+  .submit-status .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(12,35,64,0.2);
+    border-top-color: var(--nd-blue);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Review list */
+  .review {
+    margin-top: 40px;
+    text-align: left;
+  }
+  .review h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    color: var(--nd-blue);
+    margin-bottom: 16px;
+    font-weight: 700;
+  }
+  .review-item {
+    background: white;
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow-card);
+    display: grid;
+    grid-template-columns: 32px 1fr auto;
+    gap: 14px;
+    align-items: start;
+  }
+  .review-icon {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 14px;
+    flex-shrink: 0;
+  }
+  .review-icon.correct { background: var(--green); }
+  .review-icon.wrong { background: var(--red); }
+  .review-text { color: var(--ink); font-size: 15px; line-height: 1.45; }
+  .review-text .ans-line {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .review-text .ans-line b.correct-ans { color: var(--green); }
+  .review-text .ans-line b.wrong-ans { color: var(--red); text-decoration: line-through; opacity: 0.7; }
+
+  .play-again {
+    margin-top: 28px;
+    background: transparent;
+    color: var(--nd-blue);
+    border: 2px solid var(--nd-blue);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    border-radius: var(--radius);
+    padding: 14px 28px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .play-again:hover {
+    background: var(--nd-blue);
+    color: white;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    margin-top: 60px;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<!-- =============================================================
+     CONFIG  ·  Edit these 3 things and the form-field IDs below
+     ============================================================= -->
+<script>
+  /**
+   * GOOGLE FORM CONFIGURATION
+   *
+   * STEP-BY-STEP SETUP (see chat reply for full instructions):
+   *
+   *  1. Create a new Google Form with these 5 questions, ALL set to
+   *     "Short answer" type, ALL marked optional (NOT required):
+   *        - Student Name           (Short answer)
+   *        - Score                  (Short answer)
+   *        - Total Questions        (Short answer)
+   *        - Time Spent (seconds)   (Short answer)
+   *        - Date / Time Submitted  (Short answer)
+   *
+   *  2. Click "Send" → copy the form URL (looks like
+   *        https://docs.google.com/forms/d/e/1FAIpQLSc.../viewform).
+   *     Replace `FORM_URL` below with that URL — but change `/viewform`
+   *     to `/formResponse`.
+   *
+   *  3. Click ⋮ menu → "Get pre-filled link". Fill each field with a
+   *     dummy value (e.g., "Test", "1", "1", "1", "1") and click
+   *     "Get link" → "Copy link". Paste it somewhere; you'll see entries
+   *     like `entry.123456789=Test`.  Copy each numeric ID into the
+   *     `FIELDS` object below in the matching slot.
+   *
+   *  4. (For Google Sheets) In your form, click the Sheets icon at the
+   *     top to link a destination spreadsheet. Submissions appear there
+   *     in real time.
+   */
+  const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfzB-S_eJEBy4ohoFw2pq2n-inFLYCx_VfshQqtlAW11NXpVg/formResponse";
+  const FIELDS = {
+    name:      "entry.671164170",   // Student Name
+    score:     "entry.1794207004",   // Score (e.g., 12)
+    total:     "entry.1127465357",   // Total Questions (e.g., 16)
+    timeSecs:  "entry.1342103050",   // Time Spent in seconds
+    submitted: "entry.1699152147"    // Date/Time submitted (ISO string)
+  };
+</script>
+
+<!-- =============================================================
+     TOP BAR
+     ============================================================= -->
+<div class="top-bar">
+  <div>
+    <div class="brand">Approach International Student Center</div>
+  </div>
+  <div class="week">Week 4 · At the Store · Your Rights Quiz</div>
+</div>
+
+<div class="page">
+
+  <!-- ===========================================================
+       SCREEN 1  ·  NAME GATE
+       =========================================================== -->
+  <section class="gate" id="screen-gate">
+    <div class="eyebrow">True or False · Game</div>
+    <h1 class="display">Your Rights<br>Quiz</h1>
+    <p class="sub">
+      16 statements about your rights as a shopper in the U.S.
+      Decide if each one is <b>TRUE</b> or <b>FALSE</b>.
+      No time pressure — read carefully, then choose.
+    </p>
+
+    <label class="field-label" for="name-input">Your Name</label>
+    <input
+      type="text"
+      id="name-input"
+      class="name-input"
+      placeholder="Type your full name…"
+      autocomplete="name"
+      maxlength="80"
+    />
+
+    <button id="start-btn" class="start-btn" disabled>
+      Start the Game
+      <span class="arrow">→</span>
+    </button>
+
+    <div class="gate-meta">
+      <span><span class="dot"></span> 16 questions</span>
+      <span><span class="dot"></span> No time limit</span>
+      <span><span class="dot"></span> Results saved automatically</span>
+    </div>
+  </section>
+
+  <!-- ===========================================================
+       SCREEN 2  ·  GAME
+       =========================================================== -->
+  <section class="game" id="screen-game">
+    <div class="player-banner">
+      <div class="greet">Hi, <b id="greet-name">student</b> — let's go.</div>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-num" id="stat-correct">0</span>
+          <span class="stat-label">Correct</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num" id="stat-wrong">0</span>
+          <span class="stat-label">Wrong</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span>Progress</span>
+        <span class="q-count"><span id="q-current">1</span> <span style="color: var(--muted); font-weight: 400;">of</span> <span id="q-total">16</span></span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-tag">Statement</div>
+      <div class="q-statement" id="q-text">Loading…</div>
+    </div>
+
+    <div class="answers">
+      <button class="answer-btn" data-value="true" id="btn-true">TRUE</button>
+      <button class="answer-btn" data-value="false" id="btn-false">FALSE</button>
+    </div>
+
+    <div class="feedback" id="feedback">
+      <div class="verdict" id="verdict">
+        <span class="icon">✓</span>
+        <span class="verdict-text">Correct</span>
+      </div>
+      <div class="explain" id="explain"></div>
+      <button class="next-btn" id="next-btn">Next question →</button>
+    </div>
+  </section>
+
+  <!-- ===========================================================
+       SCREEN 3  ·  RESULTS
+       =========================================================== -->
+  <section class="results" id="screen-results">
+    <div class="results-card">
+      <div class="eyebrow">Final Results</div>
+      <p style="font-family: 'Fraunces', serif; font-size: 22px; color: var(--muted); margin-bottom: 8px;">
+        <span id="result-name">Student</span>, you scored
+      </p>
+      <div class="score-display">
+        <span id="result-score">0</span><span class="slash">/</span><span class="total" id="result-total">16</span>
+      </div>
+      <div class="score-msg" id="result-msg">Great work!</div>
+      <div class="score-sub" id="result-sub">Your answers have been saved.</div>
+
+      <div class="submit-status" id="submit-status">
+        <div class="spinner"></div>
+        <span>Saving your results…</span>
+      </div>
+
+      <div>
+        <button class="play-again" id="play-again-btn">Play Again</button>
+      </div>
+    </div>
+
+    <div class="review">
+      <h2 class="display">Review your answers</h2>
+      <div id="review-list"></div>
+    </div>
+  </section>
+
+  <div class="footer">
+    Approach International Student Center · Survival English &amp; Success Skills
+  </div>
+</div>
+
+<!-- =============================================================
+     QUESTIONS  ·  16 statements with TRUE/FALSE + explanations
+     ============================================================= -->
+<script>
+  const QUESTIONS = [
+    {
+      text: "You have the right to a receipt.",
+      answer: true,
+      explain: "<b>True.</b> Always ask. The receipt is your proof and you need it for most returns. Many stores will email or text it to you — just ask."
+    },
+    {
+      text: "Stores can refuse to give you a receipt.",
+      answer: false,
+      explain: "<b>False.</b> Stores must provide a receipt when you ask. If a register is broken, ask for a written one. Don't leave without proof of purchase."
+    },
+    {
+      text: "Big stores must accept all returns within 30 days.",
+      answer: false,
+      explain: "<b>False.</b> Each store sets its own return policy. Many big stores are generous (30 days, even 90), but the law doesn't require it. Always ask the policy <b>before</b> you buy."
+    },
+    {
+      text: "If a price is wrong, you can ask for the shelf price.",
+      answer: true,
+      explain: "<b>True.</b> If the shelf says $5 but the register charges $7, show the cashier and ask for the lower price. In Massachusetts, the Item Pricing Law backs this up."
+    },
+    {
+      text: "You need a Social Security Number to return things.",
+      answer: false,
+      explain: "<b>False.</b> An SSN is never required for a normal return. Some stores ask for ID for high-value returns or items without a receipt — that's a separate policy, not a legal requirement."
+    },
+    {
+      text: "Stores can ask about your immigration status before a return.",
+      answer: false,
+      explain: "<b>False.</b> Your immigration status has nothing to do with consumer rights. If a store asks, that is wrong. You can call the MA Attorney General's Consumer Hotline at 617-727-8400."
+    },
+    {
+      text: "If something is defective, you can return it even on \u201Cfinal sale.\u201D",
+      answer: true,
+      explain: "<b>True.</b> Federal law (the implied warranty of merchantability) protects you. \u201CFinal sale\u201D doesn't apply to broken or defective items. If they refuse, call the MA Attorney General."
+    },
+    {
+      text: "All stores accept cash.",
+      answer: false,
+      explain: "<b>False.</b> More and more U.S. stores are card-only. Always ask <b>\u201CDo you accept cash or card?\u201D</b> before you buy — especially at small shops, food trucks, and some chains."
+    },
+    {
+      text: "You should ask the return policy BEFORE you buy.",
+      answer: true,
+      explain: "<b>True.</b> This is the single most important habit. <b>\u201CWhat is your return policy?\u201D</b> takes 3 seconds and saves you money."
+    },
+    {
+      text: "Costco has a generous return policy.",
+      answer: true,
+      explain: "<b>True.</b> Costco is famous for its generous returns — most items can be returned anytime, with very few exceptions. This is a store policy, not a law — but it's a real example of what \u201Cgenerous\u201D looks like."
+    },
+    {
+      text: "If a store refuses a defective return, you can call the MA AG.",
+      answer: true,
+      explain: "<b>True.</b> The Massachusetts Attorney General's Consumer Hotline is <b>617-727-8400</b>. They handle complaints when stores refuse legitimate refunds. Save this number."
+    },
+    {
+      text: "Stores must give cash refunds for cash purchases.",
+      answer: true,
+      explain: "<b>True (in Massachusetts and most states).</b> If you paid in cash, you should get cash back — not just store credit. If they refuse, ask for a manager and explain politely."
+    },
+    {
+      text: "Receipts can be sent by email or text.",
+      answer: true,
+      explain: "<b>True.</b> Most major stores can email or text your receipt. This is a great backup — receipts on paper fade or get lost; digital ones don't."
+    },
+    {
+      text: "All small stores accept credit cards.",
+      answer: false,
+      explain: "<b>False.</b> Many small businesses are cash-only or have a minimum purchase for cards. Always check before you shop — especially at corner stores, laundromats, and small restaurants."
+    },
+    {
+      text: "You have to pay tax on every refund.",
+      answer: false,
+      explain: "<b>False.</b> When you return something for a full refund, you get the sales tax back too. Check your refund receipt — the tax should be included in the amount returned."
+    },
+    {
+      text: "You can return shoes after wearing them outside for a month.",
+      answer: false,
+      explain: "<b>False (usually).</b> Most stores require items to be unworn or unused for a normal return. Exception: if the shoes are <b>defective</b> (sole came off, fell apart), you have the right to return them — even after use."
+    }
+  ];
+</script>
+
+<!-- =============================================================
+     APP LOGIC
+     ============================================================= -->
+<script>
+  // ---------- State ----------
+  const state = {
+    name: "",
+    questions: [],     // shuffled order
+    current: 0,
+    correct: 0,
+    wrong: 0,
+    answers: [],       // {q, given, correct (bool)}
+    locked: false,
+    startedAt: null
+  };
+
+  // ---------- DOM ----------
+  const $ = id => document.getElementById(id);
+  const screenGate = $("screen-gate");
+  const screenGame = $("screen-game");
+  const screenResults = $("screen-results");
+
+  const nameInput = $("name-input");
+  const startBtn = $("start-btn");
+
+  const greetName = $("greet-name");
+  const statCorrect = $("stat-correct");
+  const statWrong = $("stat-wrong");
+  const qCurrent = $("q-current");
+  const qTotalEl = $("q-total");
+  const progressFill = $("progress-fill");
+  const qText = $("q-text");
+  const btnTrue = $("btn-true");
+  const btnFalse = $("btn-false");
+  const feedback = $("feedback");
+  const verdict = $("verdict");
+  const explain = $("explain");
+  const nextBtn = $("next-btn");
+
+  const resultName = $("result-name");
+  const resultScore = $("result-score");
+  const resultTotal = $("result-total");
+  const resultMsg = $("result-msg");
+  const resultSub = $("result-sub");
+  const submitStatus = $("submit-status");
+  const reviewList = $("review-list");
+  const playAgainBtn = $("play-again-btn");
+
+  // ---------- Helpers ----------
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function showScreen(which) {
+    [screenGate, screenGame, screenResults].forEach(el => el.classList.remove("active"));
+    if (which === "gate") {
+      // gate is shown by default (no .active needed); just hide others
+      screenGate.style.display = "block";
+      screenGame.classList.remove("active");
+      screenResults.classList.remove("active");
+    } else if (which === "game") {
+      screenGate.style.display = "none";
+      screenGame.classList.add("active");
+      screenResults.classList.remove("active");
+    } else if (which === "results") {
+      screenGate.style.display = "none";
+      screenGame.classList.remove("active");
+      screenResults.classList.add("active");
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // ---------- Name gate ----------
+  nameInput.addEventListener("input", () => {
+    const v = nameInput.value.trim();
+    startBtn.disabled = v.length < 2;
+  });
+  nameInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !startBtn.disabled) startBtn.click();
+  });
+
+  startBtn.addEventListener("click", () => {
+    state.name = nameInput.value.trim();
+    state.questions = shuffle(QUESTIONS);
+    state.current = 0;
+    state.correct = 0;
+    state.wrong = 0;
+    state.answers = [];
+    state.locked = false;
+    state.startedAt = Date.now();
+
+    greetName.textContent = state.name;
+    qTotalEl.textContent = state.questions.length;
+    statCorrect.textContent = "0";
+    statWrong.textContent = "0";
+
+    showScreen("game");
+    renderQuestion();
+  });
+
+  // ---------- Game flow ----------
+  function renderQuestion() {
+    const q = state.questions[state.current];
+    qCurrent.textContent = state.current + 1;
+    progressFill.style.width = (state.current / state.questions.length * 100) + "%";
+
+    qText.textContent = q.text;
+    feedback.classList.remove("show");
+    [btnTrue, btnFalse].forEach(b => {
+      b.classList.remove("correct", "wrong", "faded", "locked");
+    });
+    state.locked = false;
+  }
+
+  function answer(value) {
+    if (state.locked) return;
+    state.locked = true;
+
+    const q = state.questions[state.current];
+    const isCorrect = value === q.answer;
+
+    if (isCorrect) state.correct++;
+    else state.wrong++;
+    statCorrect.textContent = state.correct;
+    statWrong.textContent = state.wrong;
+
+    state.answers.push({
+      q: q.text,
+      given: value,
+      correct: q.answer,
+      isCorrect: isCorrect,
+      explain: q.explain
+    });
+
+    // Visual reveal
+    const givenBtn  = value === true ? btnTrue : btnFalse;
+    const correctBtn = q.answer === true ? btnTrue : btnFalse;
+
+    btnTrue.classList.add("locked");
+    btnFalse.classList.add("locked");
+
+    if (isCorrect) {
+      givenBtn.classList.add("correct");
+      verdict.className = "verdict correct";
+      verdict.querySelector(".icon").textContent = "✓";
+      verdict.querySelector(".verdict-text").textContent = "Correct";
+    } else {
+      givenBtn.classList.add("wrong");
+      correctBtn.classList.add("correct");
+      verdict.className = "verdict wrong";
+      verdict.querySelector(".icon").textContent = "✗";
+      verdict.querySelector(".verdict-text").textContent = "Not quite";
+      // also fade the "neither answered" if we want, but only 2 buttons; nothing to fade
+    }
+
+    explain.innerHTML = q.explain;
+    feedback.classList.add("show");
+
+    // Last question? change button
+    if (state.current === state.questions.length - 1) {
+      nextBtn.innerHTML = "See your results →";
+    } else {
+      nextBtn.innerHTML = "Next question →";
+    }
+  }
+
+  btnTrue.addEventListener("click", () => answer(true));
+  btnFalse.addEventListener("click", () => answer(false));
+
+  nextBtn.addEventListener("click", () => {
+    if (state.current === state.questions.length - 1) {
+      finish();
+    } else {
+      state.current++;
+      renderQuestion();
+    }
+  });
+
+  // ---------- Finish & submit ----------
+  function scoreMessage(score, total) {
+    const pct = score / total;
+    if (pct === 1)    return { msg: "Perfect score!",            sub: "You know your rights inside out. That's the goal." };
+    if (pct >= 0.85)  return { msg: "Excellent work.",            sub: "You're ready to handle almost any store situation in the U.S." };
+    if (pct >= 0.7)   return { msg: "Good job — solid foundation.", sub: "Review the ones you missed. They could save you money next time." };
+    if (pct >= 0.5)   return { msg: "Nice try — keep practicing.", sub: "Look at the explanations below. Each one matters in real life." };
+    return            { msg: "Don't worry — that's why we practice.", sub: "Read the explanations carefully. We'll keep working on this together." };
+  }
+
+  function finish() {
+    progressFill.style.width = "100%";
+    const total = state.questions.length;
+    const total_seconds = Math.round((Date.now() - state.startedAt) / 1000);
+
+    // Populate results screen
+    resultName.textContent = state.name;
+    resultScore.textContent = state.correct;
+    resultTotal.textContent = total;
+    const m = scoreMessage(state.correct, total);
+    resultMsg.textContent = m.msg;
+    resultSub.textContent = m.sub;
+
+    // Build review list
+    reviewList.innerHTML = "";
+    state.answers.forEach((a, idx) => {
+      const item = document.createElement("div");
+      item.className = "review-item";
+      const givenLabel = a.given ? "TRUE" : "FALSE";
+      const correctLabel = a.correct ? "TRUE" : "FALSE";
+      const ansLine = a.isCorrect
+        ? `<div class="ans-line">You answered <b class="correct-ans">${givenLabel}</b> · Correct.</div>`
+        : `<div class="ans-line">You answered <b class="wrong-ans">${givenLabel}</b> · Correct answer: <b class="correct-ans">${correctLabel}</b></div>`;
+      item.innerHTML = `
+        <div class="review-icon ${a.isCorrect ? "correct" : "wrong"}">${a.isCorrect ? "✓" : "✗"}</div>
+        <div class="review-text">
+          <div>${idx + 1}. ${a.q}</div>
+          ${ansLine}
+          <div class="ans-line" style="margin-top:8px;">${a.explain}</div>
+        </div>
+      `;
+      reviewList.appendChild(item);
+    });
+
+    showScreen("results");
+
+    // Submit to Google Forms
+    submitToGoogleForm({
+      name: state.name,
+      score: state.correct,
+      total: total,
+      timeSecs: total_seconds,
+      submitted: new Date().toISOString()
+    });
+  }
+
+  // ---------- Google Forms submission ----------
+  // Pre-filled URL trick: we POST/GET to /formResponse with the entry IDs.
+  // Browsers block reading the response (CORS), but the submission still
+  // goes through. We use fetch with mode: 'no-cors'.
+  async function submitToGoogleForm(data) {
+    if (!FORM_URL.includes("REPLACE_WITH_YOUR_FORM_ID")) {
+      try {
+        const params = new URLSearchParams();
+        params.append(FIELDS.name,       data.name);
+        params.append(FIELDS.score,      String(data.score));
+        params.append(FIELDS.total,      String(data.total));
+        params.append(FIELDS.timeSecs,   String(data.timeSecs));
+        params.append(FIELDS.submitted,  data.submitted);
+
+        await fetch(FORM_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: params.toString()
+        });
+
+        // We can't actually verify success because of CORS, but if no
+        // network error was thrown we treat it as submitted.
+        submitStatus.classList.remove("error");
+        submitStatus.classList.add("saved");
+        submitStatus.innerHTML = `<span style="font-size:16px;">✓</span><span>Results saved.</span>`;
+      } catch (err) {
+        console.error("Form submission failed:", err);
+        submitStatus.classList.remove("saved");
+        submitStatus.classList.add("error");
+        submitStatus.innerHTML = `<span style="font-size:16px;">⚠</span><span>Couldn't save automatically. Please tell your teacher your score.</span>`;
+      }
+    } else {
+      // Form not yet configured
+      submitStatus.classList.remove("saved");
+      submitStatus.innerHTML = `<span style="font-size:16px;">ⓘ</span><span>Demo mode — Google Form not yet connected.</span>`;
+    }
+  }
+
+  // ---------- Play again ----------
+  playAgainBtn.addEventListener("click", () => {
+    nameInput.value = state.name; // keep their name
+    startBtn.disabled = state.name.length < 2;
+    showScreen("gate");
+  });
+
+  // Init
+  showScreen("gate");
+</script>
+
+</body>
+</html>
