@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Exam — Approach International Student Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --nd-blue: #0c2340;
+    --nd-gold: #ae9142;
+    --medium-blue: #143865;
+    --bright-blue: #1c4f8f;
+    --dark-sky-blue: #c1cddd;
+    --medium-sky-blue: #e1e8f2;
+    --light-sky-blue: #edf2f9;
+    --dark-gold: #8c7535;
+    --bright-gold: #d39f10;
+    --warm-white: #efe9d9;
+    --light-warm-white: #f8f4ec;
+    --accent-red: #ab100b;
+    --success-green: #3a6b3a;
+    --font-display: 'Cormorant Garamond', 'Times New Roman', serif;
+    --font-body: 'Montserrat', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--light-warm-white);
+    color: var(--nd-blue);
+    min-height: 100vh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== BRAND BAR ===== */
+  .brand-bar {
+    background: var(--nd-blue);
+    color: var(--light-warm-white);
+    padding: 0.7rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    border-bottom: 3px solid var(--nd-gold);
+  }
+
+  .brand-bar-logo { display: flex; align-items: center; gap: 0.6rem; }
+
+  .brand-monogram {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--nd-gold);
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 1;
+  }
+
+  /* ===== PAGE LAYOUT ===== */
+  .page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem 2rem 5rem;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .page-header {
+    grid-column: 1 / -1;
+    margin-bottom: 1rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--dark-sky-blue);
+  }
+
+  .page-stamp {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    line-height: 1.05;
+    color: var(--nd-blue);
+    margin-bottom: 0.4rem;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--nd-gold);
+    font-weight: 500;
+  }
+
+  .page-sub {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--medium-blue);
+  }
+
+  /* ===== FORM CARD ===== */
+  .form-card {
+    background: #fff;
+    border-top: 4px solid var(--nd-gold);
+    box-shadow: 0 2px 8px rgba(12, 35, 64, 0.05);
+    padding: 2.5rem;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem 1.25rem;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 0.5rem; }
+  .field.full { grid-column: 1 / -1; }
+
+  .field label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+  }
+
+  .field label .required {
+    color: var(--accent-red);
+    margin-left: 0.2rem;
+  }
+
+  .field input[type="text"],
+  .field input[type="number"],
+  .field input[type="datetime-local"],
+  .field select,
+  .field textarea {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--dark-sky-blue);
+    background: var(--light-sky-blue);
+    color: var(--nd-blue);
+    transition: all 0.2s;
+  }
+
+  .field textarea {
+    min-height: 90px;
+    resize: vertical;
+    font-family: var(--font-body);
+  }
+
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    outline: none;
+    border-color: var(--nd-gold);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(174, 145, 66, 0.15);
+  }
+
+  .field-help {
+    font-size: 0.75rem;
+    color: var(--medium-blue);
+    font-style: italic;
+    font-family: var(--font-display);
+  }
+
+  /* ===== CODE PREVIEW (right column) ===== */
+  .preview-card {
+    background: #fff;
+    border-top: 4px solid var(--nd-gold);
+    box-shadow: 0 2px 8px rgba(12, 35, 64, 0.05);
+    padding: 2rem;
+    position: sticky;
+    top: 5rem;
+  }
+
+  .preview-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--nd-gold);
+    margin-bottom: 0.5rem;
+  }
+
+  .preview-title {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--nd-blue);
+    margin-bottom: 1.5rem;
+  }
+
+  .code-display {
+    background: var(--nd-blue);
+    color: var(--nd-gold);
+    padding: 1.5rem 1rem;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace, var(--font-body);
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    border: 2px solid var(--nd-gold);
+    margin-bottom: 1rem;
+    word-break: break-all;
+    min-height: 4.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .code-display.placeholder {
+    color: var(--dark-sky-blue);
+    font-style: italic;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    letter-spacing: normal;
+    font-weight: 400;
+  }
+
+  .code-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    padding: 0.6rem;
+    background: var(--light-sky-blue);
+    border-left: 3px solid var(--medium-blue);
+    margin-bottom: 1rem;
+    color: var(--medium-blue);
+    font-weight: 500;
+  }
+
+  .code-status.checking {
+    background: var(--light-sky-blue);
+    border-left-color: var(--medium-blue);
+    color: var(--medium-blue);
+  }
+
+  .code-status.available {
+    background: rgba(58, 107, 58, 0.1);
+    border-left-color: var(--success-green);
+    color: var(--success-green);
+  }
+
+  .code-status.taken {
+    background: rgba(171, 16, 11, 0.08);
+    border-left-color: var(--accent-red);
+    color: var(--accent-red);
+  }
+
+  .regenerate-btn {
+    width: 100%;
+    background: transparent;
+    color: var(--medium-blue);
+    border: 1px solid var(--medium-blue);
+    padding: 0.7rem;
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .regenerate-btn:hover {
+    background: var(--medium-blue);
+    color: var(--light-warm-white);
+  }
+
+  .regenerate-btn:disabled {
+    border-color: var(--dark-sky-blue);
+    color: var(--dark-sky-blue);
+    cursor: not-allowed;
+  }
+
+  /* ===== ACTIONS ===== */
+  .form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--dark-sky-blue);
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 1rem 2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--nd-gold);
+    color: var(--nd-blue);
+    border-bottom: 3px solid var(--nd-blue);
+    flex: 1;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: var(--bright-gold);
+  }
+
+  .btn-primary:disabled {
+    background: var(--dark-sky-blue);
+    color: var(--medium-blue);
+    cursor: not-allowed;
+    border-bottom-color: var(--medium-blue);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--medium-blue);
+    border: 1px solid var(--medium-blue);
+  }
+
+  .btn-secondary:hover {
+    background: var(--medium-blue);
+    color: var(--light-warm-white);
+  }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed;
+    top: 5rem;
+    right: 2rem;
+    background: var(--nd-blue);
+    color: var(--light-warm-white);
+    padding: 1rem 1.4rem;
+    border-left: 3px solid var(--nd-gold);
+    font-size: 0.85rem;
+    transform: translateX(120%);
+    transition: transform 0.3s;
+    z-index: 50;
+    max-width: 380px;
+    box-shadow: 0 4px 20px rgba(12, 35, 64, 0.2);
+  }
+
+  .toast.show { transform: translateX(0); }
+  .toast.error { border-left-color: var(--accent-red); }
+  .toast.success { border-left-color: var(--success-green); }
+
+  /* ===== SUCCESS MODAL ===== */
+  .success-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(12, 35, 64, 0.85);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .success-overlay.active { display: flex; }
+
+  .success-card {
+    background: #fff;
+    max-width: 520px;
+    width: 100%;
+    border-top: 6px solid var(--nd-gold);
+    padding: 3rem;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  }
+
+  .success-card .check {
+    width: 60px;
+    height: 60px;
+    border: 2px solid var(--success-green);
+    border-radius: 50%;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: var(--success-green);
+  }
+
+  .success-card h2 {
+    font-family: var(--font-display);
+    font-size: 1.9rem;
+    font-weight: 600;
+    color: var(--nd-blue);
+    margin-bottom: 0.5rem;
+  }
+
+  .success-card .saved-code {
+    background: var(--nd-blue);
+    color: var(--nd-gold);
+    padding: 1.25rem;
+    margin: 1.5rem 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    border: 2px solid var(--nd-gold);
+  }
+
+  .success-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .success-actions button { flex: 1; }
+
+  /* ===== FOOTER ===== */
+  .copyright {
+    text-align: center;
+    padding: 1.5rem 2rem;
+    background: var(--nd-blue);
+    color: var(--dark-sky-blue);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    border-top: 2px solid var(--nd-gold);
+  }
+
+  @media (max-width: 900px) {
+    .page { grid-template-columns: 1fr; }
+    .preview-card { position: static; }
+  }
+
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .form-card { padding: 1.5rem; }
+    .form-actions { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="brand-bar">
+  <div class="brand-bar-logo">
+    <span class="brand-monogram">A</span>
+    <span>Approach International Student Center</span>
+  </div>
+  <div>Exam Administration</div>
+</div>
+
+<div class="page">
+  <div class="page-header">
+    <div class="page-stamp">Exam Administration · Create</div>
+    <h1>New <em>Examination</em></h1>
+    <p class="page-sub">Configure a new exam and generate its access code</p>
+  </div>
+
+  <!-- ===== FORM ===== -->
+  <form class="form-card" id="examForm">
+    <div class="form-grid">
+
+      <div class="field full">
+        <label for="className">Class <span class="required">*</span></label>
+        <input type="text" id="className" name="className" required placeholder="e.g. Integrated Skills 1B">
+      </div>
+
+      <div class="field">
+        <label for="level">Level <span class="required">*</span></label>
+        <select id="level" name="level" required>
+          <option value="">— select level —</option>
+          <option value="BASIC">Basic</option>
+          <option value="INDEPENDENT">Independent</option>
+          <option value="PROFICIENT">Proficient</option>
+          <option value="AAP/BP">AAP/BP</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="teacher">Teacher <span class="required">*</span></label>
+        <input type="text" id="teacher" name="teacher" required placeholder="Teacher name">
+      </div>
+
+      <div class="field">
+        <label for="year">Year <span class="required">*</span></label>
+        <input type="number" id="year" name="year" required min="2020" max="2099" value="2026">
+      </div>
+
+      <div class="field">
+        <label for="quarter">Quarter <span class="required">*</span></label>
+        <select id="quarter" name="quarter" required>
+          <option value="">— select quarter —</option>
+          <option value="WINTER">Winter</option>
+          <option value="SPRING">Spring</option>
+          <option value="SUMMER">Summer</option>
+          <option value="FALL">Fall</option>
+        </select>
+      </div>
+
+      <div class="field full">
+        <label for="type">Type <span class="required">*</span></label>
+        <select id="type" name="type" required>
+          <option value="">— select type —</option>
+          <option value="MIDTERM">Midterm</option>
+          <option value="FINAL EXAM">Final Exam</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="availableFrom">Available From <span class="required">*</span></label>
+        <input type="datetime-local" id="availableFrom" name="availableFrom" required>
+      </div>
+
+      <div class="field">
+        <label for="availableUntil">Available Until <span class="required">*</span></label>
+        <input type="datetime-local" id="availableUntil" name="availableUntil" required>
+      </div>
+
+      <div class="field full">
+        <label for="htmlFile">HTML File <span class="required">*</span></label>
+        <input type="text" id="htmlFile" name="htmlFile" required placeholder="e.g. midterm-branded.html">
+        <span class="field-help">The filename of the exam page that will be served to students.</span>
+      </div>
+
+      <div class="field">
+        <label for="status">Status <span class="required">*</span></label>
+        <select id="status" name="status" required>
+          <option value="active">Active</option>
+          <option value="draft">Draft</option>
+          <option value="archived">Archived</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Code Format</label>
+        <div style="font-family: monospace; padding: 0.7rem 0.9rem; background: var(--light-sky-blue); border: 1px solid var(--dark-sky-blue); color: var(--medium-blue); font-size: 0.9rem; letter-spacing: 0.05em;">
+          YYYY · QQ · TT-XXXX
+        </div>
+      </div>
+
+      <div class="field full">
+        <label for="notes">Notes</label>
+        <textarea id="notes" name="notes" placeholder="Optional notes for internal reference (e.g. section, special instructions)"></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" onclick="window.location.reload()">Reset</button>
+        <button type="submit" class="btn-primary" id="submitBtn" disabled>Create Examination</button>
+      </div>
+
+    </div>
+  </form>
+
+  <!-- ===== CODE PREVIEW ===== -->
+  <aside class="preview-card">
+    <div class="preview-label">Generated Code</div>
+    <div class="preview-title">Access Code</div>
+
+    <div class="code-display placeholder" id="codeDisplay">
+      Fill in Year, Quarter, and Type
+    </div>
+
+    <div class="code-status" id="codeStatus" style="display: none;">
+      Checking availability…
+    </div>
+
+    <button type="button" class="regenerate-btn" id="regenerateBtn" disabled>
+      Regenerate Random Suffix
+    </button>
+
+    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--dark-sky-blue); font-size: 0.8rem; color: var(--medium-blue); font-family: var(--font-display); font-style: italic;">
+      The code follows the format <strong style="font-family: monospace; font-style: normal; color: var(--nd-blue);">YYYYQQ-TTXXXX</strong> and is verified for uniqueness against the database.
+    </div>
+  </aside>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ===== SUCCESS MODAL ===== -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-card">
+    <div class="check">✓</div>
+    <h2>Examination Created</h2>
+    <p style="color: var(--medium-blue); font-style: italic; font-family: var(--font-display); font-size: 1.05rem;">
+      The exam is saved and the access code is ready to share.
+    </p>
+    <div class="saved-code" id="savedCode">—</div>
+    <div class="success-actions">
+      <button type="button" class="btn-secondary" onclick="copyCode()">Copy Code</button>
+      <button type="button" class="btn-primary" onclick="window.location.reload()">Create Another</button>
+    </div>
+  </div>
+</div>
+
+<div class="copyright">
+  Copyright © 2026 Approach International Student Center, Inc. — All rights reserved.
+</div>
+
+<!-- ===== SUPABASE ===== -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ============================================
+  // CONFIGURE YOUR SUPABASE CREDENTIALS HERE
+  // ============================================
+  const SUPABASE_URL = 'https://vqgbcqqxgbukkfijatrf.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxZ2JjcXF4Z2J1a2tmaWphdHJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MjIwNzEsImV4cCI6MjA5MzA5ODA3MX0.TiVFexjlQ-1fqf4mP_AbPb0P2a99X5JWNjMav3XtHek';
+  // ============================================
+
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const QUARTER_CODES = { WINTER: 'WT', SPRING: 'SP', SUMMER: 'SM', FALL: 'FA' };
+  const TYPE_CODES = { 'MIDTERM': 'MT', 'FINAL EXAM': 'FE' };
+  const ALPHANUM = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+  // ===== ELEMENTS =====
+  const yearEl = document.getElementById('year');
+  const quarterEl = document.getElementById('quarter');
+  const typeEl = document.getElementById('type');
+  const codeDisplay = document.getElementById('codeDisplay');
+  const codeStatus = document.getElementById('codeStatus');
+  const regenerateBtn = document.getElementById('regenerateBtn');
+  const submitBtn = document.getElementById('submitBtn');
+  const toast = document.getElementById('toast');
+  const form = document.getElementById('examForm');
+
+  // ===== STATE =====
+  let currentCode = null;
+  let codeIsAvailable = false;
+  let randomSuffix = null;
+
+  // ===== HELPERS =====
+  function showToast(msg, type = '') {
+    toast.textContent = msg;
+    toast.className = 'toast show ' + type;
+    setTimeout(() => toast.classList.remove('show'), 4000);
+  }
+
+  function generateRandomSuffix() {
+    let s = '';
+    for (let i = 0; i < 4; i++) {
+      s += ALPHANUM[Math.floor(Math.random() * ALPHANUM.length)];
+    }
+    return s;
+  }
+
+  function buildCode(year, quarter, type, suffix) {
+    return `${year}${QUARTER_CODES[quarter]}-${TYPE_CODES[type]}${suffix}`;
+  }
+
+  function setStatus(state, message) {
+    codeStatus.style.display = 'flex';
+    codeStatus.className = 'code-status ' + state;
+    codeStatus.textContent = message;
+  }
+
+  function clearCode() {
+    currentCode = null;
+    codeIsAvailable = false;
+    codeDisplay.textContent = 'Fill in Year, Quarter, and Type';
+    codeDisplay.className = 'code-display placeholder';
+    codeStatus.style.display = 'none';
+    regenerateBtn.disabled = true;
+    updateSubmitState();
+  }
+
+  // ===== UNIQUENESS CHECK =====
+  async function checkCodeUnique(code) {
+    try {
+      const { data, error } = await supabase
+        .from('exams')
+        .select('code')
+        .eq('code', code)
+        .maybeSingle();
+
+      if (error) throw error;
+      return !data; // available if no row found
+    } catch (err) {
+      console.error('Uniqueness check failed:', err);
+      throw err;
+    }
+  }
+
+  // ===== CODE GENERATION (with auto-retry on collision) =====
+  async function generateAndVerifyCode() {
+    const year = yearEl.value;
+    const quarter = quarterEl.value;
+    const type = typeEl.value;
+
+    if (!year || !quarter || !type) {
+      clearCode();
+      return;
+    }
+
+    setStatus('checking', 'Generating and verifying code…');
+    codeDisplay.className = 'code-display';
+    regenerateBtn.disabled = true;
+
+    // Try up to 5 times in case of random collision
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const suffix = generateRandomSuffix();
+      const code = buildCode(year, quarter, type, suffix);
+      codeDisplay.textContent = code;
+
+      try {
+        const isUnique = await checkCodeUnique(code);
+        if (isUnique) {
+          currentCode = code;
+          randomSuffix = suffix;
+          codeIsAvailable = true;
+          setStatus('available', '✓ Code is available');
+          regenerateBtn.disabled = false;
+          updateSubmitState();
+          return;
+        }
+      } catch (err) {
+        setStatus('taken', '⚠ Could not verify code. Check connection.');
+        regenerateBtn.disabled = false;
+        codeIsAvailable = false;
+        updateSubmitState();
+        return;
+      }
+    }
+
+    // After 5 collisions (extremely unlikely), give up
+    setStatus('taken', '⚠ Could not generate a unique code. Try again.');
+    regenerateBtn.disabled = false;
+    codeIsAvailable = false;
+    updateSubmitState();
+  }
+
+  // ===== VALIDATION =====
+  function updateSubmitState() {
+    const allFilled =
+      document.getElementById('className').value.trim() &&
+      document.getElementById('level').value &&
+      document.getElementById('teacher').value.trim() &&
+      yearEl.value &&
+      quarterEl.value &&
+      typeEl.value &&
+      document.getElementById('availableFrom').value &&
+      document.getElementById('availableUntil').value &&
+      document.getElementById('htmlFile').value.trim() &&
+      codeIsAvailable;
+
+    submitBtn.disabled = !allFilled;
+  }
+
+  // ===== EVENT LISTENERS =====
+  [yearEl, quarterEl, typeEl].forEach(el => {
+    el.addEventListener('change', generateAndVerifyCode);
+  });
+
+  // Watch all fields for submit button state
+  form.querySelectorAll('input, select, textarea').forEach(el => {
+    el.addEventListener('input', updateSubmitState);
+    el.addEventListener('change', updateSubmitState);
+  });
+
+  regenerateBtn.addEventListener('click', generateAndVerifyCode);
+
+  // ===== SUBMIT =====
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!codeIsAvailable || !currentCode) {
+      showToast('Code is not yet verified. Please wait or regenerate.', 'error');
+      return;
+    }
+
+    // Validate date range
+    const from = new Date(document.getElementById('availableFrom').value);
+    const until = new Date(document.getElementById('availableUntil').value);
+    if (until <= from) {
+      showToast('"Available Until" must be after "Available From".', 'error');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving…';
+
+    const payload = {
+      code: currentCode,
+      class_name: document.getElementById('className').value.trim(),
+      level: document.getElementById('level').value,
+      year: parseInt(yearEl.value, 10),
+      quarter: quarterEl.value,
+      type: typeEl.value,
+      available_from: from.toISOString(),
+      available_until: until.toISOString(),
+      html_file: document.getElementById('htmlFile').value.trim(),
+      teacher: document.getElementById('teacher').value.trim(),
+      status: document.getElementById('status').value,
+      notes: document.getElementById('notes').value.trim() || null
+    };
+
+    try {
+      const { data, error } = await supabase
+        .from('exams')
+        .insert(payload)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Show success modal
+      document.getElementById('savedCode').textContent = data.code;
+      document.getElementById('successOverlay').classList.add('active');
+
+    } catch (err) {
+      console.error('Insert failed:', err);
+      // If unique constraint hit (race condition), regenerate
+      if (err.code === '23505') {
+        showToast('That code was just taken. Generating a new one…', 'error');
+        await generateAndVerifyCode();
+      } else {
+        showToast('Failed to save: ' + (err.message || 'Unknown error'), 'error');
+      }
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Create Examination';
+    }
+  });
+
+  // ===== COPY CODE =====
+  function copyCode() {
+    const code = document.getElementById('savedCode').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+      showToast('Code copied to clipboard', 'success');
+    });
+  }
+  window.copyCode = copyCode;
+</script>
+
+</body>
+</html>

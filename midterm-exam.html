@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Integrated Skills 1B — Midterm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1814;
+    --paper: #f4f1ea;
+    --paper-deep: #ebe6db;
+    --rule: #2a2620;
+    --accent: #b4321f;
+    --warn: #c47a16;
+    --ok: #3a6b3a;
+    --muted: #6b6358;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Fraunces', Georgia, serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    line-height: 1.5;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(180, 50, 31, 0.04) 0%, transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(42, 38, 32, 0.05) 0%, transparent 40%);
+  }
+
+  /* ===== START SCREEN ===== */
+  .start-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .start-card {
+    max-width: 680px;
+    width: 100%;
+    border: 2px solid var(--ink);
+    background: var(--paper);
+    padding: 3.5rem 3rem;
+    position: relative;
+  }
+
+  .start-card::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border: 1px solid var(--ink);
+    pointer-events: none;
+  }
+
+  .stamp {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+    font-weight: 400;
+  }
+
+  .subtitle {
+    font-style: italic;
+    color: var(--muted);
+    margin-bottom: 2rem;
+    font-size: 1.05rem;
+  }
+
+  .name-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .name-fields label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .name-fields input {
+    font-family: 'Fraunces', serif;
+    font-size: 1rem;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .name-fields input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .rules {
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 1.5rem 0;
+    margin-bottom: 2rem;
+  }
+
+  .rules h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .rules ol {
+    list-style: none;
+    counter-reset: rule;
+  }
+
+  .rules li {
+    counter-increment: rule;
+    padding: 0.5rem 0 0.5rem 2.5rem;
+    position: relative;
+    font-size: 1rem;
+  }
+
+  .rules li::before {
+    content: counter(rule, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 0.55rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  button {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    padding: 1rem 2rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  button:hover { background: var(--accent); }
+  button:disabled { background: var(--muted); cursor: not-allowed; }
+
+  .start-btn { width: 100%; }
+
+  /* ===== EXAM SCREEN ===== */
+  .exam-screen { display: none; }
+  .exam-screen.active { display: block; }
+
+  .exam-header {
+    border-bottom: 2px solid var(--ink);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--paper);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .exam-title {
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: -0.01em;
+  }
+
+  .exam-title small {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-top: 0.2rem;
+  }
+
+  .monitor {
+    display: flex;
+    gap: 1.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+  }
+
+  .monitor-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.15rem;
+  }
+
+  .monitor-label {
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 0.6rem;
+  }
+
+  .monitor-value {
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  .monitor-value.alert { color: var(--accent); }
+  .monitor-value.warning { color: var(--warn); }
+
+  .exam-body {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 6rem;
+  }
+
+  .part {
+    margin-bottom: 3rem;
+  }
+
+  .part-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .part-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+  }
+
+  .part-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .word-bank {
+    background: var(--paper-deep);
+    border-left: 3px solid var(--accent);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .word-bank-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .word-chip {
+    font-weight: 600;
+    font-style: italic;
+    color: var(--ink);
+  }
+
+  .question {
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px dashed var(--rule);
+  }
+
+  .question:last-child { border-bottom: none; }
+
+  .q-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    font-weight: 600;
+    margin-right: 0.5rem;
+  }
+
+  .q-text {
+    font-size: 1.05rem;
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+  }
+
+  .q-text .blank-input {
+    display: inline-block;
+    border: none;
+    border-bottom: 1.5px solid var(--ink);
+    background: transparent;
+    font-family: inherit;
+    font-size: inherit;
+    padding: 0.1rem 0.3rem;
+    min-width: 120px;
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .q-text .blank-input:focus {
+    outline: none;
+    border-bottom-color: var(--accent);
+    background: rgba(180, 50, 31, 0.05);
+  }
+
+  .q-text .blank-input.wide { min-width: 240px; }
+  .q-text .blank-input.narrow { min-width: 80px; }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+
+  .option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.55rem 0.9rem;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 0.98rem;
+  }
+
+  .option:hover {
+    background: var(--paper-deep);
+    border-color: var(--rule);
+  }
+
+  .option input { accent-color: var(--accent); }
+
+  .option-letter {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-weight: 600;
+    min-width: 1rem;
+  }
+
+  /* Inline radio for "circle the correct answer" */
+  .inline-choices {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .inline-choices label {
+    cursor: pointer;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid var(--rule);
+    font-style: italic;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .inline-choices input { display: none; }
+
+  .inline-choices input:checked + span {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .inline-choices label:has(input:checked) {
+    background: var(--paper-deep);
+    border-color: var(--accent);
+  }
+
+  /* Matching questions */
+  .match-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0.5rem 1rem;
+    align-items: center;
+    margin-top: 0.75rem;
+  }
+
+  .match-left {
+    padding: 0.5rem 0.75rem;
+    background: var(--paper-deep);
+    font-size: 0.95rem;
+  }
+
+  .match-arrow {
+    text-align: center;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .match-grid select {
+    padding: 0.5rem 0.75rem;
+    font-family: inherit;
+    font-size: 0.95rem;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    cursor: pointer;
+  }
+
+  .match-grid select:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  /* Sentence ordering — text input */
+  .order-words {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    background: var(--paper-deep);
+    padding: 0.4rem 0.75rem;
+    margin-bottom: 0.5rem;
+    display: inline-block;
+    color: var(--muted);
+  }
+
+  .order-input {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    font-family: inherit;
+    font-size: 1rem;
+  }
+
+  .order-input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .submit-btn {
+    margin: 2rem auto 0;
+    display: block;
+    background: var(--accent);
+    padding: 1.1rem 3rem;
+    font-size: 0.9rem;
+  }
+
+  .submit-btn:hover { background: var(--ink); }
+
+  /* ===== LOCKOUT OVERLAY ===== */
+  .lockout {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 24, 20, 0.97);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .lockout.active { display: flex; }
+
+  .lockout-card {
+    background: var(--paper);
+    max-width: 480px;
+    padding: 2.5rem;
+    border: 2px solid var(--accent);
+    text-align: center;
+  }
+
+  .lockout-card h2 {
+    color: var(--accent);
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+  }
+
+  .lockout-card p {
+    margin-bottom: 1.5rem;
+    color: var(--muted);
+  }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed;
+    top: 6rem;
+    right: 2rem;
+    background: var(--accent);
+    color: var(--paper);
+    padding: 0.75rem 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    transform: translateX(120%);
+    transition: transform 0.3s;
+    z-index: 50;
+    max-width: 320px;
+  }
+
+  .toast.show { transform: translateX(0); }
+
+  .results {
+    max-width: 720px;
+    margin: 4rem auto;
+    padding: 2.5rem;
+    border: 2px solid var(--ink);
+    background: var(--paper);
+  }
+
+  .results h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+  }
+
+  .results-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px dashed var(--rule);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+  }
+
+  .results-row:last-child { border-bottom: none; }
+
+  @media (max-width: 600px) {
+    .name-fields { grid-template-columns: 1fr; }
+    .start-card { padding: 2rem 1.5rem; }
+    .exam-body { padding: 1.5rem 1rem 4rem; }
+    .monitor { gap: 0.75rem; font-size: 0.7rem; }
+    .match-grid { grid-template-columns: 1fr; gap: 0.4rem; }
+    .match-arrow { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== START SCREEN ===== -->
+<div class="start-screen" id="startScreen">
+  <div class="start-card">
+    <div class="stamp">Integrated Skills 1B · Midterm · Form A</div>
+    <h1>The <em>Midterm</em></h1>
+    <p class="subtitle">50 questions · Online proctored examination</p>
+
+    <div class="name-fields">
+      <label>Student Name
+        <input type="text" id="studentName" required>
+      </label>
+      <label>Teacher
+        <input type="text" id="teacherName" required>
+      </label>
+    </div>
+
+    <div class="rules">
+      <h2>Before you begin</h2>
+      <ol>
+        <li>The exam will open in fullscreen mode.</li>
+        <li>Leaving fullscreen will pause the exam and lock the questions.</li>
+        <li>Switching tabs or windows is recorded and reported.</li>
+        <li>You may not refresh, copy, or use developer tools.</li>
+        <li>Click Submit when finished. Answers are saved on submission.</li>
+      </ol>
+    </div>
+
+    <button class="start-btn" id="startBtn">Begin Examination</button>
+  </div>
+</div>
+
+<!-- ===== EXAM SCREEN ===== -->
+<div class="exam-screen" id="examScreen">
+  <header class="exam-header">
+    <div class="exam-title">
+      Integrated Skills 1B — Midterm
+      <small id="studentLabel">—</small>
+    </div>
+    <div class="monitor">
+      <div class="monitor-item">
+        <span class="monitor-label">Tab Switches</span>
+        <span class="monitor-value" id="switchCount">0</span>
+      </div>
+      <div class="monitor-item">
+        <span class="monitor-label">Status</span>
+        <span class="monitor-value" id="statusValue">Active</span>
+      </div>
+      <div class="monitor-item">
+        <span class="monitor-label">Time</span>
+        <span class="monitor-value" id="timer">00:00</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="exam-body">
+
+    <!-- ============== PART 1 ============== -->
+    <section class="part">
+      <div class="part-header">
+        <div class="part-label">Part 1</div>
+        <div class="part-title">Choose the correct option to complete the sentences</div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">01</span>She _______ speak French, but she doesn't practice often.</div>
+        <div class="options">
+          <label class="option"><input type="radio" name="q1" value="a"><span class="option-letter">A</span><span>can</span></label>
+          <label class="option"><input type="radio" name="q1" value="b"><span class="option-letter">B</span><span>can't</span></label>
+          <label class="option"><input type="radio" name="q1" value="c"><span class="option-letter">C</span><span>can to</span></label>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">02</span>We _______ play soccer tomorrow because we don't have class.</div>
+        <div class="options">
+          <label class="option"><input type="radio" name="q2" value="a"><span class="option-letter">A</span><span>can</span></label>
+          <label class="option"><input type="radio" name="q2" value="b"><span class="option-letter">B</span><span>can't</span></label>
+          <label class="option"><input type="radio" name="q2" value="c"><span class="option-letter">C</span><span>to can</span></label>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">03</span>He _______ cook dinner. He always orders food.</div>
+        <div class="options">
+          <label class="option"><input type="radio" name="q3" value="a"><span class="option-letter">A</span><span>can</span></label>
+          <label class="option"><input type="radio" name="q3" value="b"><span class="option-letter">B</span><span>can't</span></label>
+          <label class="option"><input type="radio" name="q3" value="c"><span class="option-letter">C</span><span>to can't</span></label>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">04</span>I _______ understand what you're saying. Can you speak slower?</div>
+        <div class="options">
+          <label class="option"><input type="radio" name="q4" value="a"><span class="option-letter">A</span><span>can</span></label>
+          <label class="option"><input type="radio" name="q4" value="b"><span class="option-letter">B</span><span>can't</span></label>
+          <label class="option"><input type="radio" name="q4" value="c"><span class="option-letter">C</span><span>can to</span></label>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">05</span>Match the sentence with its meaning.</div>
+        <div class="match-grid">
+          <div class="match-left">A) I can speak Spanish.</div>
+          <div class="match-arrow">→</div>
+          <select name="q5a">
+            <option value="">— select —</option>
+            <option value="1">1) She is unable to sing.</option>
+            <option value="2">2) I have the ability to speak Spanish.</option>
+            <option value="3">3) They are good at running.</option>
+          </select>
+
+          <div class="match-left">B) She can't sing.</div>
+          <div class="match-arrow">→</div>
+          <select name="q5b">
+            <option value="">— select —</option>
+            <option value="1">1) She is unable to sing.</option>
+            <option value="2">2) I have the ability to speak Spanish.</option>
+            <option value="3">3) They are good at running.</option>
+          </select>
+
+          <div class="match-left">C) They can run fast.</div>
+          <div class="match-arrow">→</div>
+          <select name="q5c">
+            <option value="">— select —</option>
+            <option value="1">1) She is unable to sing.</option>
+            <option value="2">2) I have the ability to speak Spanish.</option>
+            <option value="3">3) They are good at running.</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">06</span>Match the question with the correct answer.</div>
+        <div class="match-grid">
+          <div class="match-left">A) Can you play football?</div>
+          <div class="match-arrow">→</div>
+          <select name="q6a">
+            <option value="">— select —</option>
+            <option value="1">1) No, they can't.</option>
+            <option value="2">2) Yes, I can.</option>
+            <option value="3">3) Yes, he can.</option>
+          </select>
+
+          <div class="match-left">B) Can he cook?</div>
+          <div class="match-arrow">→</div>
+          <select name="q6b">
+            <option value="">— select —</option>
+            <option value="1">1) No, they can't.</option>
+            <option value="2">2) Yes, I can.</option>
+            <option value="3">3) Yes, he can.</option>
+          </select>
+
+          <div class="match-left">C) Can they swim?</div>
+          <div class="match-arrow">→</div>
+          <select name="q6c">
+            <option value="">— select —</option>
+            <option value="1">1) No, they can't.</option>
+            <option value="2">2) Yes, I can.</option>
+            <option value="3">3) Yes, he can.</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== PART 2 ============== -->
+    <section class="part">
+      <div class="part-header">
+        <div class="part-label">Part 2</div>
+        <div class="part-title">Complete the sentences using <em>can</em> or <em>can't</em></div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">07</span>I <input class="blank-input" name="q7" type="text"> speak three languages. English, Portuguese, and Spanish.</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">08</span>She <input class="blank-input" name="q8" type="text"> swim very fast.</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">09</span>We <input class="blank-input" name="q9" type="text"> play the piano, but we're not experts.</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">10</span>He <input class="blank-input" name="q10" type="text"> drive a car yet because he's too young.</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">11</span>It <input class="blank-input" name="q11" type="text"> rain tomorrow.</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">12</span>You <input class="blank-input" name="q12" type="text"> see the mountain from here, it's too far.</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">13</span>She <input class="blank-input" name="q13" type="text"> find her keys anywhere.</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">14</span>They <input class="blank-input" name="q14" type="text"> come to the party because they are out of town.</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">15</span>I <input class="blank-input" name="q15" type="text"> see the movie this weekend because I have a lot of work.</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">16</span><input class="blank-input" name="q16" type="text"> we visit you next weekend?</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">17</span>I <input class="blank-input" name="q17" type="text"> help you with the project tomorrow, but not today.</div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">18</span>Which sentence expresses something that is <strong>impossible</strong>?</div>
+        <div class="options">
+          <label class="option"><input type="radio" name="q18" value="a"><span class="option-letter">A</span><span>We can go to the park if it doesn't rain.</span></label>
+          <label class="option"><input type="radio" name="q18" value="b"><span class="option-letter">B</span><span>They can't be in two places at once.</span></label>
+          <label class="option"><input type="radio" name="q18" value="c"><span class="option-letter">C</span><span>She can make a great cake.</span></label>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">19</span>Match the question with the correct answer.</div>
+        <div class="match-grid">
+          <div class="match-left">A) Can they come to the party?</div>
+          <div class="match-arrow">→</div>
+          <select name="q19a">
+            <option value="">— select —</option>
+            <option value="1">1) No, they can't.</option>
+            <option value="2">2) Yes, I can.</option>
+            <option value="3">3) Yes, it can.</option>
+          </select>
+
+          <div class="match-left">B) Can you help me?</div>
+          <div class="match-arrow">→</div>
+          <select name="q19b">
+            <option value="">— select —</option>
+            <option value="1">1) No, they can't.</option>
+            <option value="2">2) Yes, I can.</option>
+            <option value="3">3) Yes, it can.</option>
+          </select>
+
+          <div class="match-left">C) Can it be true?</div>
+          <div class="match-arrow">→</div>
+          <select name="q19c">
+            <option value="">— select —</option>
+            <option value="1">1) No, they can't.</option>
+            <option value="2">2) Yes, I can.</option>
+            <option value="3">3) Yes, it can.</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== PART 3 ============== -->
+    <section class="part">
+      <div class="part-header">
+        <div class="part-label">Part 3</div>
+        <div class="part-title">Complete the sentences using the skills in the box</div>
+      </div>
+
+      <div class="word-bank">
+        <span class="word-bank-label">Word bank</span>
+        <span class="word-chip">Sing</span>
+        <span class="word-chip">Draw</span>
+        <span class="word-chip">Fix things</span>
+        <span class="word-chip">Swim</span>
+        <span class="word-chip">Dance</span>
+        <span class="word-chip">Surf</span>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">20</span>I can <input class="blank-input" name="q20" type="text"> to music at home.</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">21</span>She can <input class="blank-input" name="q21" type="text"> a cat very well.</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">22</span>He can <input class="blank-input" name="q22" type="text"> his favorite song.</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">23</span>They can <input class="blank-input" name="q23" type="text"> at the beach.</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">24</span>My dad can <input class="blank-input" name="q24" type="text"> around the house without any problem.</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">25</span>We can <input class="blank-input" name="q25" type="text"> in the pool on hot days.</div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">26</span>Match the words with their definitions:</div>
+        <div class="match-grid">
+          <div class="match-left">A) company</div>
+          <div class="match-arrow">→</div>
+          <select name="q26a">
+            <option value="">— select —</option>
+            <option value="1">1) a workplace, with desks and chairs.</option>
+            <option value="2">2) get together with people at work and talk about business.</option>
+            <option value="3">3) a business — for example, Apple or Tesla.</option>
+            <option value="4">4) stop work for a short time (for example to have coffee).</option>
+            <option value="5">5) the people in a company.</option>
+          </select>
+
+          <div class="match-left">B) workers</div>
+          <div class="match-arrow">→</div>
+          <select name="q26b">
+            <option value="">— select —</option>
+            <option value="1">1) a workplace, with desks and chairs.</option>
+            <option value="2">2) get together with people at work and talk about business.</option>
+            <option value="3">3) a business — for example, Apple or Tesla.</option>
+            <option value="4">4) stop work for a short time (for example to have coffee).</option>
+            <option value="5">5) the people in a company.</option>
+          </select>
+
+          <div class="match-left">C) office</div>
+          <div class="match-arrow">→</div>
+          <select name="q26c">
+            <option value="">— select —</option>
+            <option value="1">1) a workplace, with desks and chairs.</option>
+            <option value="2">2) get together with people at work and talk about business.</option>
+            <option value="3">3) a business — for example, Apple or Tesla.</option>
+            <option value="4">4) stop work for a short time (for example to have coffee).</option>
+            <option value="5">5) the people in a company.</option>
+          </select>
+
+          <div class="match-left">D) have a meeting</div>
+          <div class="match-arrow">→</div>
+          <select name="q26d">
+            <option value="">— select —</option>
+            <option value="1">1) a workplace, with desks and chairs.</option>
+            <option value="2">2) get together with people at work and talk about business.</option>
+            <option value="3">3) a business — for example, Apple or Tesla.</option>
+            <option value="4">4) stop work for a short time (for example to have coffee).</option>
+            <option value="5">5) the people in a company.</option>
+          </select>
+
+          <div class="match-left">E) take a break</div>
+          <div class="match-arrow">→</div>
+          <select name="q26e">
+            <option value="">— select —</option>
+            <option value="1">1) a workplace, with desks and chairs.</option>
+            <option value="2">2) get together with people at work and talk about business.</option>
+            <option value="3">3) a business — for example, Apple or Tesla.</option>
+            <option value="4">4) stop work for a short time (for example to have coffee).</option>
+            <option value="5">5) the people in a company.</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== PART 4 ============== -->
+    <section class="part">
+      <div class="part-header">
+        <div class="part-label">Part 4</div>
+        <div class="part-title">Complete the sentences in the present continuous. Use an affirmative or negative form of the verbs in parentheses</div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">27</span><em>(wash)</em> He <input class="blank-input wide" name="q27" type="text"> the dishes after dinner. He is relaxing on the couch.</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">28</span><em>(eat)</em> They are not eating lunch in the park. They <input class="blank-input wide" name="q28" type="text"> inside because it is raining.</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">29</span><em>(take)</em> She <input class="blank-input wide" name="q29" type="text"> a picture of the sunset.</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">30</span><em>(do)</em> We <input class="blank-input wide" name="q30" type="text"> our homework together. It's really difficult.</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">31</span><em>(help)</em> I <input class="blank-input wide" name="q31" type="text"> my friend with her project.</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">32</span><em>(cook)</em> My mom <input class="blank-input wide" name="q32" type="text"> any food. She is ordering pizza.</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">33</span><em>(clean)</em> We <input class="blank-input wide" name="q33" type="text"> the house this weekend. Our parents are coming to visit us.</div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">34</span>Match the questions with the answers:</div>
+        <div class="match-grid">
+          <div class="match-left">A) Is she walking to the store now?</div>
+          <div class="match-arrow">→</div>
+          <select name="q34a">
+            <option value="">— select —</option>
+            <option value="1">1) No, they have another appointment.</option>
+            <option value="2">2) Yes. I'm waiting for Kate.</option>
+            <option value="3">3) No, because my car is in the shop.</option>
+            <option value="4">4) Yes, she is to get some milk.</option>
+            <option value="5">5) No, because it started to rain.</option>
+            <option value="6">6) Math, I have a test this week.</option>
+          </select>
+
+          <div class="match-left">B) What are you studying?</div>
+          <div class="match-arrow">→</div>
+          <select name="q34b">
+            <option value="">— select —</option>
+            <option value="1">1) No, they have another appointment.</option>
+            <option value="2">2) Yes. I'm waiting for Kate.</option>
+            <option value="3">3) No, because my car is in the shop.</option>
+            <option value="4">4) Yes, she is to get some milk.</option>
+            <option value="5">5) No, because it started to rain.</option>
+            <option value="6">6) Math, I have a test this week.</option>
+          </select>
+
+          <div class="match-left">C) Is he riding his bike in the park?</div>
+          <div class="match-arrow">→</div>
+          <select name="q34c">
+            <option value="">— select —</option>
+            <option value="1">1) No, they have another appointment.</option>
+            <option value="2">2) Yes. I'm waiting for Kate.</option>
+            <option value="3">3) No, because my car is in the shop.</option>
+            <option value="4">4) Yes, she is to get some milk.</option>
+            <option value="5">5) No, because it started to rain.</option>
+            <option value="6">6) Math, I have a test this week.</option>
+          </select>
+
+          <div class="match-left">D) Are they coming to the meeting?</div>
+          <div class="match-arrow">→</div>
+          <select name="q34d">
+            <option value="">— select —</option>
+            <option value="1">1) No, they have another appointment.</option>
+            <option value="2">2) Yes. I'm waiting for Kate.</option>
+            <option value="3">3) No, because my car is in the shop.</option>
+            <option value="4">4) Yes, she is to get some milk.</option>
+            <option value="5">5) No, because it started to rain.</option>
+            <option value="6">6) Math, I have a test this week.</option>
+          </select>
+
+          <div class="match-left">E) Are you at the movie theater?</div>
+          <div class="match-arrow">→</div>
+          <select name="q34e">
+            <option value="">— select —</option>
+            <option value="1">1) No, they have another appointment.</option>
+            <option value="2">2) Yes. I'm waiting for Kate.</option>
+            <option value="3">3) No, because my car is in the shop.</option>
+            <option value="4">4) Yes, she is to get some milk.</option>
+            <option value="5">5) No, because it started to rain.</option>
+            <option value="6">6) Math, I have a test this week.</option>
+          </select>
+
+          <div class="match-left">F) Are you driving to work today?</div>
+          <div class="match-arrow">→</div>
+          <select name="q34f">
+            <option value="">— select —</option>
+            <option value="1">1) No, they have another appointment.</option>
+            <option value="2">2) Yes. I'm waiting for Kate.</option>
+            <option value="3">3) No, because my car is in the shop.</option>
+            <option value="4">4) Yes, she is to get some milk.</option>
+            <option value="5">5) No, because it started to rain.</option>
+            <option value="6">6) Math, I have a test this week.</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== PART 5 ============== -->
+    <section class="part">
+      <div class="part-header">
+        <div class="part-label">Part 5</div>
+        <div class="part-title">Complete the questions with the present continuous form of the verbs in the box</div>
+      </div>
+
+      <div class="word-bank">
+        <span class="word-bank-label">Word bank</span>
+        <span class="word-chip">work</span>
+        <span class="word-chip">run</span>
+        <span class="word-chip">wait</span>
+        <span class="word-chip">ride</span>
+        <span class="word-chip">talk</span>
+        <span class="word-chip">carry</span>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">35</span><input class="blank-input narrow" name="q35a" type="text"> you <input class="blank-input" name="q35b" type="text"> on the phone right now?</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">36</span><input class="blank-input narrow" name="q36a" type="text"> Anna <input class="blank-input" name="q36b" type="text"> her bicycle to school?</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">37</span><input class="blank-input narrow" name="q37a" type="text"> the students <input class="blank-input" name="q37b" type="text"> on the new project?</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">38</span><input class="blank-input narrow" name="q38a" type="text"> your brother <input class="blank-input" name="q38b" type="text"> the groceries inside?</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">39</span><input class="blank-input narrow" name="q39a" type="text"> we <input class="blank-input" name="q39b" type="text"> for the bus at the right stop?</div>
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">40</span><input class="blank-input narrow" name="q40a" type="text"> the dog <input class="blank-input" name="q40b" type="text"> in the park?</div>
+      </div>
+    </section>
+
+    <!-- ============== PART 6 ============== -->
+    <section class="part">
+      <div class="part-header">
+        <div class="part-label">Part 6</div>
+        <div class="part-title">Put the words in order to make sentences</div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">41</span></div>
+        <div class="order-words">are / these / hard / working / students</div>
+        <input class="order-input" type="text" name="q41" placeholder="Write the sentence in correct order...">
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">42</span></div>
+        <div class="order-words">try / we / this / restaurant / can / today</div>
+        <input class="order-input" type="text" name="q42" placeholder="Write the sentence in correct order...">
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">43</span></div>
+        <div class="order-words">very / chair / comfortable / is / this</div>
+        <input class="order-input" type="text" name="q43" placeholder="Write the sentence in correct order...">
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">44</span></div>
+        <div class="order-words">wash / I / dishes / need to / these</div>
+        <input class="order-input" type="text" name="q44" placeholder="Write the sentence in correct order...">
+      </div>
+    </section>
+
+    <!-- ============== PART 7 ============== -->
+    <section class="part">
+      <div class="part-header">
+        <div class="part-label">Part 7</div>
+        <div class="part-title">Choose the correct answer to complete the sentences</div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">45</span>I
+          <span class="inline-choices">
+            <label><input type="radio" name="q45" value="have to"><span>have to</span></label>
+            <label><input type="radio" name="q45" value="want to"><span>want to</span></label>
+          </span>
+          play a new video game tonight.
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">46</span>He
+          <span class="inline-choices">
+            <label><input type="radio" name="q46" value="likes to"><span>likes to</span></label>
+            <label><input type="radio" name="q46" value="need to"><span>need to</span></label>
+          </span>
+          drive along the coast to enjoy the view.
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">47</span>I
+          <span class="inline-choices">
+            <label><input type="radio" name="q47" value="need to"><span>need to</span></label>
+            <label><input type="radio" name="q47" value="like to"><span>like to</span></label>
+          </span>
+          pay for my groceries at the checkout.
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">48</span>She
+          <span class="inline-choices">
+            <label><input type="radio" name="q48" value="wants to"><span>wants to</span></label>
+            <label><input type="radio" name="q48" value="has to"><span>has to</span></label>
+          </span>
+          go to the beach for vacation.
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">49</span>They
+          <span class="inline-choices">
+            <label><input type="radio" name="q49" value="like to"><span>like to</span></label>
+            <label><input type="radio" name="q49" value="need to"><span>need to</span></label>
+          </span>
+          work on their presentation for tomorrow.
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">50</span>He
+          <span class="inline-choices">
+            <label><input type="radio" name="q50" value="likes to"><span>likes to</span></label>
+            <label><input type="radio" name="q50" value="needs to"><span>needs to</span></label>
+          </span>
+          leave the meeting to answer an important call.
+        </div>
+      </div>
+    </section>
+
+    <button class="submit-btn" id="submitBtn">Submit Examination</button>
+  </main>
+</div>
+
+<!-- ===== LOCKOUT OVERLAY ===== -->
+<div class="lockout" id="lockout">
+  <div class="lockout-card">
+    <h2>Exam Paused</h2>
+    <p>You exited fullscreen mode. Re-enter fullscreen to continue. This event has been recorded.</p>
+    <button id="resumeBtn">Resume Exam</button>
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ===== STATE =====
+  const state = {
+    switches: 0,
+    blurEvents: 0,
+    fullscreenExits: 0,
+    startTime: null,
+    examActive: false,
+    student: '',
+    teacher: '',
+    log: []
+  };
+
+  const startScreen = document.getElementById('startScreen');
+  const examScreen = document.getElementById('examScreen');
+  const lockout = document.getElementById('lockout');
+  const toast = document.getElementById('toast');
+  const switchCountEl = document.getElementById('switchCount');
+  const statusValueEl = document.getElementById('statusValue');
+  const timerEl = document.getElementById('timer');
+  const studentLabel = document.getElementById('studentLabel');
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  function logEvent(type, detail = '') {
+    const ts = new Date().toISOString();
+    state.log.push({ ts, type, detail });
+    console.log(`[${ts}] ${type}`, detail);
+    // In production: POST to your server here
+    // fetch('/api/exam-event', { method: 'POST', body: JSON.stringify({
+    //   student: state.student, type, detail, ts
+    // }) });
+  }
+
+  function updateSwitchDisplay() {
+    switchCountEl.textContent = state.switches;
+    if (state.switches >= 3) {
+      switchCountEl.classList.add('alert');
+      switchCountEl.classList.remove('warning');
+    } else if (state.switches >= 1) {
+      switchCountEl.classList.add('warning');
+    }
+  }
+
+  // ===== START EXAM =====
+  document.getElementById('startBtn').addEventListener('click', async () => {
+    const name = document.getElementById('studentName').value.trim();
+    const teacher = document.getElementById('teacherName').value.trim();
+    if (!name || !teacher) {
+      alert('Please fill in your name and your teacher\'s name before starting.');
+      return;
+    }
+    state.student = name;
+    state.teacher = teacher;
+    studentLabel.textContent = `${name} · ${teacher}`;
+
+    try {
+      await document.documentElement.requestFullscreen();
+      startScreen.style.display = 'none';
+      examScreen.classList.add('active');
+      state.examActive = true;
+      state.startTime = Date.now();
+      logEvent('exam_started', `student: ${name}, teacher: ${teacher}`);
+      startTimer();
+    } catch (err) {
+      alert('Fullscreen is required to begin the exam. Please allow fullscreen and try again.');
+    }
+  });
+
+  function startTimer() {
+    setInterval(() => {
+      if (!state.examActive) return;
+      const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+      const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+      const s = String(elapsed % 60).padStart(2, '0');
+      timerEl.textContent = `${m}:${s}`;
+    }, 1000);
+  }
+
+  // ===== TAB-SWITCH DETECTION =====
+  document.addEventListener('visibilitychange', () => {
+    if (!state.examActive) return;
+    if (document.hidden) {
+      state.switches++;
+      updateSwitchDisplay();
+      logEvent('tab_hidden', `count: ${state.switches}`);
+    } else {
+      logEvent('tab_visible');
+      showToast(`Tab switch detected (${state.switches} total)`);
+    }
+  });
+
+  window.addEventListener('blur', () => {
+    if (!state.examActive) return;
+    state.blurEvents++;
+    logEvent('window_blur', `count: ${state.blurEvents}`);
+  });
+
+  // ===== FULLSCREEN ENFORCEMENT =====
+  document.addEventListener('fullscreenchange', () => {
+    if (!state.examActive) return;
+    if (!document.fullscreenElement) {
+      state.fullscreenExits++;
+      statusValueEl.textContent = 'PAUSED';
+      statusValueEl.classList.add('alert');
+      lockout.classList.add('active');
+      logEvent('fullscreen_exit', `count: ${state.fullscreenExits}`);
+    } else {
+      statusValueEl.textContent = 'Active';
+      statusValueEl.classList.remove('alert');
+      lockout.classList.remove('active');
+      logEvent('fullscreen_resumed');
+    }
+  });
+
+  document.getElementById('resumeBtn').addEventListener('click', async () => {
+    try {
+      await document.documentElement.requestFullscreen();
+    } catch (err) {
+      alert('Could not re-enter fullscreen.');
+    }
+  });
+
+  // ===== DETERRENTS =====
+  document.addEventListener('contextmenu', e => {
+    if (state.examActive) {
+      e.preventDefault();
+      logEvent('right_click_blocked');
+    }
+  });
+
+  document.addEventListener('keydown', e => {
+    if (!state.examActive) return;
+    if (e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key)) ||
+        (e.ctrlKey && e.key === 'u')) {
+      e.preventDefault();
+      logEvent('devtools_shortcut_blocked', e.key);
+      showToast('That shortcut is disabled during the exam');
+    }
+  });
+
+  window.addEventListener('beforeunload', e => {
+    if (state.examActive) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+
+  // ===== SUBMIT =====
+  document.getElementById('submitBtn').addEventListener('click', () => {
+    if (!confirm('Submit your exam? You will not be able to change answers after submission.')) return;
+
+    state.examActive = false;
+    logEvent('exam_submitted');
+
+    // Collect all answers
+    const answers = {};
+    const allInputs = document.querySelectorAll('input[name^="q"], select[name^="q"]');
+    allInputs.forEach(el => {
+      if (el.type === 'radio') {
+        if (el.checked) answers[el.name] = el.value;
+      } else {
+        answers[el.name] = el.value;
+      }
+    });
+
+    // Count answered questions (50 questions, but some have sub-fields)
+    const totalAnswered = Object.values(answers).filter(v => v && v.trim() !== '').length;
+
+    if (document.fullscreenElement) document.exitFullscreen();
+
+    examScreen.innerHTML = `
+      <div class="results">
+        <h2>Exam Submitted</h2>
+        <p style="margin-bottom: 1.5rem; color: var(--muted); font-style: italic;">
+          Submission summary for ${state.student} (Teacher: ${state.teacher}).
+          In a real deployment, this data would be sent to your server.
+        </p>
+        <div class="results-row"><span>Tab/window switches</span><span>${state.switches}</span></div>
+        <div class="results-row"><span>Window blur events</span><span>${state.blurEvents}</span></div>
+        <div class="results-row"><span>Fullscreen exits</span><span>${state.fullscreenExits}</span></div>
+        <div class="results-row"><span>Total proctoring events</span><span>${state.log.length}</span></div>
+        <div class="results-row"><span>Fields answered</span><span>${totalAnswered}</span></div>
+        <div class="results-row"><span>Time taken</span><span>${timerEl.textContent}</span></div>
+        <p style="margin-top: 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--muted);">
+          Full event log and answer set printed to browser console.
+        </p>
+      </div>
+    `;
+    console.log('=== EVENT LOG ===');
+    console.table(state.log);
+    console.log('=== ANSWERS ===');
+    console.table(answers);
+    console.log('=== RAW JSON ===');
+    console.log(JSON.stringify({
+      student: state.student,
+      teacher: state.teacher,
+      submittedAt: new Date().toISOString(),
+      timeTakenSec: Math.floor((Date.now() - state.startTime) / 1000),
+      proctoring: {
+        tabSwitches: state.switches,
+        blurEvents: state.blurEvents,
+        fullscreenExits: state.fullscreenExits,
+        eventLog: state.log
+      },
+      answers
+    }, null, 2));
+  });
+</script>
+
+</body>
+</html>
