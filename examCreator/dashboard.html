@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exam Dashboard — Approach International Student Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --nd-blue: #0c2340;
+    --nd-gold: #ae9142;
+    --medium-blue: #143865;
+    --bright-blue: #1c4f8f;
+    --dark-sky-blue: #c1cddd;
+    --medium-sky-blue: #e1e8f2;
+    --light-sky-blue: #edf2f9;
+    --dark-gold: #8c7535;
+    --bright-gold: #d39f10;
+    --warm-white: #efe9d9;
+    --light-warm-white: #f8f4ec;
+    --accent-red: #ab100b;
+    --success-green: #3a6b3a;
+    --font-display: 'Cormorant Garamond', 'Times New Roman', serif;
+    --font-body: 'Montserrat', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--light-warm-white);
+    color: var(--nd-blue);
+    min-height: 100vh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== BRAND BAR ===== */
+  .brand-bar {
+    background: var(--nd-blue);
+    color: var(--light-warm-white);
+    padding: 0.7rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    border-bottom: 3px solid var(--nd-gold);
+  }
+
+  .brand-bar-logo { display: flex; align-items: center; gap: 0.6rem; }
+
+  .brand-monogram {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--nd-gold);
+    line-height: 1;
+  }
+
+  /* ===== PAGE LAYOUT ===== */
+  .page {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 3rem 2rem 5rem;
+  }
+
+  .page-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--dark-sky-blue);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .page-stamp {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    line-height: 1.05;
+    color: var(--nd-blue);
+    margin-bottom: 0.4rem;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--nd-gold);
+    font-weight: 500;
+  }
+
+  .page-sub {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--medium-blue);
+  }
+
+  /* ===== STATS ===== */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: #fff;
+    border-top: 3px solid var(--nd-gold);
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 2px 8px rgba(12, 35, 64, 0.04);
+  }
+
+  .stat-card.total { border-top-color: var(--nd-blue); }
+  .stat-card.live { border-top-color: var(--success-green); }
+  .stat-card.upcoming { border-top-color: var(--bright-gold); }
+  .stat-card.archived { border-top-color: var(--medium-blue); }
+
+  .stat-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+    margin-bottom: 0.4rem;
+  }
+
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: var(--nd-blue);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ===== FILTERS ===== */
+  .filters {
+    background: #fff;
+    border-top: 3px solid var(--nd-gold);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    gap: 1rem;
+    box-shadow: 0 2px 8px rgba(12, 35, 64, 0.04);
+  }
+
+  .filter-field { display: flex; flex-direction: column; gap: 0.4rem; }
+
+  .filter-field label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+  }
+
+  .filter-field input,
+  .filter-field select {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--dark-sky-blue);
+    background: var(--light-sky-blue);
+    color: var(--nd-blue);
+    transition: all 0.2s;
+  }
+
+  .filter-field input:focus,
+  .filter-field select:focus {
+    outline: none;
+    border-color: var(--nd-gold);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(174, 145, 66, 0.15);
+  }
+
+  /* ===== TABLE ===== */
+  .table-wrap {
+    background: #fff;
+    border-top: 3px solid var(--nd-gold);
+    box-shadow: 0 2px 8px rgba(12, 35, 64, 0.04);
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  thead th {
+    background: var(--nd-blue);
+    color: var(--nd-gold);
+    text-align: left;
+    padding: 0.85rem 1rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  thead th:hover { background: var(--medium-blue); }
+
+  thead th .sort-arrow {
+    display: inline-block;
+    margin-left: 0.3rem;
+    opacity: 0.4;
+    font-size: 0.7rem;
+  }
+
+  thead th.sorted .sort-arrow { opacity: 1; color: #fff; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--medium-sky-blue);
+    transition: background 0.15s;
+  }
+
+  tbody tr:hover { background: var(--light-sky-blue); }
+  tbody tr:last-child { border-bottom: none; }
+
+  tbody td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+    color: var(--nd-blue);
+  }
+
+  .code-cell {
+    font-family: 'JetBrains Mono', monospace, var(--font-body);
+    font-weight: 600;
+    color: var(--nd-blue);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .copy-icon-btn {
+    background: transparent;
+    border: 1px solid var(--dark-sky-blue);
+    color: var(--medium-blue);
+    width: 26px;
+    height: 26px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .copy-icon-btn:hover {
+    background: var(--nd-gold);
+    color: var(--nd-blue);
+    border-color: var(--nd-gold);
+  }
+
+  .class-cell { font-weight: 500; }
+
+  .meta-cell {
+    font-size: 0.78rem;
+    color: var(--medium-blue);
+    white-space: nowrap;
+  }
+
+  /* Status chips */
+  .chip {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border: 1px solid;
+  }
+
+  .chip.live {
+    background: rgba(58, 107, 58, 0.1);
+    color: var(--success-green);
+    border-color: var(--success-green);
+  }
+
+  .chip.upcoming {
+    background: rgba(211, 159, 16, 0.1);
+    color: var(--dark-gold);
+    border-color: var(--bright-gold);
+  }
+
+  .chip.closed {
+    background: var(--medium-sky-blue);
+    color: var(--medium-blue);
+    border-color: var(--medium-blue);
+  }
+
+  .chip.draft {
+    background: var(--light-warm-white);
+    color: var(--dark-gold);
+    border-color: var(--dark-gold);
+    border-style: dashed;
+  }
+
+  .chip.archived {
+    background: var(--light-sky-blue);
+    color: var(--dark-sky-blue);
+    border-color: var(--dark-sky-blue);
+  }
+
+  /* Action buttons */
+  .row-actions {
+    display: flex;
+    gap: 0.4rem;
+    justify-content: flex-end;
+  }
+
+  .row-btn {
+    background: transparent;
+    border: 1px solid var(--medium-blue);
+    color: var(--medium-blue);
+    font-family: var(--font-body);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.7rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .row-btn:hover {
+    background: var(--medium-blue);
+    color: var(--light-warm-white);
+  }
+
+  .row-btn.archive { border-color: var(--accent-red); color: var(--accent-red); }
+  .row-btn.archive:hover { background: var(--accent-red); color: #fff; }
+
+  .row-btn.unarchive { border-color: var(--success-green); color: var(--success-green); }
+  .row-btn.unarchive:hover { background: var(--success-green); color: #fff; }
+
+  /* Empty/loading states */
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--medium-blue);
+  }
+
+  .empty-state .icon {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    color: var(--dark-sky-blue);
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-state h3 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--nd-blue);
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-state p {
+    font-style: italic;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn-primary,
+  .btn-secondary {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 0.85rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .btn-primary {
+    background: var(--nd-gold);
+    color: var(--nd-blue);
+    border-bottom: 3px solid var(--nd-blue);
+  }
+
+  .btn-primary:hover { background: var(--bright-gold); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--medium-blue);
+    border: 1px solid var(--medium-blue);
+  }
+
+  .btn-secondary:hover {
+    background: var(--medium-blue);
+    color: var(--light-warm-white);
+  }
+
+  /* ===== EDIT MODAL ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(12, 35, 64, 0.85);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    overflow-y: auto;
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: #fff;
+    max-width: 640px;
+    width: 100%;
+    border-top: 6px solid var(--nd-gold);
+    padding: 2.5rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    margin: 2rem auto;
+  }
+
+  .modal h2 {
+    font-family: var(--font-display);
+    font-size: 1.9rem;
+    font-weight: 600;
+    color: var(--nd-blue);
+    margin-bottom: 0.25rem;
+  }
+
+  .modal-stamp {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .modal-code {
+    background: var(--nd-blue);
+    color: var(--nd-gold);
+    padding: 0.75rem;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    margin: 1rem 0 1.5rem;
+  }
+
+  .locked-info {
+    background: var(--light-sky-blue);
+    border-left: 3px solid var(--medium-blue);
+    padding: 0.85rem 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.8rem;
+    color: var(--medium-blue);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 0.95rem;
+  }
+
+  .locked-info strong { font-style: normal; font-family: var(--font-body); font-size: 0.85rem; }
+
+  .modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .modal-field { display: flex; flex-direction: column; gap: 0.4rem; }
+  .modal-field.full { grid-column: 1 / -1; }
+
+  .modal-field label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+  }
+
+  .modal-field input,
+  .modal-field select,
+  .modal-field textarea {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    padding: 0.6rem 0.85rem;
+    border: 1px solid var(--dark-sky-blue);
+    background: var(--light-sky-blue);
+    color: var(--nd-blue);
+    transition: all 0.2s;
+  }
+
+  .modal-field textarea { min-height: 80px; resize: vertical; }
+
+  .modal-field input:focus,
+  .modal-field select:focus,
+  .modal-field textarea:focus {
+    outline: none;
+    border-color: var(--nd-gold);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(174, 145, 66, 0.15);
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--dark-sky-blue);
+  }
+
+  .modal-actions .btn-primary { flex: 1; }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed;
+    top: 5rem;
+    right: 2rem;
+    background: var(--nd-blue);
+    color: var(--light-warm-white);
+    padding: 1rem 1.4rem;
+    border-left: 3px solid var(--nd-gold);
+    font-size: 0.85rem;
+    transform: translateX(120%);
+    transition: transform 0.3s;
+    z-index: 200;
+    max-width: 380px;
+    box-shadow: 0 4px 20px rgba(12, 35, 64, 0.2);
+  }
+
+  .toast.show { transform: translateX(0); }
+  .toast.error { border-left-color: var(--accent-red); }
+  .toast.success { border-left-color: var(--success-green); }
+
+  /* ===== FOOTER ===== */
+  .copyright {
+    text-align: center;
+    padding: 1.5rem 2rem;
+    background: var(--nd-blue);
+    color: var(--dark-sky-blue);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    border-top: 2px solid var(--nd-gold);
+  }
+
+  @media (max-width: 1000px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .filters { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 600px) {
+    .filters { grid-template-columns: 1fr; }
+    .modal-grid { grid-template-columns: 1fr; }
+    .modal { padding: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="brand-bar">
+  <div class="brand-bar-logo">
+    <span class="brand-monogram">A</span>
+    <span>Approach International Student Center</span>
+  </div>
+  <div>Exam Administration</div>
+</div>
+
+<div class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-stamp">Exam Administration · Dashboard</div>
+      <h1>All <em>Examinations</em></h1>
+      <p class="page-sub">Manage, edit, and archive your created exams</p>
+    </div>
+    <a href="create-exam.html" class="btn-primary">+ New Examination</a>
+  </div>
+
+  <!-- ===== STATS ===== -->
+  <div class="stats-row">
+    <div class="stat-card total">
+      <div class="stat-label">Total</div>
+      <div class="stat-value" id="statTotal">—</div>
+    </div>
+    <div class="stat-card live">
+      <div class="stat-label">Live Now</div>
+      <div class="stat-value" id="statLive">—</div>
+    </div>
+    <div class="stat-card upcoming">
+      <div class="stat-label">Upcoming</div>
+      <div class="stat-value" id="statUpcoming">—</div>
+    </div>
+    <div class="stat-card archived">
+      <div class="stat-label">Archived</div>
+      <div class="stat-value" id="statArchived">—</div>
+    </div>
+  </div>
+
+  <!-- ===== FILTERS ===== -->
+  <div class="filters">
+    <div class="filter-field">
+      <label for="search">Search</label>
+      <input type="text" id="search" placeholder="Code, class, or teacher…">
+    </div>
+    <div class="filter-field">
+      <label for="filterStatus">Status</label>
+      <select id="filterStatus">
+        <option value="">All statuses</option>
+        <option value="active">Active</option>
+        <option value="draft">Draft</option>
+        <option value="archived">Archived</option>
+      </select>
+    </div>
+    <div class="filter-field">
+      <label for="filterLevel">Level</label>
+      <select id="filterLevel">
+        <option value="">All levels</option>
+        <option value="BASIC">Basic</option>
+        <option value="INDEPENDENT">Independent</option>
+        <option value="PROFICIENT">Proficient</option>
+        <option value="AAP/BP">AAP/BP</option>
+      </select>
+    </div>
+    <div class="filter-field">
+      <label for="filterQuarter">Quarter</label>
+      <select id="filterQuarter">
+        <option value="">All quarters</option>
+        <option value="WINTER">Winter</option>
+        <option value="SPRING">Spring</option>
+        <option value="SUMMER">Summer</option>
+        <option value="FALL">Fall</option>
+      </select>
+    </div>
+    <div class="filter-field">
+      <label for="filterYear">Year</label>
+      <select id="filterYear">
+        <option value="">All years</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- ===== TABLE ===== -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-sort="code">Code <span class="sort-arrow">↕</span></th>
+          <th data-sort="class_name">Class <span class="sort-arrow">↕</span></th>
+          <th data-sort="level">Level <span class="sort-arrow">↕</span></th>
+          <th data-sort="type">Type <span class="sort-arrow">↕</span></th>
+          <th data-sort="teacher">Teacher <span class="sort-arrow">↕</span></th>
+          <th data-sort="available_from">Window <span class="sort-arrow">↕</span></th>
+          <th>Window Status</th>
+          <th data-sort="status" class="sorted">Status <span class="sort-arrow">↓</span></th>
+          <th style="text-align: right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="examsBody">
+        <tr><td colspan="9"><div class="empty-state"><p>Loading examinations…</p></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== EDIT MODAL ===== -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-stamp">Edit Examination</div>
+    <h2 id="editClassTitle">—</h2>
+    <div class="modal-code" id="editCode">—</div>
+
+    <div class="locked-info">
+      <strong>Locked fields:</strong> Year, Quarter, Type, and Code cannot be changed because they are part of the access code's structure. To change these, archive this exam and create a new one.
+    </div>
+
+    <form id="editForm">
+      <input type="hidden" id="editId">
+
+      <div class="modal-grid">
+        <div class="modal-field full">
+          <label>Class Name</label>
+          <input type="text" id="editClassName" required>
+        </div>
+
+        <div class="modal-field">
+          <label>Level</label>
+          <select id="editLevel" required>
+            <option value="BASIC">Basic</option>
+            <option value="INDEPENDENT">Independent</option>
+            <option value="PROFICIENT">Proficient</option>
+            <option value="AAP/BP">AAP/BP</option>
+          </select>
+        </div>
+
+        <div class="modal-field">
+          <label>Teacher</label>
+          <input type="text" id="editTeacher" required>
+        </div>
+
+        <div class="modal-field">
+          <label>Available From</label>
+          <input type="datetime-local" id="editAvailableFrom" required>
+        </div>
+
+        <div class="modal-field">
+          <label>Available Until</label>
+          <input type="datetime-local" id="editAvailableUntil" required>
+        </div>
+
+        <div class="modal-field full">
+          <label>HTML File</label>
+          <input type="text" id="editHtmlFile" required>
+        </div>
+
+        <div class="modal-field full">
+          <label>Status</label>
+          <select id="editStatus" required>
+            <option value="active">Active</option>
+            <option value="draft">Draft</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
+
+        <div class="modal-field full">
+          <label>Notes</label>
+          <textarea id="editNotes"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+        <button type="submit" class="btn-primary" id="editSaveBtn">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="copyright">
+  Copyright © 2026 Approach International Student Center, Inc. — All rights reserved.
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ============================================
+  // CONFIGURE YOUR SUPABASE CREDENTIALS HERE
+  // ============================================
+  const SUPABASE_URL = 'https://vqgbcqqxgbukkfijatrf.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxZ2JjcXF4Z2J1a2tmaWphdHJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MjIwNzEsImV4cCI6MjA5MzA5ODA3MX0.TiVFexjlQ-1fqf4mP_AbPb0P2a99X5JWNjMav3XtHek';
+  // ============================================
+
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ===== STATE =====
+  let allExams = [];
+  let sortBy = 'created_at';
+  let sortDir = 'desc';
+
+  // ===== ELEMENTS =====
+  const examsBody = document.getElementById('examsBody');
+  const searchEl = document.getElementById('search');
+  const filterStatus = document.getElementById('filterStatus');
+  const filterLevel = document.getElementById('filterLevel');
+  const filterQuarter = document.getElementById('filterQuarter');
+  const filterYear = document.getElementById('filterYear');
+  const toast = document.getElementById('toast');
+
+  // ===== HELPERS =====
+  function showToast(msg, type = '') {
+    toast.textContent = msg;
+    toast.className = 'toast show ' + type;
+    setTimeout(() => toast.classList.remove('show'), 4000);
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric'
+    }) + ', ' + d.toLocaleTimeString('en-US', {
+      hour: 'numeric', minute: '2-digit'
+    });
+  }
+
+  function formatDateForInput(iso) {
+    // datetime-local needs YYYY-MM-DDTHH:MM in local time
+    const d = new Date(iso);
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function getWindowStatus(exam) {
+    const now = new Date();
+    const from = new Date(exam.available_from);
+    const until = new Date(exam.available_until);
+    if (now < from) return 'upcoming';
+    if (now > until) return 'closed';
+    return 'live';
+  }
+
+  // ===== LOAD EXAMS =====
+  async function loadExams() {
+    try {
+      const { data, error } = await db
+        .from('exams')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      allExams = data || [];
+      populateYearFilter();
+      updateStats();
+      renderTable();
+    } catch (err) {
+      console.error('Failed to load exams:', err);
+      examsBody.innerHTML = `
+        <tr><td colspan="9"><div class="empty-state">
+          <h3>Could not load examinations</h3>
+          <p>${err.message || 'Check your Supabase connection.'}</p>
+        </div></td></tr>`;
+    }
+  }
+
+  function populateYearFilter() {
+    const years = [...new Set(allExams.map(e => e.year))].sort((a, b) => b - a);
+    filterYear.innerHTML = '<option value="">All years</option>' +
+      years.map(y => `<option value="${y}">${y}</option>`).join('');
+  }
+
+  function updateStats() {
+    const now = new Date();
+    let live = 0, upcoming = 0, archived = 0;
+    allExams.forEach(e => {
+      if (e.status === 'archived') { archived++; return; }
+      if (e.status !== 'active') return;
+      const from = new Date(e.available_from);
+      const until = new Date(e.available_until);
+      if (now >= from && now <= until) live++;
+      else if (now < from) upcoming++;
+    });
+    document.getElementById('statTotal').textContent = allExams.length;
+    document.getElementById('statLive').textContent = live;
+    document.getElementById('statUpcoming').textContent = upcoming;
+    document.getElementById('statArchived').textContent = archived;
+  }
+
+  // ===== FILTER + SORT =====
+  function getFilteredExams() {
+    const search = searchEl.value.toLowerCase().trim();
+    const status = filterStatus.value;
+    const level = filterLevel.value;
+    const quarter = filterQuarter.value;
+    const year = filterYear.value;
+
+    let filtered = allExams.filter(e => {
+      if (status && e.status !== status) return false;
+      if (level && e.level !== level) return false;
+      if (quarter && e.quarter !== quarter) return false;
+      if (year && String(e.year) !== year) return false;
+      if (search) {
+        const hay = `${e.code} ${e.class_name} ${e.teacher}`.toLowerCase();
+        if (!hay.includes(search)) return false;
+      }
+      return true;
+    });
+
+    // Sort
+    filtered.sort((a, b) => {
+      let av = a[sortBy], bv = b[sortBy];
+      if (av == null) av = '';
+      if (bv == null) bv = '';
+      if (typeof av === 'string') {
+        return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+      }
+      return sortDir === 'asc' ? av - bv : bv - av;
+    });
+
+    return filtered;
+  }
+
+  // ===== RENDER =====
+  function renderTable() {
+    const exams = getFilteredExams();
+
+    if (exams.length === 0) {
+      examsBody.innerHTML = `
+        <tr><td colspan="9"><div class="empty-state">
+          <div class="icon">⌗</div>
+          <h3>No examinations found</h3>
+          <p>${allExams.length === 0 ? 'Create your first exam to get started.' : 'Try adjusting your filters.'}</p>
+          ${allExams.length === 0 ? '<a href="create-exam.html" class="btn-primary">+ Create Exam</a>' : ''}
+        </div></td></tr>`;
+      return;
+    }
+
+    examsBody.innerHTML = exams.map(exam => {
+      const windowState = getWindowStatus(exam);
+      const isArchived = exam.status === 'archived';
+
+      return `
+        <tr>
+          <td>
+            <div class="code-cell">
+              <span>${exam.code}</span>
+              <button class="copy-icon-btn" onclick="copyToClipboard('${exam.code}')" title="Copy code">⎘</button>
+            </div>
+          </td>
+          <td class="class-cell">${escapeHtml(exam.class_name)}</td>
+          <td><span class="meta-cell">${exam.level}</span></td>
+          <td><span class="meta-cell">${exam.type}</span></td>
+          <td>${escapeHtml(exam.teacher)}</td>
+          <td class="meta-cell">
+            ${formatDate(exam.available_from)}<br>
+            <span style="color: var(--dark-sky-blue);">→</span> ${formatDate(exam.available_until)}
+          </td>
+          <td><span class="chip ${windowState}">${windowState === 'live' ? 'Live Now' : windowState}</span></td>
+          <td><span class="chip ${exam.status}">${exam.status}</span></td>
+          <td>
+            <div class="row-actions">
+              <button class="row-btn" onclick="openEditModal('${exam.id}')">Edit</button>
+              ${isArchived
+                ? `<button class="row-btn unarchive" onclick="quickStatusChange('${exam.id}', 'active')">Restore</button>`
+                : `<button class="row-btn archive" onclick="quickStatusChange('${exam.id}', 'archived')">Archive</button>`
+              }
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  // ===== COPY CODE =====
+  function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast(`Code ${text} copied to clipboard`, 'success');
+    });
+  }
+  window.copyToClipboard = copyToClipboard;
+
+  // ===== QUICK ARCHIVE / RESTORE =====
+  async function quickStatusChange(id, newStatus) {
+    const exam = allExams.find(e => e.id === id);
+    if (!exam) return;
+
+    const verb = newStatus === 'archived' ? 'archive' : 'restore';
+    if (!confirm(`Are you sure you want to ${verb} "${exam.class_name}" (${exam.code})?`)) return;
+
+    try {
+      const { error } = await db
+        .from('exams')
+        .update({ status: newStatus })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      exam.status = newStatus;
+      updateStats();
+      renderTable();
+      showToast(`Examination ${verb}d successfully`, 'success');
+    } catch (err) {
+      console.error(err);
+      showToast(`Failed to ${verb}: ${err.message}`, 'error');
+    }
+  }
+  window.quickStatusChange = quickStatusChange;
+
+  // ===== EDIT MODAL =====
+  function openEditModal(id) {
+    const exam = allExams.find(e => e.id === id);
+    if (!exam) return;
+
+    document.getElementById('editId').value = exam.id;
+    document.getElementById('editClassTitle').textContent = exam.class_name;
+    document.getElementById('editCode').textContent = exam.code;
+    document.getElementById('editClassName').value = exam.class_name;
+    document.getElementById('editLevel').value = exam.level;
+    document.getElementById('editTeacher').value = exam.teacher;
+    document.getElementById('editAvailableFrom').value = formatDateForInput(exam.available_from);
+    document.getElementById('editAvailableUntil').value = formatDateForInput(exam.available_until);
+    document.getElementById('editHtmlFile').value = exam.html_file;
+    document.getElementById('editStatus').value = exam.status;
+    document.getElementById('editNotes').value = exam.notes || '';
+
+    document.getElementById('editModal').classList.add('active');
+  }
+  window.openEditModal = openEditModal;
+
+  function closeEditModal() {
+    document.getElementById('editModal').classList.remove('active');
+  }
+  window.closeEditModal = closeEditModal;
+
+  // Close modal when clicking outside
+  document.getElementById('editModal').addEventListener('click', (e) => {
+    if (e.target.id === 'editModal') closeEditModal();
+  });
+
+  // ===== SAVE EDIT =====
+  document.getElementById('editForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const saveBtn = document.getElementById('editSaveBtn');
+
+    const id = document.getElementById('editId').value;
+    const from = new Date(document.getElementById('editAvailableFrom').value);
+    const until = new Date(document.getElementById('editAvailableUntil').value);
+
+    if (until <= from) {
+      showToast('"Available Until" must be after "Available From".', 'error');
+      return;
+    }
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving…';
+
+    const updates = {
+      class_name: document.getElementById('editClassName').value.trim(),
+      level: document.getElementById('editLevel').value,
+      teacher: document.getElementById('editTeacher').value.trim(),
+      available_from: from.toISOString(),
+      available_until: until.toISOString(),
+      html_file: document.getElementById('editHtmlFile').value.trim(),
+      status: document.getElementById('editStatus').value,
+      notes: document.getElementById('editNotes').value.trim() || null
+    };
+
+    try {
+      const { data, error } = await db
+        .from('exams')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Update local copy
+      const idx = allExams.findIndex(e => e.id === id);
+      if (idx >= 0) allExams[idx] = { ...allExams[idx], ...data };
+
+      updateStats();
+      renderTable();
+      closeEditModal();
+      showToast('Examination updated successfully', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast(`Failed to save: ${err.message}`, 'error');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Changes';
+    }
+  });
+
+  // ===== FILTER LISTENERS =====
+  [searchEl, filterStatus, filterLevel, filterQuarter, filterYear].forEach(el => {
+    el.addEventListener('input', renderTable);
+    el.addEventListener('change', renderTable);
+  });
+
+  // ===== SORT LISTENERS =====
+  document.querySelectorAll('th[data-sort]').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.sort;
+      if (sortBy === col) {
+        sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        sortBy = col;
+        sortDir = 'asc';
+      }
+
+      // Update arrows
+      document.querySelectorAll('th[data-sort]').forEach(t => {
+        t.classList.remove('sorted');
+        t.querySelector('.sort-arrow').textContent = '↕';
+      });
+      th.classList.add('sorted');
+      th.querySelector('.sort-arrow').textContent = sortDir === 'asc' ? '↑' : '↓';
+
+      renderTable();
+    });
+  });
+
+  // ===== INIT =====
+  loadExams();
+</script>
+
+</body>
+</html>

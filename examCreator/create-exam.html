@@ -621,7 +621,7 @@
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxZ2JjcXF4Z2J1a2tmaWphdHJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MjIwNzEsImV4cCI6MjA5MzA5ODA3MX0.TiVFexjlQ-1fqf4mP_AbPb0P2a99X5JWNjMav3XtHek';
   // ============================================
 
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const QUARTER_CODES = { WINTER: 'WT', SPRING: 'SP', SUMMER: 'SM', FALL: 'FA' };
   const TYPE_CODES = { 'MIDTERM': 'MT', 'FINAL EXAM': 'FE' };
@@ -681,7 +681,7 @@
   // ===== UNIQUENESS CHECK =====
   async function checkCodeUnique(code) {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('exams')
         .select('code')
         .eq('code', code)
@@ -809,7 +809,7 @@
     };
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('exams')
         .insert(payload)
         .select()

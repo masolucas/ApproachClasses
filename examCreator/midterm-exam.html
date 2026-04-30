@@ -1,0 +1,2066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Integrated Skills 1B — Midterm | Approach International Student Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ===== APPROACHUSA BRAND TOKENS ===== */
+  :root {
+    /* Primary */
+    --nd-blue: #0c2340;
+    --nd-gold: #ae9142;
+
+    /* Secondary - blues */
+    --medium-blue: #143865;
+    --bright-blue: #1c4f8f;
+    --dark-sky-blue: #c1cddd;
+    --medium-sky-blue: #e1e8f2;
+    --light-sky-blue: #edf2f9;
+
+    /* Secondary - golds */
+    --dark-gold: #8c7535;
+    --bright-gold: #d39f10;
+
+    /* Secondary - warm neutrals */
+    --warm-white: #efe9d9;
+    --light-warm-white: #f8f4ec;
+    --accent-red: #ab100b;
+
+    /* Typography */
+    --font-display: 'Cormorant Garamond', 'Times New Roman', serif;
+    --font-body: 'Montserrat', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    font-weight: 400;
+    background: var(--light-warm-white);
+    color: var(--nd-blue);
+    min-height: 100vh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== TOP BRAND BAR ===== */
+  .brand-bar {
+    background: var(--nd-blue);
+    color: var(--light-warm-white);
+    padding: 0.7rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    border-bottom: 3px solid var(--nd-gold);
+  }
+
+  .brand-bar-logo { display: flex; align-items: center; gap: 0.6rem; }
+
+  .brand-monogram {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--nd-gold);
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 1;
+  }
+
+  /* ===== START SCREEN ===== */
+  .start-screen {
+    min-height: calc(100vh - 50px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    background:
+      linear-gradient(180deg, var(--light-warm-white) 0%, var(--light-sky-blue) 100%);
+  }
+
+  .start-card {
+    max-width: 720px;
+    width: 100%;
+    background: #fff;
+    box-shadow: 0 10px 40px rgba(12, 35, 64, 0.08), 0 2px 6px rgba(12, 35, 64, 0.05);
+    border-top: 6px solid var(--nd-gold);
+    padding: 3.5rem 3.5rem 3rem;
+    position: relative;
+  }
+
+  .institutional-mark {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--dark-sky-blue);
+  }
+
+  .crest {
+    display: inline-block;
+    width: 60px;
+    height: 60px;
+    border: 2px solid var(--nd-blue);
+    border-radius: 50%;
+    line-height: 56px;
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--nd-blue);
+    margin-bottom: 0.75rem;
+    position: relative;
+  }
+
+  .crest::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 1px solid var(--nd-gold);
+    border-radius: 50%;
+  }
+
+  .institutional-name {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--nd-blue);
+    letter-spacing: 0.05em;
+    line-height: 1.1;
+  }
+
+  .institutional-sub {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--dark-gold);
+    margin-top: 0.4rem;
+  }
+
+  .stamp {
+    font-family: var(--font-body);
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    color: var(--dark-gold);
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 0.75rem;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    line-height: 1.05;
+    letter-spacing: 0;
+    text-align: center;
+    color: var(--nd-blue);
+    margin-bottom: 0.5rem;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--nd-gold);
+    font-weight: 500;
+  }
+
+  .subtitle {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--medium-blue);
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .name-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .name-fields label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+  }
+
+  .name-fields input {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 400;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--dark-sky-blue);
+    background: var(--light-sky-blue);
+    color: var(--nd-blue);
+    transition: all 0.2s;
+  }
+
+  .name-fields input:focus {
+    outline: none;
+    border-color: var(--nd-gold);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(174, 145, 66, 0.15);
+  }
+
+  .rules {
+    background: var(--light-sky-blue);
+    border-left: 3px solid var(--nd-gold);
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .rules h2 {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--nd-blue);
+    margin-bottom: 1rem;
+  }
+
+  .rules ol {
+    list-style: none;
+    counter-reset: rule;
+  }
+
+  .rules li {
+    counter-increment: rule;
+    padding: 0.4rem 0 0.4rem 2.5rem;
+    position: relative;
+    font-size: 0.95rem;
+    color: var(--nd-blue);
+  }
+
+  .rules li::before {
+    content: counter(rule, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--nd-gold);
+    letter-spacing: 0.05em;
+  }
+
+  /* ===== BUTTONS ===== */
+  button {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    background: var(--nd-blue);
+    color: var(--light-warm-white);
+    border: none;
+    padding: 1.05rem 2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  button:hover {
+    background: var(--medium-blue);
+    box-shadow: 0 4px 14px rgba(12, 35, 64, 0.2);
+  }
+
+  button:disabled {
+    background: var(--dark-sky-blue);
+    cursor: not-allowed;
+  }
+
+  .start-btn {
+    width: 100%;
+    background: var(--nd-blue);
+    border-bottom: 3px solid var(--nd-gold);
+  }
+
+  .start-btn:hover { background: var(--medium-blue); }
+
+  /* ===== EXAM SCREEN ===== */
+  .exam-screen { display: none; }
+  .exam-screen.active { display: block; }
+
+  .exam-header {
+    background: var(--nd-blue);
+    color: var(--light-warm-white);
+    border-bottom: 3px solid var(--nd-gold);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .exam-title {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 0.01em;
+  }
+
+  .exam-title small {
+    display: block;
+    font-family: var(--font-body);
+    font-size: 0.65rem;
+    color: var(--dark-sky-blue);
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-top: 0.25rem;
+  }
+
+  .monitor {
+    display: flex;
+    gap: 1.75rem;
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+  }
+
+  .monitor-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.2rem;
+  }
+
+  .monitor-label {
+    color: var(--dark-sky-blue);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 0.6rem;
+    font-weight: 500;
+  }
+
+  .monitor-value {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--nd-gold);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .monitor-value.alert { color: var(--accent-red); }
+  .monitor-value.warning { color: var(--bright-gold); }
+
+  .exam-body {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 3rem 2rem 5rem;
+  }
+
+  /* ===== PARTS ===== */
+  .part {
+    margin-bottom: 3.5rem;
+    background: #fff;
+    padding: 2.5rem 2.25rem;
+    box-shadow: 0 2px 8px rgba(12, 35, 64, 0.04);
+    border-top: 3px solid var(--nd-gold);
+  }
+
+  .part-header {
+    margin-bottom: 1.75rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--dark-sky-blue);
+  }
+
+  .part-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+
+  .part-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--nd-blue);
+  }
+
+  .part-title em { font-style: italic; color: var(--dark-gold); }
+
+  /* ===== WORD BANK ===== */
+  .word-bank {
+    background: var(--medium-sky-blue);
+    border-left: 3px solid var(--nd-gold);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    align-items: center;
+  }
+
+  .word-bank-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+  }
+
+  .word-chip {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--nd-blue);
+  }
+
+  /* ===== QUESTIONS ===== */
+  .question {
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px dashed var(--dark-sky-blue);
+  }
+
+  .question:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+  }
+
+  .q-number {
+    display: inline-block;
+    background: var(--nd-blue);
+    color: var(--nd-gold);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    padding: 0.2rem 0.55rem;
+    margin-right: 0.6rem;
+    vertical-align: 1px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .q-text {
+    font-size: 1rem;
+    line-height: 1.65;
+    color: var(--nd-blue);
+    margin-bottom: 0.75rem;
+  }
+
+  .blank-input {
+    display: inline-block;
+    border: none;
+    border-bottom: 1.5px solid var(--medium-blue);
+    background: transparent;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    padding: 0.15rem 0.4rem;
+    min-width: 130px;
+    color: var(--accent-red);
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .blank-input:focus {
+    outline: none;
+    border-bottom: 1.5px solid var(--nd-gold);
+    background: var(--light-sky-blue);
+  }
+
+  .blank-input.wide { min-width: 240px; }
+  .blank-input.narrow { min-width: 80px; }
+
+  /* ===== MULTIPLE CHOICE OPTIONS ===== */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+  }
+
+  .option {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.65rem 1rem;
+    border: 1px solid var(--medium-blue);
+    background: var(--light-sky-blue);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 0.98rem;
+    color: var(--medium-blue);
+  }
+
+  .option:hover {
+    background: var(--medium-sky-blue);
+    border-color: var(--nd-blue);
+  }
+
+  .option:has(input:checked) {
+    background: var(--nd-blue);
+    color: var(--light-warm-white);
+    border-color: var(--nd-gold);
+    font-weight: 500;
+  }
+
+  .option:has(input:checked) .option-letter {
+    color: var(--nd-gold);
+  }
+
+  /* Hide the native radio circle - the whole pill is the indicator */
+  .option input { display: none; }
+
+  .option-letter {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--nd-gold);
+    letter-spacing: 0.1em;
+    min-width: 1.2rem;
+    transition: color 0.15s;
+  }
+
+  /* ===== INLINE CHOICES ===== */
+  .inline-choices {
+    display: inline-flex;
+    gap: 0.4rem;
+    align-items: center;
+    margin: 0 0.25rem;
+  }
+
+  .inline-choices label {
+    cursor: pointer;
+    padding: 0.25rem 0.7rem;
+    border: 1px solid var(--medium-blue);
+    background: var(--light-sky-blue);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--medium-blue);
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .inline-choices input { display: none; }
+
+  .inline-choices label:has(input:checked) {
+    background: var(--nd-blue);
+    color: var(--nd-gold);
+    border-color: var(--nd-gold);
+    font-weight: 600;
+  }
+
+  /* ===== MATCHING ===== */
+  .match-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0.6rem 1.25rem;
+    align-items: center;
+    margin-top: 0.75rem;
+  }
+
+  .match-left {
+    padding: 0.65rem 0.9rem;
+    background: var(--medium-sky-blue);
+    border-left: 2px solid var(--nd-gold);
+    font-size: 0.95rem;
+    color: var(--nd-blue);
+  }
+
+  .match-arrow {
+    text-align: center;
+    color: var(--nd-gold);
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+  }
+
+  .match-grid select {
+    padding: 0.6rem 0.85rem;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    border: 1px solid var(--dark-sky-blue);
+    background: #fff;
+    color: var(--nd-blue);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .match-grid select:focus {
+    outline: none;
+    border-color: var(--nd-gold);
+    box-shadow: 0 0 0 3px rgba(174, 145, 66, 0.15);
+  }
+
+  /* ===== SENTENCE ORDER ===== */
+  .order-words {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: var(--light-sky-blue);
+    border-left: 2px solid var(--medium-blue);
+    padding: 0.55rem 0.9rem;
+    margin-bottom: 0.6rem;
+    display: inline-block;
+    color: var(--medium-blue);
+    letter-spacing: 0.05em;
+  }
+
+  .order-input {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--dark-sky-blue);
+    background: #fff;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: var(--nd-blue);
+    transition: all 0.2s;
+  }
+
+  .order-input:focus {
+    outline: none;
+    border-color: var(--nd-gold);
+    box-shadow: 0 0 0 3px rgba(174, 145, 66, 0.15);
+  }
+
+  .submit-btn {
+    margin: 2rem auto 0;
+    display: block;
+    background: var(--nd-gold);
+    color: var(--nd-blue);
+    padding: 1.2rem 3.5rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    border-bottom: 3px solid var(--nd-blue);
+  }
+
+  .submit-btn:hover {
+    background: var(--bright-gold);
+    color: var(--nd-blue);
+  }
+
+  /* ===== LOCKOUT ===== */
+  .lockout {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(12, 35, 64, 0.97);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .lockout.active { display: flex; }
+
+  .lockout-card {
+    background: var(--light-warm-white);
+    max-width: 480px;
+    padding: 2.75rem;
+    border-top: 4px solid var(--accent-red);
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  }
+
+  .lockout-card h2 {
+    font-family: var(--font-display);
+    color: var(--accent-red);
+    font-size: 1.9rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .lockout-card p {
+    margin-bottom: 1.5rem;
+    color: var(--medium-blue);
+    font-size: 0.95rem;
+  }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed;
+    top: 6rem;
+    right: 2rem;
+    background: var(--accent-red);
+    color: var(--light-warm-white);
+    padding: 0.85rem 1.4rem;
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    transform: translateX(120%);
+    transition: transform 0.3s;
+    z-index: 50;
+    max-width: 320px;
+    box-shadow: 0 4px 16px rgba(171, 16, 11, 0.3);
+  }
+
+  .toast.show { transform: translateX(0); }
+
+  /* ===== RESULTS ===== */
+  .results {
+    max-width: 720px;
+    margin: 4rem auto;
+    padding: 3rem;
+    background: #fff;
+    border-top: 6px solid var(--nd-gold);
+    box-shadow: 0 10px 40px rgba(12, 35, 64, 0.08);
+  }
+
+  .results h2 {
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--nd-blue);
+  }
+
+  .results-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.85rem 0;
+    border-bottom: 1px dashed var(--dark-sky-blue);
+    font-size: 0.9rem;
+  }
+
+  .results-row span:first-child {
+    color: var(--medium-blue);
+    font-weight: 500;
+  }
+
+  .results-row span:last-child {
+    color: var(--nd-blue);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .results-row:last-child { border-bottom: none; }
+
+  /* ===== FOOTER ===== */
+  .copyright {
+    text-align: center;
+    padding: 1.5rem 2rem;
+    background: var(--nd-blue);
+    color: var(--dark-sky-blue);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    font-weight: 400;
+    border-top: 2px solid var(--nd-gold);
+  }
+
+  @media (max-width: 600px) {
+    .name-fields { grid-template-columns: 1fr; }
+    .start-card { padding: 2.25rem 1.5rem; }
+    .exam-body { padding: 1.5rem 1rem 4rem; }
+    .part { padding: 1.5rem 1.25rem; }
+    .monitor { gap: 1rem; font-size: 0.7rem; }
+    .match-grid { grid-template-columns: 1fr; gap: 0.4rem; }
+    .match-arrow { display: none; }
+  }
+
+  /* ===== NEW: SPINNER ===== */
+  .spinner-large {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--dark-sky-blue);
+    border-top-color: var(--nd-gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== NEW: BLOCKED PANEL ===== */
+  .blocked-card {
+    background: rgba(171, 16, 11, 0.06);
+    border-top: 3px solid var(--accent-red);
+    padding: 2rem;
+    text-align: center;
+  }
+  .blocked-icon {
+    width: 56px;
+    height: 56px;
+    border: 2px solid var(--accent-red);
+    border-radius: 50%;
+    margin: 0 auto 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: var(--accent-red);
+    font-family: var(--font-display);
+  }
+  .blocked-card.warning .blocked-icon,
+  .blocked-card.warning {
+    border-color: var(--bright-gold);
+    color: var(--dark-gold);
+    background: rgba(211, 159, 16, 0.08);
+  }
+  .blocked-card.warning .blocked-icon { color: var(--bright-gold); }
+  .blocked-card h2 {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--nd-blue);
+    margin-bottom: 0.5rem;
+  }
+  .blocked-card p {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--medium-blue);
+    line-height: 1.5;
+  }
+
+  /* ===== NEW: EXAM INFO CARD ===== */
+  .exam-info-card {
+    background: var(--light-sky-blue);
+    border-left: 3px solid var(--nd-gold);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.35rem 0;
+    border-bottom: 1px dashed var(--dark-sky-blue);
+    font-size: 0.9rem;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+  }
+  .info-value {
+    color: var(--nd-blue);
+    font-weight: 500;
+  }
+
+  /* ===== NEW: ACKNOWLEDGE CHECKBOX ===== */
+  .acknowledge {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--light-sky-blue);
+    border-left: 3px solid var(--medium-blue);
+    margin-bottom: 1.5rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .acknowledge:has(input:checked) {
+    background: var(--medium-sky-blue);
+    border-left-color: var(--nd-gold);
+  }
+  .acknowledge input[type="checkbox"] {
+    accent-color: var(--nd-gold);
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+  }
+  .acknowledge span {
+    font-size: 0.9rem;
+    color: var(--nd-blue);
+    line-height: 1.5;
+  }
+
+  /* ===== NEW: SAVE INDICATOR ===== */
+  .save-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.7rem;
+    color: var(--dark-sky-blue);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .save-indicator.saving { color: var(--bright-gold); }
+  .save-indicator.saved { color: var(--success-green, #6b9b6b); }
+  .save-indicator.error { color: var(--accent-red); }
+  .save-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .save-indicator.saving .save-dot {
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+
+  /* Disabled button state */
+  .start-btn:disabled {
+    background: var(--dark-sky-blue);
+    color: var(--medium-blue);
+    cursor: not-allowed;
+    border-bottom-color: var(--medium-blue);
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== BRAND BAR ===== -->
+<div class="brand-bar">
+  <div class="brand-bar-logo">
+    <span class="brand-monogram">A</span>
+    <span>Approach International Student Center</span>
+  </div>
+  <div>Online Examination Portal</div>
+</div>
+
+<!-- ===== START SCREEN ===== -->
+<div class="start-screen" id="startScreen">
+  <div class="start-card">
+    <div class="institutional-mark">
+      <div class="crest">A</div>
+      <div class="institutional-name">Approach<span style="color: var(--nd-gold);">USA</span></div>
+      <div class="institutional-sub">International Student Center</div>
+    </div>
+
+    <div class="stamp" id="examStamp">Examination · Loading…</div>
+    <h1 id="examTitle">The <em>Midterm</em></h1>
+    <p class="subtitle" id="examSubtitle">50 questions · Online proctored examination</p>
+
+    <!-- Loading state while we verify the code -->
+    <div id="loadingPanel" style="text-align: center; padding: 2rem 0;">
+      <div class="spinner-large"></div>
+      <p style="font-family: var(--font-display); font-style: italic; color: var(--medium-blue); margin-top: 1rem;">
+        Verifying your examination…
+      </p>
+    </div>
+
+    <!-- Blocked: invalid code, already submitted, etc -->
+    <div id="blockedPanel" style="display: none;">
+      <div class="blocked-card">
+        <div class="blocked-icon" id="blockedIcon">⚠</div>
+        <h2 id="blockedTitle">—</h2>
+        <p id="blockedMessage">—</p>
+      </div>
+      <a href="enter-code.html" class="start-btn" style="display: block; text-align: center; text-decoration: none; margin-top: 1.5rem;">Return to Code Entry</a>
+    </div>
+
+    <!-- Main start form -->
+    <div id="startForm" style="display: none;">
+      <div class="exam-info-card">
+        <div class="info-row"><span class="info-label">Class</span><span class="info-value" id="infoClass">—</span></div>
+        <div class="info-row"><span class="info-label">Teacher</span><span class="info-value" id="infoTeacher">—</span></div>
+        <div class="info-row"><span class="info-label">Code</span><span class="info-value" id="infoCode" style="font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em;">—</span></div>
+      </div>
+
+      <div class="name-fields" style="grid-template-columns: 1fr;">
+        <label>Full Name
+          <input type="text" id="studentName" required placeholder="Type your full name as it appears in the system" autocomplete="off">
+          <span style="font-family: var(--font-display); font-style: italic; font-size: 0.85rem; color: var(--medium-blue); margin-top: 0.4rem;">
+            Your name will be saved in uppercase.
+          </span>
+        </label>
+      </div>
+
+      <div class="rules">
+        <h2>Before you begin</h2>
+        <ol>
+          <li>The exam will open in fullscreen mode.</li>
+          <li>Leaving fullscreen will pause the exam and lock the questions.</li>
+          <li>Switching tabs or windows is recorded and reported.</li>
+          <li>You may not refresh, copy, or use developer tools.</li>
+          <li>Your progress is auto-saved. You may resume if disconnected.</li>
+          <li>Once submitted, you cannot retake this exam.</li>
+        </ol>
+      </div>
+
+      <label class="acknowledge">
+        <input type="checkbox" id="acknowledgeBox">
+        <span>I have read the rules and understand that any irregularity will be recorded and reported to my teacher.</span>
+      </label>
+
+      <button class="start-btn" id="startBtn" disabled>Begin Examination</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== EXAM SCREEN ===== -->
+<div class="exam-screen" id="examScreen">
+  <header class="exam-header">
+    <div class="exam-title">
+      Integrated Skills 1B — Midterm
+      <small id="studentLabel">—</small>
+    </div>
+    <div class="monitor">
+      <div class="monitor-item" style="align-items: flex-end;">
+        <span class="monitor-label">Auto-save</span>
+        <div class="save-indicator saved" id="saveIndicator">
+          <span class="save-dot"></span>
+          <span id="saveText">Saved</span>
+        </div>
+      </div>
+      <div class="monitor-item">
+        <span class="monitor-label">Tab Switches</span>
+        <span class="monitor-value" id="switchCount">0</span>
+      </div>
+      <div class="monitor-item">
+        <span class="monitor-label">Status</span>
+        <span class="monitor-value" id="statusValue">Active</span>
+      </div>
+      <div class="monitor-item">
+        <span class="monitor-label">Time</span>
+        <span class="monitor-value" id="timer">00:00</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="exam-body">
+
+    <!-- ============== PART 1 ============== -->
+    <section class="part">
+      <div class="part-header">
+        <div class="part-label">Part 1</div>
+        <div class="part-title">Choose the correct option to complete the sentences</div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">01</span>She _______ speak French, but she doesn't practice often.</div>
+        <div class="options">
+          <label class="option"><input type="radio" name="q1" value="a"><span class="option-letter">A</span><span>can</span></label>
+          <label class="option"><input type="radio" name="q1" value="b"><span class="option-letter">B</span><span>can't</span></label>
+          <label class="option"><input type="radio" name="q1" value="c"><span class="option-letter">C</span><span>can to</span></label>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">02</span>We _______ play soccer tomorrow because we don't have class.</div>
+        <div class="options">
+          <label class="option"><input type="radio" name="q2" value="a"><span class="option-letter">A</span><span>can</span></label>
+          <label class="option"><input type="radio" name="q2" value="b"><span class="option-letter">B</span><span>can't</span></label>
+          <label class="option"><input type="radio" name="q2" value="c"><span class="option-letter">C</span><span>to can</span></label>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">03</span>He _______ cook dinner. He always orders food.</div>
+        <div class="options">
+          <label class="option"><input type="radio" name="q3" value="a"><span class="option-letter">A</span><span>can</span></label>
+          <label class="option"><input type="radio" name="q3" value="b"><span class="option-letter">B</span><span>can't</span></label>
+          <label class="option"><input type="radio" name="q3" value="c"><span class="option-letter">C</span><span>to can't</span></label>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">04</span>I _______ understand what you're saying. Can you speak slower?</div>
+        <div class="options">
+          <label class="option"><input type="radio" name="q4" value="a"><span class="option-letter">A</span><span>can</span></label>
+          <label class="option"><input type="radio" name="q4" value="b"><span class="option-letter">B</span><span>can't</span></label>
+          <label class="option"><input type="radio" name="q4" value="c"><span class="option-letter">C</span><span>can to</span></label>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">05</span>Match the sentence with its meaning.</div>
+        <div class="match-grid">
+          <div class="match-left">A) I can speak Spanish.</div>
+          <div class="match-arrow">→</div>
+          <select name="q5a">
+            <option value="">— select —</option>
+            <option value="1">1) She is unable to sing.</option>
+            <option value="2">2) I have the ability to speak Spanish.</option>
+            <option value="3">3) They are good at running.</option>
+          </select>
+
+          <div class="match-left">B) She can't sing.</div>
+          <div class="match-arrow">→</div>
+          <select name="q5b">
+            <option value="">— select —</option>
+            <option value="1">1) She is unable to sing.</option>
+            <option value="2">2) I have the ability to speak Spanish.</option>
+            <option value="3">3) They are good at running.</option>
+          </select>
+
+          <div class="match-left">C) They can run fast.</div>
+          <div class="match-arrow">→</div>
+          <select name="q5c">
+            <option value="">— select —</option>
+            <option value="1">1) She is unable to sing.</option>
+            <option value="2">2) I have the ability to speak Spanish.</option>
+            <option value="3">3) They are good at running.</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">06</span>Match the question with the correct answer.</div>
+        <div class="match-grid">
+          <div class="match-left">A) Can you play football?</div>
+          <div class="match-arrow">→</div>
+          <select name="q6a">
+            <option value="">— select —</option>
+            <option value="1">1) No, they can't.</option>
+            <option value="2">2) Yes, I can.</option>
+            <option value="3">3) Yes, he can.</option>
+          </select>
+
+          <div class="match-left">B) Can he cook?</div>
+          <div class="match-arrow">→</div>
+          <select name="q6b">
+            <option value="">— select —</option>
+            <option value="1">1) No, they can't.</option>
+            <option value="2">2) Yes, I can.</option>
+            <option value="3">3) Yes, he can.</option>
+          </select>
+
+          <div class="match-left">C) Can they swim?</div>
+          <div class="match-arrow">→</div>
+          <select name="q6c">
+            <option value="">— select —</option>
+            <option value="1">1) No, they can't.</option>
+            <option value="2">2) Yes, I can.</option>
+            <option value="3">3) Yes, he can.</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== PART 2 ============== -->
+    <section class="part">
+      <div class="part-header">
+        <div class="part-label">Part 2</div>
+        <div class="part-title">Complete the sentences using <em>can</em> or <em>can't</em></div>
+      </div>
+
+      <div class="question"><div class="q-text"><span class="q-number">07</span>I <input class="blank-input" name="q7" type="text"> speak three languages. English, Portuguese, and Spanish.</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">08</span>She <input class="blank-input" name="q8" type="text"> swim very fast.</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">09</span>We <input class="blank-input" name="q9" type="text"> play the piano, but we're not experts.</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">10</span>He <input class="blank-input" name="q10" type="text"> drive a car yet because he's too young.</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">11</span>It <input class="blank-input" name="q11" type="text"> rain tomorrow.</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">12</span>You <input class="blank-input" name="q12" type="text"> see the mountain from here, it's too far.</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">13</span>She <input class="blank-input" name="q13" type="text"> find her keys anywhere.</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">14</span>They <input class="blank-input" name="q14" type="text"> come to the party because they are out of town.</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">15</span>I <input class="blank-input" name="q15" type="text"> see the movie this weekend because I have a lot of work.</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">16</span><input class="blank-input" name="q16" type="text"> we visit you next weekend?</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">17</span>I <input class="blank-input" name="q17" type="text"> help you with the project tomorrow, but not today.</div></div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">18</span>Which sentence expresses something that is <strong>impossible</strong>?</div>
+        <div class="options">
+          <label class="option"><input type="radio" name="q18" value="a"><span class="option-letter">A</span><span>We can go to the park if it doesn't rain.</span></label>
+          <label class="option"><input type="radio" name="q18" value="b"><span class="option-letter">B</span><span>They can't be in two places at once.</span></label>
+          <label class="option"><input type="radio" name="q18" value="c"><span class="option-letter">C</span><span>She can make a great cake.</span></label>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">19</span>Match the question with the correct answer.</div>
+        <div class="match-grid">
+          <div class="match-left">A) Can they come to the party?</div>
+          <div class="match-arrow">→</div>
+          <select name="q19a">
+            <option value="">— select —</option>
+            <option value="1">1) No, they can't.</option>
+            <option value="2">2) Yes, I can.</option>
+            <option value="3">3) Yes, it can.</option>
+          </select>
+
+          <div class="match-left">B) Can you help me?</div>
+          <div class="match-arrow">→</div>
+          <select name="q19b">
+            <option value="">— select —</option>
+            <option value="1">1) No, they can't.</option>
+            <option value="2">2) Yes, I can.</option>
+            <option value="3">3) Yes, it can.</option>
+          </select>
+
+          <div class="match-left">C) Can it be true?</div>
+          <div class="match-arrow">→</div>
+          <select name="q19c">
+            <option value="">— select —</option>
+            <option value="1">1) No, they can't.</option>
+            <option value="2">2) Yes, I can.</option>
+            <option value="3">3) Yes, it can.</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== PART 3 ============== -->
+    <section class="part">
+      <div class="part-header">
+        <div class="part-label">Part 3</div>
+        <div class="part-title">Complete the sentences using the skills in the box</div>
+      </div>
+
+      <div class="word-bank">
+        <span class="word-bank-label">Word bank</span>
+        <span class="word-chip">Sing</span>
+        <span class="word-chip">Draw</span>
+        <span class="word-chip">Fix things</span>
+        <span class="word-chip">Swim</span>
+        <span class="word-chip">Dance</span>
+        <span class="word-chip">Surf</span>
+      </div>
+
+      <div class="question"><div class="q-text"><span class="q-number">20</span>I can <input class="blank-input" name="q20" type="text"> to music at home.</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">21</span>She can <input class="blank-input" name="q21" type="text"> a cat very well.</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">22</span>He can <input class="blank-input" name="q22" type="text"> his favorite song.</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">23</span>They can <input class="blank-input" name="q23" type="text"> at the beach.</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">24</span>My dad can <input class="blank-input" name="q24" type="text"> around the house without any problem.</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">25</span>We can <input class="blank-input" name="q25" type="text"> in the pool on hot days.</div></div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">26</span>Match the words with their definitions:</div>
+        <div class="match-grid">
+          <div class="match-left">A) company</div>
+          <div class="match-arrow">→</div>
+          <select name="q26a">
+            <option value="">— select —</option>
+            <option value="1">1) a workplace, with desks and chairs.</option>
+            <option value="2">2) get together with people at work and talk about business.</option>
+            <option value="3">3) a business — for example, Apple or Tesla.</option>
+            <option value="4">4) stop work for a short time (for example to have coffee).</option>
+            <option value="5">5) the people in a company.</option>
+          </select>
+
+          <div class="match-left">B) workers</div>
+          <div class="match-arrow">→</div>
+          <select name="q26b">
+            <option value="">— select —</option>
+            <option value="1">1) a workplace, with desks and chairs.</option>
+            <option value="2">2) get together with people at work and talk about business.</option>
+            <option value="3">3) a business — for example, Apple or Tesla.</option>
+            <option value="4">4) stop work for a short time (for example to have coffee).</option>
+            <option value="5">5) the people in a company.</option>
+          </select>
+
+          <div class="match-left">C) office</div>
+          <div class="match-arrow">→</div>
+          <select name="q26c">
+            <option value="">— select —</option>
+            <option value="1">1) a workplace, with desks and chairs.</option>
+            <option value="2">2) get together with people at work and talk about business.</option>
+            <option value="3">3) a business — for example, Apple or Tesla.</option>
+            <option value="4">4) stop work for a short time (for example to have coffee).</option>
+            <option value="5">5) the people in a company.</option>
+          </select>
+
+          <div class="match-left">D) have a meeting</div>
+          <div class="match-arrow">→</div>
+          <select name="q26d">
+            <option value="">— select —</option>
+            <option value="1">1) a workplace, with desks and chairs.</option>
+            <option value="2">2) get together with people at work and talk about business.</option>
+            <option value="3">3) a business — for example, Apple or Tesla.</option>
+            <option value="4">4) stop work for a short time (for example to have coffee).</option>
+            <option value="5">5) the people in a company.</option>
+          </select>
+
+          <div class="match-left">E) take a break</div>
+          <div class="match-arrow">→</div>
+          <select name="q26e">
+            <option value="">— select —</option>
+            <option value="1">1) a workplace, with desks and chairs.</option>
+            <option value="2">2) get together with people at work and talk about business.</option>
+            <option value="3">3) a business — for example, Apple or Tesla.</option>
+            <option value="4">4) stop work for a short time (for example to have coffee).</option>
+            <option value="5">5) the people in a company.</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== PART 4 ============== -->
+    <section class="part">
+      <div class="part-header">
+        <div class="part-label">Part 4</div>
+        <div class="part-title">Complete the sentences in the present continuous. Use an affirmative or negative form of the verbs in parentheses</div>
+      </div>
+
+      <div class="question"><div class="q-text"><span class="q-number">27</span><em>(wash)</em> He <input class="blank-input wide" name="q27" type="text"> the dishes after dinner. He is relaxing on the couch.</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">28</span><em>(eat)</em> They are not eating lunch in the park. They <input class="blank-input wide" name="q28" type="text"> inside because it is raining.</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">29</span><em>(take)</em> She <input class="blank-input wide" name="q29" type="text"> a picture of the sunset.</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">30</span><em>(do)</em> We <input class="blank-input wide" name="q30" type="text"> our homework together. It's really difficult.</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">31</span><em>(help)</em> I <input class="blank-input wide" name="q31" type="text"> my friend with her project.</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">32</span><em>(cook)</em> My mom <input class="blank-input wide" name="q32" type="text"> any food. She is ordering pizza.</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">33</span><em>(clean)</em> We <input class="blank-input wide" name="q33" type="text"> the house this weekend. Our parents are coming to visit us.</div></div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">34</span>Match the questions with the answers:</div>
+        <div class="match-grid">
+          <div class="match-left">A) Is she walking to the store now?</div>
+          <div class="match-arrow">→</div>
+          <select name="q34a">
+            <option value="">— select —</option>
+            <option value="1">1) No, they have another appointment.</option>
+            <option value="2">2) Yes. I'm waiting for Kate.</option>
+            <option value="3">3) No, because my car is in the shop.</option>
+            <option value="4">4) Yes, she is to get some milk.</option>
+            <option value="5">5) No, because it started to rain.</option>
+            <option value="6">6) Math, I have a test this week.</option>
+          </select>
+
+          <div class="match-left">B) What are you studying?</div>
+          <div class="match-arrow">→</div>
+          <select name="q34b">
+            <option value="">— select —</option>
+            <option value="1">1) No, they have another appointment.</option>
+            <option value="2">2) Yes. I'm waiting for Kate.</option>
+            <option value="3">3) No, because my car is in the shop.</option>
+            <option value="4">4) Yes, she is to get some milk.</option>
+            <option value="5">5) No, because it started to rain.</option>
+            <option value="6">6) Math, I have a test this week.</option>
+          </select>
+
+          <div class="match-left">C) Is he riding his bike in the park?</div>
+          <div class="match-arrow">→</div>
+          <select name="q34c">
+            <option value="">— select —</option>
+            <option value="1">1) No, they have another appointment.</option>
+            <option value="2">2) Yes. I'm waiting for Kate.</option>
+            <option value="3">3) No, because my car is in the shop.</option>
+            <option value="4">4) Yes, she is to get some milk.</option>
+            <option value="5">5) No, because it started to rain.</option>
+            <option value="6">6) Math, I have a test this week.</option>
+          </select>
+
+          <div class="match-left">D) Are they coming to the meeting?</div>
+          <div class="match-arrow">→</div>
+          <select name="q34d">
+            <option value="">— select —</option>
+            <option value="1">1) No, they have another appointment.</option>
+            <option value="2">2) Yes. I'm waiting for Kate.</option>
+            <option value="3">3) No, because my car is in the shop.</option>
+            <option value="4">4) Yes, she is to get some milk.</option>
+            <option value="5">5) No, because it started to rain.</option>
+            <option value="6">6) Math, I have a test this week.</option>
+          </select>
+
+          <div class="match-left">E) Are you at the movie theater?</div>
+          <div class="match-arrow">→</div>
+          <select name="q34e">
+            <option value="">— select —</option>
+            <option value="1">1) No, they have another appointment.</option>
+            <option value="2">2) Yes. I'm waiting for Kate.</option>
+            <option value="3">3) No, because my car is in the shop.</option>
+            <option value="4">4) Yes, she is to get some milk.</option>
+            <option value="5">5) No, because it started to rain.</option>
+            <option value="6">6) Math, I have a test this week.</option>
+          </select>
+
+          <div class="match-left">F) Are you driving to work today?</div>
+          <div class="match-arrow">→</div>
+          <select name="q34f">
+            <option value="">— select —</option>
+            <option value="1">1) No, they have another appointment.</option>
+            <option value="2">2) Yes. I'm waiting for Kate.</option>
+            <option value="3">3) No, because my car is in the shop.</option>
+            <option value="4">4) Yes, she is to get some milk.</option>
+            <option value="5">5) No, because it started to rain.</option>
+            <option value="6">6) Math, I have a test this week.</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== PART 5 ============== -->
+    <section class="part">
+      <div class="part-header">
+        <div class="part-label">Part 5</div>
+        <div class="part-title">Complete the questions with the present continuous form of the verbs in the box</div>
+      </div>
+
+      <div class="word-bank">
+        <span class="word-bank-label">Word bank</span>
+        <span class="word-chip">work</span>
+        <span class="word-chip">run</span>
+        <span class="word-chip">wait</span>
+        <span class="word-chip">ride</span>
+        <span class="word-chip">talk</span>
+        <span class="word-chip">carry</span>
+      </div>
+
+      <div class="question"><div class="q-text"><span class="q-number">35</span><input class="blank-input narrow" name="q35a" type="text"> you <input class="blank-input" name="q35b" type="text"> on the phone right now?</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">36</span><input class="blank-input narrow" name="q36a" type="text"> Anna <input class="blank-input" name="q36b" type="text"> her bicycle to school?</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">37</span><input class="blank-input narrow" name="q37a" type="text"> the students <input class="blank-input" name="q37b" type="text"> on the new project?</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">38</span><input class="blank-input narrow" name="q38a" type="text"> your brother <input class="blank-input" name="q38b" type="text"> the groceries inside?</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">39</span><input class="blank-input narrow" name="q39a" type="text"> we <input class="blank-input" name="q39b" type="text"> for the bus at the right stop?</div></div>
+      <div class="question"><div class="q-text"><span class="q-number">40</span><input class="blank-input narrow" name="q40a" type="text"> the dog <input class="blank-input" name="q40b" type="text"> in the park?</div></div>
+    </section>
+
+    <!-- ============== PART 6 ============== -->
+    <section class="part">
+      <div class="part-header">
+        <div class="part-label">Part 6</div>
+        <div class="part-title">Put the words in order to make sentences</div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">41</span></div>
+        <div class="order-words">are / these / hard / working / students</div>
+        <input class="order-input" type="text" name="q41" placeholder="Write the sentence in correct order...">
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">42</span></div>
+        <div class="order-words">try / we / this / restaurant / can / today</div>
+        <input class="order-input" type="text" name="q42" placeholder="Write the sentence in correct order...">
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">43</span></div>
+        <div class="order-words">very / chair / comfortable / is / this</div>
+        <input class="order-input" type="text" name="q43" placeholder="Write the sentence in correct order...">
+      </div>
+      <div class="question">
+        <div class="q-text"><span class="q-number">44</span></div>
+        <div class="order-words">wash / I / dishes / need to / these</div>
+        <input class="order-input" type="text" name="q44" placeholder="Write the sentence in correct order...">
+      </div>
+    </section>
+
+    <!-- ============== PART 7 ============== -->
+    <section class="part">
+      <div class="part-header">
+        <div class="part-label">Part 7</div>
+        <div class="part-title">Choose the correct answer to complete the sentences</div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">45</span>I
+          <span class="inline-choices">
+            <label><input type="radio" name="q45" value="have to"><span>have to</span></label>
+            <label><input type="radio" name="q45" value="want to"><span>want to</span></label>
+          </span>
+          play a new video game tonight.
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">46</span>He
+          <span class="inline-choices">
+            <label><input type="radio" name="q46" value="likes to"><span>likes to</span></label>
+            <label><input type="radio" name="q46" value="need to"><span>need to</span></label>
+          </span>
+          drive along the coast to enjoy the view.
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">47</span>I
+          <span class="inline-choices">
+            <label><input type="radio" name="q47" value="need to"><span>need to</span></label>
+            <label><input type="radio" name="q47" value="like to"><span>like to</span></label>
+          </span>
+          pay for my groceries at the checkout.
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">48</span>She
+          <span class="inline-choices">
+            <label><input type="radio" name="q48" value="wants to"><span>wants to</span></label>
+            <label><input type="radio" name="q48" value="has to"><span>has to</span></label>
+          </span>
+          go to the beach for vacation.
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">49</span>They
+          <span class="inline-choices">
+            <label><input type="radio" name="q49" value="like to"><span>like to</span></label>
+            <label><input type="radio" name="q49" value="need to"><span>need to</span></label>
+          </span>
+          work on their presentation for tomorrow.
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-text"><span class="q-number">50</span>He
+          <span class="inline-choices">
+            <label><input type="radio" name="q50" value="likes to"><span>likes to</span></label>
+            <label><input type="radio" name="q50" value="needs to"><span>needs to</span></label>
+          </span>
+          leave the meeting to answer an important call.
+        </div>
+      </div>
+    </section>
+
+    <button class="submit-btn" id="submitBtn">Submit Examination</button>
+  </main>
+</div>
+
+<!-- ===== LOCKOUT OVERLAY ===== -->
+<div class="lockout" id="lockout">
+  <div class="lockout-card">
+    <h2>Exam Paused</h2>
+    <p>You exited fullscreen mode. Re-enter fullscreen to continue. This event has been recorded.</p>
+    <button id="resumeBtn">Resume Exam</button>
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== COPYRIGHT (per brand guidelines) ===== -->
+<div class="copyright">
+  Copyright © 2026 Approach International Student Center, Inc. — All rights reserved.
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ============================================
+  // CONFIGURE YOUR SUPABASE CREDENTIALS HERE
+  // ============================================
+  const SUPABASE_URL = 'https://vqgbcqqxgbukkfijatrf.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxZ2JjcXF4Z2J1a2tmaWphdHJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MjIwNzEsImV4cCI6MjA5MzA5ODA3MX0.TiVFexjlQ-1fqf4mP_AbPb0P2a99X5JWNjMav3XtHek';
+  // ============================================
+
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ===== STATE =====
+  const state = {
+    examRecord: null,           // The full exam row from Supabase
+    examCode: null,             // Code from URL param
+    submissionId: null,         // UUID of the submissions row
+    sessionId: null,            // Local session identifier
+    student: '',                // Student name (UPPERCASE)
+    switches: 0,
+    blurEvents: 0,
+    fullscreenExits: 0,
+    rightClicksBlocked: 0,
+    devtoolsAttempts: 0,
+    startTime: null,
+    examActive: false,
+    log: []
+  };
+
+  // ===== ELEMENTS =====
+  const startScreen = document.getElementById('startScreen');
+  const examScreen = document.getElementById('examScreen');
+  const lockout = document.getElementById('lockout');
+  const toast = document.getElementById('toast');
+  const switchCountEl = document.getElementById('switchCount');
+  const statusValueEl = document.getElementById('statusValue');
+  const timerEl = document.getElementById('timer');
+  const studentLabel = document.getElementById('studentLabel');
+  const saveIndicator = document.getElementById('saveIndicator');
+  const saveText = document.getElementById('saveText');
+
+  const loadingPanel = document.getElementById('loadingPanel');
+  const blockedPanel = document.getElementById('blockedPanel');
+  const startForm = document.getElementById('startForm');
+  const acknowledgeBox = document.getElementById('acknowledgeBox');
+  const startBtn = document.getElementById('startBtn');
+  const studentNameEl = document.getElementById('studentName');
+
+  // ===== HELPERS =====
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  function logEvent(type, detail = '') {
+    const ts = new Date().toISOString();
+    state.log.push({ ts, type, detail });
+    console.log(`[${ts}] ${type}`, detail);
+  }
+
+  function updateSwitchDisplay() {
+    switchCountEl.textContent = state.switches;
+    if (state.switches >= 3) {
+      switchCountEl.classList.add('alert');
+      switchCountEl.classList.remove('warning');
+    } else if (state.switches >= 1) {
+      switchCountEl.classList.add('warning');
+    }
+  }
+
+  function setSaveStatus(state, text) {
+    saveIndicator.className = 'save-indicator ' + state;
+    saveText.textContent = text;
+  }
+
+  function showBlocked(title, message, isWarning = false) {
+    loadingPanel.style.display = 'none';
+    startForm.style.display = 'none';
+    blockedPanel.style.display = 'block';
+    document.getElementById('blockedTitle').textContent = title;
+    document.getElementById('blockedMessage').textContent = message;
+    const card = blockedPanel.querySelector('.blocked-card');
+    if (isWarning) card.classList.add('warning');
+    document.getElementById('blockedIcon').textContent = isWarning ? '⏱' : '⚠';
+  }
+
+  function generateSessionId() {
+    return `sess_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  function formatDateTime(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) +
+      ' at ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  }
+
+  // ===== LOCALSTORAGE KEYS =====
+  function lsKey(suffix) {
+    return `exam_${state.examCode}_${suffix}`;
+  }
+  function submittedFlagKey(code, name) {
+    return `submitted_${code}_${name.toUpperCase().trim()}`;
+  }
+
+  // ===== INIT: read code from URL, verify exam =====
+  async function init() {
+    const params = new URLSearchParams(window.location.search);
+    state.examCode = params.get('code');
+
+    if (!state.examCode) {
+      showBlocked('No code provided', 'This exam page must be opened through the exam entry portal. Please use your access code.');
+      return;
+    }
+
+    try {
+      const { data, error } = await db
+        .from('exams')
+        .select('*')
+        .eq('code', state.examCode)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) {
+        showBlocked('Code not recognized', 'The exam code in the URL is not valid. Please return to the entry page.');
+        return;
+      }
+
+      // Verify status and window
+      const now = new Date();
+      const from = new Date(data.available_from);
+      const until = new Date(data.available_until);
+
+      if (data.status === 'archived') {
+        showBlocked('This exam is no longer available', 'It has been archived. Please contact your teacher.');
+        return;
+      }
+      if (data.status === 'draft') {
+        showBlocked('This exam is not yet published', 'Please check back later or contact your teacher.');
+        return;
+      }
+      if (now < from) {
+        showBlocked('This exam is not available yet',
+          `The examination opens on ${formatDateTime(data.available_from)}.`, true);
+        return;
+      }
+      if (now > until) {
+        showBlocked('This exam window has ended',
+          `The examination closed on ${formatDateTime(data.available_until)}. Please contact your teacher.`);
+        return;
+      }
+
+      // All good — show start form
+      state.examRecord = data;
+      populateStartScreen(data);
+
+    } catch (err) {
+      console.error('Failed to verify exam:', err);
+      showBlocked('Connection error', `Could not verify the exam. Please check your connection and refresh. (${err.message || 'unknown error'})`);
+    }
+  }
+
+  function populateStartScreen(exam) {
+    document.getElementById('examStamp').textContent =
+      `${exam.class_name} · ${exam.type} · ${exam.quarter} ${exam.year}`;
+    document.getElementById('examTitle').innerHTML =
+      exam.type === 'MIDTERM' ? 'The <em>Midterm</em>' : 'The <em>Final Exam</em>';
+    document.getElementById('infoClass').textContent = exam.class_name;
+    document.getElementById('infoTeacher').textContent = exam.teacher;
+    document.getElementById('infoCode').textContent = exam.code;
+
+    loadingPanel.style.display = 'none';
+    startForm.style.display = 'block';
+    studentNameEl.focus();
+  }
+
+  // Enable Begin button only when name and acknowledge are both ready
+  function updateStartButton() {
+    const nameReady = studentNameEl.value.trim().length >= 2;
+    const ack = acknowledgeBox.checked;
+    startBtn.disabled = !(nameReady && ack);
+  }
+  studentNameEl.addEventListener('input', updateStartButton);
+  acknowledgeBox.addEventListener('change', updateStartButton);
+
+  // ===== START EXAM =====
+  startBtn.addEventListener('click', async () => {
+    const name = studentNameEl.value.trim().toUpperCase();
+    if (!name || !state.examRecord) return;
+
+    // Check localStorage for prior submission flag
+    const flag = localStorage.getItem(submittedFlagKey(state.examCode, name));
+    if (flag) {
+      const submittedAt = new Date(flag).toLocaleString();
+      if (!confirm(
+        `Our records show that "${name}" already submitted this exam on ${submittedAt} from this device.\n\n` +
+        `Submitting again is not permitted. Click Cancel to return.\n\n` +
+        `(If this is a mistake, contact your teacher.)`
+      )) {
+        return;
+      }
+      // If they click OK, they've been warned — block anyway
+      showBlocked('Already submitted',
+        `You already submitted this exam on ${submittedAt}. If this is a mistake, please contact your teacher.`);
+      return;
+    }
+
+    state.student = name;
+
+    // Check for existing in-progress session in localStorage
+    const savedSessionId = localStorage.getItem(lsKey('session'));
+    const savedName = localStorage.getItem(lsKey('name'));
+
+    let resumeData = null;
+    if (savedSessionId && savedName === name) {
+      // Try to resume
+      try {
+        const { data } = await db.from('submissions').select('*')
+          .eq('session_id', savedSessionId)
+          .eq('status', 'in_progress')
+          .maybeSingle();
+
+        if (data) {
+          if (confirm(`We found an unfinished exam from this session. Resume where you left off?`)) {
+            resumeData = data;
+            state.submissionId = data.id;
+            state.sessionId = data.session_id;
+            state.startTime = new Date(data.started_at).getTime();
+            // Restore proctoring counters from saved data
+            const p = data.proctoring || {};
+            state.switches = p.tab_switches || 0;
+            state.blurEvents = p.window_blur_events || 0;
+            state.fullscreenExits = p.fullscreen_exits || 0;
+            state.rightClicksBlocked = p.right_clicks_blocked || 0;
+            state.devtoolsAttempts = p.devtools_attempts || 0;
+            state.log = p.event_log || [];
+          }
+        }
+      } catch (err) {
+        console.warn('Could not check for resume session:', err);
+      }
+    }
+
+    // Request fullscreen
+    try {
+      await document.documentElement.requestFullscreen();
+    } catch (err) {
+      alert('Fullscreen is required to begin the exam. Please allow fullscreen and try again.');
+      return;
+    }
+
+    // Create or use existing submission row
+    if (!resumeData) {
+      state.sessionId = generateSessionId();
+      state.startTime = Date.now();
+
+      try {
+        const { data, error } = await db.from('submissions').insert({
+          exam_id: state.examRecord.id,
+          exam_code: state.examCode,
+          student_name: name,
+          session_id: state.sessionId,
+          status: 'in_progress',
+          started_at: new Date().toISOString(),
+          answers: {},
+          proctoring: { tab_switches: 0, window_blur_events: 0, fullscreen_exits: 0,
+            right_clicks_blocked: 0, devtools_attempts: 0, event_log: [] },
+          user_agent: navigator.userAgent
+        }).select().single();
+
+        if (error) throw error;
+        state.submissionId = data.id;
+      } catch (err) {
+        console.error('Failed to create submission:', err);
+        alert(`Could not start the exam: ${err.message}\n\nPlease try again.`);
+        if (document.fullscreenElement) document.exitFullscreen();
+        return;
+      }
+
+      localStorage.setItem(lsKey('session'), state.sessionId);
+      localStorage.setItem(lsKey('name'), name);
+    } else {
+      // Restore answers into the form
+      restoreAnswersToForm(resumeData.answers || {});
+    }
+
+    studentLabel.textContent = `${name} · ${state.examRecord.teacher}`;
+    startScreen.style.display = 'none';
+    examScreen.classList.add('active');
+    state.examActive = true;
+    logEvent(resumeData ? 'exam_resumed' : 'exam_started', `student: ${name}`);
+    startTimer();
+  });
+
+  // ===== TIMER =====
+  function startTimer() {
+    setInterval(() => {
+      if (!state.examActive) return;
+      const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+      const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+      const s = String(elapsed % 60).padStart(2, '0');
+      timerEl.textContent = `${m}:${s}`;
+    }, 1000);
+  }
+
+  // ===== ANSWER COLLECTION =====
+  function collectAnswers() {
+    const answers = {};
+    document.querySelectorAll('input[name^="q"], select[name^="q"], textarea[name^="q"]').forEach(el => {
+      if (el.type === 'radio') {
+        if (el.checked) answers[el.name] = el.value;
+      } else {
+        answers[el.name] = el.value;
+      }
+    });
+    return answers;
+  }
+
+  function restoreAnswersToForm(answers) {
+    Object.entries(answers).forEach(([name, value]) => {
+      if (!value) return;
+      // Try radio first
+      const radio = document.querySelector(`input[type="radio"][name="${name}"][value="${value}"]`);
+      if (radio) { radio.checked = true; return; }
+      // Then text/select/textarea
+      const el = document.querySelector(`[name="${name}"]`);
+      if (el) el.value = value;
+    });
+  }
+
+  // ===== AUTO-SAVE =====
+  function buildProctoringPayload() {
+    return {
+      tab_switches: state.switches,
+      window_blur_events: state.blurEvents,
+      fullscreen_exits: state.fullscreenExits,
+      right_clicks_blocked: state.rightClicksBlocked,
+      devtools_attempts: state.devtoolsAttempts,
+      event_log: state.log
+    };
+  }
+
+  function saveToLocalStorage() {
+    if (!state.examActive) return;
+    try {
+      localStorage.setItem(lsKey('answers'), JSON.stringify(collectAnswers()));
+      localStorage.setItem(lsKey('proctoring'), JSON.stringify(buildProctoringPayload()));
+    } catch (err) {
+      console.warn('localStorage save failed:', err);
+    }
+  }
+
+  let saveTimeout = null;
+  let isSaving = false;
+  async function saveToSupabase(immediate = false) {
+    if (!state.examActive || !state.submissionId) return;
+
+    if (saveTimeout) clearTimeout(saveTimeout);
+    if (!immediate) {
+      saveTimeout = setTimeout(() => saveToSupabase(true), 10000);
+      return;
+    }
+
+    if (isSaving) return;
+    isSaving = true;
+    setSaveStatus('saving', 'Saving…');
+
+    try {
+      const { error } = await db.from('submissions').update({
+        answers: collectAnswers(),
+        proctoring: buildProctoringPayload()
+      }).eq('id', state.submissionId);
+
+      if (error) throw error;
+      setSaveStatus('saved', 'Saved');
+    } catch (err) {
+      console.error('Auto-save failed:', err);
+      setSaveStatus('error', 'Offline');
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  // Hook into all form inputs for auto-save
+  document.addEventListener('input', (e) => {
+    if (!state.examActive) return;
+    if (!e.target.matches('input[name^="q"], select[name^="q"], textarea[name^="q"]')) return;
+    saveToLocalStorage();
+    setSaveStatus('saving', 'Saving…');
+    saveToSupabase(false); // debounced
+  });
+
+  document.addEventListener('change', (e) => {
+    if (!state.examActive) return;
+    if (!e.target.matches('input[name^="q"], select[name^="q"], textarea[name^="q"]')) return;
+    saveToLocalStorage();
+    saveToSupabase(false);
+  });
+
+  // ===== TAB-SWITCH DETECTION =====
+  document.addEventListener('visibilitychange', () => {
+    if (!state.examActive) return;
+    if (document.hidden) {
+      state.switches++;
+      updateSwitchDisplay();
+      logEvent('tab_hidden', `count: ${state.switches}`);
+      saveToLocalStorage();
+    } else {
+      logEvent('tab_visible');
+      showToast(`Tab switch detected (${state.switches} total)`);
+      // Save immediately on return from hidden state
+      saveToSupabase(true);
+    }
+  });
+
+  window.addEventListener('blur', () => {
+    if (!state.examActive) return;
+    state.blurEvents++;
+    logEvent('window_blur', `count: ${state.blurEvents}`);
+    saveToLocalStorage();
+  });
+
+  // ===== FULLSCREEN ENFORCEMENT =====
+  document.addEventListener('fullscreenchange', () => {
+    if (!state.examActive) return;
+    if (!document.fullscreenElement) {
+      state.fullscreenExits++;
+      statusValueEl.textContent = 'PAUSED';
+      statusValueEl.classList.add('alert');
+      lockout.classList.add('active');
+      logEvent('fullscreen_exit', `count: ${state.fullscreenExits}`);
+      saveToSupabase(true);
+    } else {
+      statusValueEl.textContent = 'Active';
+      statusValueEl.classList.remove('alert');
+      lockout.classList.remove('active');
+      logEvent('fullscreen_resumed');
+    }
+  });
+
+  document.getElementById('resumeBtn').addEventListener('click', async () => {
+    try { await document.documentElement.requestFullscreen(); }
+    catch (err) { alert('Could not re-enter fullscreen.'); }
+  });
+
+  // ===== DETERRENTS =====
+  document.addEventListener('contextmenu', e => {
+    if (state.examActive) {
+      e.preventDefault();
+      state.rightClicksBlocked++;
+      logEvent('right_click_blocked');
+    }
+  });
+
+  document.addEventListener('keydown', e => {
+    if (!state.examActive) return;
+    if (e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key)) ||
+        (e.ctrlKey && e.key === 'u')) {
+      e.preventDefault();
+      state.devtoolsAttempts++;
+      logEvent('devtools_shortcut_blocked', e.key);
+      showToast('That shortcut is disabled during the exam');
+    }
+  });
+
+  window.addEventListener('beforeunload', e => {
+    if (state.examActive) {
+      // Try one final save (best effort, may not complete)
+      saveToLocalStorage();
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+
+  // ===== SUBMIT =====
+  document.getElementById('submitBtn').addEventListener('click', async () => {
+    if (!confirm('Submit your exam? You will not be able to change answers after submission.')) return;
+
+    state.examActive = false;
+    logEvent('exam_submitted');
+    setSaveStatus('saving', 'Submitting…');
+
+    const answers = collectAnswers();
+    const submittedAt = new Date();
+    const timeTakenSec = Math.floor((submittedAt.getTime() - state.startTime) / 1000);
+    const totalAnswered = Object.values(answers).filter(v => v && String(v).trim() !== '').length;
+
+    try {
+      const { error } = await db.from('submissions').update({
+        status: 'submitted',
+        submitted_at: submittedAt.toISOString(),
+        time_taken_seconds: timeTakenSec,
+        answers,
+        proctoring: buildProctoringPayload()
+      }).eq('id', state.submissionId);
+
+      if (error) throw error;
+
+      // Set localStorage flag so this name+code can't retake on this browser
+      localStorage.setItem(submittedFlagKey(state.examCode, state.student), submittedAt.toISOString());
+
+      // Clear the in-progress localStorage entries
+      localStorage.removeItem(lsKey('session'));
+      localStorage.removeItem(lsKey('name'));
+      localStorage.removeItem(lsKey('answers'));
+      localStorage.removeItem(lsKey('proctoring'));
+
+      if (document.fullscreenElement) document.exitFullscreen();
+
+      examScreen.innerHTML = `
+        <div class="results">
+          <h2>Exam Submitted</h2>
+          <p style="margin-bottom: 1.5rem; color: var(--medium-blue); font-style: italic; font-family: var(--font-display); font-size: 1.05rem;">
+            Your responses have been recorded and submitted to ${state.examRecord.teacher}.
+          </p>
+          <div class="results-row"><span>Student</span><span>${state.student}</span></div>
+          <div class="results-row"><span>Class</span><span>${state.examRecord.class_name}</span></div>
+          <div class="results-row"><span>Code</span><span style="font-family: monospace;">${state.examCode}</span></div>
+          <div class="results-row"><span>Submitted at</span><span>${submittedAt.toLocaleString()}</span></div>
+          <div class="results-row"><span>Time taken</span><span>${timerEl.textContent}</span></div>
+          <div class="results-row"><span>Questions answered</span><span>${totalAnswered}</span></div>
+          <p style="margin-top: 2rem; font-family: var(--font-display); font-style: italic; color: var(--medium-blue); text-align: center;">
+            You may now close this window.
+          </p>
+        </div>
+      `;
+    } catch (err) {
+      console.error('Submit failed:', err);
+      state.examActive = true; // re-enable so they can try again
+      setSaveStatus('error', 'Submit failed');
+      alert(`Could not submit your exam: ${err.message}\n\nYour answers are saved locally and on our servers. Please try submitting again.`);
+    }
+  });
+
+  // ===== START IT ALL =====
+  init();
+</script>
+
+</body>
+</html>
