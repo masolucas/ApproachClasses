@@ -1,0 +1,1611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Submission Detail — Approach International Student Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --nd-blue: #0c2340;
+    --nd-gold: #ae9142;
+    --medium-blue: #143865;
+    --bright-blue: #1c4f8f;
+    --dark-sky-blue: #c1cddd;
+    --medium-sky-blue: #e1e8f2;
+    --light-sky-blue: #edf2f9;
+    --dark-gold: #8c7535;
+    --bright-gold: #d39f10;
+    --warm-white: #efe9d9;
+    --light-warm-white: #f8f4ec;
+    --accent-red: #ab100b;
+    --success-green: #3a6b3a;
+    --font-display: 'Cormorant Garamond', 'Times New Roman', serif;
+    --font-body: 'Montserrat', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    background: var(--light-warm-white);
+    color: var(--nd-blue);
+    min-height: 100vh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .brand-bar {
+    background: var(--nd-blue);
+    color: var(--light-warm-white);
+    padding: 0.7rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    border-bottom: 3px solid var(--nd-gold);
+  }
+  .brand-bar-logo { display: flex; align-items: center; gap: 0.6rem; }
+  .brand-monogram {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--nd-gold);
+    line-height: 1;
+  }
+
+  .page {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 5rem;
+  }
+
+  .breadcrumb {
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+    margin-bottom: 1rem;
+  }
+  .breadcrumb a { color: var(--medium-blue); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--nd-gold); }
+  .breadcrumb span { margin: 0 0.5rem; color: var(--dark-sky-blue); }
+
+  /* ===== STUDENT HEADER CARD ===== */
+  .student-card {
+    background: #fff;
+    border-top: 4px solid var(--nd-gold);
+    padding: 2rem 2.25rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(12, 35, 64, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .student-info h1 {
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: var(--nd-blue);
+    line-height: 1.05;
+    margin-bottom: 0.5rem;
+  }
+  .student-meta {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    font-size: 0.82rem;
+    color: var(--medium-blue);
+  }
+  .student-meta .label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+    display: block;
+    margin-bottom: 0.15rem;
+  }
+  .student-meta .value {
+    color: var(--nd-blue);
+    font-weight: 500;
+  }
+  .student-meta .value.code {
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  /* ===== STATUS BADGES ===== */
+  .badges {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .badge {
+    display: inline-block;
+    padding: 0.25rem 0.7rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border: 1px solid;
+  }
+  .badge.submitted {
+    background: rgba(58, 107, 58, 0.1);
+    color: var(--success-green);
+    border-color: var(--success-green);
+  }
+  .badge.in_progress {
+    background: rgba(211, 159, 16, 0.1);
+    color: var(--dark-gold);
+    border-color: var(--bright-gold);
+  }
+  .badge.reviewed {
+    background: var(--nd-blue);
+    color: var(--nd-gold);
+    border-color: var(--nd-gold);
+  }
+  .badge.score {
+    background: var(--nd-blue);
+    color: var(--nd-gold);
+    border-color: var(--nd-gold);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ===== PROCTORING REPORT ===== */
+  .report-card {
+    background: #fff;
+    border-top: 3px solid;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(12, 35, 64, 0.04);
+  }
+  .report-card.clean { border-top-color: var(--success-green); }
+  .report-card.minor { border-top-color: var(--bright-gold); }
+  .report-card.concern { border-top-color: var(--accent-red); }
+
+  .report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--dark-sky-blue);
+  }
+  .report-title {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--nd-blue);
+  }
+  .report-summary {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .report-card.clean .report-summary { color: var(--success-green); }
+  .report-card.minor .report-summary { color: var(--dark-gold); }
+  .report-card.concern .report-summary { color: var(--accent-red); }
+
+  .report-stats {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .report-stat {
+    text-align: center;
+    padding: 0.85rem;
+    background: var(--light-sky-blue);
+    border-left: 3px solid var(--medium-blue);
+  }
+  .report-stat.flag { background: rgba(171, 16, 11, 0.06); border-left-color: var(--accent-red); }
+  .report-stat .stat-num {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--nd-blue);
+    line-height: 1;
+    margin-bottom: 0.2rem;
+  }
+  .report-stat .stat-name {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+  }
+
+  .event-log-toggle {
+    background: transparent;
+    border: 1px solid var(--medium-blue);
+    color: var(--medium-blue);
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.55rem 1rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .event-log-toggle:hover {
+    background: var(--medium-blue);
+    color: var(--light-warm-white);
+  }
+
+  .event-log {
+    display: none;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--nd-blue);
+    color: var(--light-warm-white);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    max-height: 240px;
+    overflow-y: auto;
+  }
+  .event-log.show { display: block; }
+  .event-log .event-row {
+    padding: 0.2rem 0;
+    border-bottom: 1px dashed rgba(193, 205, 221, 0.2);
+  }
+  .event-log .event-row:last-child { border-bottom: none; }
+  .event-log .event-time { color: var(--dark-sky-blue); margin-right: 0.5rem; }
+  .event-log .event-type { color: var(--nd-gold); font-weight: 600; }
+
+  /* ===== ANSWERS SECTION ===== */
+  .answers-card {
+    background: #fff;
+    border-top: 3px solid var(--nd-gold);
+    box-shadow: 0 2px 8px rgba(12, 35, 64, 0.04);
+    padding: 2rem 2.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .answers-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--dark-sky-blue);
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .answers-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--nd-blue);
+  }
+
+  .grading-mode-banner {
+    display: none;
+    background: rgba(211, 159, 16, 0.12);
+    border: 1px solid var(--bright-gold);
+    border-left: 4px solid var(--bright-gold);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--dark-gold);
+  }
+  .grading-mode-banner.active { display: block; }
+  .grading-mode-banner strong {
+    font-style: normal;
+    font-family: var(--font-body);
+    color: var(--nd-blue);
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* ===== PARTS ===== */
+  .part {
+    margin-bottom: 2.5rem;
+  }
+  .part:last-child { margin-bottom: 0; }
+  .part-header {
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--dark-sky-blue);
+  }
+  .part-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+  .part-title {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--nd-blue);
+  }
+  .part-title em { font-style: italic; color: var(--dark-gold); }
+
+  /* ===== QUESTION ROW ===== */
+  .q-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 0.85rem 0.5rem;
+    border-bottom: 1px dashed var(--dark-sky-blue);
+  }
+  .q-row:last-child { border-bottom: none; }
+
+  .q-num {
+    background: var(--nd-blue);
+    color: var(--nd-gold);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 0.25rem 0.55rem;
+    font-variant-numeric: tabular-nums;
+    align-self: flex-start;
+    margin-top: 0.15rem;
+  }
+
+  .q-body {
+    min-width: 0;
+  }
+
+  .q-text {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--nd-blue);
+    margin-bottom: 0.4rem;
+  }
+
+  .q-text .blank-show {
+    display: inline-block;
+    border-bottom: 1.5px solid var(--medium-blue);
+    padding: 0 0.4rem;
+    min-width: 100px;
+    color: var(--accent-red);
+    font-weight: 500;
+  }
+  .q-text .blank-show.empty {
+    color: var(--dark-sky-blue);
+    font-style: italic;
+  }
+  .q-text .blank-show.correct {
+    color: var(--success-green);
+  }
+
+  .q-answer {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .answer-line {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.5rem;
+    background: var(--light-sky-blue);
+  }
+  .answer-line.correct {
+    background: rgba(58, 107, 58, 0.08);
+    border-left: 3px solid var(--success-green);
+  }
+  .answer-line.incorrect {
+    background: rgba(171, 16, 11, 0.06);
+    border-left: 3px solid var(--accent-red);
+  }
+  .answer-line.empty {
+    background: var(--medium-sky-blue);
+    border-left: 3px solid var(--dark-sky-blue);
+    font-style: italic;
+    color: var(--medium-blue);
+  }
+  .answer-line .answer-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+    min-width: 70px;
+  }
+  .answer-line .answer-value {
+    color: var(--nd-blue);
+    font-weight: 500;
+    flex: 1;
+  }
+
+  /* Inline answer pill (for option-letter style multiple choice) */
+  .answer-pill {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    background: var(--nd-blue);
+    color: var(--nd-gold);
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid var(--nd-gold);
+  }
+  .answer-pill.correct {
+    background: var(--success-green);
+    color: #fff;
+    border-color: var(--success-green);
+  }
+  .answer-pill.incorrect {
+    background: var(--accent-red);
+    color: #fff;
+    border-color: var(--accent-red);
+  }
+  .answer-pill.empty {
+    background: var(--medium-sky-blue);
+    color: var(--medium-blue);
+    border-color: var(--dark-sky-blue);
+    font-style: italic;
+  }
+
+  /* Score block */
+  .q-score {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+    min-width: 90px;
+  }
+  .score-mark {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    white-space: nowrap;
+  }
+  .score-mark.auto-correct {
+    background: rgba(58, 107, 58, 0.12);
+    color: var(--success-green);
+    border: 1px solid var(--success-green);
+  }
+  .score-mark.auto-incorrect {
+    background: rgba(171, 16, 11, 0.08);
+    color: var(--accent-red);
+    border: 1px solid var(--accent-red);
+  }
+  .score-mark.auto-empty {
+    background: var(--medium-sky-blue);
+    color: var(--medium-blue);
+    border: 1px solid var(--dark-sky-blue);
+  }
+  .score-mark.manual {
+    background: var(--light-warm-white);
+    color: var(--dark-gold);
+    border: 1px dashed var(--dark-gold);
+  }
+
+  .manual-grade-input {
+    display: none;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.85rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .manual-grade-input.show { display: flex; }
+  .manual-grade-input input {
+    width: 50px;
+    padding: 0.25rem 0.4rem;
+    border: 1.5px solid var(--bright-gold);
+    background: #fff;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--nd-blue);
+  }
+  .manual-grade-input input:focus {
+    outline: none;
+    border-color: var(--nd-gold);
+    box-shadow: 0 0 0 3px rgba(174, 145, 66, 0.2);
+  }
+  .manual-grade-input .max-points {
+    color: var(--medium-blue);
+    font-weight: 500;
+  }
+
+  .answer-key-line {
+    font-size: 0.75rem;
+    color: var(--success-green);
+    margin-top: 0.2rem;
+    font-style: italic;
+    font-family: var(--font-display);
+  }
+  .answer-key-line strong { font-style: normal; font-weight: 600; }
+
+  /* ===== GRADING ACTIONS ===== */
+  .grading-actions {
+    background: #fff;
+    border-top: 3px solid var(--nd-gold);
+    box-shadow: 0 2px 8px rgba(12, 35, 64, 0.04);
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .reviewed-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  .reviewed-toggle input { accent-color: var(--nd-gold); width: 20px; height: 20px; }
+  .reviewed-toggle span {
+    font-size: 0.85rem;
+    color: var(--nd-blue);
+    font-weight: 500;
+  }
+
+  .grading-actions .btn-row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .reviewer-notes {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--dark-sky-blue);
+  }
+  .reviewer-notes label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+    margin-bottom: 0.4rem;
+  }
+  .reviewer-notes textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 0.7rem;
+    border: 1px solid var(--dark-sky-blue);
+    background: var(--light-sky-blue);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--nd-blue);
+    resize: vertical;
+  }
+  .reviewer-notes textarea:focus {
+    outline: none;
+    border-color: var(--nd-gold);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(174, 145, 66, 0.15);
+  }
+  .reviewer-notes textarea:disabled {
+    background: var(--light-sky-blue);
+    color: var(--medium-blue);
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn-primary, .btn-secondary, .btn-tertiary {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 0.85rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-primary {
+    background: var(--nd-gold);
+    color: var(--nd-blue);
+    border-bottom: 3px solid var(--nd-blue);
+  }
+  .btn-primary:hover { background: var(--bright-gold); }
+  .btn-primary:disabled { background: var(--dark-sky-blue); cursor: not-allowed; border-bottom-color: var(--medium-blue); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--medium-blue);
+    border: 1px solid var(--medium-blue);
+  }
+  .btn-secondary:hover {
+    background: var(--medium-blue);
+    color: var(--light-warm-white);
+  }
+  .btn-tertiary {
+    background: var(--nd-blue);
+    color: var(--nd-gold);
+    border-bottom: 3px solid var(--nd-gold);
+  }
+  .btn-tertiary:hover { background: var(--medium-blue); }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed;
+    top: 5rem;
+    right: 2rem;
+    background: var(--nd-blue);
+    color: var(--light-warm-white);
+    padding: 1rem 1.4rem;
+    border-left: 3px solid var(--nd-gold);
+    font-size: 0.85rem;
+    transform: translateX(120%);
+    transition: transform 0.3s;
+    z-index: 200;
+    max-width: 380px;
+    box-shadow: 0 4px 20px rgba(12, 35, 64, 0.2);
+  }
+  .toast.show { transform: translateX(0); }
+  .toast.error { border-left-color: var(--accent-red); }
+  .toast.success { border-left-color: var(--success-green); }
+
+  .copyright {
+    text-align: center;
+    padding: 1.5rem 2rem;
+    background: var(--nd-blue);
+    color: var(--dark-sky-blue);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    border-top: 2px solid var(--nd-gold);
+  }
+
+  .loading-screen, .error-screen {
+    text-align: center;
+    padding: 6rem 2rem;
+    color: var(--medium-blue);
+  }
+  .loading-screen .spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--dark-sky-blue);
+    border-top-color: var(--nd-gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 1rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-screen h2 {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    color: var(--nd-blue);
+    margin-bottom: 0.5rem;
+  }
+
+  @media (max-width: 700px) {
+    .student-card { flex-direction: column; }
+    .report-stats { grid-template-columns: repeat(2, 1fr); }
+    .q-row { grid-template-columns: 1fr; gap: 0.5rem; }
+    .q-num { justify-self: flex-start; }
+    .q-score { align-items: flex-start; }
+  }
+
+  @media print {
+    .brand-bar, .header-actions, .grading-actions, .copyright,
+    .breadcrumb, .event-log-toggle { display: none !important; }
+    body { background: #fff; }
+    .student-card, .report-card, .answers-card {
+      box-shadow: none;
+      border: 1px solid var(--dark-sky-blue);
+      page-break-inside: avoid;
+    }
+    .part { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="brand-bar">
+  <div class="brand-bar-logo">
+    <span class="brand-monogram">A</span>
+    <span>Approach International Student Center</span>
+  </div>
+  <div>Submission Detail</div>
+</div>
+
+<div class="page" id="page">
+  <div class="loading-screen" id="loadingScreen">
+    <div class="spinner"></div>
+    <p style="font-family: var(--font-display); font-style: italic; font-size: 1.05rem;">Loading submission…</p>
+  </div>
+
+  <div id="content" style="display: none;">
+    <div class="breadcrumb">
+      <a href="submissions.html">Submissions</a> <span>›</span> <span id="bcStudent">Detail</span>
+    </div>
+
+    <!-- ===== STUDENT HEADER ===== -->
+    <div class="student-card">
+      <div class="student-info">
+        <div class="badges" id="badges"></div>
+        <h1 id="studentName">—</h1>
+        <div class="student-meta">
+          <div><span class="label">Class</span><span class="value" id="metaClass">—</span></div>
+          <div><span class="label">Code</span><span class="value code" id="metaCode">—</span></div>
+          <div><span class="label">Teacher</span><span class="value" id="metaTeacher">—</span></div>
+          <div><span class="label">Submitted</span><span class="value" id="metaSubmitted">—</span></div>
+          <div><span class="label">Time taken</span><span class="value" id="metaTime">—</span></div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-secondary" onclick="window.print()">Print</button>
+        <button class="btn-tertiary" id="startGradingBtn">Start Grading</button>
+      </div>
+    </div>
+
+    <!-- ===== PROCTORING REPORT ===== -->
+    <div class="report-card" id="reportCard">
+      <div class="report-header">
+        <div class="report-title">Proctoring Report</div>
+        <div class="report-summary" id="reportSummary">—</div>
+      </div>
+      <div class="report-stats">
+        <div class="report-stat" id="statTabs">
+          <div class="stat-num" id="numTabs">0</div>
+          <div class="stat-name">Tab Switches</div>
+        </div>
+        <div class="report-stat" id="statBlur">
+          <div class="stat-num" id="numBlur">0</div>
+          <div class="stat-name">Window Blurs</div>
+        </div>
+        <div class="report-stat" id="statFs">
+          <div class="stat-num" id="numFs">0</div>
+          <div class="stat-name">Fullscreen Exits</div>
+        </div>
+        <div class="report-stat" id="statRC">
+          <div class="stat-num" id="numRC">0</div>
+          <div class="stat-name">Right Clicks</div>
+        </div>
+        <div class="report-stat" id="statDT">
+          <div class="stat-num" id="numDT">0</div>
+          <div class="stat-name">Devtools Tries</div>
+        </div>
+      </div>
+      <button class="event-log-toggle" id="logToggle">Show Event Log</button>
+      <div class="event-log" id="eventLog"></div>
+    </div>
+
+    <!-- ===== ANSWERS ===== -->
+    <div class="answers-card">
+      <div class="answers-header">
+        <div class="answers-title">Student Responses</div>
+      </div>
+
+      <div class="grading-mode-banner" id="gradingBanner">
+        <strong>Grading Mode</strong> · You are now reviewing manual-graded questions. Enter a score for each open-ended question, then click <strong>Save Grades</strong>.
+      </div>
+
+      <div id="answersContainer">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- ===== GRADING ACTIONS (only in grading mode) ===== -->
+    <div class="grading-actions" id="gradingActions" style="display: none;">
+      <label class="reviewed-toggle">
+        <input type="checkbox" id="reviewedCheck">
+        <span>Mark as Reviewed</span>
+      </label>
+      <div class="btn-row">
+        <button class="btn-secondary" id="cancelGradingBtn">Cancel</button>
+        <button class="btn-primary" id="saveGradesBtn">Save Grades</button>
+      </div>
+      <div class="reviewer-notes">
+        <label for="reviewerNotes">Notes (optional)</label>
+        <textarea id="reviewerNotes" placeholder="Internal notes about this submission…"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-screen" id="errorScreen" style="display: none;">
+    <h2 id="errorTitle">Could not load submission</h2>
+    <p id="errorMessage" style="font-family: var(--font-display); font-style: italic; font-size: 1.05rem;">—</p>
+    <a href="submissions.html" class="btn-primary" style="margin-top: 1.5rem;">Back to Submissions</a>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="copyright">
+  Copyright © 2026 Approach International Student Center, Inc. — All rights reserved.
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ============================================
+  // CONFIGURE YOUR SUPABASE CREDENTIALS HERE
+  // ============================================
+  const SUPABASE_URL = 'https://vqgbcqqxgbukkfijatrf.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxZ2JjcXF4Z2J1a2tmaWphdHJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MjIwNzEsImV4cCI6MjA5MzA5ODA3MX0.TiVFexjlQ-1fqf4mP_AbPb0P2a99X5JWNjMav3XtHek';
+  // ============================================
+
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ===========================================================
+  // ANSWER KEY for Integrated Skills 1B Midterm
+  // (Made-up answers — verify with the actual answer key before deploying.)
+  // Question types:
+  //   "auto"       → exact match against `answer` (string)
+  //   "auto_multi" → match against any string in `answers` (array)
+  //   "manual"     → teacher assigns score from 0 to max_points
+  // ===========================================================
+  const ANSWER_KEY = {
+    // PART 1
+    q1:  { type: 'auto', answer: 'a', points: 1 },         // can
+    q2:  { type: 'auto', answer: 'a', points: 1 },         // can
+    q3:  { type: 'auto', answer: 'b', points: 1 },         // can't
+    q4:  { type: 'auto', answer: 'b', points: 1 },         // can't
+    q5a: { type: 'auto', answer: '2', points: 1 },         // I can speak Spanish → ability
+    q5b: { type: 'auto', answer: '1', points: 1 },         // She can't sing → unable
+    q5c: { type: 'auto', answer: '3', points: 1 },         // They can run fast → good at running
+    q6a: { type: 'auto', answer: '2', points: 1 },         // Can you play football? → Yes, I can.
+    q6b: { type: 'auto', answer: '3', points: 1 },         // Can he cook? → Yes, he can.
+    q6c: { type: 'auto', answer: '1', points: 1 },         // Can they swim? → No, they can't.
+
+    // PART 2 (fill in can/can't)
+    q7:  { type: 'auto', answer: 'can', points: 1, ci: true },
+    q8:  { type: 'auto', answer: 'can', points: 1, ci: true },
+    q9:  { type: 'auto', answer: 'can', points: 1, ci: true },
+    q10: { type: 'auto_multi', answers: ["can't", 'cannot', 'can not'], points: 1, ci: true },
+    q11: { type: 'auto', answer: 'can', points: 1, ci: true },
+    q12: { type: 'auto_multi', answers: ["can't", 'cannot', 'can not'], points: 1, ci: true },
+    q13: { type: 'auto_multi', answers: ["can't", 'cannot', 'can not'], points: 1, ci: true },
+    q14: { type: 'auto_multi', answers: ["can't", 'cannot', 'can not'], points: 1, ci: true },
+    q15: { type: 'auto_multi', answers: ["can't", 'cannot', 'can not'], points: 1, ci: true },
+    q16: { type: 'auto', answer: 'can', points: 1, ci: true },
+    q17: { type: 'auto', answer: 'can', points: 1, ci: true },
+    q18: { type: 'auto', answer: 'b', points: 1 },         // They can't be in two places at once
+    q19a: { type: 'auto', answer: '1', points: 1 },        // Can they come? → No, they can't.
+    q19b: { type: 'auto', answer: '2', points: 1 },        // Can you help? → Yes, I can.
+    q19c: { type: 'auto', answer: '3', points: 1 },        // Can it be true? → Yes, it can.
+
+    // PART 3 (word bank)
+    q20: { type: 'auto', answer: 'dance', points: 1, ci: true },
+    q21: { type: 'auto', answer: 'draw', points: 1, ci: true },
+    q22: { type: 'auto', answer: 'sing', points: 1, ci: true },
+    q23: { type: 'auto', answer: 'surf', points: 1, ci: true },
+    q24: { type: 'auto_multi', answers: ['fix things', 'fix'], points: 1, ci: true },
+    q25: { type: 'auto', answer: 'swim', points: 1, ci: true },
+    q26a: { type: 'auto', answer: '3', points: 1 },        // company → business
+    q26b: { type: 'auto', answer: '5', points: 1 },        // workers → people in a company
+    q26c: { type: 'auto', answer: '1', points: 1 },        // office → workplace
+    q26d: { type: 'auto', answer: '2', points: 1 },        // have a meeting
+    q26e: { type: 'auto', answer: '4', points: 1 },        // take a break
+
+    // PART 4 (present continuous, affirmative or negative)
+    q27: { type: 'auto_multi', answers: ['is not washing', "isn't washing"], points: 1, ci: true },
+    q28: { type: 'auto', answer: 'are eating', points: 1, ci: true },
+    q29: { type: 'auto', answer: 'is taking', points: 1, ci: true },
+    q30: { type: 'auto', answer: 'are doing', points: 1, ci: true },
+    q31: { type: 'auto', answer: 'am helping', points: 1, ci: true },
+    q32: { type: 'auto_multi', answers: ['is not cooking', "isn't cooking"], points: 1, ci: true },
+    q33: { type: 'auto', answer: 'are cleaning', points: 1, ci: true },
+    q34a: { type: 'auto', answer: '4', points: 1 },        // walking to store → Yes, to get milk
+    q34b: { type: 'auto', answer: '6', points: 1 },        // What are you studying? → Math
+    q34c: { type: 'auto', answer: '5', points: 1 },        // riding bike → No, started raining
+    q34d: { type: 'auto', answer: '1', points: 1 },        // coming to meeting → No, appointment
+    q34e: { type: 'auto', answer: '2', points: 1 },        // movie theater → waiting for Kate
+    q34f: { type: 'auto', answer: '3', points: 1 },        // driving to work → No, car in shop
+
+    // PART 5 (two-blank questions: aux + verb)
+    q35a: { type: 'auto', answer: 'are', points: 0.5, ci: true },
+    q35b: { type: 'auto', answer: 'talking', points: 0.5, ci: true },
+    q36a: { type: 'auto', answer: 'is', points: 0.5, ci: true },
+    q36b: { type: 'auto', answer: 'riding', points: 0.5, ci: true },
+    q37a: { type: 'auto', answer: 'are', points: 0.5, ci: true },
+    q37b: { type: 'auto', answer: 'working', points: 0.5, ci: true },
+    q38a: { type: 'auto', answer: 'is', points: 0.5, ci: true },
+    q38b: { type: 'auto', answer: 'carrying', points: 0.5, ci: true },
+    q39a: { type: 'auto', answer: 'are', points: 0.5, ci: true },
+    q39b: { type: 'auto', answer: 'waiting', points: 0.5, ci: true },
+    q40a: { type: 'auto', answer: 'is', points: 0.5, ci: true },
+    q40b: { type: 'auto', answer: 'running', points: 0.5, ci: true },
+
+    // PART 6 (sentence ordering — manual grading)
+    q41: { type: 'manual', max_points: 2, guidance: 'Expected: "These students are working hard."' },
+    q42: { type: 'manual', max_points: 2, guidance: 'Expected: "We can try this restaurant today."' },
+    q43: { type: 'manual', max_points: 2, guidance: 'Expected: "This chair is very comfortable."' },
+    q44: { type: 'manual', max_points: 2, guidance: 'Expected: "I need to wash these dishes."' },
+
+    // PART 7
+    q45: { type: 'auto', answer: 'want to', points: 1 },
+    q46: { type: 'auto', answer: 'likes to', points: 1 },
+    q47: { type: 'auto', answer: 'need to', points: 1 },
+    q48: { type: 'auto', answer: 'wants to', points: 1 },
+    q49: { type: 'auto', answer: 'need to', points: 1 },
+    q50: { type: 'auto', answer: 'needs to', points: 1 }
+  };
+
+  // ===========================================================
+  // EXAM STRUCTURE — defines parts and questions for rendering
+  // ===========================================================
+  const EXAM_STRUCTURE = [
+    {
+      title: 'Part 1 · Choose the correct option',
+      questions: [
+        { id: 'q1', text: 'She _______ speak French, but she doesn\'t practice often.', type: 'mc', options: { a: 'can', b: "can't", c: 'can to' } },
+        { id: 'q2', text: 'We _______ play soccer tomorrow because we don\'t have class.', type: 'mc', options: { a: 'can', b: "can't", c: 'to can' } },
+        { id: 'q3', text: 'He _______ cook dinner. He always orders food.', type: 'mc', options: { a: 'can', b: "can't", c: "to can't" } },
+        { id: 'q4', text: 'I _______ understand what you\'re saying. Can you speak slower?', type: 'mc', options: { a: 'can', b: "can't", c: 'can to' } },
+        { id: 'q5', text: 'Match the sentence with its meaning.', type: 'match', subs: [
+          { id: 'q5a', label: 'A) I can speak Spanish.', options: { '1': 'She is unable to sing.', '2': 'I have the ability to speak Spanish.', '3': 'They are good at running.' } },
+          { id: 'q5b', label: 'B) She can\'t sing.', options: { '1': 'She is unable to sing.', '2': 'I have the ability to speak Spanish.', '3': 'They are good at running.' } },
+          { id: 'q5c', label: 'C) They can run fast.', options: { '1': 'She is unable to sing.', '2': 'I have the ability to speak Spanish.', '3': 'They are good at running.' } }
+        ]},
+        { id: 'q6', text: 'Match the question with the correct answer.', type: 'match', subs: [
+          { id: 'q6a', label: 'A) Can you play football?', options: { '1': "No, they can't.", '2': 'Yes, I can.', '3': 'Yes, he can.' } },
+          { id: 'q6b', label: 'B) Can he cook?', options: { '1': "No, they can't.", '2': 'Yes, I can.', '3': 'Yes, he can.' } },
+          { id: 'q6c', label: 'C) Can they swim?', options: { '1': "No, they can't.", '2': 'Yes, I can.', '3': 'Yes, he can.' } }
+        ]}
+      ]
+    },
+    {
+      title: 'Part 2 · Complete with can / can\'t',
+      questions: [
+        { id: 'q7', text: 'I __ speak three languages. English, Portuguese, and Spanish.', type: 'fill' },
+        { id: 'q8', text: 'She __ swim very fast.', type: 'fill' },
+        { id: 'q9', text: 'We __ play the piano, but we\'re not experts.', type: 'fill' },
+        { id: 'q10', text: 'He __ drive a car yet because he\'s too young.', type: 'fill' },
+        { id: 'q11', text: 'It __ rain tomorrow.', type: 'fill' },
+        { id: 'q12', text: 'You __ see the mountain from here, it\'s too far.', type: 'fill' },
+        { id: 'q13', text: 'She __ find her keys anywhere.', type: 'fill' },
+        { id: 'q14', text: 'They __ come to the party because they are out of town.', type: 'fill' },
+        { id: 'q15', text: 'I __ see the movie this weekend because I have a lot of work.', type: 'fill' },
+        { id: 'q16', text: '__ we visit you next weekend?', type: 'fill' },
+        { id: 'q17', text: 'I __ help you with the project tomorrow, but not today.', type: 'fill' },
+        { id: 'q18', text: 'Which sentence expresses something that is impossible?', type: 'mc',
+          options: { a: 'We can go to the park if it doesn\'t rain.', b: 'They can\'t be in two places at once.', c: 'She can make a great cake.' } },
+        { id: 'q19', text: 'Match the question with the correct answer.', type: 'match', subs: [
+          { id: 'q19a', label: 'A) Can they come to the party?', options: { '1': "No, they can't.", '2': 'Yes, I can.', '3': 'Yes, it can.' } },
+          { id: 'q19b', label: 'B) Can you help me?', options: { '1': "No, they can't.", '2': 'Yes, I can.', '3': 'Yes, it can.' } },
+          { id: 'q19c', label: 'C) Can it be true?', options: { '1': "No, they can't.", '2': 'Yes, I can.', '3': 'Yes, it can.' } }
+        ]}
+      ]
+    },
+    {
+      title: 'Part 3 · Word bank (skills)',
+      questions: [
+        { id: 'q20', text: 'I can __ to music at home.', type: 'fill' },
+        { id: 'q21', text: 'She can __ a cat very well.', type: 'fill' },
+        { id: 'q22', text: 'He can __ his favorite song.', type: 'fill' },
+        { id: 'q23', text: 'They can __ at the beach.', type: 'fill' },
+        { id: 'q24', text: 'My dad can __ around the house without any problem.', type: 'fill' },
+        { id: 'q25', text: 'We can __ in the pool on hot days.', type: 'fill' },
+        { id: 'q26', text: 'Match the words with their definitions.', type: 'match', subs: [
+          { id: 'q26a', label: 'A) company', options: { '1': 'workplace, with desks', '2': 'meeting at work', '3': 'business (e.g., Apple)', '4': 'short stop in work', '5': 'people in a company' } },
+          { id: 'q26b', label: 'B) workers', options: { '1': 'workplace, with desks', '2': 'meeting at work', '3': 'business (e.g., Apple)', '4': 'short stop in work', '5': 'people in a company' } },
+          { id: 'q26c', label: 'C) office', options: { '1': 'workplace, with desks', '2': 'meeting at work', '3': 'business (e.g., Apple)', '4': 'short stop in work', '5': 'people in a company' } },
+          { id: 'q26d', label: 'D) have a meeting', options: { '1': 'workplace, with desks', '2': 'meeting at work', '3': 'business (e.g., Apple)', '4': 'short stop in work', '5': 'people in a company' } },
+          { id: 'q26e', label: 'E) take a break', options: { '1': 'workplace, with desks', '2': 'meeting at work', '3': 'business (e.g., Apple)', '4': 'short stop in work', '5': 'people in a company' } }
+        ]}
+      ]
+    },
+    {
+      title: 'Part 4 · Present continuous (affirmative or negative)',
+      questions: [
+        { id: 'q27', text: '(wash) He __ the dishes after dinner. He is relaxing on the couch.', type: 'fill' },
+        { id: 'q28', text: '(eat) They are not eating lunch in the park. They __ inside because it is raining.', type: 'fill' },
+        { id: 'q29', text: '(take) She __ a picture of the sunset.', type: 'fill' },
+        { id: 'q30', text: '(do) We __ our homework together. It\'s really difficult.', type: 'fill' },
+        { id: 'q31', text: '(help) I __ my friend with her project.', type: 'fill' },
+        { id: 'q32', text: '(cook) My mom __ any food. She is ordering pizza.', type: 'fill' },
+        { id: 'q33', text: '(clean) We __ the house this weekend. Our parents are coming.', type: 'fill' },
+        { id: 'q34', text: 'Match the questions with the answers.', type: 'match', subs: [
+          { id: 'q34a', label: 'A) Is she walking to the store now?', options: {
+            '1': 'No, they have another appointment.', '2': "Yes. I'm waiting for Kate.",
+            '3': 'No, because my car is in the shop.', '4': 'Yes, she is to get some milk.',
+            '5': 'No, because it started to rain.', '6': 'Math, I have a test this week.' } },
+          { id: 'q34b', label: 'B) What are you studying?', options: {
+            '1': 'No, they have another appointment.', '2': "Yes. I'm waiting for Kate.",
+            '3': 'No, because my car is in the shop.', '4': 'Yes, she is to get some milk.',
+            '5': 'No, because it started to rain.', '6': 'Math, I have a test this week.' } },
+          { id: 'q34c', label: 'C) Is he riding his bike in the park?', options: {
+            '1': 'No, they have another appointment.', '2': "Yes. I'm waiting for Kate.",
+            '3': 'No, because my car is in the shop.', '4': 'Yes, she is to get some milk.',
+            '5': 'No, because it started to rain.', '6': 'Math, I have a test this week.' } },
+          { id: 'q34d', label: 'D) Are they coming to the meeting?', options: {
+            '1': 'No, they have another appointment.', '2': "Yes. I'm waiting for Kate.",
+            '3': 'No, because my car is in the shop.', '4': 'Yes, she is to get some milk.',
+            '5': 'No, because it started to rain.', '6': 'Math, I have a test this week.' } },
+          { id: 'q34e', label: 'E) Are you at the movie theater?', options: {
+            '1': 'No, they have another appointment.', '2': "Yes. I'm waiting for Kate.",
+            '3': 'No, because my car is in the shop.', '4': 'Yes, she is to get some milk.',
+            '5': 'No, because it started to rain.', '6': 'Math, I have a test this week.' } },
+          { id: 'q34f', label: 'F) Are you driving to work today?', options: {
+            '1': 'No, they have another appointment.', '2': "Yes. I'm waiting for Kate.",
+            '3': 'No, because my car is in the shop.', '4': 'Yes, she is to get some milk.',
+            '5': 'No, because it started to rain.', '6': 'Math, I have a test this week.' } }
+        ]}
+      ]
+    },
+    {
+      title: 'Part 5 · Present continuous questions (auxiliary + verb)',
+      questions: [
+        { id: 'q35', text: '__ you __ on the phone right now?', type: 'twoblank', subs: [{ id: 'q35a' }, { id: 'q35b' }] },
+        { id: 'q36', text: '__ Anna __ her bicycle to school?', type: 'twoblank', subs: [{ id: 'q36a' }, { id: 'q36b' }] },
+        { id: 'q37', text: '__ the students __ on the new project?', type: 'twoblank', subs: [{ id: 'q37a' }, { id: 'q37b' }] },
+        { id: 'q38', text: '__ your brother __ the groceries inside?', type: 'twoblank', subs: [{ id: 'q38a' }, { id: 'q38b' }] },
+        { id: 'q39', text: '__ we __ for the bus at the right stop?', type: 'twoblank', subs: [{ id: 'q39a' }, { id: 'q39b' }] },
+        { id: 'q40', text: '__ the dog __ in the park?', type: 'twoblank', subs: [{ id: 'q40a' }, { id: 'q40b' }] }
+      ]
+    },
+    {
+      title: 'Part 6 · Sentence ordering',
+      questions: [
+        { id: 'q41', text: 'are / these / hard / working / students', type: 'order' },
+        { id: 'q42', text: 'try / we / this / restaurant / can / today', type: 'order' },
+        { id: 'q43', text: 'very / chair / comfortable / is / this', type: 'order' },
+        { id: 'q44', text: 'wash / I / dishes / need to / these', type: 'order' }
+      ]
+    },
+    {
+      title: 'Part 7 · Choose the correct phrase',
+      questions: [
+        { id: 'q45', text: 'I _____ play a new video game tonight.', type: 'inline', options: ['have to', 'want to'] },
+        { id: 'q46', text: 'He _____ drive along the coast to enjoy the view.', type: 'inline', options: ['likes to', 'need to'] },
+        { id: 'q47', text: 'I _____ pay for my groceries at the checkout.', type: 'inline', options: ['need to', 'like to'] },
+        { id: 'q48', text: 'She _____ go to the beach for vacation.', type: 'inline', options: ['wants to', 'has to'] },
+        { id: 'q49', text: 'They _____ work on their presentation for tomorrow.', type: 'inline', options: ['like to', 'need to'] },
+        { id: 'q50', text: 'He _____ leave the meeting to answer an important call.', type: 'inline', options: ['likes to', 'needs to'] }
+      ]
+    }
+  ];
+
+  // ===== STATE =====
+  const state = {
+    submission: null,
+    exam: null,
+    gradingMode: false,
+    manualGradesDraft: {} // working copy of manual grades while in grading mode
+  };
+
+  // ===== ELEMENTS =====
+  const toast = document.getElementById('toast');
+
+  function showToast(msg, type = '') {
+    toast.textContent = msg;
+    toast.className = 'toast show ' + type;
+    setTimeout(() => toast.classList.remove('show'), 4000);
+  }
+
+  function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  function formatDateTime(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
+      ', ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  }
+
+  function formatDuration(seconds) {
+    if (!seconds) return '—';
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}m ${String(s).padStart(2, '0')}s`;
+  }
+
+  // ===== AUTO-GRADING =====
+  function gradeAuto(qId, studentAnswer) {
+    const key = ANSWER_KEY[qId];
+    if (!key) return { graded: false, points: 0, max: 0 };
+    if (key.type === 'manual') return { graded: false, manual: true, max: key.max_points };
+
+    if (!studentAnswer || String(studentAnswer).trim() === '') {
+      return { graded: true, correct: false, empty: true, points: 0, max: key.points };
+    }
+
+    const sa = String(studentAnswer).trim();
+    const compare = key.ci ? sa.toLowerCase() : sa;
+
+    let correct = false;
+    if (key.type === 'auto') {
+      const target = key.ci ? key.answer.toLowerCase() : key.answer;
+      correct = compare === target;
+    } else if (key.type === 'auto_multi') {
+      correct = key.answers.some(a => (key.ci ? a.toLowerCase() : a) === compare);
+    }
+    return { graded: true, correct, points: correct ? key.points : 0, max: key.points };
+  }
+
+  // ===== TOTALS =====
+  function computeTotals(submission) {
+    const answers = submission.answers || {};
+    const manualGrades = submission.manual_grades || {};
+    let auto = 0, manual = 0, max = 0;
+
+    Object.keys(ANSWER_KEY).forEach(qId => {
+      const key = ANSWER_KEY[qId];
+      if (key.type === 'manual') {
+        max += key.max_points;
+        if (manualGrades[qId] != null) manual += Number(manualGrades[qId]);
+      } else {
+        max += key.points;
+        const result = gradeAuto(qId, answers[qId]);
+        if (result.correct) auto += result.points;
+      }
+    });
+
+    // Round to 2 decimals
+    auto = Math.round(auto * 100) / 100;
+    manual = Math.round(manual * 100) / 100;
+    return { auto, manual, total: auto + manual, max };
+  }
+
+  // ===== LOAD =====
+  async function load() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    if (!id) {
+      showError('Missing submission ID', 'No ID was passed in the URL.');
+      return;
+    }
+
+    try {
+      const subRes = await db.from('submissions').select('*').eq('id', id).single();
+      if (subRes.error) throw subRes.error;
+      state.submission = subRes.data;
+
+      const examRes = await db.from('exams').select('*').eq('id', state.submission.exam_id).single();
+      if (examRes.error) throw examRes.error;
+      state.exam = examRes.data;
+
+      state.manualGradesDraft = { ...(state.submission.manual_grades || {}) };
+
+      render();
+      document.getElementById('loadingScreen').style.display = 'none';
+      document.getElementById('content').style.display = 'block';
+    } catch (err) {
+      console.error(err);
+      showError('Could not load submission', err.message || 'Unknown error');
+    }
+  }
+
+  function showError(title, message) {
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('errorTitle').textContent = title;
+    document.getElementById('errorMessage').textContent = message;
+    document.getElementById('errorScreen').style.display = 'block';
+  }
+
+  // ===== RENDER =====
+  function render() {
+    const s = state.submission;
+    const e = state.exam;
+
+    document.getElementById('bcStudent').textContent = s.student_name;
+    document.getElementById('studentName').textContent = s.student_name;
+    document.getElementById('metaClass').textContent = e.class_name;
+    document.getElementById('metaCode').textContent = s.exam_code;
+    document.getElementById('metaTeacher').textContent = e.teacher;
+    document.getElementById('metaSubmitted').textContent = formatDateTime(s.submitted_at);
+    document.getElementById('metaTime').textContent = formatDuration(s.time_taken_seconds);
+
+    // Badges
+    const badges = document.getElementById('badges');
+    badges.innerHTML = '';
+    if (s.status === 'in_progress') {
+      badges.innerHTML += '<span class="badge in_progress">In Progress</span>';
+    } else {
+      badges.innerHTML += '<span class="badge submitted">Submitted</span>';
+    }
+    if (s.reviewed) badges.innerHTML += '<span class="badge reviewed">Reviewed</span>';
+
+    // Compute and show score
+    const totals = computeTotals(s);
+    if (s.status === 'submitted') {
+      const pct = totals.max > 0 ? Math.round((totals.total / totals.max) * 100) : 0;
+      badges.innerHTML += `<span class="badge score">${totals.total} / ${totals.max} · ${pct}%</span>`;
+    }
+
+    // Hide grading button for in_progress
+    if (s.status !== 'submitted') {
+      document.getElementById('startGradingBtn').style.display = 'none';
+    }
+
+    renderProctoring();
+    renderAnswers();
+
+    // Restore reviewed checkbox and notes if previously set
+    document.getElementById('reviewedCheck').checked = !!s.reviewed;
+    document.getElementById('reviewerNotes').value = s.reviewer_notes || '';
+  }
+
+  function renderProctoring() {
+    const p = state.submission.proctoring || {};
+    const tabs = p.tab_switches || 0;
+    const blur = p.window_blur_events || 0;
+    const fs = p.fullscreen_exits || 0;
+    const rc = p.right_clicks_blocked || 0;
+    const dt = p.devtools_attempts || 0;
+    const log = p.event_log || [];
+
+    document.getElementById('numTabs').textContent = tabs;
+    document.getElementById('numBlur').textContent = blur;
+    document.getElementById('numFs').textContent = fs;
+    document.getElementById('numRC').textContent = rc;
+    document.getElementById('numDT').textContent = dt;
+
+    const flagged = ['statTabs', 'statFs', 'statDT'];
+    if (tabs > 0) document.getElementById('statTabs').classList.add('flag');
+    if (fs > 0) document.getElementById('statFs').classList.add('flag');
+    if (dt > 0) document.getElementById('statDT').classList.add('flag');
+
+    const totalFlags = tabs + fs + dt;
+    let level = 'clean', summary = 'Clean';
+    if (totalFlags >= 3) { level = 'concern'; summary = 'Multiple flags'; }
+    else if (totalFlags >= 1) { level = 'minor'; summary = 'Minor flags'; }
+    document.getElementById('reportCard').classList.add(level);
+    document.getElementById('reportSummary').textContent = summary;
+
+    // Event log
+    const logHtml = log.length === 0
+      ? '<div style="text-align:center; color: var(--dark-sky-blue); padding: 1rem;">No events recorded.</div>'
+      : log.map(e => `
+          <div class="event-row">
+            <span class="event-time">${new Date(e.ts).toLocaleTimeString()}</span>
+            <span class="event-type">${escapeHtml(e.type)}</span>
+            ${e.detail ? `<span style="color:var(--dark-sky-blue); margin-left:0.5rem;">${escapeHtml(e.detail)}</span>` : ''}
+          </div>`).join('');
+    document.getElementById('eventLog').innerHTML = logHtml;
+  }
+
+  document.getElementById('logToggle').addEventListener('click', () => {
+    const log = document.getElementById('eventLog');
+    const btn = document.getElementById('logToggle');
+    log.classList.toggle('show');
+    btn.textContent = log.classList.contains('show') ? 'Hide Event Log' : 'Show Event Log';
+  });
+
+  // ===== RENDER ANSWERS =====
+  function renderAnswers() {
+    const container = document.getElementById('answersContainer');
+    const answers = state.submission.answers || {};
+
+    container.innerHTML = EXAM_STRUCTURE.map(part => `
+      <div class="part">
+        <div class="part-header">
+          <div class="part-label">Section</div>
+          <div class="part-title">${escapeHtml(part.title)}</div>
+        </div>
+        ${part.questions.map(q => renderQuestion(q, answers)).join('')}
+      </div>
+    `).join('');
+
+    // Wire up manual grade inputs (only matters in grading mode)
+    container.querySelectorAll('.manual-grade-input input').forEach(input => {
+      input.addEventListener('input', (e) => {
+        const qId = e.target.dataset.qid;
+        const max = parseFloat(e.target.dataset.max);
+        let val = parseFloat(e.target.value);
+        if (isNaN(val)) {
+          delete state.manualGradesDraft[qId];
+        } else {
+          if (val < 0) val = 0;
+          if (val > max) val = max;
+          e.target.value = val;
+          state.manualGradesDraft[qId] = val;
+        }
+      });
+    });
+  }
+
+  function renderQuestion(q, answers) {
+    // Question number from the id (extract digits)
+    const num = q.id.replace(/[^0-9]/g, '').padStart(2, '0');
+
+    let bodyHtml = '';
+    let scoreHtml = '';
+
+    if (q.type === 'mc') {
+      // Multiple choice
+      const studentChoice = answers[q.id];
+      const key = ANSWER_KEY[q.id];
+      const result = gradeAuto(q.id, studentChoice);
+
+      bodyHtml = `<div class="q-text">${escapeHtml(q.text)}</div>`;
+      bodyHtml += `<div class="q-answer">`;
+      Object.entries(q.options).forEach(([letter, text]) => {
+        const isStudent = studentChoice === letter;
+        const isCorrect = key && key.answer === letter;
+        let cls = '';
+        if (isStudent && isCorrect) cls = 'correct';
+        else if (isStudent && !isCorrect) cls = 'incorrect';
+        else if (!isStudent && isCorrect) cls = '';
+        if (!isStudent && !isCorrect) return;
+        bodyHtml += `<div class="answer-line ${cls}">
+          <span class="answer-label">${isStudent ? 'Student' : 'Correct'}</span>
+          <span class="answer-pill ${cls}">${letter.toUpperCase()}</span>
+          <span class="answer-value">${escapeHtml(text)}</span>
+        </div>`;
+      });
+      if (!studentChoice) {
+        bodyHtml += `<div class="answer-line empty">
+          <span class="answer-label">Student</span>
+          <span class="answer-value">No answer</span>
+        </div>`;
+      }
+      bodyHtml += `</div>`;
+      scoreHtml = renderAutoScore(result);
+
+    } else if (q.type === 'fill') {
+      const studentAnswer = answers[q.id];
+      const key = ANSWER_KEY[q.id];
+      const result = gradeAuto(q.id, studentAnswer);
+      const expected = key ? (key.answers ? key.answers[0] : key.answer) : '—';
+
+      const blank = studentAnswer
+        ? `<span class="blank-show ${result.correct ? 'correct' : ''}">${escapeHtml(studentAnswer)}</span>`
+        : `<span class="blank-show empty">no answer</span>`;
+      bodyHtml = `<div class="q-text">${escapeHtml(q.text).replace('__', blank)}</div>`;
+      if (!result.correct && studentAnswer) {
+        bodyHtml += `<div class="answer-key-line"><strong>Expected:</strong> ${escapeHtml(expected)}</div>`;
+      } else if (!studentAnswer) {
+        bodyHtml += `<div class="answer-key-line"><strong>Expected:</strong> ${escapeHtml(expected)}</div>`;
+      }
+      scoreHtml = renderAutoScore(result);
+
+    } else if (q.type === 'twoblank') {
+      const sub1 = q.subs[0].id, sub2 = q.subs[1].id;
+      const a1 = answers[sub1], a2 = answers[sub2];
+      const r1 = gradeAuto(sub1, a1);
+      const r2 = gradeAuto(sub2, a2);
+      const k1 = ANSWER_KEY[sub1], k2 = ANSWER_KEY[sub2];
+      const exp1 = k1 ? (k1.answers ? k1.answers[0] : k1.answer) : '—';
+      const exp2 = k2 ? (k2.answers ? k2.answers[0] : k2.answer) : '—';
+
+      const blank1 = a1 ? `<span class="blank-show ${r1.correct ? 'correct' : ''}">${escapeHtml(a1)}</span>` : `<span class="blank-show empty">—</span>`;
+      const blank2 = a2 ? `<span class="blank-show ${r2.correct ? 'correct' : ''}">${escapeHtml(a2)}</span>` : `<span class="blank-show empty">—</span>`;
+      let txt = escapeHtml(q.text).replace('__', blank1).replace('__', blank2);
+      bodyHtml = `<div class="q-text">${txt}</div>`;
+      if (!r1.correct || !r2.correct) {
+        bodyHtml += `<div class="answer-key-line"><strong>Expected:</strong> ${escapeHtml(exp1)} … ${escapeHtml(exp2)}</div>`;
+      }
+      // Combined score for both blanks
+      const combinedPoints = (r1.points || 0) + (r2.points || 0);
+      const combinedMax = (r1.max || 0) + (r2.max || 0);
+      const allCorrect = r1.correct && r2.correct;
+      const noneAnswered = !a1 && !a2;
+      let combinedCls = 'auto-incorrect';
+      let combinedLabel;
+      if (allCorrect) { combinedCls = 'auto-correct'; combinedLabel = `${combinedPoints} / ${combinedMax}`; }
+      else if (noneAnswered) { combinedCls = 'auto-empty'; combinedLabel = `0 / ${combinedMax}`; }
+      else combinedLabel = `${combinedPoints} / ${combinedMax}`;
+      scoreHtml = `<span class="score-mark ${combinedCls}">${combinedLabel}</span>`;
+
+    } else if (q.type === 'match') {
+      bodyHtml = `<div class="q-text">${escapeHtml(q.text)}</div>`;
+      bodyHtml += `<div class="q-answer">`;
+      let totalPoints = 0, totalMax = 0, allCorrect = true, anyEmpty = false;
+      q.subs.forEach(sub => {
+        const studentChoice = answers[sub.id];
+        const result = gradeAuto(sub.id, studentChoice);
+        const key = ANSWER_KEY[sub.id];
+        const expected = key ? (key.answers ? key.answers[0] : key.answer) : '—';
+        const expectedLabel = key && sub.options[expected] ? sub.options[expected] : '—';
+
+        totalMax += result.max;
+        if (result.correct) totalPoints += result.points;
+        else allCorrect = false;
+        if (result.empty) anyEmpty = true;
+
+        let cls = result.empty ? 'empty' : (result.correct ? 'correct' : 'incorrect');
+        const studentLabel = studentChoice && sub.options[studentChoice] ? `${studentChoice}) ${sub.options[studentChoice]}` : 'No answer';
+
+        bodyHtml += `<div class="answer-line ${cls}">
+          <span class="answer-label">${escapeHtml(sub.label.split(')')[0])})</span>
+          <span class="answer-value">
+            <strong style="color: var(--medium-blue); font-weight:500;">${escapeHtml(sub.label.replace(/^[A-Z]\)\s*/, ''))}</strong>
+            → ${escapeHtml(studentLabel)}
+            ${!result.correct && !result.empty ? `<span style="color: var(--success-green); margin-left: 0.5rem; font-style: italic;">(expected: ${escapeHtml(expectedLabel)})</span>` : ''}
+          </span>
+        </div>`;
+      });
+      bodyHtml += `</div>`;
+
+      let combinedCls = 'auto-correct';
+      if (anyEmpty && totalPoints === 0) combinedCls = 'auto-empty';
+      else if (!allCorrect) combinedCls = 'auto-incorrect';
+      scoreHtml = `<span class="score-mark ${combinedCls}">${Math.round(totalPoints * 100) / 100} / ${totalMax}</span>`;
+
+    } else if (q.type === 'order') {
+      const studentAnswer = answers[q.id];
+      const key = ANSWER_KEY[q.id];
+      const manualGrade = state.submission.manual_grades?.[q.id];
+      const draftGrade = state.manualGradesDraft[q.id];
+
+      bodyHtml = `<div class="q-text" style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--medium-blue);">Words: ${escapeHtml(q.text)}</div>`;
+      bodyHtml += `<div class="answer-line ${studentAnswer ? '' : 'empty'}" style="margin-top: 0.5rem;">
+        <span class="answer-label">Student</span>
+        <span class="answer-value">${studentAnswer ? escapeHtml(studentAnswer) : 'No answer'}</span>
+      </div>`;
+      if (key && key.guidance) {
+        bodyHtml += `<div class="answer-key-line"><strong>Guidance:</strong> ${escapeHtml(key.guidance)}</div>`;
+      }
+
+      const max = key ? key.max_points : 0;
+      const currentScore = draftGrade != null ? draftGrade : manualGrade;
+      const displayScore = currentScore != null ? currentScore : '—';
+      scoreHtml = `
+        <span class="score-mark manual" id="score-display-${q.id}">
+          ${displayScore} / ${max}
+        </span>
+        <div class="manual-grade-input" id="grade-input-${q.id}">
+          <input type="number" min="0" max="${max}" step="0.5" data-qid="${q.id}" data-max="${max}" value="${currentScore != null ? currentScore : ''}" placeholder="—">
+          <span class="max-points">/ ${max}</span>
+        </div>`;
+
+    } else if (q.type === 'inline') {
+      const studentChoice = answers[q.id];
+      const key = ANSWER_KEY[q.id];
+      const result = gradeAuto(q.id, studentChoice);
+      bodyHtml = `<div class="q-text">${escapeHtml(q.text)}</div>`;
+      bodyHtml += `<div class="q-answer">`;
+      const studentCls = !studentChoice ? 'empty' : (result.correct ? 'correct' : 'incorrect');
+      bodyHtml += `<div class="answer-line ${studentCls}">
+        <span class="answer-label">Student</span>
+        <span class="answer-value">${studentChoice ? `<span class="answer-pill ${studentCls}">${escapeHtml(studentChoice)}</span>` : 'No answer'}</span>
+      </div>`;
+      if (!result.correct && key) {
+        bodyHtml += `<div class="answer-line correct">
+          <span class="answer-label">Correct</span>
+          <span class="answer-value"><span class="answer-pill correct">${escapeHtml(key.answer)}</span></span>
+        </div>`;
+      }
+      bodyHtml += `</div>`;
+      scoreHtml = renderAutoScore(result);
+    }
+
+    return `
+      <div class="q-row" data-qid="${q.id}">
+        <span class="q-num">${num}</span>
+        <div class="q-body">${bodyHtml}</div>
+        <div class="q-score">${scoreHtml}</div>
+      </div>`;
+  }
+
+  function renderAutoScore(result) {
+    if (result.empty) {
+      return `<span class="score-mark auto-empty">0 / ${result.max}</span>`;
+    }
+    if (result.correct) {
+      return `<span class="score-mark auto-correct">${result.points} / ${result.max}</span>`;
+    }
+    return `<span class="score-mark auto-incorrect">0 / ${result.max}</span>`;
+  }
+
+  // ===== GRADING MODE =====
+  document.getElementById('startGradingBtn').addEventListener('click', () => {
+    state.gradingMode = true;
+    document.getElementById('gradingBanner').classList.add('active');
+    document.getElementById('gradingActions').style.display = 'flex';
+    document.getElementById('startGradingBtn').style.display = 'none';
+
+    // Show manual input fields, hide their score displays
+    document.querySelectorAll('.manual-grade-input').forEach(el => el.classList.add('show'));
+    document.querySelectorAll('[id^="score-display-"]').forEach(el => el.style.display = 'none');
+
+    // Enable reviewer notes
+    document.getElementById('reviewerNotes').disabled = false;
+
+    showToast('Grading mode activated');
+  });
+
+  document.getElementById('cancelGradingBtn').addEventListener('click', () => {
+    if (Object.keys(state.manualGradesDraft).length > 0 &&
+        JSON.stringify(state.manualGradesDraft) !== JSON.stringify(state.submission.manual_grades || {})) {
+      if (!confirm('Discard your unsaved grade changes?')) return;
+    }
+    state.manualGradesDraft = { ...(state.submission.manual_grades || {}) };
+    exitGradingMode();
+  });
+
+  function exitGradingMode() {
+    state.gradingMode = false;
+    document.getElementById('gradingBanner').classList.remove('active');
+    document.getElementById('gradingActions').style.display = 'none';
+    document.getElementById('startGradingBtn').style.display = 'inline-block';
+    document.querySelectorAll('.manual-grade-input').forEach(el => el.classList.remove('show'));
+    document.querySelectorAll('[id^="score-display-"]').forEach(el => el.style.display = 'inline-block');
+
+    // Re-render to refresh manual scores in display
+    renderAnswers();
+    // Re-compute totals badge
+    const totals = computeTotals(state.submission);
+    if (state.submission.status === 'submitted') {
+      const pct = totals.max > 0 ? Math.round((totals.total / totals.max) * 100) : 0;
+      const scoreBadge = document.querySelector('.badge.score');
+      if (scoreBadge) scoreBadge.textContent = `${totals.total} / ${totals.max} · ${pct}%`;
+    }
+  }
+
+  // ===== SAVE GRADES =====
+  document.getElementById('saveGradesBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('saveGradesBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+
+    // Compute final scores using the draft manual grades
+    const tempSubmission = {
+      ...state.submission,
+      manual_grades: state.manualGradesDraft
+    };
+    const totals = computeTotals(tempSubmission);
+
+    const reviewed = document.getElementById('reviewedCheck').checked;
+    const notes = document.getElementById('reviewerNotes').value.trim() || null;
+
+    const updates = {
+      manual_grades: state.manualGradesDraft,
+      auto_score: totals.auto,
+      manual_score: totals.manual,
+      total_score: totals.total,
+      max_score: totals.max,
+      reviewed,
+      reviewed_at: reviewed ? new Date().toISOString() : null,
+      reviewer_notes: notes
+    };
+
+    try {
+      const { data, error } = await db.from('submissions').update(updates).eq('id', state.submission.id).select().single();
+      if (error) throw error;
+
+      state.submission = data;
+      state.manualGradesDraft = { ...(data.manual_grades || {}) };
+
+      // Update badges
+      const badges = document.getElementById('badges');
+      badges.innerHTML = '<span class="badge submitted">Submitted</span>';
+      if (data.reviewed) badges.innerHTML += '<span class="badge reviewed">Reviewed</span>';
+      const pct = totals.max > 0 ? Math.round((totals.total / totals.max) * 100) : 0;
+      badges.innerHTML += `<span class="badge score">${totals.total} / ${totals.max} · ${pct}%</span>`;
+
+      exitGradingMode();
+      showToast('Grades saved successfully', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast(`Could not save: ${err.message}`, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save Grades';
+    }
+  });
+
+  // Initial state: notes disabled until grading mode
+  document.getElementById('reviewerNotes').disabled = true;
+
+  load();
+</script>
+
+</body>
+</html>

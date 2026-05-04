@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Submissions — Approach International Student Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --nd-blue: #0c2340;
+    --nd-gold: #ae9142;
+    --medium-blue: #143865;
+    --bright-blue: #1c4f8f;
+    --dark-sky-blue: #c1cddd;
+    --medium-sky-blue: #e1e8f2;
+    --light-sky-blue: #edf2f9;
+    --dark-gold: #8c7535;
+    --bright-gold: #d39f10;
+    --warm-white: #efe9d9;
+    --light-warm-white: #f8f4ec;
+    --accent-red: #ab100b;
+    --success-green: #3a6b3a;
+    --font-display: 'Cormorant Garamond', 'Times New Roman', serif;
+    --font-body: 'Montserrat', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    background: var(--light-warm-white);
+    color: var(--nd-blue);
+    min-height: 100vh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .brand-bar {
+    background: var(--nd-blue);
+    color: var(--light-warm-white);
+    padding: 0.7rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    border-bottom: 3px solid var(--nd-gold);
+  }
+  .brand-bar-logo { display: flex; align-items: center; gap: 0.6rem; }
+  .brand-monogram {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--nd-gold);
+    line-height: 1;
+  }
+  .page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 3rem 2rem 5rem;
+  }
+  .page-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--dark-sky-blue);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .page-stamp {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    line-height: 1.05;
+    color: var(--nd-blue);
+    margin-bottom: 0.4rem;
+  }
+  h1 em {
+    font-style: italic;
+    color: var(--nd-gold);
+    font-weight: 500;
+  }
+  .page-sub {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--medium-blue);
+  }
+  .header-actions { display: flex; gap: 0.75rem; }
+
+  /* ===== STATS ===== */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: #fff;
+    border-top: 3px solid var(--nd-gold);
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 2px 8px rgba(12, 35, 64, 0.04);
+  }
+  .stat-card.total { border-top-color: var(--nd-blue); }
+  .stat-card.today { border-top-color: var(--success-green); }
+  .stat-card.progress { border-top-color: var(--bright-gold); }
+  .stat-card.average { border-top-color: var(--medium-blue); }
+  .stat-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+    margin-bottom: 0.4rem;
+  }
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: var(--nd-blue);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ===== FILTERS ===== */
+  .filters {
+    background: #fff;
+    border-top: 3px solid var(--nd-gold);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    display: grid;
+    grid-template-columns: 2fr 2fr 1fr 1fr 1fr;
+    gap: 1rem;
+    box-shadow: 0 2px 8px rgba(12, 35, 64, 0.04);
+  }
+  .filter-field { display: flex; flex-direction: column; gap: 0.4rem; }
+  .filter-field label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+  }
+  .filter-field input, .filter-field select {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--dark-sky-blue);
+    background: var(--light-sky-blue);
+    color: var(--nd-blue);
+    transition: all 0.2s;
+  }
+  .filter-field input:focus, .filter-field select:focus {
+    outline: none;
+    border-color: var(--nd-gold);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(174, 145, 66, 0.15);
+  }
+
+  /* ===== TABLE ===== */
+  .table-wrap {
+    background: #fff;
+    border-top: 3px solid var(--nd-gold);
+    box-shadow: 0 2px 8px rgba(12, 35, 64, 0.04);
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  thead th {
+    background: var(--nd-blue);
+    color: var(--nd-gold);
+    text-align: left;
+    padding: 0.85rem 1rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+  thead th:hover { background: var(--medium-blue); }
+  thead th .sort-arrow {
+    display: inline-block;
+    margin-left: 0.3rem;
+    opacity: 0.4;
+    font-size: 0.7rem;
+  }
+  thead th.sorted .sort-arrow { opacity: 1; color: #fff; }
+  tbody tr {
+    border-bottom: 1px solid var(--medium-sky-blue);
+    transition: background 0.15s;
+  }
+  tbody tr:hover { background: var(--light-sky-blue); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+    color: var(--nd-blue);
+  }
+  .name-cell { font-weight: 600; }
+  .code-cell {
+    font-family: 'JetBrains Mono', monospace, var(--font-body);
+    font-weight: 600;
+    color: var(--nd-blue);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .meta-cell { font-size: 0.78rem; color: var(--medium-blue); white-space: nowrap; }
+
+  .chip {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border: 1px solid;
+  }
+  .chip.submitted {
+    background: rgba(58, 107, 58, 0.1);
+    color: var(--success-green);
+    border-color: var(--success-green);
+  }
+  .chip.in_progress {
+    background: rgba(211, 159, 16, 0.1);
+    color: var(--dark-gold);
+    border-color: var(--bright-gold);
+  }
+  .chip.reviewed {
+    background: var(--nd-blue);
+    color: var(--nd-gold);
+    border-color: var(--nd-gold);
+  }
+
+  /* Proctoring score */
+  .proct-score {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    font-family: 'JetBrains Mono', monospace, var(--font-body);
+  }
+  .proct-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .proct-clean .proct-dot { background: var(--success-green); }
+  .proct-minor .proct-dot { background: var(--bright-gold); }
+  .proct-concern .proct-dot { background: var(--accent-red); }
+  .proct-clean { color: var(--success-green); }
+  .proct-minor { color: var(--dark-gold); }
+  .proct-concern { color: var(--accent-red); }
+
+  /* Score display */
+  .score-cell {
+    font-family: 'JetBrains Mono', monospace, var(--font-body);
+    font-weight: 600;
+  }
+  .score-cell .pct {
+    font-size: 0.75rem;
+    color: var(--medium-blue);
+    margin-left: 0.3rem;
+  }
+
+  .row-actions {
+    display: flex;
+    gap: 0.4rem;
+    justify-content: flex-end;
+  }
+  .row-btn {
+    background: transparent;
+    border: 1px solid var(--medium-blue);
+    color: var(--medium-blue);
+    font-family: var(--font-body);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.7rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .row-btn:hover {
+    background: var(--medium-blue);
+    color: var(--light-warm-white);
+  }
+  .row-btn.delete { border-color: var(--accent-red); color: var(--accent-red); }
+  .row-btn.delete:hover { background: var(--accent-red); color: #fff; }
+  .row-btn.primary { background: var(--nd-gold); color: var(--nd-blue); border-color: var(--nd-gold); }
+  .row-btn.primary:hover { background: var(--bright-gold); }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--medium-blue);
+  }
+  .empty-state .icon {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    color: var(--dark-sky-blue);
+    margin-bottom: 0.5rem;
+  }
+  .empty-state h3 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--nd-blue);
+    margin-bottom: 0.5rem;
+  }
+  .empty-state p {
+    font-style: italic;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+  }
+
+  .btn-primary, .btn-secondary {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 0.85rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-primary {
+    background: var(--nd-gold);
+    color: var(--nd-blue);
+    border-bottom: 3px solid var(--nd-blue);
+  }
+  .btn-primary:hover { background: var(--bright-gold); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--medium-blue);
+    border: 1px solid var(--medium-blue);
+  }
+  .btn-secondary:hover {
+    background: var(--medium-blue);
+    color: var(--light-warm-white);
+  }
+
+  .toast {
+    position: fixed;
+    top: 5rem;
+    right: 2rem;
+    background: var(--nd-blue);
+    color: var(--light-warm-white);
+    padding: 1rem 1.4rem;
+    border-left: 3px solid var(--nd-gold);
+    font-size: 0.85rem;
+    transform: translateX(120%);
+    transition: transform 0.3s;
+    z-index: 200;
+    max-width: 380px;
+    box-shadow: 0 4px 20px rgba(12, 35, 64, 0.2);
+  }
+  .toast.show { transform: translateX(0); }
+  .toast.error { border-left-color: var(--accent-red); }
+  .toast.success { border-left-color: var(--success-green); }
+
+  .copyright {
+    text-align: center;
+    padding: 1.5rem 2rem;
+    background: var(--nd-blue);
+    color: var(--dark-sky-blue);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    border-top: 2px solid var(--nd-gold);
+  }
+
+  @media (max-width: 1000px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .filters { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 600px) {
+    .filters { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="brand-bar">
+  <div class="brand-bar-logo">
+    <span class="brand-monogram">A</span>
+    <span>Approach International Student Center</span>
+  </div>
+  <div>Submissions Dashboard</div>
+</div>
+
+<div class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-stamp">Exam Administration · Submissions</div>
+      <h1>Student <em>Submissions</em></h1>
+      <p class="page-sub">Review, grade, and export student exam responses</p>
+    </div>
+    <div class="header-actions">
+      <a href="dashboard.html" class="btn-secondary">Exams Dashboard</a>
+      <button type="button" class="btn-primary" id="exportCsvBtn">Export CSV</button>
+    </div>
+  </div>
+
+  <!-- ===== STATS ===== -->
+  <div class="stats-row">
+    <div class="stat-card total">
+      <div class="stat-label">Total Submissions</div>
+      <div class="stat-value" id="statTotal">—</div>
+    </div>
+    <div class="stat-card today">
+      <div class="stat-label">Submitted Today</div>
+      <div class="stat-value" id="statToday">—</div>
+    </div>
+    <div class="stat-card progress">
+      <div class="stat-label">In Progress</div>
+      <div class="stat-value" id="statProgress">—</div>
+    </div>
+    <div class="stat-card average">
+      <div class="stat-label">Avg. Time</div>
+      <div class="stat-value" id="statAvgTime">—</div>
+    </div>
+  </div>
+
+  <!-- ===== FILTERS ===== -->
+  <div class="filters">
+    <div class="filter-field">
+      <label for="search">Search</label>
+      <input type="text" id="search" placeholder="Student name or code…">
+    </div>
+    <div class="filter-field">
+      <label for="filterExam">Exam</label>
+      <select id="filterExam">
+        <option value="">All exams</option>
+      </select>
+    </div>
+    <div class="filter-field">
+      <label for="filterStatus">Status</label>
+      <select id="filterStatus">
+        <option value="">All statuses</option>
+        <option value="submitted">Submitted</option>
+        <option value="in_progress">In progress</option>
+        <option value="reviewed">Reviewed</option>
+        <option value="not_reviewed">Not yet reviewed</option>
+      </select>
+    </div>
+    <div class="filter-field">
+      <label for="filterFrom">From</label>
+      <input type="date" id="filterFrom">
+    </div>
+    <div class="filter-field">
+      <label for="filterUntil">Until</label>
+      <input type="date" id="filterUntil">
+    </div>
+  </div>
+
+  <!-- ===== TABLE ===== -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-sort="student_name">Student <span class="sort-arrow">↕</span></th>
+          <th data-sort="exam_code">Exam <span class="sort-arrow">↕</span></th>
+          <th data-sort="status">Status <span class="sort-arrow">↕</span></th>
+          <th data-sort="submitted_at" class="sorted">Submitted <span class="sort-arrow">↓</span></th>
+          <th data-sort="time_taken_seconds">Time <span class="sort-arrow">↕</span></th>
+          <th>Proctoring</th>
+          <th>Answered</th>
+          <th>Score</th>
+          <th style="text-align: right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="submissionsBody">
+        <tr><td colspan="9"><div class="empty-state"><p>Loading submissions…</p></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="copyright">
+  Copyright © 2026 Approach International Student Center, Inc. — All rights reserved.
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ============================================
+  // CONFIGURE YOUR SUPABASE CREDENTIALS HERE
+  // ============================================
+  const SUPABASE_URL = 'https://vqgbcqqxgbukkfijatrf.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxZ2JjcXF4Z2J1a2tmaWphdHJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MjIwNzEsImV4cCI6MjA5MzA5ODA3MX0.TiVFexjlQ-1fqf4mP_AbPb0P2a99X5JWNjMav3XtHek';
+  // ============================================
+
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let allSubmissions = [];
+  let allExams = [];
+  let sortBy = 'submitted_at';
+  let sortDir = 'desc';
+
+  const submissionsBody = document.getElementById('submissionsBody');
+  const searchEl = document.getElementById('search');
+  const filterExam = document.getElementById('filterExam');
+  const filterStatus = document.getElementById('filterStatus');
+  const filterFrom = document.getElementById('filterFrom');
+  const filterUntil = document.getElementById('filterUntil');
+  const toast = document.getElementById('toast');
+
+  function showToast(msg, type = '') {
+    toast.textContent = msg;
+    toast.className = 'toast show ' + type;
+    setTimeout(() => toast.classList.remove('show'), 4000);
+  }
+
+  function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  function formatDateTime(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
+      ', ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  }
+
+  function formatDuration(seconds) {
+    if (!seconds) return '—';
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}m ${String(s).padStart(2, '0')}s`;
+  }
+
+  // ===== LOAD DATA =====
+  async function loadData() {
+    try {
+      // Load exams (for filter dropdown and joining)
+      const examsRes = await db.from('exams').select('id, code, class_name, level, quarter, year, type, teacher')
+        .order('created_at', { ascending: false });
+      if (examsRes.error) throw examsRes.error;
+      allExams = examsRes.data || [];
+
+      // Populate exam filter
+      filterExam.innerHTML = '<option value="">All exams</option>' +
+        allExams.map(e =>
+          `<option value="${e.id}">${escapeHtml(e.code)} — ${escapeHtml(e.class_name)}</option>`
+        ).join('');
+
+      // Load submissions
+      const subsRes = await db.from('submissions').select('*')
+        .order('submitted_at', { ascending: false, nullsFirst: false });
+      if (subsRes.error) throw subsRes.error;
+      allSubmissions = subsRes.data || [];
+
+      // Cross-reference with exam data
+      allSubmissions.forEach(s => {
+        s._exam = allExams.find(e => e.id === s.exam_id) || null;
+      });
+
+      updateStats();
+      renderTable();
+    } catch (err) {
+      console.error('Failed to load:', err);
+      submissionsBody.innerHTML = `
+        <tr><td colspan="9"><div class="empty-state">
+          <h3>Could not load submissions</h3>
+          <p>${escapeHtml(err.message || 'Check your Supabase connection.')}</p>
+        </div></td></tr>`;
+    }
+  }
+
+  function updateStats() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let totalSubmitted = 0, todayCount = 0, inProgress = 0, totalTime = 0, timeCount = 0;
+    allSubmissions.forEach(s => {
+      if (s.status === 'submitted') {
+        totalSubmitted++;
+        if (s.submitted_at && new Date(s.submitted_at) >= today) todayCount++;
+        if (s.time_taken_seconds) {
+          totalTime += s.time_taken_seconds;
+          timeCount++;
+        }
+      } else if (s.status === 'in_progress') {
+        inProgress++;
+      }
+    });
+
+    document.getElementById('statTotal').textContent = totalSubmitted;
+    document.getElementById('statToday').textContent = todayCount;
+    document.getElementById('statProgress').textContent = inProgress;
+    document.getElementById('statAvgTime').textContent =
+      timeCount > 0 ? Math.round(totalTime / timeCount / 60) + 'm' : '—';
+  }
+
+  // ===== PROCTORING SUMMARY =====
+  function getProctoringSummary(s) {
+    const p = s.proctoring || {};
+    const total = (p.tab_switches || 0) + (p.fullscreen_exits || 0);
+    let level = 'clean';
+    if (total >= 3) level = 'concern';
+    else if (total >= 1) level = 'minor';
+    return {
+      level,
+      tabs: p.tab_switches || 0,
+      fs: p.fullscreen_exits || 0,
+      blur: p.window_blur_events || 0
+    };
+  }
+
+  // ===== ANSWERED COUNT =====
+  function getAnsweredCount(s) {
+    const answers = s.answers || {};
+    return Object.values(answers).filter(v => v && String(v).trim() !== '').length;
+  }
+
+  // ===== FILTER + SORT =====
+  function getFiltered() {
+    const search = searchEl.value.toLowerCase().trim();
+    const examId = filterExam.value;
+    const status = filterStatus.value;
+    const from = filterFrom.value ? new Date(filterFrom.value) : null;
+    const until = filterUntil.value ? new Date(filterUntil.value + 'T23:59:59') : null;
+
+    let filtered = allSubmissions.filter(s => {
+      if (examId && s.exam_id !== examId) return false;
+
+      if (status === 'reviewed' && !s.reviewed) return false;
+      if (status === 'not_reviewed' && (s.reviewed || s.status !== 'submitted')) return false;
+      if (status === 'submitted' && s.status !== 'submitted') return false;
+      if (status === 'in_progress' && s.status !== 'in_progress') return false;
+
+      if (from && s.submitted_at && new Date(s.submitted_at) < from) return false;
+      if (until && s.submitted_at && new Date(s.submitted_at) > until) return false;
+
+      if (search) {
+        const hay = `${s.student_name} ${s.exam_code} ${s._exam?.class_name || ''}`.toLowerCase();
+        if (!hay.includes(search)) return false;
+      }
+
+      return true;
+    });
+
+    filtered.sort((a, b) => {
+      let av = a[sortBy], bv = b[sortBy];
+      if (av == null) av = '';
+      if (bv == null) bv = '';
+      if (typeof av === 'string' && typeof bv === 'string') {
+        return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+      }
+      return sortDir === 'asc' ? (av > bv ? 1 : -1) : (bv > av ? 1 : -1);
+    });
+
+    return filtered;
+  }
+
+  // ===== RENDER =====
+  function renderTable() {
+    const submissions = getFiltered();
+
+    if (submissions.length === 0) {
+      submissionsBody.innerHTML = `
+        <tr><td colspan="9"><div class="empty-state">
+          <div class="icon">⌗</div>
+          <h3>No submissions found</h3>
+          <p>${allSubmissions.length === 0 ? 'No students have started any exams yet.' : 'Try adjusting your filters.'}</p>
+        </div></td></tr>`;
+      return;
+    }
+
+    submissionsBody.innerHTML = submissions.map(s => {
+      const proct = getProctoringSummary(s);
+      const answered = getAnsweredCount(s);
+      const examLabel = s._exam ? `${s.exam_code}<br><span class="meta-cell">${escapeHtml(s._exam.class_name)}</span>` : escapeHtml(s.exam_code);
+
+      // Status chip
+      let statusChip;
+      if (s.status === 'in_progress') {
+        statusChip = `<span class="chip in_progress">In Progress</span>`;
+      } else if (s.reviewed) {
+        statusChip = `<span class="chip reviewed">Reviewed</span>`;
+      } else {
+        statusChip = `<span class="chip submitted">Submitted</span>`;
+      }
+
+      // Score
+      let scoreHtml = '—';
+      if (s.status === 'submitted' && s.total_score != null && s.max_score) {
+        const pct = Math.round((s.total_score / s.max_score) * 100);
+        scoreHtml = `<span class="score-cell">${s.total_score}/${s.max_score}<span class="pct">${pct}%</span></span>`;
+      } else if (s.status === 'submitted') {
+        scoreHtml = `<span class="meta-cell">Not graded</span>`;
+      }
+
+      // Action buttons
+      let actions = `<a href="submission-detail.html?id=${s.id}" class="row-btn primary">View</a>`;
+      if (s.status === 'in_progress') {
+        actions += `<button class="row-btn delete" onclick="deleteInProgress('${s.id}', '${escapeHtml(s.student_name)}')">Delete</button>`;
+      }
+
+      return `
+        <tr>
+          <td class="name-cell">${escapeHtml(s.student_name)}</td>
+          <td class="code-cell">${examLabel}</td>
+          <td>${statusChip}</td>
+          <td class="meta-cell">${formatDateTime(s.submitted_at) || (s.status === 'in_progress' ? 'Started ' + formatDateTime(s.started_at) : '—')}</td>
+          <td class="meta-cell">${formatDuration(s.time_taken_seconds)}</td>
+          <td>
+            <div class="proct-score proct-${proct.level}">
+              <span class="proct-dot"></span>
+              <span title="Tab switches / Fullscreen exits / Blur events">${proct.tabs} / ${proct.fs} / ${proct.blur}</span>
+            </div>
+          </td>
+          <td class="score-cell">${answered}</td>
+          <td>${scoreHtml}</td>
+          <td><div class="row-actions">${actions}</div></td>
+        </tr>`;
+    }).join('');
+  }
+
+  // ===== DELETE IN-PROGRESS =====
+  async function deleteInProgress(id, name) {
+    if (!confirm(`Delete the in-progress submission from "${name}"?\n\nThis cannot be undone. Only use this for accidental starts.`)) return;
+    try {
+      const { error } = await db.from('submissions').delete().eq('id', id).eq('status', 'in_progress');
+      if (error) throw error;
+      allSubmissions = allSubmissions.filter(s => s.id !== id);
+      updateStats();
+      renderTable();
+      showToast('In-progress submission deleted', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast(`Could not delete: ${err.message}`, 'error');
+    }
+  }
+  window.deleteInProgress = deleteInProgress;
+
+  // ===== CSV EXPORT =====
+  document.getElementById('exportCsvBtn').addEventListener('click', () => {
+    const rows = getFiltered();
+    if (rows.length === 0) {
+      showToast('Nothing to export with current filters.', 'error');
+      return;
+    }
+    const headers = ['Student', 'Exam Code', 'Class', 'Status', 'Reviewed',
+      'Started', 'Submitted', 'Time (sec)', 'Tab Switches', 'Fullscreen Exits',
+      'Window Blurs', 'Answered', 'Auto Score', 'Manual Score', 'Total Score', 'Max Score'];
+    const csv = [headers.join(',')];
+    rows.forEach(s => {
+      const p = s.proctoring || {};
+      const row = [
+        s.student_name, s.exam_code, s._exam?.class_name || '',
+        s.status, s.reviewed ? 'yes' : 'no',
+        s.started_at || '', s.submitted_at || '',
+        s.time_taken_seconds || '',
+        p.tab_switches || 0, p.fullscreen_exits || 0, p.window_blur_events || 0,
+        getAnsweredCount(s),
+        s.auto_score ?? '', s.manual_score ?? '', s.total_score ?? '', s.max_score ?? ''
+      ].map(v => {
+        const str = String(v).replace(/"/g, '""');
+        return /[,"\n]/.test(str) ? `"${str}"` : str;
+      });
+      csv.push(row.join(','));
+    });
+    const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `submissions_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(`Exported ${rows.length} submissions`, 'success');
+  });
+
+  // ===== EVENT LISTENERS =====
+  [searchEl, filterExam, filterStatus, filterFrom, filterUntil].forEach(el => {
+    el.addEventListener('input', renderTable);
+    el.addEventListener('change', renderTable);
+  });
+
+  document.querySelectorAll('th[data-sort]').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.sort;
+      if (sortBy === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+      else { sortBy = col; sortDir = 'asc'; }
+      document.querySelectorAll('th[data-sort]').forEach(t => {
+        t.classList.remove('sorted');
+        t.querySelector('.sort-arrow').textContent = '↕';
+      });
+      th.classList.add('sorted');
+      th.querySelector('.sort-arrow').textContent = sortDir === 'asc' ? '↑' : '↓';
+      renderTable();
+    });
+  });
+
+  loadData();
+</script>
+
+</body>
+</html>

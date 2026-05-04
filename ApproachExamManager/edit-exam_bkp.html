@@ -1,0 +1,2069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edit Exam — Approach International Student Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --nd-blue: #0c2340;
+    --nd-gold: #ae9142;
+    --medium-blue: #143865;
+    --bright-blue: #1c4f8f;
+    --dark-sky-blue: #c1cddd;
+    --medium-sky-blue: #e1e8f2;
+    --light-sky-blue: #edf2f9;
+    --dark-gold: #8c7535;
+    --bright-gold: #d39f10;
+    --warm-white: #efe9d9;
+    --light-warm-white: #f8f4ec;
+    --accent-red: #ab100b;
+    --success-green: #3a6b3a;
+    --font-display: 'Cormorant Garamond', 'Times New Roman', serif;
+    --font-body: 'Montserrat', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    background: var(--light-warm-white);
+    color: var(--nd-blue);
+    min-height: 100vh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== BRAND BAR ===== */
+  .brand-bar {
+    background: var(--nd-blue);
+    color: var(--light-warm-white);
+    padding: 0.7rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    border-bottom: 3px solid var(--nd-gold);
+  }
+  .brand-bar-logo { display: flex; align-items: center; gap: 0.6rem; }
+  .brand-monogram {
+    font-family: var(--font-display);
+    font-size: 1.3rem; font-weight: 600;
+    color: var(--nd-gold); line-height: 1;
+  }
+  .brand-bar-right { display: flex; align-items: center; gap: 1.5rem; }
+  .user-info {
+    font-size: 0.7rem;
+    color: var(--dark-sky-blue);
+    text-transform: none;
+    letter-spacing: 0.05em;
+  }
+  .user-info strong { color: var(--nd-gold); font-weight: 600; margin-right: 0.3rem; }
+  .nav-link {
+    color: var(--dark-sky-blue);
+    text-decoration: none;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.85rem;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+  }
+  .nav-link:hover { color: var(--nd-gold); border-color: var(--nd-gold); }
+
+  /* ===== BREADCRUMB ===== */
+  .breadcrumb {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem 0;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+  }
+  .breadcrumb a { color: var(--medium-blue); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--nd-gold); }
+  .breadcrumb span { margin: 0 0.5rem; color: var(--dark-sky-blue); }
+
+  /* ===== PAGE LAYOUT ===== */
+  .page {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 1rem 2rem 5rem;
+  }
+
+  /* ===== METADATA BAR ===== */
+  .meta-bar {
+    background: #fff;
+    border-top: 4px solid var(--nd-gold);
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(12, 35, 64, 0.04);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .meta-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1.5rem;
+    flex: 1;
+  }
+  .meta-block { display: flex; flex-direction: column; gap: 0.25rem; }
+  .meta-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+  }
+  .meta-value {
+    font-size: 0.95rem;
+    color: var(--nd-blue);
+    font-weight: 500;
+  }
+  .meta-value.code {
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.05em;
+    color: var(--nd-gold);
+    font-weight: 600;
+  }
+  .meta-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+
+  .badges { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.4rem; }
+  .badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border: 1px solid;
+  }
+  .badge.draft {
+    background: var(--light-warm-white);
+    color: var(--dark-gold);
+    border-color: var(--dark-gold);
+    border-style: dashed;
+  }
+  .badge.active {
+    background: rgba(58, 107, 58, 0.1);
+    color: var(--success-green);
+    border-color: var(--success-green);
+  }
+  .badge.archived {
+    background: var(--light-sky-blue);
+    color: var(--dark-sky-blue);
+    border-color: var(--dark-sky-blue);
+  }
+
+  /* ===== TWO-COLUMN GRID ===== */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .main-col { display: flex; flex-direction: column; gap: 1.5rem; }
+
+  /* ===== SECTION CARDS ===== */
+  .card {
+    background: #fff;
+    border-top: 3px solid var(--nd-gold);
+    box-shadow: 0 2px 8px rgba(12, 35, 64, 0.04);
+    padding: 2rem;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--dark-sky-blue);
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .card-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--nd-blue);
+  }
+  .card-subtitle {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--medium-blue);
+    margin-top: 0.2rem;
+  }
+
+  /* ===== UPLOAD AREA ===== */
+  .upload-zone {
+    border: 2px dashed var(--dark-sky-blue);
+    background: var(--light-sky-blue);
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: var(--nd-gold);
+    background: rgba(174, 145, 66, 0.08);
+  }
+  .upload-zone .icon {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    color: var(--nd-gold);
+    margin-bottom: 0.5rem;
+  }
+  .upload-zone p {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--medium-blue);
+    margin-bottom: 0.5rem;
+  }
+  .upload-zone .hint {
+    font-style: normal;
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    color: var(--medium-blue);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .upload-zone input[type="file"] { display: none; }
+
+  /* ===== IMAGE UPLOAD ITEM ===== */
+  .image-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--light-sky-blue);
+    border-left: 3px solid var(--medium-blue);
+    margin-bottom: 0.75rem;
+  }
+  .image-item.uploaded {
+    background: rgba(58, 107, 58, 0.08);
+    border-left-color: var(--success-green);
+  }
+  .image-item.missing {
+    background: rgba(171, 16, 11, 0.06);
+    border-left-color: var(--accent-red);
+  }
+  .image-item-thumb {
+    width: 60px; height: 60px;
+    background: #fff;
+    border: 1px solid var(--dark-sky-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .image-item-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .image-item-thumb .placeholder {
+    color: var(--dark-sky-blue);
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+  }
+  .image-item-info { flex: 1; min-width: 0; }
+  .image-item-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--nd-blue);
+    font-weight: 600;
+    word-break: break-all;
+  }
+  .image-item-meta {
+    font-size: 0.78rem;
+    color: var(--medium-blue);
+    font-style: italic;
+    font-family: var(--font-display);
+    margin-top: 0.2rem;
+  }
+  .image-item-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+
+  /* ===== QUESTION LIST ===== */
+  .section-block {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--dark-sky-blue);
+  }
+  .section-block:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .section-header {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px dashed var(--dark-sky-blue);
+  }
+  .section-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+    margin-bottom: 0.2rem;
+  }
+  .section-title-text {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--nd-blue);
+  }
+  .section-passage {
+    background: var(--light-warm-white);
+    border-left: 3px solid var(--nd-gold);
+    padding: 0.85rem 1.1rem;
+    margin-top: 0.5rem;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--medium-blue);
+    line-height: 1.5;
+    max-height: 6rem;
+    overflow: hidden;
+    position: relative;
+  }
+  .section-passage.expanded { max-height: none; }
+  .section-passage .passage-toggle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(to right, transparent, var(--light-warm-white) 30%);
+    padding: 0 0.5rem 0 2rem;
+    font-style: normal;
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--nd-gold);
+    cursor: pointer;
+  }
+
+  .question-row {
+    background: var(--light-sky-blue);
+    border-left: 3px solid var(--medium-blue);
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.5rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 1rem;
+    align-items: center;
+  }
+  .question-row.has-warning {
+    background: rgba(211, 159, 16, 0.08);
+    border-left-color: var(--bright-gold);
+  }
+  .question-row.has-error {
+    background: rgba(171, 16, 11, 0.06);
+    border-left-color: var(--accent-red);
+  }
+  .q-num-badge {
+    background: var(--nd-blue);
+    color: var(--nd-gold);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 0.25rem 0.55rem;
+    font-variant-numeric: tabular-nums;
+    align-self: flex-start;
+  }
+  .q-info { min-width: 0; }
+  .q-prompt-preview {
+    font-size: 0.95rem;
+    color: var(--nd-blue);
+    margin-bottom: 0.3rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .q-meta {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.72rem;
+    color: var(--medium-blue);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.05em;
+    flex-wrap: wrap;
+  }
+  .q-meta .type-badge {
+    color: var(--nd-blue);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .q-meta .auto { color: var(--success-green); font-weight: 600; }
+  .q-meta .manual { color: var(--dark-gold); font-weight: 600; }
+  .q-meta .points {
+    color: var(--nd-gold);
+    font-weight: 600;
+  }
+  .q-warnings {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    align-items: flex-end;
+    font-size: 0.7rem;
+    color: var(--accent-red);
+    font-style: italic;
+    font-family: var(--font-display);
+  }
+  .q-warnings .warn-icon {
+    color: var(--bright-gold);
+  }
+  .q-actions { display: flex; gap: 0.3rem; }
+  .q-btn {
+    background: transparent;
+    border: 1px solid var(--medium-blue);
+    color: var(--medium-blue);
+    font-family: var(--font-body);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.65rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .q-btn:hover {
+    background: var(--medium-blue);
+    color: var(--light-warm-white);
+  }
+  .q-btn.delete { border-color: var(--accent-red); color: var(--accent-red); }
+  .q-btn.delete:hover { background: var(--accent-red); color: #fff; }
+
+  /* ===== SIDEBAR (PUBLISH PANEL + VALIDATION) ===== */
+  .sidebar { position: sticky; top: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+
+  .panel {
+    background: #fff;
+    border-top: 3px solid var(--nd-gold);
+    box-shadow: 0 2px 8px rgba(12, 35, 64, 0.04);
+    padding: 1.5rem;
+  }
+  .panel-title {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--nd-blue);
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--dark-sky-blue);
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.4rem 0;
+    font-size: 0.85rem;
+    border-bottom: 1px dashed var(--dark-sky-blue);
+  }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-row .label { color: var(--medium-blue); }
+  .summary-row .value {
+    color: var(--nd-blue);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .summary-row.warning .value { color: var(--accent-red); }
+
+  /* Validation list */
+  .validation-list { list-style: none; margin-top: 0.5rem; }
+  .validation-list li {
+    padding: 0.4rem 0 0.4rem 1.25rem;
+    position: relative;
+    font-size: 0.82rem;
+    color: var(--medium-blue);
+    line-height: 1.4;
+  }
+  .validation-list li::before {
+    position: absolute;
+    left: 0;
+    top: 0.5rem;
+    font-size: 0.85rem;
+  }
+  .validation-list li.ok::before { content: '✓'; color: var(--success-green); }
+  .validation-list li.warn::before { content: '⚠'; color: var(--bright-gold); }
+  .validation-list li.fail::before { content: '✗'; color: var(--accent-red); }
+  .validation-list li.ok { color: var(--success-green); }
+  .validation-list li.fail { color: var(--accent-red); }
+
+  /* ===== BUTTONS ===== */
+  .btn-primary, .btn-secondary, .btn-tertiary, .btn-danger {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 0.85rem 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+  }
+  .btn-primary {
+    background: var(--nd-gold);
+    color: var(--nd-blue);
+    border-bottom: 3px solid var(--nd-blue);
+  }
+  .btn-primary:hover:not(:disabled) { background: var(--bright-gold); }
+  .btn-primary:disabled {
+    background: var(--dark-sky-blue);
+    color: var(--medium-blue);
+    cursor: not-allowed;
+    border-bottom-color: var(--medium-blue);
+  }
+  .btn-secondary {
+    background: transparent;
+    color: var(--medium-blue);
+    border: 1px solid var(--medium-blue);
+  }
+  .btn-secondary:hover { background: var(--medium-blue); color: var(--light-warm-white); }
+  .btn-tertiary {
+    background: var(--nd-blue);
+    color: var(--nd-gold);
+    border-bottom: 3px solid var(--nd-gold);
+  }
+  .btn-tertiary:hover { background: var(--medium-blue); }
+  .btn-danger {
+    background: transparent;
+    color: var(--accent-red);
+    border: 1px solid var(--accent-red);
+  }
+  .btn-danger:hover { background: var(--accent-red); color: #fff; }
+
+  .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .btn-row .btn-primary, .btn-row .btn-secondary { flex: 1; min-width: 0; }
+
+  /* ===== EMPTY STATE ===== */
+  .empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--medium-blue);
+  }
+  .empty-state .icon {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    color: var(--dark-sky-blue);
+    margin-bottom: 0.5rem;
+  }
+  .empty-state h3 {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--nd-blue);
+    margin-bottom: 0.4rem;
+  }
+  .empty-state p {
+    font-style: italic;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  /* ===== EDIT MODAL (per-question editing) ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(12, 35, 64, 0.85);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    overflow-y: auto;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: #fff;
+    max-width: 720px;
+    width: 100%;
+    border-top: 6px solid var(--nd-gold);
+    padding: 2.5rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    margin: 2rem auto;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+  }
+  .modal h2 {
+    font-family: var(--font-display);
+    font-size: 1.7rem;
+    font-weight: 600;
+    color: var(--nd-blue);
+    margin-bottom: 0.25rem;
+  }
+  .modal-stamp {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    color: var(--nd-gold);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .modal-sub {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--medium-blue);
+    margin-bottom: 1.5rem;
+  }
+  .modal-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+  }
+  .modal-field label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+  }
+  .modal-field input, .modal-field select, .modal-field textarea {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid var(--dark-sky-blue);
+    background: var(--light-sky-blue);
+    color: var(--nd-blue);
+    transition: all 0.2s;
+  }
+  .modal-field textarea { min-height: 80px; resize: vertical; }
+  .modal-field input:focus, .modal-field select:focus, .modal-field textarea:focus {
+    outline: none;
+    border-color: var(--nd-gold);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(174, 145, 66, 0.15);
+  }
+  .modal-field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--dark-sky-blue);
+    justify-content: flex-end;
+  }
+
+  /* JSON viewer in modal */
+  .json-viewer {
+    background: var(--nd-blue);
+    color: var(--light-warm-white);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    padding: 1rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+  .json-viewer .key { color: var(--nd-gold); }
+  .json-viewer .string { color: #c1cddd; }
+  .json-viewer .number { color: var(--bright-gold); }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed;
+    top: 5rem;
+    right: 2rem;
+    background: var(--nd-blue);
+    color: var(--light-warm-white);
+    padding: 1rem 1.4rem;
+    border-left: 3px solid var(--nd-gold);
+    font-size: 0.85rem;
+    transform: translateX(120%);
+    transition: transform 0.3s;
+    z-index: 200;
+    max-width: 380px;
+    box-shadow: 0 4px 20px rgba(12, 35, 64, 0.2);
+  }
+  .toast.show { transform: translateX(0); }
+  .toast.error { border-left-color: var(--accent-red); }
+  .toast.success { border-left-color: var(--success-green); }
+
+  /* ===== AUTH LOADING ===== */
+  .auth-loading, .error-screen {
+    text-align: center;
+    padding: 6rem 2rem;
+    color: var(--medium-blue);
+  }
+  .auth-loading .spinner {
+    display: inline-block;
+    width: 40px; height: 40px;
+    border: 3px solid var(--dark-sky-blue);
+    border-top-color: var(--nd-gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 1rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-screen h2 {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    color: var(--nd-blue);
+    margin-bottom: 0.5rem;
+  }
+
+  .copyright {
+    text-align: center;
+    padding: 1.5rem 2rem;
+    background: var(--nd-blue);
+    color: var(--dark-sky-blue);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    border-top: 2px solid var(--nd-gold);
+  }
+
+  @media (max-width: 1000px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; }
+  }
+  @media (max-width: 600px) {
+    .modal { padding: 1.5rem; }
+    .modal-field-grid { grid-template-columns: 1fr; }
+    .question-row { grid-template-columns: 1fr; gap: 0.5rem; }
+    .q-actions { justify-content: flex-end; }
+  }
+</style>
+</head>
+<body>
+
+<div class="brand-bar">
+  <div class="brand-bar-logo">
+    <span class="brand-monogram">A</span>
+    <span>Approach International Student Center</span>
+  </div>
+  <div class="brand-bar-right">
+    <a href="dashboard.html" class="nav-link">Exams</a>
+    <a href="admin-dashboard.html" class="nav-link" id="adminLink" style="display: none;">Administration</a>
+    <span class="user-info"><strong id="userName">—</strong><span id="userRole"></span></span>
+  </div>
+</div>
+
+<div class="auth-loading" id="authLoading">
+  <div class="spinner"></div>
+  <p style="font-family: var(--font-display); font-style: italic;">Loading examination…</p>
+</div>
+
+<div class="error-screen" id="errorScreen" style="display: none;">
+  <h2 id="errorTitle">—</h2>
+  <p id="errorMessage" style="font-family: var(--font-display); font-style: italic; font-size: 1.05rem;">—</p>
+  <a href="dashboard.html" class="btn-primary" style="margin-top: 1.5rem;">Back to Exams</a>
+</div>
+
+<div id="content" style="display: none;">
+  <div class="breadcrumb">
+    <a href="dashboard.html">Exams</a> <span>›</span> <span>Edit Examination</span>
+  </div>
+
+  <div class="page">
+
+    <!-- ===== METADATA BAR ===== -->
+    <div class="meta-bar">
+      <div style="flex: 1;">
+        <div class="badges" id="metaBadges"></div>
+        <div class="meta-info">
+          <div class="meta-block">
+            <span class="meta-label">Code</span>
+            <span class="meta-value code" id="metaCode">—</span>
+          </div>
+          <div class="meta-block">
+            <span class="meta-label">Class</span>
+            <span class="meta-value" id="metaClass">—</span>
+          </div>
+          <div class="meta-block">
+            <span class="meta-label">Level</span>
+            <span class="meta-value" id="metaLevel">—</span>
+          </div>
+          <div class="meta-block">
+            <span class="meta-label">Type</span>
+            <span class="meta-value" id="metaType">—</span>
+          </div>
+          <div class="meta-block">
+            <span class="meta-label">Teacher</span>
+            <span class="meta-value" id="metaTeacher">—</span>
+          </div>
+          <div class="meta-block">
+            <span class="meta-label">Window</span>
+            <span class="meta-value" id="metaWindow" style="font-size: 0.78rem;">—</span>
+          </div>
+        </div>
+      </div>
+      <div class="meta-actions">
+        <a href="#" class="btn-secondary" id="editMetadataBtn">Edit Metadata</a>
+      </div>
+    </div>
+
+    <div class="layout">
+      <div class="main-col">
+
+        <!-- ===== JSON UPLOAD ===== -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Exam Content</div>
+              <div class="card-subtitle">Upload the JSON generated by Claude from your exam document</div>
+            </div>
+            <div class="btn-row" id="jsonActions" style="display: none;">
+              <button class="btn-secondary" id="downloadJsonBtn">Download JSON</button>
+              <button class="btn-secondary" id="reuploadJsonBtn">Re-upload</button>
+            </div>
+          </div>
+
+          <div id="uploadArea">
+            <label class="upload-zone" id="uploadZone">
+              <input type="file" id="jsonFileInput" accept="application/json,.json">
+              <div class="icon">⤓</div>
+              <p>Drop the JSON file here, or click to browse</p>
+              <span class="hint">.json files only</span>
+            </label>
+            <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--medium-blue); font-family: var(--font-display); font-style: italic;">
+              Don't have a JSON yet?
+              <button type="button" id="openPromptBtn" style="background: none; border: none; padding: 0; color: var(--nd-gold); font-weight: 600; cursor: pointer; font-family: var(--font-display); font-style: italic; font-size: 1rem; text-decoration: underline;">View the conversion prompt</button>
+              and use it with Claude to generate your JSON.
+            </p>
+          </div>
+
+          <div id="contentArea" style="display: none;"></div>
+        </div>
+
+      </div>
+
+      <!-- ===== SIDEBAR ===== -->
+      <aside class="sidebar">
+        <div class="panel">
+          <div class="panel-title">Summary</div>
+          <div class="summary-row">
+            <span class="label">Sections</span>
+            <span class="value" id="sumSections">—</span>
+          </div>
+          <div class="summary-row">
+            <span class="label">Questions</span>
+            <span class="value" id="sumQuestions">—</span>
+          </div>
+          <div class="summary-row">
+            <span class="label">Auto-graded</span>
+            <span class="value" id="sumAuto">—</span>
+          </div>
+          <div class="summary-row">
+            <span class="label">Manual-graded</span>
+            <span class="value" id="sumManual">—</span>
+          </div>
+          <div class="summary-row">
+            <span class="label">Total Points</span>
+            <span class="value" id="sumPoints">—</span>
+          </div>
+          <div class="summary-row">
+            <span class="label">Images Required</span>
+            <span class="value" id="sumImagesNeeded">—</span>
+          </div>
+          <div class="summary-row">
+            <span class="label">Images Uploaded</span>
+            <span class="value" id="sumImagesUploaded">—</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Validation</div>
+          <ul class="validation-list" id="validationList">
+            <li class="ok">Awaiting JSON upload…</li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Actions</div>
+          <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+            <button class="btn-tertiary" id="previewBtn" disabled>Preview</button>
+            <button class="btn-primary" id="saveDraftBtn" disabled>Save Draft</button>
+            <button class="btn-primary" id="publishBtn" disabled>Publish</button>
+            <button class="btn-secondary" id="archiveBtn" style="display: none;">Archive</button>
+          </div>
+          <p style="margin-top: 0.85rem; font-size: 0.78rem; color: var(--medium-blue); font-family: var(--font-display); font-style: italic; line-height: 1.4;">
+            Drafts are saved but not visible to students. Publishing makes the exam available within its scheduled window.
+          </p>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== EDIT QUESTION MODAL ===== -->
+<div class="modal-overlay" id="editQuestionModal">
+  <div class="modal">
+    <div class="modal-stamp">Edit Question</div>
+    <h2 id="editQTitle">—</h2>
+    <p class="modal-sub" id="editQSub">—</p>
+
+    <div class="modal-field">
+      <label>Question Type</label>
+      <input type="text" id="editQType" disabled>
+    </div>
+
+    <div class="modal-field-grid">
+      <div class="modal-field">
+        <label>Grading</label>
+        <select id="editQGrading">
+          <option value="auto">Auto</option>
+          <option value="manual">Manual</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>Points</label>
+        <input type="number" id="editQPoints" step="0.5" min="0">
+      </div>
+    </div>
+
+    <div class="modal-field">
+      <label>Prompt / Question Text</label>
+      <textarea id="editQPrompt"></textarea>
+    </div>
+
+    <div id="editQTypeSpecific"></div>
+
+    <div class="modal-field">
+      <label>Raw JSON (advanced)</label>
+      <div class="json-viewer" id="editQJson">—</div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" onclick="closeQuestionModal()">Cancel</button>
+      <button type="button" class="btn-primary" id="saveQuestionBtn">Save Question</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== IMAGE UPLOAD MODAL ===== -->
+<div class="modal-overlay" id="imageUploadModal">
+  <div class="modal">
+    <div class="modal-stamp">Upload Image</div>
+    <h2 id="imageModalTitle">—</h2>
+    <p class="modal-sub" id="imageModalSub">—</p>
+
+    <div class="modal-field">
+      <label>Choose Image File</label>
+      <input type="file" id="imageFileInput" accept="image/png,image/jpeg,image/webp">
+    </div>
+
+    <div id="imagePreviewWrap" style="display: none; margin-bottom: 1rem;">
+      <label style="font-size: 0.6rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--medium-blue);">Preview</label>
+      <div style="margin-top: 0.4rem; padding: 0.5rem; border: 1px solid var(--dark-sky-blue); background: var(--light-sky-blue); text-align: center;">
+        <img id="imagePreview" style="max-width: 100%; max-height: 320px;">
+      </div>
+    </div>
+
+    <p style="font-size: 0.8rem; color: var(--medium-blue); font-family: var(--font-display); font-style: italic;">
+      Accepted: PNG, JPEG, WebP. Max 5 MB. The file will be saved to Supabase Storage.
+    </p>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" onclick="closeImageModal()">Cancel</button>
+      <button type="button" class="btn-primary" id="uploadImageBtn" disabled>Upload</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CONVERSION PROMPT MODAL ===== -->
+<div class="modal-overlay" id="promptModal">
+  <div class="modal" style="max-width: 820px;">
+    <div class="modal-stamp">Claude Conversion Prompt</div>
+    <h2>How to generate your <em style="font-style: italic; color: var(--nd-gold); font-weight: 500;">exam JSON</em></h2>
+    <p class="modal-sub">Follow these steps to convert your exam document into the format this platform expects.</p>
+
+    <div style="background: var(--light-sky-blue); border-left: 3px solid var(--nd-gold); padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;">
+      <ol style="list-style: none; counter-reset: step; margin: 0; padding: 0;">
+        <li style="counter-increment: step; padding: 0.4rem 0 0.4rem 2.25rem; position: relative; font-size: 0.95rem; color: var(--nd-blue); line-height: 1.5;">
+          <span style="position: absolute; left: 0; top: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700; color: var(--nd-gold);">01</span>
+          Open <a href="https://claude.ai" target="_blank" style="color: var(--nd-gold); font-weight: 600;">claude.ai</a> in a new tab and start a fresh conversation.
+        </li>
+        <li style="counter-increment: step; padding: 0.4rem 0 0.4rem 2.25rem; position: relative; font-size: 0.95rem; color: var(--nd-blue); line-height: 1.5;">
+          <span style="position: absolute; left: 0; top: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700; color: var(--nd-gold);">02</span>
+          <strong>Attach your exam document</strong> (PDF or DOCX) to the message.
+        </li>
+        <li style="counter-increment: step; padding: 0.4rem 0 0.4rem 2.25rem; position: relative; font-size: 0.95rem; color: var(--nd-blue); line-height: 1.5;">
+          <span style="position: absolute; left: 0; top: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700; color: var(--nd-gold);">03</span>
+          <strong>Copy the prompt below</strong> and paste it into the same message, then send.
+        </li>
+        <li style="counter-increment: step; padding: 0.4rem 0 0.4rem 2.25rem; position: relative; font-size: 0.95rem; color: var(--nd-blue); line-height: 1.5;">
+          <span style="position: absolute; left: 0; top: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700; color: var(--nd-gold);">04</span>
+          Claude will reply with a JSON file. <strong>Download the file</strong> and save it on your computer.
+        </li>
+        <li style="counter-increment: step; padding: 0.4rem 0 0.4rem 2.25rem; position: relative; font-size: 0.95rem; color: var(--nd-blue); line-height: 1.5;">
+          <span style="position: absolute; left: 0; top: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700; color: var(--nd-gold);">05</span>
+          Come back here and upload the <code style="font-family: 'JetBrains Mono', monospace; background: var(--medium-sky-blue); padding: 0.05rem 0.3rem; font-size: 0.85rem;">.json</code> file. Review the questions, upload any required images, then save.
+        </li>
+      </ol>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; gap: 1rem; flex-wrap: wrap;">
+      <div>
+        <div style="font-size: 0.6rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--medium-blue);">The Prompt</div>
+        <div style="font-family: var(--font-display); font-style: italic; font-size: 0.9rem; color: var(--medium-blue); margin-top: 0.2rem;">Copy this entire block and paste it with your document.</div>
+      </div>
+      <div style="display: flex; gap: 0.5rem;">
+        <button type="button" class="btn-secondary" id="togglePromptBtn" style="padding: 0.55rem 1rem;">Expand</button>
+        <button type="button" class="btn-primary" id="copyPromptBtn" style="padding: 0.55rem 1.25rem;">Copy Prompt</button>
+      </div>
+    </div>
+
+    <pre id="promptBox" style="background: var(--nd-blue); color: var(--light-warm-white); font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; line-height: 1.55; padding: 1.25rem; max-height: 240px; overflow-y: auto; white-space: pre-wrap; word-break: normal; transition: max-height 0.3s ease; margin: 0;">Loading prompt…</pre>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" onclick="closePromptModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="copyright">
+  Copyright © 2026 Approach International Student Center, Inc. — All rights reserved.
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ============================================
+  // CONFIGURE YOUR SUPABASE CREDENTIALS HERE
+  // ============================================
+  const SUPABASE_URL = 'https://okyauyzdensuvuoyphds.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9reWF1eXpkZW5zdXZ1b3lwaGRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NTgwOTUsImV4cCI6MjA5MzEzNDA5NX0.NZUclCDHecS9bcZOLHj1ZXBFf5b5k9klRwTMfJrglfI';
+  // ============================================
+
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const STORAGE_BUCKET = 'exam-images';
+
+  // ===== STATE =====
+  let currentUser = null;
+  let currentProfile = null;
+  let currentExam = null;
+  let examDef = null;          // The JSON exam definition
+  let pendingImageContext = null; // Which question/image we're uploading for
+  let editingQuestion = null;  // Reference to the question being edited
+
+  const VALID_TYPES = [
+    'multiple_choice', 'true_false', 'inline_choice', 'fill_blank',
+    'fill_blank_multi', 'matching', 'categorization', 'sentence_order',
+    'short_answer', 'writing_prompt', 'pool_writing', 'image_label', 'image_match'
+  ];
+
+  // ===== CONVERSION PROMPT (paste with exam document into Claude) =====
+  const CONVERSION_PROMPT = `You are an exam-conversion assistant for the Approach International Student Center online examination platform. Your task is to read the attached exam document and convert it into a structured JSON file that follows our exact schema.
+
+# CRITICAL RULES
+
+1. Output ONLY a single valid JSON object. No commentary before, no commentary after, no markdown code fences, no explanations. The first character of your response must be \`{\` and the last must be \`}\`.
+2. Every question must have an \`id\`, \`type\`, \`grading\`, \`points\`, and \`prompt\`.
+3. If you cannot determine a correct answer for an auto-gradable question, set \`grading\` to \`"manual"\` and add a note in the \`rubric\` field.
+4. For images: NEVER attempt to extract or describe image data. Use placeholder filenames like \`q5_picture.png\` and set \`"url": null\`. The teacher will upload images separately through the platform.
+5. Preserve the exam's original section structure (Article 1, Article 2, Section A, Section B, etc.) using the \`sections\` array.
+6. If the document contains reading passages or articles, place the full text in the section's \`passage\` field as plain text (no markdown).
+
+# JSON SCHEMA
+
+The output must conform to this exact structure:
+
+{
+  "schema_version": "1.0",
+  "exam_metadata": {
+    "title": "<exam title from the document>",
+    "instructions": "<top-level instructions, or null>"
+  },
+  "sections": [
+    {
+      "id": "section_1",
+      "title": "<section title or null>",
+      "instructions": "<section instructions or null>",
+      "passage": { "type": "text", "content": "<reading content>" } | null,
+      "questions": [ /* questions */ ]
+    }
+  ]
+}
+
+# QUESTION TYPES (use the exact \`type\` string)
+
+## "multiple_choice" — auto, single correct answer from 2+ options
+{
+  "id": "q1", "type": "multiple_choice", "grading": "auto", "points": 1,
+  "prompt": "Question text",
+  "options": [{"key": "a", "text": "..."}, {"key": "b", "text": "..."}],
+  "answer": "b"
+}
+
+## "true_false" — auto, T or F
+{
+  "id": "q2", "type": "true_false", "grading": "auto", "points": 1,
+  "prompt": "Statement to evaluate",
+  "answer": "T"
+}
+
+## "inline_choice" — auto, choose one of two options inside a sentence
+Use {choice} where the choice appears in the sentence.
+{
+  "id": "q3", "type": "inline_choice", "grading": "auto", "points": 1,
+  "prompt": "The {choice} is where you eat.",
+  "options": ["arm", "mouth"],
+  "answer": "mouth"
+}
+
+## "fill_blank" — auto, one text blank in a sentence
+Use {blank} for the blank position.
+{
+  "id": "q4", "type": "fill_blank", "grading": "auto", "points": 1,
+  "prompt": "I {blank} speak three languages.",
+  "answer": "can",
+  "accepted_answers": ["can"],
+  "case_sensitive": false
+}
+
+## "fill_blank_multi" — auto, multiple blanks in one sentence
+Use {blank} for each position; provide one entry in \`blanks\` per blank.
+{
+  "id": "q5", "type": "fill_blank_multi", "grading": "auto", "points": 1,
+  "prompt": "{blank} you {blank} on the phone?",
+  "blanks": [
+    {"id": "5a", "answer": "Are", "accepted_answers": ["Are", "are"], "points": 0.5},
+    {"id": "5b", "answer": "talking", "accepted_answers": ["talking"], "points": 0.5}
+  ],
+  "case_sensitive": false
+}
+
+## "matching" — auto, match left items to right items
+{
+  "id": "q6", "type": "matching", "grading": "auto", "points": 8,
+  "prompt": "Match each phrase with the correct ending.",
+  "left_items": [{"id": "1", "text": "..."}, {"id": "2", "text": "..."}],
+  "right_items": [{"key": "A", "text": "..."}, {"key": "B", "text": "..."}],
+  "answers": {"1": "E", "2": "G"}
+}
+
+## "categorization" — auto, sort words into category buckets
+{
+  "id": "q7", "type": "categorization", "grading": "auto", "points": 20,
+  "prompt": "Put the words in the correct category.",
+  "items": ["word1", "word2"],
+  "categories": [{"id": "cat1", "label": "Category 1"}],
+  "answers": {"word1": "cat1", "word2": "cat1"}
+}
+
+## "sentence_order" — manual, scrambled words to reorder
+{
+  "id": "q8", "type": "sentence_order", "grading": "manual", "points": 2,
+  "prompt": "Put the words in order.",
+  "words": ["are", "these", "students"],
+  "expected": "These are students.",
+  "rubric": "Full marks for correct word order."
+}
+
+## "short_answer" — manual, brief open-ended response
+{
+  "id": "q9", "type": "short_answer", "grading": "manual", "points": 2,
+  "prompt": "What are the two drinks?",
+  "expected_answer": "Coffee and tea",
+  "rubric": "Full marks for identifying both drinks."
+}
+
+## "writing_prompt" — manual, longer open-ended writing
+{
+  "id": "q10", "type": "writing_prompt", "grading": "manual", "points": 2,
+  "prompt": "Write a sentence using Simple Present.",
+  "rubric": "Full marks for a grammatically correct sentence."
+}
+
+## "pool_writing" — manual, write N sentences from a pool of words
+{
+  "id": "q11", "type": "pool_writing", "grading": "manual", "points": 20,
+  "prompt": "Choose 10 of the words below and write sentences.",
+  "word_pool": ["word1", "word2"],
+  "required_count": 10,
+  "points_per_sentence": 2,
+  "rubric": "Each grammatically correct sentence earns full marks."
+}
+
+## "image_label" — auto, multiple text labels for parts of an image
+{
+  "id": "q12", "type": "image_label", "grading": "auto", "points": 7,
+  "prompt": "Write the verb for each action.",
+  "image": {"placeholder": "q12_image.png", "alt": "description", "url": null},
+  "labels": [
+    {"id": "label1", "label": "John", "answer": "eat",
+     "accepted_answers": ["eat", "eats", "eating"]}
+  ],
+  "case_sensitive": false
+}
+
+## "image_match" — auto, match items to numbered regions of an image
+{
+  "id": "q13", "type": "image_match", "grading": "auto", "points": 6,
+  "prompt": "Match the words with the pictures.",
+  "image": {"placeholder": "q13_image.png", "alt": "description", "url": null},
+  "items": ["item1", "item2"],
+  "image_regions": ["1", "2", "3", "4", "5", "6"],
+  "answers": {"item1": "1", "item2": "2"}
+}
+
+# RULES FOR DETERMINING POINTS
+
+1. If the source document specifies points (e.g. "(8 points)"), use that exact value on the question.
+2. For matching, categorization, and image_label questions where the document gives a total (e.g. "8 points" for 8 pairs), put that total in \`points\`. The platform will divide it among items automatically.
+3. For pool_writing where the document says "Each correct sentence 2 points", set \`points_per_sentence: 2\` and \`points\` to \`points_per_sentence × required_count\`.
+4. If no points are specified anywhere, default to 1 point per question.
+5. For multi-blank questions, distribute the question's total points evenly across blanks unless the document specifies otherwise.
+
+# RULES FOR DETERMINING ANSWERS
+
+1. If the document does not contain answer keys, set \`grading\` to \`"manual"\` for that question and leave \`answer\`/\`expected_answer\` empty or use your best guess based on the question content.
+2. If you can confidently determine an answer from the question content (e.g. a matching question's "definition" makes the pairing obvious), provide it.
+3. For \`accepted_answers\` on fill_blank questions, include common variations: contractions, capitalizations, alternate spellings.
+4. ALWAYS set \`case_sensitive: false\` unless the question explicitly tests capitalization (proper nouns, sentence-initial caps in writing).
+
+# RULES FOR IMAGES
+
+1. When the document has an image, generate a descriptive placeholder filename: \`q<question_number>_<short_descriptor>.png\`. Examples: \`q12_actions.png\`, \`q9_fruits.png\`.
+2. Always set \`url\` to null. Always include \`alt\` text describing what the image shows.
+3. If a single question has multiple images, use a question type that supports them or split into sub-questions.
+
+# IDs
+
+- Use \`q1\`, \`q2\`, \`q3\`, ... for question IDs in document order, regardless of how the document numbers them.
+- Use \`section_1\`, \`section_2\`, ... for section IDs.
+- Sub-IDs (in matching, fill_blank_multi, etc.) can be \`1a\`, \`1b\` or \`5a\`, \`5b\`, matching the structure of the question.
+
+# REMEMBER
+
+- Output a single valid JSON object only.
+- No markdown code fences (\`\`\`).
+- No explanatory text before or after.
+- Verify the JSON is syntactically valid before returning it.
+- If you are uncertain about a question's correct answer, mark it \`grading: "manual"\` rather than guessing.
+- Do not write the output in the chat, put it in a downloadable file.`;
+
+  // ===== DOM REFERENCES =====
+  const toast = document.getElementById('toast');
+
+  function showToast(msg, type = '') {
+    toast.textContent = msg;
+    toast.className = 'toast show ' + type;
+    setTimeout(() => toast.classList.remove('show'), 4000);
+  }
+
+  function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  function showError(title, message) {
+    document.getElementById('authLoading').style.display = 'none';
+    document.getElementById('content').style.display = 'none';
+    document.getElementById('errorTitle').textContent = title;
+    document.getElementById('errorMessage').textContent = message;
+    document.getElementById('errorScreen').style.display = 'block';
+  }
+
+  // ===== AUTH GUARD =====
+  async function checkAuth() {
+    const { data: { session } } = await db.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return false; }
+    currentUser = session.user;
+    const { data: profile, error } = await db.from('profiles')
+      .select('*').eq('id', session.user.id).single();
+    if (error || !profile || !profile.is_active) {
+      await db.auth.signOut();
+      window.location.href = 'login.html';
+      return false;
+    }
+    currentProfile = profile;
+    document.getElementById('userName').textContent = profile.full_name || session.user.email;
+    document.getElementById('userRole').textContent = ' · ' + (profile.role === 'academic' ? 'Academic Team' : 'Teacher');
+    if (profile.role === 'academic') {
+      document.getElementById('adminLink').style.display = 'inline-block';
+    }
+    return true;
+  }
+
+  // ===== LOAD EXAM =====
+  async function loadExam() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    const isNew = params.get('new') === 'true';
+
+    if (!id) {
+      showError('Missing exam ID', 'No exam ID was provided in the URL.');
+      return;
+    }
+
+    try {
+      const examRes = await db.from('exams').select('*').eq('id', id).single();
+      if (examRes.error) throw examRes.error;
+      currentExam = examRes.data;
+
+      // Load related data for display
+      const [classRes, levelRes, teacherRes] = await Promise.all([
+        db.from('classes').select('name').eq('id', currentExam.class_id).maybeSingle(),
+        db.from('levels').select('name').eq('id', currentExam.level_id).maybeSingle(),
+        db.from('profiles').select('full_name, email').eq('id', currentExam.teacher_id).maybeSingle()
+      ]);
+
+      currentExam._class_name = classRes.data?.name || '—';
+      currentExam._level_name = levelRes.data?.name || '—';
+      currentExam._teacher_name = teacherRes.data?.full_name || teacherRes.data?.email || '—';
+
+      examDef = currentExam.exam_definition || null;
+      renderMetadata();
+      renderContent();
+      updateSidebar();
+
+      document.getElementById('authLoading').style.display = 'none';
+      document.getElementById('content').style.display = 'block';
+
+      if (isNew) {
+        showToast('Exam created. Now upload the JSON file with the questions.', 'success');
+      }
+    } catch (err) {
+      console.error(err);
+      showError('Could not load exam', err.message || 'Unknown error');
+    }
+  }
+
+  function renderMetadata() {
+    const e = currentExam;
+    document.getElementById('metaCode').textContent = e.code;
+    document.getElementById('metaClass').textContent = e._class_name;
+    document.getElementById('metaLevel').textContent = e._level_name;
+    document.getElementById('metaType').textContent = e.type;
+    document.getElementById('metaTeacher').textContent = e._teacher_name;
+
+    const from = new Date(e.available_from);
+    const until = new Date(e.available_until);
+    const fmt = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) +
+      ' ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    document.getElementById('metaWindow').textContent = `${fmt(from)} → ${fmt(until)}`;
+
+    const badges = document.getElementById('metaBadges');
+    badges.innerHTML = `<span class="badge ${e.status}">${e.status}</span>`;
+
+    document.getElementById('archiveBtn').style.display =
+      (e.status === 'active' || e.status === 'draft') ? 'block' : 'none';
+  }
+
+  // ===== RENDER CONTENT (after JSON upload) =====
+  function renderContent() {
+    if (!examDef) {
+      document.getElementById('uploadArea').style.display = 'flex';
+      document.getElementById('uploadArea').style.flexDirection = 'column';
+      document.getElementById('contentArea').style.display = 'none';
+      document.getElementById('jsonActions').style.display = 'none';
+      return;
+    }
+
+    document.getElementById('uploadArea').style.display = 'none';
+    document.getElementById('contentArea').style.display = 'block';
+    document.getElementById('jsonActions').style.display = 'flex';
+
+    const container = document.getElementById('contentArea');
+    container.innerHTML = '';
+
+    if (examDef.exam_metadata?.title) {
+      const titleEl = document.createElement('div');
+      titleEl.style.marginBottom = '1.25rem';
+      titleEl.innerHTML = `
+        <div style="font-size: 0.6rem; font-weight: 600; letter-spacing: 0.22em; color: var(--nd-gold); text-transform: uppercase; margin-bottom: 0.3rem;">Exam Title</div>
+        <div style="font-family: var(--font-display); font-size: 1.6rem; font-weight: 600; color: var(--nd-blue);">${escapeHtml(examDef.exam_metadata.title)}</div>
+        ${examDef.exam_metadata.instructions ? `<div style="font-style: italic; font-family: var(--font-display); color: var(--medium-blue); margin-top: 0.4rem;">${escapeHtml(examDef.exam_metadata.instructions)}</div>` : ''}
+      `;
+      container.appendChild(titleEl);
+    }
+
+    // Image inventory section first
+    const imageList = collectImagePlaceholders();
+    if (imageList.length > 0) {
+      const imgSection = document.createElement('div');
+      imgSection.className = 'section-block';
+      imgSection.innerHTML = `
+        <div class="section-header">
+          <div class="section-label">Images Inventory</div>
+          <div class="section-title-text">Required Images (${imageList.filter(i => i.url).length} / ${imageList.length} uploaded)</div>
+        </div>
+        <div id="imageList"></div>
+      `;
+      container.appendChild(imgSection);
+      const imgListEl = imgSection.querySelector('#imageList');
+      imageList.forEach(img => imgListEl.appendChild(renderImageItem(img)));
+    }
+
+    // Sections + questions
+    (examDef.sections || []).forEach((section, sIdx) => {
+      const sectionEl = document.createElement('div');
+      sectionEl.className = 'section-block';
+
+      let passageHtml = '';
+      if (section.passage?.content) {
+        passageHtml = `
+          <div class="section-passage" data-passage="${sIdx}">
+            ${escapeHtml(section.passage.content)}
+            <span class="passage-toggle" onclick="togglePassage(${sIdx})">Show more</span>
+          </div>`;
+      }
+
+      sectionEl.innerHTML = `
+        <div class="section-header">
+          <div class="section-label">Section ${sIdx + 1}</div>
+          <div class="section-title-text">${escapeHtml(section.title || 'Untitled section')}</div>
+          ${section.instructions ? `<div style="font-style: italic; font-family: var(--font-display); color: var(--medium-blue); margin-top: 0.3rem; font-size: 0.95rem;">${escapeHtml(section.instructions)}</div>` : ''}
+          ${passageHtml}
+        </div>
+        <div class="section-questions"></div>
+      `;
+      container.appendChild(sectionEl);
+
+      const qContainer = sectionEl.querySelector('.section-questions');
+      (section.questions || []).forEach((q, qIdx) => {
+        qContainer.appendChild(renderQuestionRow(q, sIdx, qIdx));
+      });
+    });
+  }
+
+  function collectImagePlaceholders() {
+    const list = [];
+    (examDef.sections || []).forEach((section, sIdx) => {
+      (section.questions || []).forEach((q, qIdx) => {
+        if (q.image && q.image.placeholder) {
+          list.push({
+            section: sIdx,
+            question: qIdx,
+            qId: q.id,
+            placeholder: q.image.placeholder,
+            alt: q.image.alt || '',
+            url: q.image.url || null,
+            ref: q.image
+          });
+        }
+      });
+    });
+    return list;
+  }
+
+  function renderImageItem(img) {
+    const div = document.createElement('div');
+    div.className = 'image-item ' + (img.url ? 'uploaded' : 'missing');
+
+    const thumbHtml = img.url
+      ? `<img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt)}">`
+      : `<span class="placeholder">⊞</span>`;
+
+    div.innerHTML = `
+      <div class="image-item-thumb">${thumbHtml}</div>
+      <div class="image-item-info">
+        <div class="image-item-name">${escapeHtml(img.placeholder)}</div>
+        <div class="image-item-meta">
+          ${img.url ? '✓ Uploaded' : '✗ Not uploaded'} · Question ${img.qId} · ${escapeHtml(img.alt || 'No description')}
+        </div>
+      </div>
+      <div class="image-item-actions">
+        <button class="q-btn" onclick="openImageUpload('${img.qId}')">${img.url ? 'Replace' : 'Upload'}</button>
+        ${img.url ? `<button class="q-btn delete" onclick="removeImage('${img.qId}')">Remove</button>` : ''}
+      </div>
+    `;
+    return div;
+  }
+
+  window.togglePassage = function(idx) {
+    const el = document.querySelector(`[data-passage="${idx}"]`);
+    if (!el) return;
+    el.classList.toggle('expanded');
+    el.querySelector('.passage-toggle').textContent =
+      el.classList.contains('expanded') ? 'Show less' : 'Show more';
+  };
+
+  function renderQuestionRow(q, sIdx, qIdx) {
+    const issues = validateQuestion(q);
+    const div = document.createElement('div');
+    div.className = 'question-row';
+    if (issues.errors.length) div.classList.add('has-error');
+    else if (issues.warnings.length) div.classList.add('has-warning');
+
+    const promptPreview = (q.prompt || q.expected_answer || '(no prompt)').slice(0, 200);
+    const gradingClass = q.grading === 'auto' ? 'auto' : 'manual';
+
+    let warningHtml = '';
+    if (issues.errors.length) {
+      warningHtml = `<div class="q-warnings">${issues.errors.map(e => `<span>✗ ${escapeHtml(e)}</span>`).join('')}</div>`;
+    } else if (issues.warnings.length) {
+      warningHtml = `<div class="q-warnings"><span class="warn-icon">⚠ ${escapeHtml(issues.warnings[0])}</span></div>`;
+    }
+
+    div.innerHTML = `
+      <span class="q-num-badge">${escapeHtml(q.id)}</span>
+      <div class="q-info">
+        <div class="q-prompt-preview">${escapeHtml(promptPreview)}</div>
+        <div class="q-meta">
+          <span class="type-badge">${escapeHtml(q.type || 'unknown')}</span>
+          <span class="${gradingClass}">${q.grading || '?'}</span>
+          <span class="points">${q.points ?? '?'} pt${q.points === 1 ? '' : 's'}</span>
+          ${q.image ? `<span style="color: var(--medium-blue);">📷 image</span>` : ''}
+        </div>
+      </div>
+      ${warningHtml}
+      <div class="q-actions">
+        <button class="q-btn" onclick="openQuestionEdit(${sIdx}, ${qIdx})">Edit</button>
+      </div>
+    `;
+    return div;
+  }
+
+  // ===== VALIDATION =====
+  function validateQuestion(q) {
+    const errors = [];
+    const warnings = [];
+
+    if (!q.id) errors.push('Missing ID');
+    if (!q.type || !VALID_TYPES.includes(q.type)) errors.push('Invalid question type');
+    if (q.points == null || q.points < 0) errors.push('Invalid points');
+    if (!q.prompt || !q.prompt.trim()) errors.push('Missing prompt');
+    if (!['auto', 'manual'].includes(q.grading)) errors.push('Invalid grading mode');
+
+    if (q.grading === 'auto') {
+      switch (q.type) {
+        case 'multiple_choice':
+          if (!q.options?.length) errors.push('No options');
+          if (!q.answer) warnings.push('No correct answer set');
+          else if (!q.options?.find(o => o.key === q.answer)) errors.push('Answer does not match any option');
+          break;
+        case 'true_false':
+          if (!q.answer || !['T', 'F', 'true', 'false'].includes(q.answer)) warnings.push('Answer should be T or F');
+          break;
+        case 'inline_choice':
+          if (!q.options?.length) errors.push('No options');
+          if (!q.answer) warnings.push('No correct answer set');
+          break;
+        case 'fill_blank':
+          if (!q.answer) warnings.push('No correct answer set');
+          break;
+        case 'fill_blank_multi':
+          if (!q.blanks?.length) errors.push('No blanks defined');
+          else if (q.blanks.some(b => !b.answer)) warnings.push('Some blanks missing answers');
+          break;
+        case 'matching':
+          if (!q.left_items?.length || !q.right_items?.length) errors.push('Matching items incomplete');
+          if (!q.answers || !Object.keys(q.answers).length) warnings.push('No answer key set');
+          break;
+        case 'categorization':
+          if (!q.items?.length || !q.categories?.length) errors.push('Items or categories missing');
+          if (!q.answers) warnings.push('No category mapping set');
+          break;
+        case 'image_label':
+          if (!q.labels?.length) errors.push('No labels defined');
+          if (!q.image?.url) warnings.push('Image not yet uploaded');
+          break;
+        case 'image_match':
+          if (!q.items?.length || !q.image_regions?.length) errors.push('Items or regions missing');
+          if (!q.image?.url) warnings.push('Image not yet uploaded');
+          break;
+      }
+    }
+
+    if (q.image && !q.image.url) warnings.push('Image not yet uploaded');
+
+    return { errors, warnings };
+  }
+
+  // ===== SIDEBAR =====
+  function updateSidebar() {
+    if (!examDef) {
+      document.getElementById('sumSections').textContent = '—';
+      document.getElementById('sumQuestions').textContent = '—';
+      document.getElementById('sumAuto').textContent = '—';
+      document.getElementById('sumManual').textContent = '—';
+      document.getElementById('sumPoints').textContent = '—';
+      document.getElementById('sumImagesNeeded').textContent = '—';
+      document.getElementById('sumImagesUploaded').textContent = '—';
+      renderValidation([{ ok: false, text: 'No exam content uploaded yet.' }]);
+      document.getElementById('previewBtn').disabled = true;
+      document.getElementById('saveDraftBtn').disabled = true;
+      document.getElementById('publishBtn').disabled = true;
+      return;
+    }
+
+    const sections = examDef.sections || [];
+    let totalQ = 0, autoQ = 0, manualQ = 0, totalPoints = 0;
+    sections.forEach(s => {
+      (s.questions || []).forEach(q => {
+        totalQ++;
+        if (q.grading === 'auto') autoQ++;
+        else manualQ++;
+        totalPoints += Number(q.points) || 0;
+      });
+    });
+
+    const images = collectImagePlaceholders();
+    const imagesUploaded = images.filter(i => i.url).length;
+
+    document.getElementById('sumSections').textContent = sections.length;
+    document.getElementById('sumQuestions').textContent = totalQ;
+    document.getElementById('sumAuto').textContent = autoQ;
+    document.getElementById('sumManual').textContent = manualQ;
+    document.getElementById('sumPoints').textContent = totalPoints;
+    document.getElementById('sumImagesNeeded').textContent = images.length;
+    document.getElementById('sumImagesUploaded').textContent = imagesUploaded;
+
+    // Validation
+    const checks = [];
+    checks.push({ ok: sections.length > 0, text: `${sections.length} section${sections.length === 1 ? '' : 's'}` });
+    checks.push({ ok: totalQ > 0, text: `${totalQ} question${totalQ === 1 ? '' : 's'}` });
+
+    let issuesCount = 0;
+    sections.forEach(s => {
+      (s.questions || []).forEach(q => {
+        const v = validateQuestion(q);
+        if (v.errors.length) issuesCount++;
+      });
+    });
+    if (issuesCount > 0) {
+      checks.push({ ok: false, text: `${issuesCount} question${issuesCount === 1 ? '' : 's'} with errors` });
+    } else {
+      checks.push({ ok: true, text: 'All questions are valid' });
+    }
+
+    if (images.length > 0) {
+      const allUploaded = imagesUploaded === images.length;
+      checks.push({
+        ok: allUploaded,
+        text: allUploaded
+          ? `All ${images.length} image${images.length === 1 ? '' : 's'} uploaded`
+          : `${images.length - imagesUploaded} image${images.length - imagesUploaded === 1 ? '' : 's'} not yet uploaded`
+      });
+    }
+
+    renderValidation(checks);
+
+    const allValid = issuesCount === 0 && imagesUploaded === images.length && totalQ > 0;
+    document.getElementById('previewBtn').disabled = false;
+    document.getElementById('saveDraftBtn').disabled = false;
+    document.getElementById('publishBtn').disabled = !allValid;
+  }
+
+  function renderValidation(checks) {
+    const list = document.getElementById('validationList');
+    list.innerHTML = checks.map(c =>
+      `<li class="${c.ok ? 'ok' : 'fail'}">${escapeHtml(c.text)}</li>`
+    ).join('');
+  }
+
+  // ===== JSON UPLOAD =====
+  function setupJsonUpload() {
+    const zone = document.getElementById('uploadZone');
+    const input = document.getElementById('jsonFileInput');
+
+    input.addEventListener('change', e => {
+      if (e.target.files[0]) handleJsonFile(e.target.files[0]);
+    });
+
+    ['dragover', 'dragenter'].forEach(evt => zone.addEventListener(evt, e => {
+      e.preventDefault();
+      zone.classList.add('dragover');
+    }));
+    ['dragleave', 'drop'].forEach(evt => zone.addEventListener(evt, e => {
+      e.preventDefault();
+      zone.classList.remove('dragover');
+    }));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      if (e.dataTransfer.files[0]) handleJsonFile(e.dataTransfer.files[0]);
+    });
+
+    document.getElementById('reuploadJsonBtn').addEventListener('click', () => {
+      if (!confirm('Replace the current exam content? Image uploads will be preserved if filenames match.')) return;
+      examDef = null;
+      renderContent();
+      updateSidebar();
+    });
+
+    document.getElementById('downloadJsonBtn').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(examDef, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${currentExam.code}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  function handleJsonFile(file) {
+    if (!file.name.endsWith('.json') && file.type !== 'application/json') {
+      showToast('Please upload a .json file', 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (!parsed.schema_version || !parsed.sections) {
+          throw new Error('Invalid schema — missing schema_version or sections');
+        }
+        // If we already had image URLs, try to preserve them when filenames match
+        if (examDef) {
+          const existingImages = collectImagePlaceholders();
+          const merge = (q) => {
+            if (q.image?.placeholder) {
+              const match = existingImages.find(i => i.placeholder === q.image.placeholder && i.url);
+              if (match) q.image.url = match.url;
+            }
+          };
+          (parsed.sections || []).forEach(s =>
+            (s.questions || []).forEach(merge)
+          );
+        }
+        examDef = parsed;
+        renderContent();
+        updateSidebar();
+        showToast('JSON loaded successfully', 'success');
+      } catch (err) {
+        showToast('Could not parse JSON: ' + err.message, 'error');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // ===== IMAGE UPLOAD =====
+  function openImageUpload(qId) {
+    const ctx = collectImagePlaceholders().find(i => i.qId === qId);
+    if (!ctx) return;
+    pendingImageContext = ctx;
+    document.getElementById('imageModalTitle').textContent = `Question ${qId}`;
+    document.getElementById('imageModalSub').textContent =
+      `Filename: ${ctx.placeholder} · ${ctx.alt}`;
+    document.getElementById('imageFileInput').value = '';
+    document.getElementById('imagePreviewWrap').style.display = 'none';
+    document.getElementById('uploadImageBtn').disabled = true;
+    document.getElementById('imageUploadModal').classList.add('active');
+  }
+  window.openImageUpload = openImageUpload;
+
+  function closeImageModal() {
+    document.getElementById('imageUploadModal').classList.remove('active');
+    pendingImageContext = null;
+  }
+  window.closeImageModal = closeImageModal;
+
+  document.getElementById('imageFileInput').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+      showToast('Only PNG, JPEG, and WebP files are accepted', 'error');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('File is larger than 5 MB', 'error');
+      e.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = ev => {
+      document.getElementById('imagePreview').src = ev.target.result;
+      document.getElementById('imagePreviewWrap').style.display = 'block';
+      document.getElementById('uploadImageBtn').disabled = false;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('uploadImageBtn').addEventListener('click', async () => {
+    const file = document.getElementById('imageFileInput').files[0];
+    if (!file || !pendingImageContext) return;
+
+    const btn = document.getElementById('uploadImageBtn');
+    btn.disabled = true;
+    btn.textContent = 'Uploading…';
+
+    try {
+      const ext = file.name.split('.').pop().toLowerCase();
+      const path = `${currentExam.code}/${pendingImageContext.placeholder.replace(/\.[^.]+$/, '')}.${ext}`;
+
+      const { error: upErr } = await db.storage.from(STORAGE_BUCKET)
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+
+      const { data: urlData } = db.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+      const publicUrl = urlData.publicUrl + `?v=${Date.now()}`; // cache-bust
+
+      // Update the JSON in-place
+      const sIdx = pendingImageContext.section;
+      const qIdx = pendingImageContext.question;
+      examDef.sections[sIdx].questions[qIdx].image.url = publicUrl;
+
+      closeImageModal();
+      renderContent();
+      updateSidebar();
+      showToast('Image uploaded', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Upload failed: ' + err.message, 'error');
+      btn.disabled = false;
+      btn.textContent = 'Upload';
+    }
+  });
+
+  async function removeImage(qId) {
+    if (!confirm('Remove this image? The file will be deleted from storage.')) return;
+    const img = collectImagePlaceholders().find(i => i.qId === qId);
+    if (!img || !img.url) return;
+
+    try {
+      // Extract path from URL (everything after the bucket name)
+      const urlParts = img.url.split(`/${STORAGE_BUCKET}/`);
+      if (urlParts.length === 2) {
+        const path = urlParts[1].split('?')[0];
+        await db.storage.from(STORAGE_BUCKET).remove([path]);
+      }
+
+      const sIdx = img.section, qIdx = img.question;
+      examDef.sections[sIdx].questions[qIdx].image.url = null;
+
+      renderContent();
+      updateSidebar();
+      showToast('Image removed', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Could not remove image: ' + err.message, 'error');
+    }
+  }
+  window.removeImage = removeImage;
+
+  // ===== EDIT QUESTION MODAL =====
+  function openQuestionEdit(sIdx, qIdx) {
+    const q = examDef.sections[sIdx].questions[qIdx];
+    editingQuestion = { sIdx, qIdx, q };
+
+    document.getElementById('editQTitle').textContent = `Question ${q.id}`;
+    document.getElementById('editQSub').textContent = `Type: ${q.type}`;
+    document.getElementById('editQType').value = q.type;
+    document.getElementById('editQGrading').value = q.grading || 'auto';
+    document.getElementById('editQPoints').value = q.points ?? 1;
+    document.getElementById('editQPrompt').value = q.prompt || '';
+
+    // Show JSON for the rest (advanced editing path for now)
+    document.getElementById('editQJson').textContent = JSON.stringify(q, null, 2);
+
+    // Type-specific editors will be filled later — for v1, the JSON viewer is the editor
+    const specific = document.getElementById('editQTypeSpecific');
+    specific.innerHTML = '';
+
+    if (q.type === 'multiple_choice' || q.type === 'inline_choice') {
+      specific.innerHTML = `
+        <div class="modal-field">
+          <label>Correct Answer Key</label>
+          <input type="text" id="editQAnswer" value="${escapeHtml(q.answer || '')}">
+        </div>`;
+    } else if (q.type === 'true_false') {
+      specific.innerHTML = `
+        <div class="modal-field">
+          <label>Correct Answer</label>
+          <select id="editQAnswer">
+            <option value="T" ${q.answer === 'T' ? 'selected' : ''}>True</option>
+            <option value="F" ${q.answer === 'F' ? 'selected' : ''}>False</option>
+          </select>
+        </div>`;
+    } else if (q.type === 'fill_blank') {
+      specific.innerHTML = `
+        <div class="modal-field">
+          <label>Correct Answer</label>
+          <input type="text" id="editQAnswer" value="${escapeHtml(q.answer || '')}">
+        </div>
+        <div class="modal-field">
+          <label>Accepted Variants (comma separated)</label>
+          <input type="text" id="editQAccepted" value="${escapeHtml((q.accepted_answers || []).join(', '))}">
+        </div>`;
+    } else if (q.grading === 'manual') {
+      specific.innerHTML = `
+        <div class="modal-field">
+          <label>Grading Rubric / Notes for Teacher</label>
+          <textarea id="editQRubric">${escapeHtml(q.rubric || '')}</textarea>
+        </div>`;
+    }
+
+    document.getElementById('editQuestionModal').classList.add('active');
+  }
+  window.openQuestionEdit = openQuestionEdit;
+
+  function closeQuestionModal() {
+    document.getElementById('editQuestionModal').classList.remove('active');
+    editingQuestion = null;
+  }
+  window.closeQuestionModal = closeQuestionModal;
+
+  document.getElementById('saveQuestionBtn').addEventListener('click', () => {
+    if (!editingQuestion) return;
+    const { sIdx, qIdx, q } = editingQuestion;
+
+    q.grading = document.getElementById('editQGrading').value;
+    q.points = parseFloat(document.getElementById('editQPoints').value) || 0;
+    q.prompt = document.getElementById('editQPrompt').value;
+
+    const ansEl = document.getElementById('editQAnswer');
+    if (ansEl) q.answer = ansEl.value;
+
+    const accEl = document.getElementById('editQAccepted');
+    if (accEl) {
+      q.accepted_answers = accEl.value.split(',').map(s => s.trim()).filter(Boolean);
+    }
+
+    const rubEl = document.getElementById('editQRubric');
+    if (rubEl) q.rubric = rubEl.value;
+
+    examDef.sections[sIdx].questions[qIdx] = q;
+    closeQuestionModal();
+    renderContent();
+    updateSidebar();
+    showToast('Question updated. Don\'t forget to save your changes.', 'success');
+  });
+
+  // ===== SAVE / PUBLISH =====
+  async function saveExam(newStatus = null) {
+    const updates = { exam_definition: examDef };
+    if (newStatus) updates.status = newStatus;
+
+    const { data, error } = await db.from('exams')
+      .update(updates).eq('id', currentExam.id).select().single();
+    if (error) throw error;
+    currentExam = { ...currentExam, ...data };
+    renderMetadata();
+  }
+
+  document.getElementById('saveDraftBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('saveDraftBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    try {
+      await saveExam(currentExam.status === 'archived' ? null : 'draft');
+      showToast('Draft saved', 'success');
+    } catch (err) {
+      showToast('Save failed: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save Draft';
+      updateSidebar();
+    }
+  });
+
+  document.getElementById('publishBtn').addEventListener('click', async () => {
+    if (!confirm('Publish this exam? Once published, it will be available to students within its scheduled window.')) return;
+    const btn = document.getElementById('publishBtn');
+    btn.disabled = true;
+    btn.textContent = 'Publishing…';
+    try {
+      await saveExam('active');
+      showToast('Exam published', 'success');
+    } catch (err) {
+      showToast('Publish failed: ' + err.message, 'error');
+    } finally {
+      btn.textContent = 'Publish';
+      updateSidebar();
+    }
+  });
+
+  document.getElementById('archiveBtn').addEventListener('click', async () => {
+    if (!confirm('Archive this exam? It will no longer be available to students.')) return;
+    try {
+      await saveExam('archived');
+      showToast('Exam archived', 'success');
+    } catch (err) {
+      showToast('Archive failed: ' + err.message, 'error');
+    }
+  });
+
+  document.getElementById('previewBtn').addEventListener('click', () => {
+    showToast('Preview is coming with the exam runner page (next iteration)', 'success');
+  });
+
+  document.getElementById('editMetadataBtn').addEventListener('click', (e) => {
+    e.preventDefault();
+    showToast('Metadata editing happens via the dashboard\'s Edit button', 'success');
+  });
+
+  // ===== PROMPT MODAL =====
+  function openPromptModal() {
+    document.getElementById('promptBox').textContent = CONVERSION_PROMPT;
+    document.getElementById('promptBox').style.maxHeight = '240px';
+    document.getElementById('togglePromptBtn').textContent = 'Expand';
+    document.getElementById('promptModal').classList.add('active');
+  }
+
+  function closePromptModal() {
+    document.getElementById('promptModal').classList.remove('active');
+  }
+  window.closePromptModal = closePromptModal;
+
+  document.getElementById('openPromptBtn').addEventListener('click', openPromptModal);
+
+  document.getElementById('togglePromptBtn').addEventListener('click', () => {
+    const box = document.getElementById('promptBox');
+    const btn = document.getElementById('togglePromptBtn');
+    if (box.style.maxHeight === '240px' || box.style.maxHeight === '') {
+      box.style.maxHeight = 'calc(80vh - 200px)';
+      btn.textContent = 'Collapse';
+    } else {
+      box.style.maxHeight = '240px';
+      btn.textContent = 'Expand';
+    }
+  });
+
+  document.getElementById('copyPromptBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('copyPromptBtn');
+    try {
+      await navigator.clipboard.writeText(CONVERSION_PROMPT);
+      const original = btn.textContent;
+      btn.textContent = 'Copied ✓';
+      btn.style.background = 'var(--success-green)';
+      btn.style.color = '#fff';
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.style.background = '';
+        btn.style.color = '';
+      }, 2000);
+    } catch (err) {
+      showToast('Could not copy. Select the text manually and copy.', 'error');
+    }
+  });
+
+  // Close prompt modal on backdrop click
+  document.getElementById('promptModal').addEventListener('click', (e) => {
+    if (e.target.id === 'promptModal') closePromptModal();
+  });
+
+  // ===== INIT =====
+  (async () => {
+    if (!(await checkAuth())) return;
+    await loadExam();
+    setupJsonUpload();
+  })();
+</script>
+
+</body>
+</html>
