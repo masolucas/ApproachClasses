@@ -1448,7 +1448,8 @@ Use {blank} for each position; provide one entry in \`blanks\` per blank.
   // ===== RENDER CONTENT (after JSON upload) =====
   function renderContent() {
     if (!examDef) {
-      document.getElementById('uploadArea').style.display = 'block';
+      document.getElementById('uploadArea').style.display = 'flex';
+      document.getElementById('uploadArea').style.flexDirection = 'column';
       document.getElementById('contentArea').style.display = 'none';
       document.getElementById('jsonActions').style.display = 'none';
       return;
