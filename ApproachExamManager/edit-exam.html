@@ -1072,7 +1072,7 @@
         </li>
         <li style="counter-increment: step; padding: 0.4rem 0 0.4rem 2.25rem; position: relative; font-size: 0.95rem; color: var(--nd-blue); line-height: 1.5;">
           <span style="position: absolute; left: 0; top: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700; color: var(--nd-gold);">04</span>
-          Claude will reply with a JSON object. <strong>Copy the entire response</strong> and save it as a <code style="font-family: 'JetBrains Mono', monospace; background: var(--medium-sky-blue); padding: 0.05rem 0.3rem; font-size: 0.85rem;">.json</code> file on your computer.
+          Claude will reply with a JSON file. <strong>Download the file</strong> and save it on your computer.
         </li>
         <li style="counter-increment: step; padding: 0.4rem 0 0.4rem 2.25rem; position: relative; font-size: 0.95rem; color: var(--nd-blue); line-height: 1.5;">
           <span style="position: absolute; left: 0; top: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700; color: var(--nd-gold);">05</span>
@@ -1323,7 +1323,8 @@ Use {blank} for each position; provide one entry in \`blanks\` per blank.
 - No markdown code fences (\`\`\`).
 - No explanatory text before or after.
 - Verify the JSON is syntactically valid before returning it.
-- If you are uncertain about a question's correct answer, mark it \`grading: "manual"\` rather than guessing.`;
+- If you are uncertain about a question's correct answer, mark it \`grading: "manual"\` rather than guessing.
+- Do not write the output in the chat, put it in a downloadable file.`;
 
   // ===== DOM REFERENCES =====
   const toast = document.getElementById('toast');
