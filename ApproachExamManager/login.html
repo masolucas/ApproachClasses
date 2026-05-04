@@ -283,10 +283,10 @@
     errorAlert.classList.remove('show');
   }
 
-  // Redirect to the right place based on role
+  // Redirect to the right place based on role and setup status
   async function redirectByRole(userId) {
     const { data: profile, error } = await db.from('profiles')
-      .select('role, is_active').eq('id', userId).single();
+      .select('role, is_active, full_name, first_login_at').eq('id', userId).single();
 
     if (error || !profile) {
       showError('Could not load your profile. Contact the Academic team.');
@@ -296,6 +296,11 @@
     if (!profile.is_active) {
       showError('Your account has been deactivated. Contact the Academic team.');
       await db.auth.signOut();
+      return;
+    }
+    // Incomplete setup — invitee hasn't set their name/password yet
+    if (!profile.full_name || !profile.first_login_at) {
+      window.location.href = 'setup-account.html';
       return;
     }
     if (profile.role === 'academic') {

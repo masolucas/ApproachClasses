@@ -335,6 +335,31 @@
       return;
     }
 
+    // If this user has already completed setup, send them to the dashboard
+    // (handles cases like clicking an old invite link a second time)
+    try {
+      const { data: profile } = await db.from('profiles')
+        .select('role, full_name, first_login_at, is_active')
+        .eq('id', session.user.id).single();
+
+      if (profile && !profile.is_active) {
+        showInviteError('Your account has been deactivated. Contact the Academic team.');
+        await db.auth.signOut();
+        return;
+      }
+
+      if (profile && profile.full_name && profile.first_login_at) {
+        // Setup is already complete — go straight to the appropriate dashboard
+        window.location.href = profile.role === 'academic'
+          ? 'admin-dashboard.html'
+          : 'dashboard.html';
+        return;
+      }
+    } catch (err) {
+      // If profile lookup fails, fall through to setup form — better UX than blocking
+      console.warn('Could not check profile status:', err);
+    }
+
     // Show form with email pre-filled
     document.getElementById('email').value = session.user.email;
     loadingState.style.display = 'none';

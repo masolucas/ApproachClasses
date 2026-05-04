@@ -70,9 +70,16 @@ Deno.serve(async (req) => {
 
     // Send the magic-link invite
     // The role is stored in user_metadata so the trigger can read it
-    const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
+    // The redirectTo URL is read from an env var so admins don't need to know the exact path
+    const setupUrl = Deno.env.get('SETUP_ACCOUNT_URL')
+    const inviteOptions: { data: { role: string }, redirectTo?: string } = {
       data: { role }
-    })
+    }
+    if (setupUrl) {
+      inviteOptions.redirectTo = setupUrl
+    }
+
+    const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, inviteOptions)
 
     if (error) {
       return new Response(JSON.stringify({ error: error.message }), {

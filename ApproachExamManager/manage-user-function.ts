@@ -53,7 +53,14 @@ Deno.serve(async (req) => {
       const { data: existing } = await adminClient
         .from('profiles').select('role').eq('email', email).single()
       const role = existing?.role || 'teacher'
-      const { error } = await adminClient.auth.admin.inviteUserByEmail(email, { data: { role } })
+
+      const setupUrl = Deno.env.get('SETUP_ACCOUNT_URL')
+      const inviteOptions: { data: { role: string }, redirectTo?: string } = {
+        data: { role }
+      }
+      if (setupUrl) inviteOptions.redirectTo = setupUrl
+
+      const { error } = await adminClient.auth.admin.inviteUserByEmail(email, inviteOptions)
       if (error) throw error
       return new Response(JSON.stringify({ success: true }), {
         status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
