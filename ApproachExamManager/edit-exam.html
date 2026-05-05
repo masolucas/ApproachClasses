@@ -918,7 +918,239 @@
     justify-content: flex-end;
   }
 
-  /* JSON viewer in modal */
+  /* ===== TYPE-SPECIFIC EDITORS ===== */
+  .editor-section {
+    margin-bottom: 1rem;
+    padding: 0.85rem 1rem;
+    background: var(--light-sky-blue);
+    border-left: 3px solid var(--nd-gold);
+  }
+  .editor-section-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .editor-section-hint {
+    font-style: italic;
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    color: var(--medium-blue);
+    margin-bottom: 0.75rem;
+    text-transform: none;
+    letter-spacing: normal;
+    font-weight: 400;
+  }
+
+  /* Generic sub-row used for options/blanks/labels/etc. */
+  .sub-row {
+    display: grid;
+    gap: 0.4rem;
+    align-items: center;
+    padding: 0.4rem 0;
+    border-bottom: 1px dashed var(--dark-sky-blue);
+  }
+  .sub-row:last-child { border-bottom: none; }
+  .sub-row input[type="text"],
+  .sub-row input[type="number"],
+  .sub-row select {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--dark-sky-blue);
+    background: #fff;
+    color: var(--nd-blue);
+    transition: all 0.15s;
+    width: 100%;
+  }
+  .sub-row input:focus, .sub-row select:focus {
+    outline: none;
+    border-color: var(--nd-gold);
+    box-shadow: 0 0 0 2px rgba(174, 145, 66, 0.15);
+  }
+  .sub-row .sub-key {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--nd-gold);
+    background: var(--nd-blue);
+    padding: 0.35rem 0.6rem;
+    text-align: center;
+    min-width: 2.5rem;
+  }
+  .sub-row .sub-radio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+    cursor: pointer;
+    user-select: none;
+  }
+  .sub-row .sub-radio input { accent-color: var(--nd-gold); cursor: pointer; }
+  .sub-row .sub-radio:has(input:checked) {
+    color: var(--success-green);
+  }
+  .sub-row .sub-delete-btn {
+    background: transparent;
+    border: 1px solid var(--accent-red);
+    color: var(--accent-red);
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    line-height: 1;
+    padding: 0;
+    transition: all 0.15s;
+  }
+  .sub-row .sub-delete-btn:hover { background: var(--accent-red); color: #fff; }
+
+  /* Specific row layouts */
+  .opt-row { grid-template-columns: auto 1fr auto auto; }
+  .blank-row { grid-template-columns: 6rem 1fr 1fr 5rem auto; }
+  .blank-row-header {
+    display: grid;
+    grid-template-columns: 6rem 1fr 1fr 5rem auto;
+    gap: 0.4rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--dark-sky-blue);
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+  }
+  .label-row { grid-template-columns: 1fr 1fr 1fr auto; }
+  .label-row-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 0.4rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--dark-sky-blue);
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+  }
+  .left-item-row, .right-item-row { grid-template-columns: 4rem 1fr auto; }
+  .categ-cat-row { grid-template-columns: 6rem 1fr auto; }
+  .categ-item-row { grid-template-columns: 1fr 1fr auto; }
+  .image-info-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 0.85rem;
+    margin-bottom: 0.5rem;
+  }
+  .image-info-row label {
+    display: block;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+    margin-bottom: 0.2rem;
+  }
+  .image-info-row input {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--dark-sky-blue);
+    background: #fff;
+    color: var(--nd-blue);
+  }
+  .image-info-row input:focus {
+    outline: none;
+    border-color: var(--nd-gold);
+    box-shadow: 0 0 0 2px rgba(174, 145, 66, 0.15);
+  }
+
+  .add-row-btn {
+    margin-top: 0.6rem;
+    background: transparent;
+    border: 1px dashed var(--medium-blue);
+    color: var(--medium-blue);
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 0.55rem 0.85rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    width: 100%;
+  }
+  .add-row-btn:hover {
+    border-color: var(--nd-gold);
+    border-style: solid;
+    color: var(--nd-gold);
+    background: var(--light-warm-white);
+  }
+
+  .answers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 1rem;
+    align-items: center;
+  }
+  .answers-grid > div {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .answers-grid .answer-label {
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    color: var(--nd-blue);
+    font-weight: 500;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .answers-grid select {
+    flex: 1;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid var(--dark-sky-blue);
+    background: #fff;
+    color: var(--nd-blue);
+  }
+  .answers-grid select:focus {
+    outline: none;
+    border-color: var(--nd-gold);
+  }
+
+  /* Collapsible JSON viewer */
+  .json-toggle {
+    background: transparent;
+    border: 1px solid var(--medium-blue);
+    color: var(--medium-blue);
+    font-family: var(--font-body);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.45rem 0.85rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .json-toggle:hover {
+    background: var(--medium-blue);
+    color: var(--light-warm-white);
+  }
+
   .json-viewer {
     background: var(--nd-blue);
     color: var(--light-warm-white);
@@ -1199,8 +1431,11 @@
     <div id="editQTypeSpecific"></div>
 
     <div class="modal-field">
-      <label>Raw JSON (advanced)</label>
-      <div class="json-viewer" id="editQJson">—</div>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <label style="margin-bottom: 0;">Raw JSON (advanced)</label>
+        <button type="button" class="json-toggle" id="jsonToggleBtn">Show</button>
+      </div>
+      <div class="json-viewer" id="editQJson" style="display: none;">—</div>
     </div>
 
     <div class="modal-actions">
@@ -1883,7 +2118,8 @@ Use {blank} for each position; provide one entry in \`blanks\` per blank.
   // ===== RENDER CONTENT (after JSON upload) =====
   function renderContent() {
     if (!examDef) {
-      document.getElementById('uploadArea').style.display = 'block';
+      document.getElementById('uploadArea').style.display = 'flex';
+      document.getElementById('uploadArea').style.flexDirection = 'column';
       document.getElementById('contentArea').style.display = 'none';
       document.getElementById('jsonActions').style.display = 'none';
       return;
@@ -2538,49 +2774,24 @@ Use {blank} for each position; provide one entry in \`blanks\` per blank.
     document.getElementById('editQPoints').value = q.points ?? 1;
     document.getElementById('editQPrompt').value = q.prompt || '';
 
-    // Show JSON for the rest (advanced editing path for now)
-    document.getElementById('editQJson').textContent = JSON.stringify(q, null, 2);
+    refreshJsonViewer(q);
 
-    // Type-specific editors will be filled later — for v1, the JSON viewer is the editor
+    // Reset JSON viewer collapsed state
+    document.getElementById('editQJson').style.display = 'none';
+    document.getElementById('jsonToggleBtn').textContent = 'Show';
+
+    // Render type-specific editor
     const specific = document.getElementById('editQTypeSpecific');
     specific.innerHTML = '';
-
-    if (q.type === 'multiple_choice' || q.type === 'inline_choice') {
-      specific.innerHTML = `
-        <div class="modal-field">
-          <label>Correct Answer Key</label>
-          <input type="text" id="editQAnswer" value="${escapeHtml(q.answer || '')}">
-        </div>`;
-    } else if (q.type === 'true_false') {
-      specific.innerHTML = `
-        <div class="modal-field">
-          <label>Correct Answer</label>
-          <select id="editQAnswer">
-            <option value="T" ${q.answer === 'T' ? 'selected' : ''}>True</option>
-            <option value="F" ${q.answer === 'F' ? 'selected' : ''}>False</option>
-          </select>
-        </div>`;
-    } else if (q.type === 'fill_blank') {
-      specific.innerHTML = `
-        <div class="modal-field">
-          <label>Correct Answer</label>
-          <input type="text" id="editQAnswer" value="${escapeHtml(q.answer || '')}">
-        </div>
-        <div class="modal-field">
-          <label>Accepted Variants (comma separated)</label>
-          <input type="text" id="editQAccepted" value="${escapeHtml((q.accepted_answers || []).join(', '))}">
-        </div>`;
-    } else if (q.grading === 'manual') {
-      specific.innerHTML = `
-        <div class="modal-field">
-          <label>Grading Rubric / Notes for Teacher</label>
-          <textarea id="editQRubric">${escapeHtml(q.rubric || '')}</textarea>
-        </div>`;
-    }
+    renderTypeEditor(q, specific);
 
     document.getElementById('editQuestionModal').classList.add('active');
   }
   window.openQuestionEdit = openQuestionEdit;
+
+  function refreshJsonViewer(q) {
+    document.getElementById('editQJson').textContent = JSON.stringify(q, null, 2);
+  }
 
   function closeQuestionModal() {
     document.getElementById('editQuestionModal').classList.remove('active');
@@ -2588,6 +2799,835 @@ Use {blank} for each position; provide one entry in \`blanks\` per blank.
   }
   window.closeQuestionModal = closeQuestionModal;
 
+  // Show/hide raw JSON
+  document.getElementById('jsonToggleBtn').addEventListener('click', () => {
+    const viewer = document.getElementById('editQJson');
+    const btn = document.getElementById('jsonToggleBtn');
+    if (viewer.style.display === 'none') {
+      viewer.style.display = 'block';
+      btn.textContent = 'Hide';
+    } else {
+      viewer.style.display = 'none';
+      btn.textContent = 'Show';
+    }
+  });
+
+  // ===== TYPE-SPECIFIC EDITORS =====
+  // Each type's editor uses data attributes/inputs that collectTypeData() reads back.
+  // Many editors use "live mutation" — when you add or remove a sub-row, we update q
+  // immediately and re-render the editor section. This keeps the UI in sync with the
+  // underlying answer key (so deleting an option auto-clears stale answer references).
+
+  function renderTypeEditor(q, container) {
+    switch (q.type) {
+      case 'multiple_choice':  renderMultipleChoiceEditor(q, container); break;
+      case 'true_false':       renderTrueFalseEditor(q, container); break;
+      case 'inline_choice':    renderInlineChoiceEditor(q, container); break;
+      case 'fill_blank':       renderFillBlankEditor(q, container); break;
+      case 'fill_blank_multi': renderFillBlankMultiEditor(q, container); break;
+      case 'matching':         renderMatchingEditor(q, container); break;
+      case 'categorization':   renderCategorizationEditor(q, container); break;
+      case 'sentence_order':   renderSentenceOrderEditor(q, container); break;
+      case 'short_answer':     renderShortAnswerEditor(q, container); break;
+      case 'writing_prompt':   renderWritingPromptEditor(q, container); break;
+      case 'pool_writing':     renderPoolWritingEditor(q, container); break;
+      case 'image_label':      renderImageLabelEditor(q, container); break;
+      case 'image_match':      renderImageMatchEditor(q, container); break;
+    }
+  }
+
+  // Helper: re-render the type editor (used when sub-rows are added/removed)
+  function rerenderTypeEditor() {
+    if (!editingQuestion) return;
+    const container = document.getElementById('editQTypeSpecific');
+    container.innerHTML = '';
+    renderTypeEditor(editingQuestion.q, container);
+    refreshJsonViewer(editingQuestion.q);
+  }
+
+  // ----- Multiple Choice -----
+  function renderMultipleChoiceEditor(q, container) {
+    q.options = q.options || [];
+    const html = `
+      <div class="editor-section">
+        <div class="editor-section-label">Options</div>
+        <div class="editor-section-hint">Click the circle next to an option to mark it as the correct answer.</div>
+        <div id="optsList">
+          ${q.options.map((opt, i) => `
+            <div class="sub-row opt-row">
+              <span class="sub-key">${escapeHtml(opt.key || '')}</span>
+              <input type="text" data-mc-text="${i}" value="${escapeHtml(opt.text || '')}" placeholder="Option text">
+              <label class="sub-radio">
+                <input type="radio" name="mc-answer" data-mc-answer="${escapeHtml(opt.key)}" ${q.answer === opt.key ? 'checked' : ''}>
+                Correct
+              </label>
+              <button class="sub-delete-btn" data-mc-delete="${i}" title="Remove option">⌫</button>
+            </div>
+          `).join('')}
+        </div>
+        <button class="add-row-btn" id="addOptBtn">+ Add Option</button>
+      </div>
+    `;
+    container.innerHTML = html;
+
+    container.querySelectorAll('[data-mc-text]').forEach(input => {
+      input.addEventListener('input', () => {
+        const i = parseInt(input.dataset.mcText, 10);
+        q.options[i].text = input.value;
+        refreshJsonViewer(q);
+      });
+    });
+    container.querySelectorAll('[data-mc-answer]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        if (radio.checked) {
+          q.answer = radio.dataset.mcAnswer;
+          refreshJsonViewer(q);
+        }
+      });
+    });
+    container.querySelectorAll('[data-mc-delete]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.mcDelete, 10);
+        const removedKey = q.options[i].key;
+        q.options.splice(i, 1);
+        // Re-key options to keep them sequential a, b, c, d, …
+        q.options.forEach((o, idx) => o.key = String.fromCharCode(97 + idx));
+        // If the removed option was the answer, clear it
+        if (q.answer === removedKey) q.answer = '';
+        // If answer is no longer in the new key set, clear it
+        if (q.answer && !q.options.find(o => o.key === q.answer)) q.answer = '';
+        rerenderTypeEditor();
+      });
+    });
+    document.getElementById('addOptBtn').addEventListener('click', () => {
+      const nextKey = String.fromCharCode(97 + q.options.length);
+      q.options.push({ key: nextKey, text: '' });
+      rerenderTypeEditor();
+    });
+  }
+
+  // ----- True / False -----
+  function renderTrueFalseEditor(q, container) {
+    container.innerHTML = `
+      <div class="editor-section">
+        <div class="editor-section-label">Correct Answer</div>
+        <div style="display: flex; gap: 0.6rem; margin-top: 0.4rem;">
+          <label class="sub-radio" style="padding: 0.5rem 1rem; border: 1px solid var(--medium-blue); flex: 1; justify-content: center;">
+            <input type="radio" name="tf-answer" value="T" ${q.answer === 'T' ? 'checked' : ''}>
+            True
+          </label>
+          <label class="sub-radio" style="padding: 0.5rem 1rem; border: 1px solid var(--medium-blue); flex: 1; justify-content: center;">
+            <input type="radio" name="tf-answer" value="F" ${q.answer === 'F' ? 'checked' : ''}>
+            False
+          </label>
+        </div>
+      </div>
+    `;
+    container.querySelectorAll('[name="tf-answer"]').forEach(r => {
+      r.addEventListener('change', () => {
+        if (r.checked) { q.answer = r.value; refreshJsonViewer(q); }
+      });
+    });
+  }
+
+  // ----- Inline Choice -----
+  function renderInlineChoiceEditor(q, container) {
+    q.options = q.options || ['', ''];
+    container.innerHTML = `
+      <div class="editor-section">
+        <div class="editor-section-label">Two Options (inside the sentence)</div>
+        <div class="editor-section-hint">Use <code style="font-family: 'JetBrains Mono', monospace; font-size: 0.85em; background: var(--medium-sky-blue); padding: 0 0.25rem;">{choice}</code> in the prompt to mark where the choice appears. Click the circle to mark the correct one.</div>
+        ${q.options.map((opt, i) => `
+          <div class="sub-row opt-row" style="grid-template-columns: 1fr auto;">
+            <input type="text" data-ic-text="${i}" value="${escapeHtml(opt || '')}" placeholder="Option ${i+1}">
+            <label class="sub-radio">
+              <input type="radio" name="ic-answer" data-ic-answer="${escapeHtml(opt || '')}" ${q.answer === opt && opt ? 'checked' : ''}>
+              Correct
+            </label>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    container.querySelectorAll('[data-ic-text]').forEach(input => {
+      input.addEventListener('input', () => {
+        const i = parseInt(input.dataset.icText, 10);
+        // If the previous text was the answer, update the answer to match the new text
+        if (q.options[i] === q.answer) q.answer = input.value;
+        q.options[i] = input.value;
+        refreshJsonViewer(q);
+      });
+    });
+    container.querySelectorAll('[name="ic-answer"]').forEach(r => {
+      r.addEventListener('change', () => {
+        if (r.checked) { q.answer = r.dataset.icAnswer; refreshJsonViewer(q); }
+      });
+    });
+  }
+
+  // ----- Fill Blank -----
+  function renderFillBlankEditor(q, container) {
+    q.accepted_answers = q.accepted_answers || [];
+    container.innerHTML = `
+      <div class="editor-section">
+        <div class="editor-section-label">Answer</div>
+        <div class="editor-section-hint">Use <code style="font-family: 'JetBrains Mono', monospace; font-size: 0.85em; background: var(--medium-sky-blue); padding: 0 0.25rem;">{blank}</code> in the prompt to mark where the blank goes.</div>
+        <div class="modal-field">
+          <label>Correct Answer</label>
+          <input type="text" id="fb-answer" value="${escapeHtml(q.answer || '')}">
+        </div>
+        <div class="modal-field">
+          <label>Accepted Variants (comma separated)</label>
+          <input type="text" id="fb-accepted" value="${escapeHtml(q.accepted_answers.join(', '))}" placeholder="e.g. cannot, can not, can't">
+        </div>
+        <label class="sub-radio" style="margin-top: 0.5rem;">
+          <input type="checkbox" id="fb-case" ${q.case_sensitive ? 'checked' : ''}>
+          Case sensitive
+        </label>
+      </div>
+    `;
+    document.getElementById('fb-answer').addEventListener('input', e => {
+      q.answer = e.target.value; refreshJsonViewer(q);
+    });
+    document.getElementById('fb-accepted').addEventListener('input', e => {
+      q.accepted_answers = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+      refreshJsonViewer(q);
+    });
+    document.getElementById('fb-case').addEventListener('change', e => {
+      q.case_sensitive = e.target.checked; refreshJsonViewer(q);
+    });
+  }
+
+  // ----- Fill Blank Multi -----
+  function renderFillBlankMultiEditor(q, container) {
+    q.blanks = q.blanks || [];
+    container.innerHTML = `
+      <div class="editor-section">
+        <div class="editor-section-label">
+          <span>Blanks (in order)</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--medium-blue);">${q.blanks.length} blank${q.blanks.length === 1 ? '' : 's'}</span>
+        </div>
+        <div class="editor-section-hint">Each <code style="font-family: 'JetBrains Mono', monospace; font-size: 0.85em; background: var(--medium-sky-blue); padding: 0 0.25rem;">{blank}</code> in the prompt corresponds to one row below, in order.</div>
+        <div class="blank-row-header">
+          <span>ID</span>
+          <span>Answer</span>
+          <span>Accepted</span>
+          <span>Points</span>
+          <span></span>
+        </div>
+        <div id="blanksList">
+          ${q.blanks.map((b, i) => `
+            <div class="sub-row blank-row">
+              <span class="sub-key">${escapeHtml(b.id || '')}</span>
+              <input type="text" data-fbm-answer="${i}" value="${escapeHtml(b.answer || '')}" placeholder="Answer">
+              <input type="text" data-fbm-accepted="${i}" value="${escapeHtml((b.accepted_answers || []).join(', '))}" placeholder="Variants">
+              <input type="number" data-fbm-points="${i}" value="${b.points ?? 0.5}" step="0.1" min="0">
+              <button class="sub-delete-btn" data-fbm-delete="${i}" title="Remove blank">⌫</button>
+            </div>
+          `).join('')}
+        </div>
+        <button class="add-row-btn" id="addBlankBtn">+ Add Blank</button>
+        <label class="sub-radio" style="margin-top: 0.6rem;">
+          <input type="checkbox" id="fbm-case" ${q.case_sensitive ? 'checked' : ''}>
+          Case sensitive
+        </label>
+      </div>
+    `;
+    container.querySelectorAll('[data-fbm-answer]').forEach(input => {
+      input.addEventListener('input', () => {
+        const i = parseInt(input.dataset.fbmAnswer, 10);
+        q.blanks[i].answer = input.value;
+        refreshJsonViewer(q);
+      });
+    });
+    container.querySelectorAll('[data-fbm-accepted]').forEach(input => {
+      input.addEventListener('input', () => {
+        const i = parseInt(input.dataset.fbmAccepted, 10);
+        q.blanks[i].accepted_answers = input.value.split(',').map(s => s.trim()).filter(Boolean);
+        refreshJsonViewer(q);
+      });
+    });
+    container.querySelectorAll('[data-fbm-points]').forEach(input => {
+      input.addEventListener('input', () => {
+        const i = parseInt(input.dataset.fbmPoints, 10);
+        q.blanks[i].points = parseFloat(input.value) || 0;
+        refreshJsonViewer(q);
+      });
+    });
+    container.querySelectorAll('[data-fbm-delete]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.fbmDelete, 10);
+        q.blanks.splice(i, 1);
+        rerenderTypeEditor();
+      });
+    });
+    document.getElementById('addBlankBtn').addEventListener('click', () => {
+      const next = q.blanks.length + 1;
+      const newId = `${q.id}${String.fromCharCode(96 + next)}`;
+      q.blanks.push({ id: newId, answer: '', accepted_answers: [], points: 0.5 });
+      rerenderTypeEditor();
+    });
+    document.getElementById('fbm-case').addEventListener('change', e => {
+      q.case_sensitive = e.target.checked; refreshJsonViewer(q);
+    });
+  }
+
+  // ----- Matching -----
+  function renderMatchingEditor(q, container) {
+    q.left_items = q.left_items || [];
+    q.right_items = q.right_items || [];
+    q.answers = q.answers || {};
+
+    const rightOptionsHtml = q.right_items.map(r =>
+      `<option value="${escapeHtml(r.key)}">${escapeHtml(r.key)}) ${escapeHtml(r.text || '(empty)')}</option>`
+    ).join('');
+
+    container.innerHTML = `
+      <div class="editor-section">
+        <div class="editor-section-label">Left Items (numbered)</div>
+        <div id="leftItemsList">
+          ${q.left_items.map((it, i) => `
+            <div class="sub-row left-item-row">
+              <span class="sub-key">${escapeHtml(it.id || '')}</span>
+              <input type="text" data-mt-left="${i}" value="${escapeHtml(it.text || '')}" placeholder="Item text">
+              <button class="sub-delete-btn" data-mt-left-delete="${i}" title="Remove">⌫</button>
+            </div>
+          `).join('')}
+        </div>
+        <button class="add-row-btn" id="addLeftBtn">+ Add Left Item</button>
+      </div>
+
+      <div class="editor-section">
+        <div class="editor-section-label">Right Items (lettered)</div>
+        <div id="rightItemsList">
+          ${q.right_items.map((it, i) => `
+            <div class="sub-row right-item-row">
+              <span class="sub-key">${escapeHtml(it.key || '')}</span>
+              <input type="text" data-mt-right="${i}" value="${escapeHtml(it.text || '')}" placeholder="Item text">
+              <button class="sub-delete-btn" data-mt-right-delete="${i}" title="Remove">⌫</button>
+            </div>
+          `).join('')}
+        </div>
+        <button class="add-row-btn" id="addRightBtn">+ Add Right Item</button>
+      </div>
+
+      <div class="editor-section">
+        <div class="editor-section-label">Answer Key</div>
+        <div class="editor-section-hint">For each left item, choose the matching right item.</div>
+        <div class="answers-grid">
+          ${q.left_items.map(l => `
+            <div>
+              <span class="answer-label">${escapeHtml(l.id)}) ${escapeHtml(l.text || '(empty)')}</span>
+              <select data-mt-answer="${escapeHtml(l.id)}">
+                <option value="">— pick —</option>
+                ${rightOptionsHtml.replace(new RegExp(`value="${q.answers[l.id]}"`), `value="${q.answers[l.id]}" selected`)}
+              </select>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+    container.querySelectorAll('[data-mt-left]').forEach(input => {
+      input.addEventListener('input', () => {
+        const i = parseInt(input.dataset.mtLeft, 10);
+        q.left_items[i].text = input.value;
+        refreshJsonViewer(q);
+      });
+    });
+    container.querySelectorAll('[data-mt-right]').forEach(input => {
+      input.addEventListener('input', () => {
+        const i = parseInt(input.dataset.mtRight, 10);
+        q.right_items[i].text = input.value;
+        refreshJsonViewer(q);
+      });
+    });
+    container.querySelectorAll('[data-mt-left-delete]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.mtLeftDelete, 10);
+        const removedId = q.left_items[i].id;
+        q.left_items.splice(i, 1);
+        delete q.answers[removedId];
+        // Renumber left items
+        q.left_items.forEach((it, idx) => {
+          const newId = String(idx + 1);
+          if (q.answers[it.id] != null && newId !== it.id) {
+            q.answers[newId] = q.answers[it.id];
+            delete q.answers[it.id];
+          }
+          it.id = newId;
+        });
+        rerenderTypeEditor();
+      });
+    });
+    container.querySelectorAll('[data-mt-right-delete]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.mtRightDelete, 10);
+        const removedKey = q.right_items[i].key;
+        q.right_items.splice(i, 1);
+        // Re-key right items
+        q.right_items.forEach((it, idx) => {
+          const newKey = String.fromCharCode(65 + idx);
+          if (newKey !== it.key) {
+            // Update any answer references that pointed to old key
+            Object.keys(q.answers).forEach(leftId => {
+              if (q.answers[leftId] === it.key) q.answers[leftId] = newKey;
+            });
+            it.key = newKey;
+          }
+        });
+        // Drop answers that pointed to the now-removed key
+        Object.keys(q.answers).forEach(k => {
+          if (q.answers[k] === removedKey) delete q.answers[k];
+          if (q.answers[k] && !q.right_items.find(r => r.key === q.answers[k])) {
+            delete q.answers[k];
+          }
+        });
+        rerenderTypeEditor();
+      });
+    });
+    container.querySelectorAll('[data-mt-answer]').forEach(sel => {
+      sel.addEventListener('change', () => {
+        const leftId = sel.dataset.mtAnswer;
+        if (sel.value) q.answers[leftId] = sel.value;
+        else delete q.answers[leftId];
+        refreshJsonViewer(q);
+      });
+    });
+    document.getElementById('addLeftBtn').addEventListener('click', () => {
+      const nextId = String(q.left_items.length + 1);
+      q.left_items.push({ id: nextId, text: '' });
+      rerenderTypeEditor();
+    });
+    document.getElementById('addRightBtn').addEventListener('click', () => {
+      const nextKey = String.fromCharCode(65 + q.right_items.length);
+      q.right_items.push({ key: nextKey, text: '' });
+      rerenderTypeEditor();
+    });
+  }
+
+  // ----- Categorization -----
+  function renderCategorizationEditor(q, container) {
+    q.items = q.items || [];
+    q.categories = q.categories || [];
+    q.answers = q.answers || {};
+
+    const catOptsHtml = q.categories.map(c =>
+      `<option value="${escapeHtml(c.id)}">${escapeHtml(c.label)}</option>`
+    ).join('');
+
+    container.innerHTML = `
+      <div class="editor-section">
+        <div class="editor-section-label">Categories</div>
+        <div id="catsList">
+          ${q.categories.map((c, i) => `
+            <div class="sub-row categ-cat-row">
+              <span class="sub-key">${escapeHtml(c.id || '')}</span>
+              <input type="text" data-cat-label="${i}" value="${escapeHtml(c.label || '')}" placeholder="Category name">
+              <button class="sub-delete-btn" data-cat-delete="${i}" title="Remove category">⌫</button>
+            </div>
+          `).join('')}
+        </div>
+        <button class="add-row-btn" id="addCatBtn">+ Add Category</button>
+      </div>
+
+      <div class="editor-section">
+        <div class="editor-section-label">Items (with correct category)</div>
+        <div class="editor-section-hint">For each item, choose the correct category from the dropdown.</div>
+        <div id="itemsList">
+          ${q.items.map((it, i) => `
+            <div class="sub-row categ-item-row">
+              <input type="text" data-item-text="${i}" value="${escapeHtml(it || '')}" placeholder="Item text">
+              <select data-item-cat="${i}">
+                <option value="">— pick category —</option>
+                ${q.categories.map(c =>
+                  `<option value="${escapeHtml(c.id)}" ${q.answers[it] === c.id ? 'selected' : ''}>${escapeHtml(c.label)}</option>`
+                ).join('')}
+              </select>
+              <button class="sub-delete-btn" data-item-delete="${i}" title="Remove item">⌫</button>
+            </div>
+          `).join('')}
+        </div>
+        <button class="add-row-btn" id="addItemBtn">+ Add Item</button>
+      </div>
+    `;
+
+    container.querySelectorAll('[data-cat-label]').forEach(input => {
+      input.addEventListener('input', () => {
+        const i = parseInt(input.dataset.catLabel, 10);
+        q.categories[i].label = input.value;
+        refreshJsonViewer(q);
+      });
+    });
+    container.querySelectorAll('[data-cat-delete]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.catDelete, 10);
+        const removedId = q.categories[i].id;
+        q.categories.splice(i, 1);
+        // Drop answers that pointed to the removed category
+        Object.keys(q.answers).forEach(k => {
+          if (q.answers[k] === removedId) delete q.answers[k];
+        });
+        rerenderTypeEditor();
+      });
+    });
+    container.querySelectorAll('[data-item-text]').forEach(input => {
+      input.addEventListener('input', () => {
+        const i = parseInt(input.dataset.itemText, 10);
+        const oldText = q.items[i];
+        q.items[i] = input.value;
+        // Move answer key from old text to new
+        if (oldText !== input.value && q.answers[oldText] != null) {
+          q.answers[input.value] = q.answers[oldText];
+          delete q.answers[oldText];
+        }
+        refreshJsonViewer(q);
+      });
+    });
+    container.querySelectorAll('[data-item-cat]').forEach(sel => {
+      sel.addEventListener('change', () => {
+        const i = parseInt(sel.dataset.itemCat, 10);
+        const itemText = q.items[i];
+        if (sel.value) q.answers[itemText] = sel.value;
+        else delete q.answers[itemText];
+        refreshJsonViewer(q);
+      });
+    });
+    container.querySelectorAll('[data-item-delete]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.itemDelete, 10);
+        const removedItem = q.items[i];
+        q.items.splice(i, 1);
+        delete q.answers[removedItem];
+        rerenderTypeEditor();
+      });
+    });
+    document.getElementById('addCatBtn').addEventListener('click', () => {
+      const nextN = q.categories.length + 1;
+      q.categories.push({ id: `cat${nextN}`, label: `Category ${nextN}` });
+      rerenderTypeEditor();
+    });
+    document.getElementById('addItemBtn').addEventListener('click', () => {
+      q.items.push('');
+      rerenderTypeEditor();
+    });
+  }
+
+  // ----- Sentence Order -----
+  function renderSentenceOrderEditor(q, container) {
+    q.words = q.words || [];
+    container.innerHTML = `
+      <div class="editor-section">
+        <div class="editor-section-label">Sentence Order</div>
+        <div class="modal-field">
+          <label>Scrambled Words (comma separated)</label>
+          <input type="text" id="so-words" value="${escapeHtml(q.words.join(', '))}" placeholder="e.g. are, these, hard, working, students">
+        </div>
+        <div class="modal-field">
+          <label>Expected Order (full sentence)</label>
+          <input type="text" id="so-expected" value="${escapeHtml(q.expected || '')}" placeholder="e.g. These students are working hard.">
+        </div>
+        <div class="modal-field">
+          <label>Grading Rubric</label>
+          <textarea id="so-rubric">${escapeHtml(q.rubric || '')}</textarea>
+        </div>
+      </div>
+    `;
+    document.getElementById('so-words').addEventListener('input', e => {
+      q.words = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+      refreshJsonViewer(q);
+    });
+    document.getElementById('so-expected').addEventListener('input', e => {
+      q.expected = e.target.value; refreshJsonViewer(q);
+    });
+    document.getElementById('so-rubric').addEventListener('input', e => {
+      q.rubric = e.target.value; refreshJsonViewer(q);
+    });
+  }
+
+  // ----- Short Answer -----
+  function renderShortAnswerEditor(q, container) {
+    container.innerHTML = `
+      <div class="editor-section">
+        <div class="editor-section-label">Short Answer (Manual)</div>
+        <div class="modal-field">
+          <label>Expected Answer (for grading reference)</label>
+          <input type="text" id="sa-expected" value="${escapeHtml(q.expected_answer || '')}" placeholder="What you'd consider a correct answer">
+        </div>
+        <div class="modal-field">
+          <label>Grading Rubric</label>
+          <textarea id="sa-rubric" placeholder="Notes for the grader (e.g. partial credit guidelines)">${escapeHtml(q.rubric || '')}</textarea>
+        </div>
+      </div>
+    `;
+    document.getElementById('sa-expected').addEventListener('input', e => {
+      q.expected_answer = e.target.value; refreshJsonViewer(q);
+    });
+    document.getElementById('sa-rubric').addEventListener('input', e => {
+      q.rubric = e.target.value; refreshJsonViewer(q);
+    });
+  }
+
+  // ----- Writing Prompt -----
+  function renderWritingPromptEditor(q, container) {
+    container.innerHTML = `
+      <div class="editor-section">
+        <div class="editor-section-label">Writing Prompt (Manual)</div>
+        <div class="modal-field">
+          <label>Grading Rubric</label>
+          <textarea id="wp-rubric" placeholder="Notes for the grader (e.g. grammar focus, length expectations)">${escapeHtml(q.rubric || '')}</textarea>
+        </div>
+      </div>
+    `;
+    document.getElementById('wp-rubric').addEventListener('input', e => {
+      q.rubric = e.target.value; refreshJsonViewer(q);
+    });
+  }
+
+  // ----- Pool Writing -----
+  function renderPoolWritingEditor(q, container) {
+    q.word_pool = q.word_pool || [];
+    container.innerHTML = `
+      <div class="editor-section">
+        <div class="editor-section-label">Pool Writing (Manual)</div>
+        <div class="modal-field">
+          <label>Word Pool (comma separated)</label>
+          <input type="text" id="pw-pool" value="${escapeHtml(q.word_pool.join(', '))}" placeholder="e.g. spring, snow, flower, people, garden">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;">
+          <div class="modal-field">
+            <label>Required Sentences</label>
+            <input type="number" id="pw-required" value="${q.required_count ?? 5}" min="1">
+          </div>
+          <div class="modal-field">
+            <label>Points per Sentence</label>
+            <input type="number" id="pw-pps" value="${q.points_per_sentence ?? 2}" step="0.5" min="0">
+          </div>
+        </div>
+        <div class="modal-field">
+          <label>Grading Rubric</label>
+          <textarea id="pw-rubric">${escapeHtml(q.rubric || '')}</textarea>
+        </div>
+      </div>
+    `;
+    document.getElementById('pw-pool').addEventListener('input', e => {
+      q.word_pool = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+      refreshJsonViewer(q);
+    });
+    document.getElementById('pw-required').addEventListener('input', e => {
+      q.required_count = parseInt(e.target.value, 10) || 1;
+      refreshJsonViewer(q);
+    });
+    document.getElementById('pw-pps').addEventListener('input', e => {
+      q.points_per_sentence = parseFloat(e.target.value) || 0;
+      refreshJsonViewer(q);
+    });
+    document.getElementById('pw-rubric').addEventListener('input', e => {
+      q.rubric = e.target.value; refreshJsonViewer(q);
+    });
+  }
+
+  // ----- Image Label -----
+  function renderImageLabelEditor(q, container) {
+    q.image = q.image || { placeholder: '', alt: '', url: null };
+    q.labels = q.labels || [];
+    container.innerHTML = `
+      <div class="editor-section">
+        <div class="editor-section-label">Image</div>
+        <div class="image-info-row">
+          <div>
+            <label>Placeholder filename</label>
+            <input type="text" id="il-placeholder" value="${escapeHtml(q.image.placeholder || '')}" placeholder="${q.id}_image.png">
+          </div>
+          <div>
+            <label>Alt text (description)</label>
+            <input type="text" id="il-alt" value="${escapeHtml(q.image.alt || '')}" placeholder="What does the image show?">
+          </div>
+        </div>
+        <div style="font-style: italic; font-family: var(--font-display); font-size: 0.85rem; color: var(--medium-blue);">
+          ${q.image.url ? '✓ Image uploaded' : 'Image not yet uploaded — use the image inventory section above to upload.'}
+        </div>
+      </div>
+
+      <div class="editor-section">
+        <div class="editor-section-label">Labels</div>
+        <div class="editor-section-hint">Each label is a part of the image the student must identify.</div>
+        <div class="label-row-header">
+          <span>Label name</span>
+          <span>Correct answer</span>
+          <span>Accepted variants</span>
+          <span></span>
+        </div>
+        <div id="labelsList">
+          ${q.labels.map((l, i) => `
+            <div class="sub-row label-row">
+              <input type="text" data-il-label="${i}" value="${escapeHtml(l.label || '')}" placeholder="e.g. John">
+              <input type="text" data-il-answer="${i}" value="${escapeHtml(l.answer || '')}" placeholder="e.g. eat">
+              <input type="text" data-il-accepted="${i}" value="${escapeHtml((l.accepted_answers || []).join(', '))}" placeholder="eats, eating">
+              <button class="sub-delete-btn" data-il-delete="${i}" title="Remove">⌫</button>
+            </div>
+          `).join('')}
+        </div>
+        <button class="add-row-btn" id="addLabelBtn">+ Add Label</button>
+        <label class="sub-radio" style="margin-top: 0.6rem;">
+          <input type="checkbox" id="il-case" ${q.case_sensitive ? 'checked' : ''}>
+          Case sensitive
+        </label>
+      </div>
+    `;
+
+    document.getElementById('il-placeholder').addEventListener('input', e => {
+      q.image.placeholder = e.target.value; refreshJsonViewer(q);
+    });
+    document.getElementById('il-alt').addEventListener('input', e => {
+      q.image.alt = e.target.value; refreshJsonViewer(q);
+    });
+    document.getElementById('il-case').addEventListener('change', e => {
+      q.case_sensitive = e.target.checked; refreshJsonViewer(q);
+    });
+
+    container.querySelectorAll('[data-il-label]').forEach(input => {
+      input.addEventListener('input', () => {
+        q.labels[parseInt(input.dataset.ilLabel, 10)].label = input.value;
+        refreshJsonViewer(q);
+      });
+    });
+    container.querySelectorAll('[data-il-answer]').forEach(input => {
+      input.addEventListener('input', () => {
+        q.labels[parseInt(input.dataset.ilAnswer, 10)].answer = input.value;
+        refreshJsonViewer(q);
+      });
+    });
+    container.querySelectorAll('[data-il-accepted]').forEach(input => {
+      input.addEventListener('input', () => {
+        const i = parseInt(input.dataset.ilAccepted, 10);
+        q.labels[i].accepted_answers = input.value.split(',').map(s => s.trim()).filter(Boolean);
+        refreshJsonViewer(q);
+      });
+    });
+    container.querySelectorAll('[data-il-delete]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.ilDelete, 10);
+        q.labels.splice(i, 1);
+        rerenderTypeEditor();
+      });
+    });
+    document.getElementById('addLabelBtn').addEventListener('click', () => {
+      const nextN = q.labels.length + 1;
+      q.labels.push({ id: `l${nextN}`, label: '', answer: '', accepted_answers: [] });
+      rerenderTypeEditor();
+    });
+  }
+
+  // ----- Image Match -----
+  function renderImageMatchEditor(q, container) {
+    q.image = q.image || { placeholder: '', alt: '', url: null };
+    q.items = q.items || [];
+    q.image_regions = q.image_regions || [];
+    q.answers = q.answers || {};
+
+    const regionOptsHtml = q.image_regions.map(r =>
+      `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`
+    ).join('');
+
+    container.innerHTML = `
+      <div class="editor-section">
+        <div class="editor-section-label">Image</div>
+        <div class="image-info-row">
+          <div>
+            <label>Placeholder filename</label>
+            <input type="text" id="im-placeholder" value="${escapeHtml(q.image.placeholder || '')}" placeholder="${q.id}_image.png">
+          </div>
+          <div>
+            <label>Alt text (description)</label>
+            <input type="text" id="im-alt" value="${escapeHtml(q.image.alt || '')}" placeholder="What does the image show?">
+          </div>
+        </div>
+        <div style="font-style: italic; font-family: var(--font-display); font-size: 0.85rem; color: var(--medium-blue);">
+          ${q.image.url ? '✓ Image uploaded' : 'Image not yet uploaded — use the image inventory section above to upload.'}
+        </div>
+      </div>
+
+      <div class="editor-section">
+        <div class="editor-section-label">Image Regions</div>
+        <div class="editor-section-hint">Numbered regions visible on the image (the student picks one for each item).</div>
+        <div class="modal-field">
+          <input type="text" id="im-regions" value="${escapeHtml(q.image_regions.join(', '))}" placeholder="1, 2, 3, 4, 5, 6">
+        </div>
+      </div>
+
+      <div class="editor-section">
+        <div class="editor-section-label">Items (with correct region)</div>
+        <div id="imItemsList">
+          ${q.items.map((it, i) => `
+            <div class="sub-row" style="grid-template-columns: 1fr 1fr auto;">
+              <input type="text" data-im-item="${i}" value="${escapeHtml(it || '')}" placeholder="Item text">
+              <select data-im-answer="${i}">
+                <option value="">— pick region —</option>
+                ${q.image_regions.map(r =>
+                  `<option value="${escapeHtml(r)}" ${q.answers[it] === r ? 'selected' : ''}>${escapeHtml(r)}</option>`
+                ).join('')}
+              </select>
+              <button class="sub-delete-btn" data-im-item-delete="${i}" title="Remove">⌫</button>
+            </div>
+          `).join('')}
+        </div>
+        <button class="add-row-btn" id="addImItemBtn">+ Add Item</button>
+      </div>
+    `;
+
+    document.getElementById('im-placeholder').addEventListener('input', e => {
+      q.image.placeholder = e.target.value; refreshJsonViewer(q);
+    });
+    document.getElementById('im-alt').addEventListener('input', e => {
+      q.image.alt = e.target.value; refreshJsonViewer(q);
+    });
+    document.getElementById('im-regions').addEventListener('input', e => {
+      const oldRegions = q.image_regions;
+      q.image_regions = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+      // Drop answers that point to removed regions
+      Object.keys(q.answers).forEach(k => {
+        if (!q.image_regions.includes(q.answers[k])) delete q.answers[k];
+      });
+      rerenderTypeEditor();
+    });
+    container.querySelectorAll('[data-im-item]').forEach(input => {
+      input.addEventListener('input', () => {
+        const i = parseInt(input.dataset.imItem, 10);
+        const oldText = q.items[i];
+        q.items[i] = input.value;
+        if (oldText !== input.value && q.answers[oldText] != null) {
+          q.answers[input.value] = q.answers[oldText];
+          delete q.answers[oldText];
+        }
+        refreshJsonViewer(q);
+      });
+    });
+    container.querySelectorAll('[data-im-answer]').forEach(sel => {
+      sel.addEventListener('change', () => {
+        const i = parseInt(sel.dataset.imAnswer, 10);
+        const itemText = q.items[i];
+        if (sel.value) q.answers[itemText] = sel.value;
+        else delete q.answers[itemText];
+        refreshJsonViewer(q);
+      });
+    });
+    container.querySelectorAll('[data-im-item-delete]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.imItemDelete, 10);
+        const removedItem = q.items[i];
+        q.items.splice(i, 1);
+        delete q.answers[removedItem];
+        rerenderTypeEditor();
+      });
+    });
+    document.getElementById('addImItemBtn').addEventListener('click', () => {
+      q.items.push('');
+      rerenderTypeEditor();
+    });
+  }
+
+  // ===== SAVE QUESTION =====
+  // Type-specific data is updated live as the teacher edits, so save just
+  // captures the standard fields (grading, points, prompt) and persists.
   document.getElementById('saveQuestionBtn').addEventListener('click', () => {
     if (!editingQuestion) return;
     const { sIdx, qIdx, q } = editingQuestion;
@@ -2595,17 +3635,6 @@ Use {blank} for each position; provide one entry in \`blanks\` per blank.
     q.grading = document.getElementById('editQGrading').value;
     q.points = parseFloat(document.getElementById('editQPoints').value) || 0;
     q.prompt = document.getElementById('editQPrompt').value;
-
-    const ansEl = document.getElementById('editQAnswer');
-    if (ansEl) q.answer = ansEl.value;
-
-    const accEl = document.getElementById('editQAccepted');
-    if (accEl) {
-      q.accepted_answers = accEl.value.split(',').map(s => s.trim()).filter(Boolean);
-    }
-
-    const rubEl = document.getElementById('editQRubric');
-    if (rubEl) q.rubric = rubEl.value;
 
     examDef.sections[sIdx].questions[qIdx] = q;
     markDirty();

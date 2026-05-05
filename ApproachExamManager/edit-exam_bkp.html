@@ -361,6 +361,256 @@
     grid-template-columns: auto 1fr auto auto;
     gap: 1rem;
     align-items: center;
+    position: relative;
+  }
+
+  /* ===== INLINE INSERT BAR ===== */
+  .insert-bar {
+    height: 18px;
+    margin: -3px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .insert-bar::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; top: 50%;
+    height: 1px;
+    background: transparent;
+    border-top: 1px dashed var(--dark-sky-blue);
+    transition: all 0.15s;
+  }
+  .insert-bar .insert-label {
+    position: relative;
+    z-index: 1;
+    background: #fff;
+    color: var(--dark-sky-blue);
+    font-family: var(--font-body);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 0 0.6rem;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .insert-bar:hover {
+    height: 36px;
+    margin: 4px 0;
+  }
+  .insert-bar:hover::before {
+    border-top-color: var(--nd-gold);
+  }
+  .insert-bar:hover .insert-label {
+    opacity: 1;
+    color: var(--nd-gold);
+  }
+  .insert-bar.expanded {
+    height: auto;
+    margin: 6px 0;
+    cursor: default;
+  }
+  .insert-bar.expanded::before { display: none; }
+
+  /* Type picker (shown when insert-bar is expanded) */
+  .type-picker {
+    background: var(--light-sky-blue);
+    border-left: 3px solid var(--nd-gold);
+    padding: 0.85rem 1rem;
+    width: 100%;
+  }
+  .type-picker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.6rem;
+  }
+  .type-picker-title {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--medium-blue);
+  }
+  .type-picker-close {
+    background: transparent;
+    border: none;
+    color: var(--medium-blue);
+    cursor: pointer;
+    font-size: 1.2rem;
+    line-height: 1;
+    padding: 0 0.2rem;
+  }
+  .type-picker-close:hover { color: var(--accent-red); }
+  .type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.4rem;
+  }
+  .type-pill {
+    background: #fff;
+    border: 1px solid var(--dark-sky-blue);
+    color: var(--medium-blue);
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 0.55rem 0.75rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .type-pill:hover {
+    background: var(--nd-blue);
+    border-color: var(--nd-gold);
+  }
+  .type-pill .type-name {
+    display: block;
+    font-weight: 600;
+    color: var(--nd-blue);
+    font-size: 0.85rem;
+  }
+  .type-pill:hover .type-name { color: var(--nd-gold); }
+  .type-pill .type-desc {
+    display: block;
+    font-style: italic;
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    margin-top: 0.15rem;
+    color: var(--medium-blue);
+  }
+  .type-pill:hover .type-desc { color: var(--dark-sky-blue); }
+
+  /* Hover actions on question rows */
+  .q-hover-actions {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    gap: 0.2rem;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .question-row:hover .q-hover-actions { opacity: 1; }
+  .q-hover-btn {
+    background: #fff;
+    border: 1px solid var(--dark-sky-blue);
+    color: var(--medium-blue);
+    width: 26px;
+    height: 26px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    line-height: 1;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .q-hover-btn:hover:not(:disabled) {
+    background: var(--nd-blue);
+    color: var(--nd-gold);
+    border-color: var(--nd-gold);
+  }
+  .q-hover-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+  .q-hover-btn.delete:hover {
+    background: var(--accent-red);
+    color: #fff;
+    border-color: var(--accent-red);
+  }
+
+  /* Section actions */
+  .section-actions {
+    display: flex;
+    gap: 0.3rem;
+    align-items: center;
+  }
+  .section-action-btn {
+    background: transparent;
+    border: 1px solid var(--medium-blue);
+    color: var(--medium-blue);
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    line-height: 1;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .section-action-btn:hover:not(:disabled) {
+    background: var(--medium-blue);
+    color: var(--light-warm-white);
+  }
+  .section-action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .section-action-btn.delete:hover {
+    background: var(--accent-red);
+    color: #fff;
+    border-color: var(--accent-red);
+  }
+
+  .section-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  /* Add Section button */
+  .add-section-bar {
+    margin: 1.5rem 0 0 0;
+    padding: 1rem;
+    text-align: center;
+    border: 2px dashed var(--dark-sky-blue);
+    cursor: pointer;
+    transition: all 0.15s;
+    background: transparent;
+    color: var(--medium-blue);
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    width: 100%;
+  }
+  .add-section-bar:hover {
+    border-color: var(--nd-gold);
+    color: var(--nd-gold);
+    background: var(--light-warm-white);
+  }
+
+  /* Unsaved changes indicator */
+  .dirty-indicator {
+    display: none;
+    background: rgba(211, 159, 16, 0.1);
+    border-left: 3px solid var(--bright-gold);
+    padding: 0.6rem 0.85rem;
+    color: var(--dark-gold);
+    font-size: 0.78rem;
+    font-style: italic;
+    font-family: var(--font-display);
+    margin-bottom: 0.85rem;
+  }
+  .dirty-indicator.show { display: block; }
+  .dirty-indicator strong {
+    font-style: normal;
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent-red);
+    margin-right: 0.4rem;
   }
   .question-row.has-warning {
     background: rgba(211, 159, 16, 0.08);
@@ -896,6 +1146,9 @@
 
         <div class="panel">
           <div class="panel-title">Actions</div>
+          <div class="dirty-indicator" id="dirtyIndicator">
+            <strong>Unsaved</strong> You have unsaved changes. Click Save Draft or Publish to keep them.
+          </div>
           <div style="display: flex; flex-direction: column; gap: 0.6rem;">
             <button class="btn-tertiary" id="previewBtn" disabled>Preview</button>
             <button class="btn-primary" id="saveDraftBtn" disabled>Save Draft</button>
@@ -983,6 +1236,35 @@
     <div class="modal-actions">
       <button type="button" class="btn-secondary" onclick="closeImageModal()">Cancel</button>
       <button type="button" class="btn-primary" id="uploadImageBtn" disabled>Upload</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION EDIT MODAL ===== -->
+<div class="modal-overlay" id="sectionModal">
+  <div class="modal" style="max-width: 640px;">
+    <div class="modal-stamp" id="sectionModalStamp">Edit Section</div>
+    <h2 id="sectionModalTitle">Section</h2>
+    <p class="modal-sub">Set the section title, instructions, and an optional reading passage.</p>
+
+    <div class="modal-field">
+      <label>Section Title</label>
+      <input type="text" id="secEditTitle" placeholder="e.g. Article 1: Coffee and tea">
+    </div>
+
+    <div class="modal-field">
+      <label>Instructions (optional)</label>
+      <input type="text" id="secEditInstructions" placeholder="e.g. Read the article and answer the questions">
+    </div>
+
+    <div class="modal-field">
+      <label>Reading Passage (optional)</label>
+      <textarea id="secEditPassage" placeholder="Paste the article or reading content here. Leave blank for sections without a passage." style="min-height: 140px;"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" onclick="closeSectionModal()">Cancel</button>
+      <button type="button" class="btn-primary" id="secEditSaveBtn">Save Section</button>
     </div>
   </div>
 </div>
@@ -1134,6 +1416,158 @@
     'fill_blank_multi', 'matching', 'categorization', 'sentence_order',
     'short_answer', 'writing_prompt', 'pool_writing', 'image_label', 'image_match'
   ];
+
+  // Type metadata for the picker
+  const TYPE_INFO = {
+    multiple_choice:  { label: 'Multiple Choice',     desc: 'Pick one correct option from a list' },
+    true_false:       { label: 'True / False',        desc: 'A statement to mark T or F' },
+    inline_choice:    { label: 'Inline Choice',       desc: 'Choose between two words inside a sentence' },
+    fill_blank:       { label: 'Fill in the Blank',   desc: 'One blank in a sentence' },
+    fill_blank_multi: { label: 'Multi-Blank',         desc: 'Multiple blanks in one sentence' },
+    matching:         { label: 'Matching',            desc: 'Match left items with right items' },
+    categorization:   { label: 'Categorization',      desc: 'Sort items into categories' },
+    sentence_order:   { label: 'Sentence Order',      desc: 'Reorder scrambled words (manual)' },
+    short_answer:     { label: 'Short Answer',        desc: 'Brief written response (manual)' },
+    writing_prompt:   { label: 'Writing Prompt',      desc: 'Open-ended writing (manual)' },
+    pool_writing:     { label: 'Pool Writing',        desc: 'Pick N words and write a sentence with each (manual)' },
+    image_label:      { label: 'Image Label',         desc: 'Label parts of an image' },
+    image_match:      { label: 'Image Match',         desc: 'Match items to numbered regions of an image' }
+  };
+
+  // ===== DIRTY STATE =====
+  let isDirty = false;
+
+  function markDirty() {
+    isDirty = true;
+    document.getElementById('dirtyIndicator').classList.add('show');
+  }
+
+  function clearDirty() {
+    isDirty = false;
+    document.getElementById('dirtyIndicator').classList.remove('show');
+  }
+
+  // Warn before navigating away with unsaved changes
+  window.addEventListener('beforeunload', (e) => {
+    if (isDirty) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+
+  // ===== ID GENERATION =====
+  function generateQuestionId() {
+    if (!examDef) return 'q1';
+    let maxNum = 0;
+    let foundNumeric = false;
+    (examDef.sections || []).forEach(s => {
+      (s.questions || []).forEach(q => {
+        const m = String(q.id || '').match(/^q?(\d+)/i);
+        if (m) {
+          foundNumeric = true;
+          const n = parseInt(m[1], 10);
+          if (n > maxNum) maxNum = n;
+        }
+      });
+    });
+    if (foundNumeric) return `q${maxNum + 1}`;
+    // Fallback: count-based
+    const count = (examDef.sections || []).reduce((sum, s) => sum + (s.questions?.length || 0), 0);
+    return `q${count + 1}`;
+  }
+
+  function generateSectionId() {
+    if (!examDef) return 'section_1';
+    const count = (examDef.sections || []).length;
+    return `section_${count + 1}`;
+  }
+
+  // ===== QUESTION STUBS =====
+  function makeStub(type) {
+    const id = generateQuestionId();
+    const base = { id, type, prompt: '', points: 1 };
+
+    switch (type) {
+      case 'multiple_choice':
+        return { ...base, grading: 'auto',
+          options: [
+            { key: 'a', text: '' }, { key: 'b', text: '' },
+            { key: 'c', text: '' }, { key: 'd', text: '' }
+          ],
+          answer: '' };
+      case 'true_false':
+        return { ...base, grading: 'auto', answer: 'T' };
+      case 'inline_choice':
+        return { ...base, grading: 'auto',
+          prompt: 'The {choice} is the correct answer.',
+          options: ['', ''], answer: '' };
+      case 'fill_blank':
+        return { ...base, grading: 'auto',
+          prompt: 'I {blank} speak three languages.',
+          answer: '', accepted_answers: [], case_sensitive: false };
+      case 'fill_blank_multi':
+        return { ...base, grading: 'auto',
+          prompt: '{blank} you {blank} on the phone?',
+          blanks: [
+            { id: `${id}a`, answer: '', accepted_answers: [], points: 0.5 },
+            { id: `${id}b`, answer: '', accepted_answers: [], points: 0.5 }
+          ],
+          case_sensitive: false };
+      case 'matching':
+        return { ...base, grading: 'auto', points: 2,
+          left_items: [
+            { id: '1', text: '' }, { id: '2', text: '' }
+          ],
+          right_items: [
+            { key: 'A', text: '' }, { key: 'B', text: '' }
+          ],
+          answers: {} };
+      case 'categorization':
+        return { ...base, grading: 'auto', points: 4,
+          items: [],
+          categories: [
+            { id: 'cat1', label: 'Category 1' },
+            { id: 'cat2', label: 'Category 2' }
+          ],
+          answers: {} };
+      case 'sentence_order':
+        return { ...base, grading: 'manual', points: 2,
+          words: [], expected: '', rubric: '' };
+      case 'short_answer':
+        return { ...base, grading: 'manual', points: 2,
+          expected_answer: '', rubric: '' };
+      case 'writing_prompt':
+        return { ...base, grading: 'manual', points: 2, rubric: '' };
+      case 'pool_writing':
+        return { ...base, grading: 'manual', points: 10,
+          word_pool: [], required_count: 5, points_per_sentence: 2, rubric: '' };
+      case 'image_label':
+        return { ...base, grading: 'auto', points: 4,
+          image: { placeholder: `${id}_image.png`, alt: '', url: null },
+          labels: [
+            { id: 'l1', label: '', answer: '', accepted_answers: [] },
+            { id: 'l2', label: '', answer: '', accepted_answers: [] }
+          ],
+          case_sensitive: false };
+      case 'image_match':
+        return { ...base, grading: 'auto', points: 4,
+          image: { placeholder: `${id}_image.png`, alt: '', url: null },
+          items: [], image_regions: ['1', '2', '3', '4'],
+          answers: {} };
+      default:
+        return base;
+    }
+  }
+
+  function makeSectionStub() {
+    return {
+      id: generateSectionId(),
+      title: 'New Section',
+      instructions: null,
+      passage: null,
+      questions: []
+    };
+  }
 
   // ===== CONVERSION PROMPT (paste with exam document into Claude) =====
   const CONVERSION_PROMPT = `You are an exam-conversion assistant for the Approach International Student Center online examination platform. Your task is to read the attached exam document and convert it into a structured JSON file that follows our exact schema.
@@ -1449,8 +1883,7 @@ Use {blank} for each position; provide one entry in \`blanks\` per blank.
   // ===== RENDER CONTENT (after JSON upload) =====
   function renderContent() {
     if (!examDef) {
-      document.getElementById('uploadArea').style.display = 'flex';
-      document.getElementById('uploadArea').style.flexDirection = 'column';
+      document.getElementById('uploadArea').style.display = 'block';
       document.getElementById('contentArea').style.display = 'none';
       document.getElementById('jsonActions').style.display = 'none';
       return;
@@ -1492,7 +1925,8 @@ Use {blank} for each position; provide one entry in \`blanks\` per blank.
     }
 
     // Sections + questions
-    (examDef.sections || []).forEach((section, sIdx) => {
+    const sections = examDef.sections || [];
+    sections.forEach((section, sIdx) => {
       const sectionEl = document.createElement('div');
       sectionEl.className = 'section-block';
 
@@ -1505,11 +1939,24 @@ Use {blank} for each position; provide one entry in \`blanks\` per blank.
           </div>`;
       }
 
+      const isFirstSection = sIdx === 0;
+      const isLastSection = sIdx === sections.length - 1;
+
       sectionEl.innerHTML = `
         <div class="section-header">
-          <div class="section-label">Section ${sIdx + 1}</div>
-          <div class="section-title-text">${escapeHtml(section.title || 'Untitled section')}</div>
-          ${section.instructions ? `<div style="font-style: italic; font-family: var(--font-display); color: var(--medium-blue); margin-top: 0.3rem; font-size: 0.95rem;">${escapeHtml(section.instructions)}</div>` : ''}
+          <div class="section-header-row">
+            <div style="flex: 1; min-width: 0;">
+              <div class="section-label">Section ${sIdx + 1} of ${sections.length}</div>
+              <div class="section-title-text">${escapeHtml(section.title || 'Untitled section')}</div>
+              ${section.instructions ? `<div style="font-style: italic; font-family: var(--font-display); color: var(--medium-blue); margin-top: 0.3rem; font-size: 0.95rem;">${escapeHtml(section.instructions)}</div>` : ''}
+            </div>
+            <div class="section-actions">
+              <button class="section-action-btn" title="Move section up" onclick="moveSection(${sIdx}, -1)" ${isFirstSection ? 'disabled' : ''}>↑</button>
+              <button class="section-action-btn" title="Move section down" onclick="moveSection(${sIdx}, 1)" ${isLastSection ? 'disabled' : ''}>↓</button>
+              <button class="section-action-btn" title="Edit section" onclick="openSectionEdit(${sIdx})">✎</button>
+              <button class="section-action-btn delete" title="Delete section" onclick="deleteSection(${sIdx})">⌫</button>
+            </div>
+          </div>
           ${passageHtml}
         </div>
         <div class="section-questions"></div>
@@ -1517,11 +1964,150 @@ Use {blank} for each position; provide one entry in \`blanks\` per blank.
       container.appendChild(sectionEl);
 
       const qContainer = sectionEl.querySelector('.section-questions');
-      (section.questions || []).forEach((q, qIdx) => {
-        qContainer.appendChild(renderQuestionRow(q, sIdx, qIdx));
+      const questions = section.questions || [];
+
+      // Insert bar at the start of each section
+      qContainer.appendChild(renderInsertBar(sIdx, 0));
+
+      questions.forEach((q, qIdx) => {
+        const isFirst = qIdx === 0;
+        const isLast = qIdx === questions.length - 1;
+        qContainer.appendChild(renderQuestionRow(q, sIdx, qIdx, isFirst, isLast));
+        // Insert bar after each question
+        qContainer.appendChild(renderInsertBar(sIdx, qIdx + 1));
+      });
+    });
+
+    // Add Section button at the bottom
+    const addSectionBtn = document.createElement('button');
+    addSectionBtn.className = 'add-section-bar';
+    addSectionBtn.textContent = '+ Add Section';
+    addSectionBtn.onclick = addSection;
+    container.appendChild(addSectionBtn);
+  }
+
+  // ===== INSERT BAR =====
+  function renderInsertBar(sectionIdx, position) {
+    const bar = document.createElement('div');
+    bar.className = 'insert-bar';
+    bar.dataset.section = sectionIdx;
+    bar.dataset.position = position;
+    bar.innerHTML = `<span class="insert-label">+ Add question here</span>`;
+    bar.addEventListener('click', () => expandInsertBar(bar, sectionIdx, position));
+    return bar;
+  }
+
+  function expandInsertBar(bar, sectionIdx, position) {
+    if (bar.classList.contains('expanded')) return;
+    bar.classList.add('expanded');
+
+    const picker = document.createElement('div');
+    picker.className = 'type-picker';
+    picker.innerHTML = `
+      <div class="type-picker-header">
+        <span class="type-picker-title">Choose a question type</span>
+        <button class="type-picker-close" title="Cancel">×</button>
+      </div>
+      <div class="type-grid">
+        ${VALID_TYPES.map(t => `
+          <button class="type-pill" data-type="${t}">
+            <span class="type-name">${escapeHtml(TYPE_INFO[t].label)}</span>
+            <span class="type-desc">${escapeHtml(TYPE_INFO[t].desc)}</span>
+          </button>
+        `).join('')}
+      </div>
+    `;
+    bar.innerHTML = '';
+    bar.appendChild(picker);
+
+    picker.querySelector('.type-picker-close').addEventListener('click', () => {
+      bar.classList.remove('expanded');
+      bar.innerHTML = `<span class="insert-label">+ Add question here</span>`;
+    });
+
+    picker.querySelectorAll('.type-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        const type = pill.dataset.type;
+        insertQuestion(sectionIdx, position, type);
       });
     });
   }
+
+  // ===== INSERT QUESTION =====
+  function insertQuestion(sectionIdx, position, type) {
+    const stub = makeStub(type);
+    examDef.sections[sectionIdx].questions.splice(position, 0, stub);
+    markDirty();
+    renderContent();
+    updateSidebar();
+    // Open edit modal so the teacher fills in the new question right away
+    openQuestionEdit(sectionIdx, position);
+  }
+  window.insertQuestion = insertQuestion;
+
+  // ===== DELETE QUESTION =====
+  function deleteQuestion(sectionIdx, questionIdx) {
+    const q = examDef.sections[sectionIdx].questions[questionIdx];
+    if (!confirm(`Delete question ${q.id}?\n\nThis cannot be undone (until you save, you can refresh the page to recover).`)) return;
+    examDef.sections[sectionIdx].questions.splice(questionIdx, 1);
+    markDirty();
+    renderContent();
+    updateSidebar();
+  }
+  window.deleteQuestion = deleteQuestion;
+
+  // ===== MOVE QUESTION =====
+  function moveQuestion(sectionIdx, questionIdx, direction) {
+    const questions = examDef.sections[sectionIdx].questions;
+    const newIdx = questionIdx + direction;
+    if (newIdx < 0 || newIdx >= questions.length) return;
+    const [removed] = questions.splice(questionIdx, 1);
+    questions.splice(newIdx, 0, removed);
+    markDirty();
+    renderContent();
+    updateSidebar();
+  }
+  window.moveQuestion = moveQuestion;
+
+  // ===== ADD SECTION =====
+  function addSection() {
+    const newSection = makeSectionStub();
+    examDef.sections = examDef.sections || [];
+    examDef.sections.push(newSection);
+    markDirty();
+    renderContent();
+    updateSidebar();
+    // Open edit modal so the teacher names it
+    openSectionEdit(examDef.sections.length - 1);
+  }
+
+  // ===== MOVE SECTION =====
+  function moveSection(sectionIdx, direction) {
+    const newIdx = sectionIdx + direction;
+    if (newIdx < 0 || newIdx >= examDef.sections.length) return;
+    const [removed] = examDef.sections.splice(sectionIdx, 1);
+    examDef.sections.splice(newIdx, 0, removed);
+    markDirty();
+    renderContent();
+    updateSidebar();
+  }
+  window.moveSection = moveSection;
+
+  // ===== DELETE SECTION =====
+  function deleteSection(sectionIdx) {
+    const section = examDef.sections[sectionIdx];
+    const qCount = (section.questions || []).length;
+    let msg = `Delete section "${section.title || 'Untitled'}"?`;
+    if (qCount > 0) {
+      msg += `\n\nThis will also delete ${qCount} question${qCount === 1 ? '' : 's'} in this section. This cannot be undone (until you save, you can refresh the page to recover).`;
+    }
+    if (!confirm(msg)) return;
+    examDef.sections.splice(sectionIdx, 1);
+    markDirty();
+    renderContent();
+    updateSidebar();
+  }
+  window.deleteSection = deleteSection;
 
   function collectImagePlaceholders() {
     const list = [];
@@ -1575,7 +2161,7 @@ Use {blank} for each position; provide one entry in \`blanks\` per blank.
       el.classList.contains('expanded') ? 'Show less' : 'Show more';
   };
 
-  function renderQuestionRow(q, sIdx, qIdx) {
+  function renderQuestionRow(q, sIdx, qIdx, isFirst = false, isLast = false) {
     const issues = validateQuestion(q);
     const div = document.createElement('div');
     div.className = 'question-row';
@@ -1606,6 +2192,11 @@ Use {blank} for each position; provide one entry in \`blanks\` per blank.
       ${warningHtml}
       <div class="q-actions">
         <button class="q-btn" onclick="openQuestionEdit(${sIdx}, ${qIdx})">Edit</button>
+      </div>
+      <div class="q-hover-actions">
+        <button class="q-hover-btn" title="Move up" onclick="moveQuestion(${sIdx}, ${qIdx}, -1)" ${isFirst ? 'disabled' : ''}>↑</button>
+        <button class="q-hover-btn" title="Move down" onclick="moveQuestion(${sIdx}, ${qIdx}, 1)" ${isLast ? 'disabled' : ''}>↓</button>
+        <button class="q-hover-btn delete" title="Delete question" onclick="deleteQuestion(${sIdx}, ${qIdx})">⌫</button>
       </div>
     `;
     return div;
@@ -1815,6 +2406,7 @@ Use {blank} for each position; provide one entry in \`blanks\` per blank.
           );
         }
         examDef = parsed;
+        markDirty();
         renderContent();
         updateSidebar();
         showToast('JSON loaded successfully', 'success');
@@ -1893,6 +2485,7 @@ Use {blank} for each position; provide one entry in \`blanks\` per blank.
       const sIdx = pendingImageContext.section;
       const qIdx = pendingImageContext.question;
       examDef.sections[sIdx].questions[qIdx].image.url = publicUrl;
+      markDirty();
 
       closeImageModal();
       renderContent();
@@ -1921,6 +2514,7 @@ Use {blank} for each position; provide one entry in \`blanks\` per blank.
 
       const sIdx = img.section, qIdx = img.question;
       examDef.sections[sIdx].questions[qIdx].image.url = null;
+      markDirty();
 
       renderContent();
       updateSidebar();
@@ -2014,6 +2608,7 @@ Use {blank} for each position; provide one entry in \`blanks\` per blank.
     if (rubEl) q.rubric = rubEl.value;
 
     examDef.sections[sIdx].questions[qIdx] = q;
+    markDirty();
     closeQuestionModal();
     renderContent();
     updateSidebar();
@@ -2029,6 +2624,7 @@ Use {blank} for each position; provide one entry in \`blanks\` per blank.
       .update(updates).eq('id', currentExam.id).select().single();
     if (error) throw error;
     currentExam = { ...currentExam, ...data };
+    clearDirty();
     renderMetadata();
   }
 
@@ -2191,6 +2787,53 @@ Use {blank} for each position; provide one entry in \`blanks\` per blank.
   document.getElementById('editMetadataBtn').addEventListener('click', (e) => {
     e.preventDefault();
     openMetadataModal();
+  });
+
+  // ===== SECTION EDIT MODAL =====
+  let editingSectionIdx = null;
+
+  function openSectionEdit(sIdx) {
+    const section = examDef.sections[sIdx];
+    if (!section) return;
+    editingSectionIdx = sIdx;
+
+    document.getElementById('sectionModalStamp').textContent = `Section ${sIdx + 1}`;
+    document.getElementById('sectionModalTitle').textContent = section.title || 'Untitled Section';
+    document.getElementById('secEditTitle').value = section.title || '';
+    document.getElementById('secEditInstructions').value = section.instructions || '';
+    document.getElementById('secEditPassage').value = section.passage?.content || '';
+
+    document.getElementById('sectionModal').classList.add('active');
+  }
+  window.openSectionEdit = openSectionEdit;
+
+  function closeSectionModal() {
+    document.getElementById('sectionModal').classList.remove('active');
+    editingSectionIdx = null;
+  }
+  window.closeSectionModal = closeSectionModal;
+
+  document.getElementById('sectionModal').addEventListener('click', (e) => {
+    if (e.target.id === 'sectionModal') closeSectionModal();
+  });
+
+  document.getElementById('secEditSaveBtn').addEventListener('click', () => {
+    if (editingSectionIdx == null) return;
+    const section = examDef.sections[editingSectionIdx];
+
+    const title = document.getElementById('secEditTitle').value.trim();
+    const instructions = document.getElementById('secEditInstructions').value.trim();
+    const passage = document.getElementById('secEditPassage').value.trim();
+
+    section.title = title || 'Untitled Section';
+    section.instructions = instructions || null;
+    section.passage = passage ? { type: 'text', content: passage } : null;
+
+    markDirty();
+    closeSectionModal();
+    renderContent();
+    updateSidebar();
+    showToast('Section updated. Don\'t forget to save your changes.', 'success');
   });
 
   // ===== PROMPT MODAL =====
