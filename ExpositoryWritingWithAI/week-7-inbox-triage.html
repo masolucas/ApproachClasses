@@ -172,7 +172,7 @@ body {
   opacity: 0;
   transition: opacity 0.2s ease;
   pointer-events: none;
-  z-index: 1;
+  z-index: 10;
 }
 .zone-hint.right { right: 14px; top: 50%; transform: translateY(-50%); }
 .zone-hint.left  { left: 14px; top: 50%; transform: translateY(-50%); }
@@ -274,8 +274,8 @@ body {
   z-index: 10;
   transform: rotate(-12deg);
 }
-.swipe-label.urgent-label { right: 18px; color: var(--urgent); border-color: var(--urgent); background: rgba(192,57,43,0.08); transform: rotate(12deg); }
-.swipe-label.wait-label   { left: 18px;  color: var(--wait);   border-color: var(--wait);   background: rgba(19,104,206,0.08); transform: rotate(-12deg); }
+.swipe-label.urgent-label { left: 18px; color: var(--urgent); border-color: var(--urgent); background: rgba(192,57,43,0.08); transform: rotate(-12deg); }
+.swipe-label.wait-label   { right: 18px;  color: var(--wait);   border-color: var(--wait);   background: rgba(19,104,206,0.08); transform: rotate(12deg); }
 .swipe-label.none-label   { left: 50%; transform: translateX(-50%) rotate(-6deg); color: var(--gold); border-color: var(--gold); background: rgba(174,145,66,0.08); }
 
 /* Bottom swipe hint bar */
