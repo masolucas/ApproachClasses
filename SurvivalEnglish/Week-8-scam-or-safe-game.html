@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCAM or SAFE? — Banking Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:   #0c2340;
+    --gold:   #ae9142;
+    --gold-l: #d4b96a;
+    --red:    #c0392b;
+    --green:  #1a7a4a;
+    --white:  #f5f2ec;
+    --card-w: min(380px, 92vw);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--navy);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ── Animated background ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 20%, rgba(174,145,66,.13) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 60% at 80% 80%, rgba(12,35,64,.8) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* floating coins bg */
+  .coins-bg {
+    position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0;
+  }
+  .coin {
+    position: absolute;
+    font-size: clamp(18px, 3vw, 32px);
+    opacity: .07;
+    animation: floatCoin linear infinite;
+  }
+
+  @keyframes floatCoin {
+    0%   { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+    10%  { opacity: .07; }
+    90%  { opacity: .07; }
+    100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+  }
+
+  /* ── Header ── */
+  header {
+    position: relative; z-index: 10;
+    width: 100%; max-width: 520px;
+    padding: 22px 24px 0;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+
+  .logo-badge {
+    font-size: 10px; letter-spacing: 3px; font-weight: 600;
+    color: var(--gold); text-transform: uppercase;
+    border: 1px solid rgba(174,145,66,.4);
+    padding: 4px 12px; border-radius: 20px;
+    background: rgba(174,145,66,.08);
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 7vw, 44px);
+    color: var(--white);
+    text-align: center;
+    line-height: 1.1;
+    letter-spacing: -1px;
+  }
+  h1 span { color: var(--gold); }
+
+  .subtitle {
+    font-size: 13px; color: rgba(245,242,236,.5);
+    text-align: center; margin-top: 2px;
+  }
+
+  /* ── Score bar ── */
+  .score-bar {
+    position: relative; z-index: 10;
+    display: flex; gap: 16px; margin: 16px 0 0;
+  }
+  .score-chip {
+    display: flex; flex-direction: column; align-items: center;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 14px; padding: 10px 24px;
+    min-width: 90px;
+    transition: transform .2s;
+  }
+  .score-chip.bounce { animation: chipBounce .4s ease; }
+  @keyframes chipBounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
+
+  .score-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px; font-weight: 800; line-height: 1;
+  }
+  .score-chip.safe  .score-num { color: #2ecc71; }
+  .score-chip.scam  .score-num { color: #e74c3c; }
+  .score-chip.total .score-num { color: var(--gold); }
+  .score-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(245,242,236,.4); margin-top: 2px; }
+
+  /* ── Progress bar ── */
+  .progress-wrap {
+    position: relative; z-index: 10;
+    width: var(--card-w); margin: 14px 0 0;
+    height: 4px; background: rgba(255,255,255,.1); border-radius: 2px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: var(--gold);
+    border-radius: 2px;
+    transition: width .5s ease;
+  }
+  .progress-label {
+    font-size: 11px; color: rgba(245,242,236,.35);
+    text-align: right; margin-top: 5px; letter-spacing: .5px;
+    position: relative; z-index: 10;
+    width: var(--card-w);
+  }
+
+  /* ── Card stack ── */
+  .stack-wrap {
+    position: relative; z-index: 10;
+    width: var(--card-w);
+    height: 320px;
+    margin-top: 20px;
+  }
+
+  .card {
+    position: absolute; inset: 0;
+    background: var(--white);
+    border-radius: 24px;
+    padding: 30px 28px 24px;
+    display: flex; flex-direction: column; gap: 14px;
+    cursor: grab;
+    user-select: none;
+    transform-origin: center bottom;
+    transition: box-shadow .2s;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5), 0 4px 12px rgba(0,0,0,.3);
+    will-change: transform;
+  }
+  .card:active { cursor: grabbing; }
+
+  /* background cards peek */
+  .card.under1 {
+    transform: scale(.95) translateY(10px);
+    z-index: 1; pointer-events: none;
+    filter: brightness(.85);
+  }
+  .card.under2 {
+    transform: scale(.90) translateY(20px);
+    z-index: 0; pointer-events: none;
+    filter: brightness(.7);
+  }
+
+  /* dragging state */
+  .card.dragging { transition: none; box-shadow: 0 30px 80px rgba(0,0,0,.6); cursor: grabbing; }
+
+  /* swipe overlays */
+  .overlay {
+    position: absolute; top: 24px;
+    padding: 8px 18px; border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 22px; font-weight: 800;
+    letter-spacing: 2px;
+    opacity: 0; pointer-events: none;
+    transform: rotate(-15deg);
+    border: 3px solid;
+    transition: opacity .1s;
+  }
+  .overlay.safe { left: 20px; color: var(--green); border-color: var(--green); background: rgba(26,122,74,.1); transform: rotate(-12deg); }
+  .overlay.scam { right: 20px; color: var(--red);   border-color: var(--red);   background: rgba(192,57,43,.1); transform: rotate(12deg); }
+
+  /* card type indicator */
+  .card-type {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 10px; letter-spacing: 2px; font-weight: 600;
+    text-transform: uppercase; color: rgba(12,35,64,.4);
+  }
+  .card-type-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+
+  .card-emoji { font-size: 40px; }
+
+  .card-text {
+    font-size: clamp(14px, 3.5vw, 17px);
+    color: var(--navy);
+    line-height: 1.5;
+    font-weight: 500;
+    flex: 1;
+  }
+
+  .card-hint {
+    font-size: 11px; color: rgba(12,35,64,.38);
+    font-style: italic; margin-top: 4px;
+  }
+
+  /* ── Swipe hint ── */
+  .swipe-hint {
+    position: relative; z-index: 10;
+    display: flex; align-items: center; gap: 28px;
+    margin-top: 18px;
+  }
+  .hint-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    opacity: .7;
+  }
+  .hint-icon {
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; border: 2px solid;
+    transition: transform .15s, opacity .15s;
+    cursor: pointer;
+  }
+  .hint-icon:hover { transform: scale(1.12); opacity: 1; }
+  .hint-icon.safe-btn { border-color: var(--green); background: rgba(26,122,74,.15); color: var(--green); }
+  .hint-icon.scam-btn { border-color: var(--red);   background: rgba(192,57,43,.15); color: var(--red); }
+  .hint-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(245,242,236,.4); }
+
+  .or-text { font-size: 11px; color: rgba(245,242,236,.25); letter-spacing: 1px; }
+
+  /* ── Reveal panel ── */
+  .reveal {
+    position: fixed; inset: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    pointer-events: none; opacity: 0;
+    transition: opacity .25s;
+  }
+  .reveal.show { pointer-events: all; opacity: 1; }
+
+  .reveal-card {
+    background: var(--white);
+    border-radius: 24px;
+    padding: 32px 28px;
+    max-width: 420px; width: 100%;
+    display: flex; flex-direction: column; gap: 16px;
+    transform: scale(.85) translateY(20px);
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+    box-shadow: 0 30px 80px rgba(0,0,0,.7);
+    position: relative;
+  }
+  .reveal.show .reveal-card { transform: scale(1) translateY(0); }
+
+  .reveal-verdict {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px; font-weight: 800;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .reveal-verdict.correct { color: var(--green); }
+  .reveal-verdict.wrong   { color: var(--red); }
+
+  .reveal-scenario { font-size: 15px; color: rgba(12,35,64,.6); font-style: italic; }
+  .reveal-answer-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--navy); font-weight: 600; opacity: .5; }
+  .reveal-answer { font-size: 16px; color: var(--navy); font-weight: 500; line-height: 1.5; }
+  .reveal-tip {
+    background: rgba(12,35,64,.06); border-radius: 12px; padding: 14px 16px;
+    font-size: 14px; color: rgba(12,35,64,.7); line-height: 1.5;
+    border-left: 3px solid var(--gold);
+  }
+  .reveal-tip strong { color: var(--navy); }
+
+  .next-btn {
+    margin-top: 4px;
+    background: var(--navy);
+    color: var(--white);
+    border: none; border-radius: 14px;
+    padding: 16px; font-size: 15px; font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer; width: 100%;
+    transition: background .2s, transform .15s;
+    letter-spacing: .5px;
+  }
+  .next-btn:hover { background: #1a3a60; transform: translateY(-1px); }
+
+  .reveal-bg {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.7); backdrop-filter: blur(8px);
+    z-index: 99;
+    opacity: 0; transition: opacity .25s;
+    pointer-events: none;
+  }
+  .reveal-bg.show { opacity: 1; pointer-events: all; }
+
+  /* ── Final screen ── */
+  #final {
+    position: fixed; inset: 0; z-index: 200;
+    display: none; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 24px;
+    background: var(--navy);
+  }
+  #final.show { display: flex; }
+
+  .final-inner {
+    max-width: 400px; width: 100%;
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+    text-align: center;
+  }
+
+  .final-emoji { font-size: 72px; animation: pop .5s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes pop { 0%{transform:scale(0)} 100%{transform:scale(1)} }
+
+  .final-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 7vw, 42px);
+    color: var(--white); line-height: 1.1;
+  }
+  .final-score-display {
+    font-family: 'Syne', sans-serif;
+    font-size: 64px; font-weight: 800;
+    color: var(--gold); line-height: 1;
+  }
+  .final-score-label { font-size: 13px; color: rgba(245,242,236,.4); letter-spacing: 2px; text-transform: uppercase; }
+  .final-msg { font-size: 16px; color: rgba(245,242,236,.7); line-height: 1.6; }
+
+  .final-breakdown {
+    display: flex; gap: 16px; width: 100%; justify-content: center;
+  }
+  .fb-chip {
+    flex: 1; max-width: 140px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 16px; padding: 14px 10px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .fb-num { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; }
+  .fb-chip.s .fb-num { color: #2ecc71; }
+  .fb-chip.w .fb-num { color: #e74c3c; }
+  .fb-lbl { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(245,242,236,.4); }
+
+  .restart-btn {
+    background: var(--gold); color: var(--navy);
+    border: none; border-radius: 14px;
+    padding: 16px 40px; font-size: 16px; font-weight: 700;
+    font-family: 'Syne', sans-serif; cursor: pointer; width: 100%;
+    transition: transform .15s, filter .2s;
+    letter-spacing: .5px;
+  }
+  .restart-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+  /* ── Flying animation ── */
+  @keyframes flyLeft  { to { transform: translateX(-130vw) rotate(-30deg); opacity: 0; } }
+  @keyframes flyRight { to { transform: translateX(130vw)  rotate(30deg);  opacity: 0; } }
+  .fly-left  { animation: flyLeft  .45s ease-in forwards; }
+  .fly-right { animation: flyRight .45s ease-in forwards; }
+
+  /* ── Keyboard hint ── */
+  .keyboard-hint {
+    position: relative; z-index: 10;
+    font-size: 11px; color: rgba(245,242,236,.2);
+    margin-top: 10px; letter-spacing: .5px;
+  }
+</style>
+</head>
+<body>
+
+<div class="coins-bg" id="coinsBg"></div>
+
+<header>
+  <div class="logo-badge">Approach International Student Center</div>
+  <h1>SCAM <span>or</span> SAFE?</h1>
+  <p class="subtitle">Week 8 · Banking Basics · Swipe to decide!</p>
+</header>
+
+<div class="score-bar">
+  <div class="score-chip safe" id="safeChip">
+    <div class="score-num" id="safeScore">0</div>
+    <div class="score-label">✅ Safe</div>
+  </div>
+  <div class="score-chip total" id="totalChip">
+    <div class="score-num" id="totalScore">0</div>
+    <div class="score-label">answered</div>
+  </div>
+  <div class="score-chip scam" id="scamChip">
+    <div class="score-num" id="scamScore">0</div>
+    <div class="score-label">🚨 Scam</div>
+  </div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-fill" id="progressFill" style="width:0%"></div>
+</div>
+<div class="progress-label" id="progressLabel">0 of 12</div>
+
+<div class="stack-wrap" id="stackWrap">
+  <!-- cards injected by JS -->
+</div>
+
+<div class="swipe-hint">
+  <div class="hint-btn">
+    <div class="hint-icon scam-btn" onclick="triggerSwipe('scam')">🚨</div>
+    <div class="hint-label">Scam</div>
+  </div>
+  <div class="or-text">← SWIPE →</div>
+  <div class="hint-btn">
+    <div class="hint-icon safe-btn" onclick="triggerSwipe('safe')">✅</div>
+    <div class="hint-label">Safe</div>
+  </div>
+</div>
+<div class="keyboard-hint">← / → arrow keys also work</div>
+
+<!-- Reveal overlay -->
+<div class="reveal-bg" id="revealBg"></div>
+<div class="reveal" id="revealPanel">
+  <div class="reveal-card">
+    <div class="reveal-verdict" id="revealVerdict"></div>
+    <div class="reveal-scenario" id="revealScenario"></div>
+    <div class="reveal-answer-label">THE ANSWER</div>
+    <div class="reveal-answer" id="revealAnswer"></div>
+    <div class="reveal-tip" id="revealTip"></div>
+    <button class="next-btn" onclick="nextCard()">Next card →</button>
+  </div>
+</div>
+
+<!-- Final screen -->
+<div id="final">
+  <div class="final-inner">
+    <div class="final-emoji" id="finalEmoji">🏆</div>
+    <div class="final-title" id="finalTitle">Banking Pro!</div>
+    <div class="final-score-display" id="finalScoreDisplay">12/12</div>
+    <div class="final-score-label">correct answers</div>
+    <div class="final-msg" id="finalMsg"></div>
+    <div class="final-breakdown">
+      <div class="fb-chip s">
+        <div class="fb-num" id="fbSafe">0</div>
+        <div class="fb-lbl">✅ Correct Safe</div>
+      </div>
+      <div class="fb-chip w">
+        <div class="fb-num" id="fbWrong">0</div>
+        <div class="fb-lbl">❌ Missed</div>
+      </div>
+    </div>
+    <button class="restart-btn" onclick="restartGame()">Play Again 🔄</button>
+  </div>
+</div>
+
+<script>
+const SCENARIOS = [
+  {
+    emoji: "📱",
+    type: "Text Message",
+    typeColor: "#6c5ce7",
+    text: "You receive a text: \"ALERT: Your bank account is frozen. Click here NOW to verify your info or lose access.\"",
+    hint: "It says to click a link…",
+    answer: "scam",
+    explanation: "This is a SCAM called 'phishing.' Real banks never send urgent links by text asking for your information.",
+    tip: "<strong>Rule:</strong> Never click links in unexpected texts. Go directly to your bank's website or call the number on your card."
+  },
+  {
+    emoji: "📞",
+    type: "Phone Call",
+    typeColor: "#0984e3",
+    text: "Your bank calls and says: \"Hello, we noticed unusual activity on your account. Can you come in to the branch to verify your identity?\"",
+    hint: "They want you to come IN PERSON…",
+    answer: "safe",
+    explanation: "This is SAFE. Banks can call about suspicious activity — and asking you to come in person (not give info by phone) is the right process.",
+    tip: "<strong>Tip:</strong> If unsure, hang up and call the number on the back of your card to confirm it was really your bank."
+  },
+  {
+    emoji: "💌",
+    type: "Email",
+    typeColor: "#d63031",
+    text: "Email from 'customer-support@bank-of-america-secure.com': \"Dear valued customer, we need your password and SSN to upgrade your account.\"",
+    hint: "Look carefully at the email address…",
+    answer: "scam",
+    explanation: "SCAM! The email address is fake (real domain would be bankofamerica.com). Banks NEVER ask for your password.",
+    tip: "<strong>Rule:</strong> Banks will never ask for your password — not by email, text, or phone. Ever. If someone asks, it's a scam."
+  },
+  {
+    emoji: "🏧",
+    type: "At the ATM",
+    typeColor: "#00b894",
+    text: "A stranger at the ATM says: \"The machine ate my card. I just need $40 and I'll pay you back tomorrow — I'll give you my phone number.\"",
+    hint: "A stranger is asking for cash…",
+    answer: "scam",
+    explanation: "SCAM! This is a common street scam. The 'phone number' is fake. Never give cash to strangers at ATMs.",
+    tip: "<strong>Rule:</strong> Protect yourself at ATMs. If something feels wrong, leave. You can always find another ATM."
+  },
+  {
+    emoji: "📄",
+    type: "Paper Mail",
+    typeColor: "#fdcb6e",
+    text: "You receive a letter from your bank in the mail saying your new debit card is ready and to activate it by calling the number on the back of the card.",
+    hint: "It came by mail and has the card inside…",
+    answer: "safe",
+    explanation: "This is SAFE and NORMAL. Banks send cards and letters by mail. Activating by calling the number on the card is the correct process.",
+    tip: "<strong>Good practice:</strong> Always use the phone number printed ON the card, not a number from an email or website."
+  },
+  {
+    emoji: "🎁",
+    type: "Social Media",
+    typeColor: "#e17055",
+    text: "Facebook message: \"Congratulations! You won $1,000! To receive your prize, send us your bank account number and routing number.\"",
+    hint: "You didn't enter any contest…",
+    answer: "scam",
+    explanation: "SCAM! This is a prize scam. Giving your account and routing number lets thieves take ALL your money.",
+    tip: "<strong>Rule:</strong> You can't win a contest you didn't enter. Never share your account or routing number with anyone online."
+  },
+  {
+    emoji: "🏦",
+    type: "At the Bank",
+    typeColor: "#0c2340",
+    text: "A bank employee asks to see your passport or ID to verify your identity before opening a new account.",
+    hint: "You're at the bank in person…",
+    answer: "safe",
+    explanation: "This is SAFE and REQUIRED. Banks must verify your identity by law. Showing ID in person at the bank is normal.",
+    tip: "<strong>Remember:</strong> You can use a passport or ITIN — you don't need a Social Security Number to open some accounts."
+  },
+  {
+    emoji: "💸",
+    type: "Online",
+    typeColor: "#a29bfe",
+    text: "A website called Wise.com says: \"Send money to Brazil for $2–5 fee with real exchange rates. Create a free account to get started.\"",
+    hint: "It's a known money transfer app…",
+    answer: "safe",
+    explanation: "SAFE! Wise (formerly Transferwise) is a legitimate and well-known international money transfer service with low fees.",
+    tip: "<strong>Tip:</strong> Always compare Wise, Remitly, and Western Union before sending money. Check BOTH the fee AND the exchange rate!"
+  },
+  {
+    emoji: "📲",
+    type: "Text Message",
+    typeColor: "#6c5ce7",
+    text: "\"Hi, this is John from the IRS. You owe $800 in back taxes. Pay immediately by gift card or we will arrest you today.\"",
+    hint: "The IRS wants… gift cards?",
+    answer: "scam",
+    explanation: "MASSIVE SCAM! The IRS never calls threatening arrest. They never ask for gift cards. This is one of the most common scams targeting immigrants.",
+    tip: "<strong>Important:</strong> Government agencies (IRS, USCIS, police) do NOT call demanding immediate gift card payment. Hang up immediately."
+  },
+  {
+    emoji: "📧",
+    type: "Email",
+    typeColor: "#d63031",
+    text: "Your bank sends a monthly email: \"Your statement for April is ready. Log in at chase.com to view it.\" The link goes to chase.com.",
+    hint: "Check where the link goes…",
+    answer: "safe",
+    explanation: "SAFE! This is a standard bank notification. The link goes to the real website. Monthly statement emails are normal.",
+    tip: "<strong>Good habit:</strong> Hover over links before clicking to see where they really go. If the address looks strange, don't click."
+  },
+  {
+    emoji: "🤝",
+    type: "In Person",
+    typeColor: "#00b894",
+    text: "Someone at your church says: \"I can open a bank account for you and keep it in MY name. You give me your paycheck and I'll give you cash.\"",
+    hint: "Your money, their name…",
+    answer: "scam",
+    explanation: "SCAM! This is called a 'money mule' scheme. This person controls YOUR money and can take it all. You also become responsible for any crimes they commit.",
+    tip: "<strong>Rule:</strong> Never let someone else control your money or bank account. You can open your own account — even without an SSN."
+  },
+  {
+    emoji: "🔔",
+    type: "App Notification",
+    typeColor: "#fdcb6e",
+    text: "Your bank's official app sends a notification: \"We blocked a $450 purchase attempt in Miami. Was this you? Tap YES or NO.\"",
+    hint: "It came from inside the app you already have…",
+    answer: "safe",
+    explanation: "SAFE! This is a real fraud alert from your bank. Banks DO monitor transactions and send in-app alerts. Tap NO if you didn't make that purchase.",
+    tip: "<strong>Good:</strong> In-app notifications from apps you installed are generally safe. Suspicious texts or emails with links are not."
+  }
+];
+
+let cards = [];
+let currentIndex = 0;
+let scores = { safe: 0, scam: 0, correct: 0, wrong: 0 };
+let isDragging = false;
+let startX = 0, startY = 0, currentX = 0;
+let activeCard = null;
+let lastAnswer = null;
+let lastCorrect = false;
+let pendingReveal = false;
+
+// ── Coins background ──────────────────────────────────────────────────────────
+function initCoins() {
+  const bg = document.getElementById('coinsBg');
+  const symbols = ['💵','💴','💶','💷','🪙','💳','🏦','💰'];
+  for (let i = 0; i < 14; i++) {
+    const el = document.createElement('div');
+    el.className = 'coin';
+    el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.animationDuration = (12 + Math.random() * 18) + 's';
+    el.style.animationDelay = (-Math.random() * 20) + 's';
+    el.style.fontSize = (16 + Math.random() * 20) + 'px';
+    bg.appendChild(el);
+  }
+}
+
+// ── Build cards ───────────────────────────────────────────────────────────────
+function buildCards() {
+  const wrap = document.getElementById('stackWrap');
+  wrap.innerHTML = '';
+  cards = [];
+
+  const shuffled = [...SCENARIOS].sort(() => Math.random() - .5);
+
+  shuffled.forEach((sc, i) => {
+    const card = document.createElement('div');
+    card.className = 'card' + (i === 0 ? '' : i === 1 ? ' under1' : i === 2 ? ' under2' : ' under2');
+    card.style.zIndex = shuffled.length - i;
+    card.dataset.index = i;
+    card.innerHTML = `
+      <div class="overlay safe">✅ SAFE</div>
+      <div class="overlay scam">🚨 SCAM</div>
+      <div class="card-type">
+        <div class="card-type-dot" style="background:${sc.typeColor}"></div>
+        ${sc.type}
+      </div>
+      <div class="card-emoji">${sc.emoji}</div>
+      <div class="card-text">${sc.text}</div>
+      <div class="card-hint">${sc.hint}</div>
+    `;
+
+    card._scenario = sc;
+
+    // Mouse events
+    card.addEventListener('mousedown', onDragStart);
+    card.addEventListener('touchstart', onTouchStart, { passive: true });
+
+    wrap.appendChild(card);
+    cards.push(card);
+  });
+
+  updateProgress();
+}
+
+// ── Drag logic ────────────────────────────────────────────────────────────────
+function onDragStart(e) {
+  if (pendingReveal) return;
+  if (!cards[currentIndex]) return;
+  activeCard = cards[currentIndex];
+  isDragging = true;
+  startX = e.clientX;
+  startY = e.clientY;
+  activeCard.classList.add('dragging');
+  document.addEventListener('mousemove', onDragMove);
+  document.addEventListener('mouseup', onDragEnd);
+}
+
+function onTouchStart(e) {
+  if (pendingReveal) return;
+  if (!cards[currentIndex]) return;
+  activeCard = cards[currentIndex];
+  isDragging = true;
+  startX = e.touches[0].clientX;
+  startY = e.touches[0].clientY;
+  activeCard.classList.add('dragging');
+  document.addEventListener('touchmove', onTouchMove, { passive: true });
+  document.addEventListener('touchend', onTouchEnd);
+}
+
+function onDragMove(e) {
+  if (!isDragging) return;
+  currentX = e.clientX - startX;
+  const currentY = e.clientY - startY;
+  const rotate = currentX * 0.08;
+  activeCard.style.transform = `translateX(${currentX}px) translateY(${currentY * 0.3}px) rotate(${rotate}deg)`;
+
+  const threshold = 60;
+  const safeOverlay = activeCard.querySelector('.overlay.safe');
+  const scamOverlay = activeCard.querySelector('.overlay.scam');
+  if (currentX > threshold) {
+    safeOverlay.style.opacity = Math.min((currentX - threshold) / 80, 1);
+    scamOverlay.style.opacity = 0;
+  } else if (currentX < -threshold) {
+    scamOverlay.style.opacity = Math.min((-currentX - threshold) / 80, 1);
+    safeOverlay.style.opacity = 0;
+  } else {
+    safeOverlay.style.opacity = 0;
+    scamOverlay.style.opacity = 0;
+  }
+}
+
+function onTouchMove(e) {
+  if (!isDragging) return;
+  currentX = e.touches[0].clientX - startX;
+  const currentY = e.touches[0].clientY - startY;
+  const rotate = currentX * 0.08;
+  activeCard.style.transform = `translateX(${currentX}px) translateY(${currentY * 0.3}px) rotate(${rotate}deg)`;
+
+  const threshold = 60;
+  const safeOverlay = activeCard.querySelector('.overlay.safe');
+  const scamOverlay = activeCard.querySelector('.overlay.scam');
+  if (currentX > threshold) {
+    safeOverlay.style.opacity = Math.min((currentX - threshold) / 80, 1);
+    scamOverlay.style.opacity = 0;
+  } else if (currentX < -threshold) {
+    scamOverlay.style.opacity = Math.min((-currentX - threshold) / 80, 1);
+    safeOverlay.style.opacity = 0;
+  } else {
+    safeOverlay.style.opacity = 0;
+    scamOverlay.style.opacity = 0;
+  }
+}
+
+function onDragEnd() {
+  if (!isDragging) return;
+  isDragging = false;
+  activeCard.classList.remove('dragging');
+  document.removeEventListener('mousemove', onDragMove);
+  document.removeEventListener('mouseup', onDragEnd);
+
+  const COMMIT = 100;
+  if (currentX > COMMIT) {
+    commitSwipe('safe');
+  } else if (currentX < -COMMIT) {
+    commitSwipe('scam');
+  } else {
+    activeCard.style.transform = '';
+    activeCard.style.transition = 'transform .4s cubic-bezier(.34,1.56,.64,1)';
+    setTimeout(() => { if (activeCard) activeCard.style.transition = ''; }, 400);
+  }
+  currentX = 0;
+}
+
+function onTouchEnd() {
+  if (!isDragging) return;
+  isDragging = false;
+  activeCard.classList.remove('dragging');
+  document.removeEventListener('touchmove', onTouchMove);
+  document.removeEventListener('touchend', onTouchEnd);
+
+  const COMMIT = 100;
+  if (currentX > COMMIT) {
+    commitSwipe('safe');
+  } else if (currentX < -COMMIT) {
+    commitSwipe('scam');
+  } else {
+    activeCard.style.transform = '';
+    activeCard.style.transition = 'transform .4s cubic-bezier(.34,1.56,.64,1)';
+    setTimeout(() => { if (activeCard) activeCard.style.transition = ''; }, 400);
+  }
+  currentX = 0;
+}
+
+// ── Commit a swipe ────────────────────────────────────────────────────────────
+function commitSwipe(direction) {
+  if (pendingReveal) return;
+  const card = cards[currentIndex];
+  const sc = card._scenario;
+
+  lastAnswer = direction;
+  lastCorrect = (direction === sc.answer);
+  pendingReveal = true;
+
+  // fly animation
+  card.classList.add(direction === 'safe' ? 'fly-right' : 'fly-left');
+
+  // update scores
+  if (lastCorrect) {
+    scores.correct++;
+    if (direction === 'safe') scores.safe++;
+    else scores.scam++;
+  } else {
+    scores.wrong++;
+  }
+  updateScoreDisplay();
+
+  // show reveal after fly
+  setTimeout(() => showReveal(sc, lastCorrect), 300);
+}
+
+function triggerSwipe(direction) {
+  if (pendingReveal || currentIndex >= SCENARIOS.length) return;
+  commitSwipe(direction);
+}
+
+// ── Show reveal panel ─────────────────────────────────────────────────────────
+function showReveal(sc, correct) {
+  const verdict = document.getElementById('revealVerdict');
+  verdict.className = 'reveal-verdict ' + (correct ? 'correct' : 'wrong');
+  verdict.innerHTML = correct
+    ? '✅ Correct!'
+    : `❌ That was a ${sc.answer.toUpperCase()}!`;
+
+  document.getElementById('revealScenario').textContent = sc.text;
+  document.getElementById('revealAnswer').textContent = sc.explanation;
+  document.getElementById('revealTip').innerHTML = '💡 ' + sc.tip;
+
+  document.getElementById('revealBg').classList.add('show');
+  document.getElementById('revealPanel').classList.add('show');
+}
+
+// ── Next card ─────────────────────────────────────────────────────────────────
+function nextCard() {
+  document.getElementById('revealBg').classList.remove('show');
+  document.getElementById('revealPanel').classList.remove('show');
+
+  currentIndex++;
+  pendingReveal = false;
+
+  if (currentIndex >= SCENARIOS.length) {
+    setTimeout(showFinal, 300);
+    return;
+  }
+
+  // restack remaining cards
+  cards.forEach((c, i) => {
+    const relIdx = i - currentIndex;
+    c.classList.remove('under1','under2');
+    c.style.transform = '';
+    c.style.transition = 'transform .35s ease';
+    if (relIdx === 0) { /* top */ }
+    else if (relIdx === 1) c.classList.add('under1');
+    else if (relIdx >= 2) c.classList.add('under2');
+    setTimeout(() => { c.style.transition = ''; }, 350);
+  });
+
+  updateProgress();
+}
+
+// ── Progress ──────────────────────────────────────────────────────────────────
+function updateProgress() {
+  const total = SCENARIOS.length;
+  const done = currentIndex;
+  document.getElementById('progressFill').style.width = (done / total * 100) + '%';
+  document.getElementById('progressLabel').textContent = `${done} of ${total}`;
+}
+
+function updateScoreDisplay() {
+  const safeEl = document.getElementById('safeScore');
+  const scamEl = document.getElementById('scamScore');
+  const totalEl = document.getElementById('totalScore');
+
+  safeEl.textContent = scores.correct - (scores.safe < scores.correct ? scores.scam : 0); 
+  // simpler: just track correct
+  totalEl.textContent = scores.correct + scores.wrong;
+  safeEl.textContent = scores.correct;
+  scamEl.textContent = scores.wrong;
+
+  // bounce animation
+  ['safeChip','scamChip','totalChip'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('bounce');
+    void el.offsetWidth;
+    el.classList.add('bounce');
+  });
+}
+
+// ── Final screen ──────────────────────────────────────────────────────────────
+function showFinal() {
+  const total = SCENARIOS.length;
+  const pct = Math.round(scores.correct / total * 100);
+
+  let emoji, title, msg;
+  if (pct === 100) {
+    emoji = '🏆'; title = 'Banking Pro!';
+    msg = 'Perfect score! You can spot every scam. Share your knowledge with friends and family — they need it too!';
+  } else if (pct >= 80) {
+    emoji = '🌟'; title = 'Almost Perfect!';
+    msg = 'Great instincts! You caught most of the scams. Review the ones you missed — those are the trickiest ones criminals use.';
+  } else if (pct >= 60) {
+    emoji = '📚'; title = 'Getting There!';
+    msg = 'Good effort! Scammers are sneaky. Review the tips from today and protect yourself and your family.';
+  } else {
+    emoji = '💪'; title = 'Keep Learning!';
+    msg = 'Scams are designed to trick everyone — that\'s their whole job. Play again and remember the tips. You\'ll get better each time!';
+  }
+
+  document.getElementById('finalEmoji').textContent = emoji;
+  document.getElementById('finalTitle').textContent = title;
+  document.getElementById('finalScoreDisplay').textContent = `${scores.correct}/${total}`;
+  document.getElementById('finalMsg').textContent = msg;
+  document.getElementById('fbSafe').textContent = scores.correct;
+  document.getElementById('fbWrong').textContent = scores.wrong;
+
+  document.getElementById('final').classList.add('show');
+}
+
+// ── Restart ───────────────────────────────────────────────────────────────────
+function restartGame() {
+  currentIndex = 0;
+  scores = { safe: 0, scam: 0, correct: 0, wrong: 0 };
+  pendingReveal = false;
+  activeCard = null;
+
+  document.getElementById('safeScore').textContent = '0';
+  document.getElementById('scamScore').textContent = '0';
+  document.getElementById('totalScore').textContent = '0';
+  document.getElementById('final').classList.remove('show');
+
+  buildCards();
+}
+
+// ── Keyboard support ──────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (pendingReveal) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); nextCard(); }
+    return;
+  }
+  if (e.key === 'ArrowRight') triggerSwipe('safe');
+  if (e.key === 'ArrowLeft')  triggerSwipe('scam');
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+initCoins();
+buildCards();
+</script>
+</body>
+</html>
