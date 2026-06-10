@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tool Kit Quiz — Ellii Functional English</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #F5EFE6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 48px;
+      color: #1A1A1A;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      border: 1px solid #E5DDD4;
+      padding: 28px;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      width: 100%;
+      max-width: 520px;
+    }
+    .header-left .eyebrow {
+      font-size: 11px;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 3px;
+    }
+    .header-left .title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1A1A1A;
+    }
+    .score-box {
+      background: #F5EFE6;
+      border: 1px solid #E5DDD4;
+      border-radius: 10px;
+      padding: 8px 16px;
+      text-align: center;
+      min-width: 60px;
+    }
+    .score-box .pts {
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1;
+      color: #1A1A1A;
+    }
+    .score-box .label {
+      font-size: 10px;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    /* Progress */
+    .progress-section { margin-bottom: 24px; }
+    .q-label {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 6px;
+    }
+    .progress-bar {
+      height: 8px;
+      background: #EDE6DC;
+      border-radius: 100px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #EF9F27;
+      border-radius: 100px;
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+    .dot-row {
+      display: flex;
+      gap: 3px;
+      margin-top: 6px;
+    }
+    .dot {
+      flex: 1;
+      height: 4px;
+      border-radius: 100px;
+      background: #DDD5C8;
+      transition: background 0.2s;
+    }
+    .dot.ok   { background: #2E7D52; }
+    .dot.bad  { background: #C0392B; }
+    .dot.cur  { background: #EF9F27; }
+
+    /* Question */
+    .question-card {
+      background: #FAFAF9;
+      border: 1px solid #EDE6DC;
+      border-radius: 12px;
+      padding: 20px 22px;
+      margin-bottom: 16px;
+    }
+    .question-card .kicker {
+      font-size: 11px;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 10px;
+    }
+    .question-card .scenario {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1A1A1A;
+      line-height: 1.4;
+    }
+
+    /* Options */
+    .opts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .opt-btn {
+      background: #F5EFE6;
+      border: 1px solid #DDD5C8;
+      border-radius: 9px;
+      padding: 13px 14px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #1A1A1A;
+      cursor: pointer;
+      text-align: left;
+      line-height: 1.3;
+      transition: background .12s, border-color .12s, transform .08s;
+      width: 100%;
+    }
+    .opt-btn:hover:not([disabled]) {
+      background: #ECE5DB;
+      border-color: #C8BFB4;
+      transform: translateY(-1px);
+    }
+    .opt-btn[disabled]  { cursor: default; transform: none; }
+    .opt-btn.is-correct {
+      background: #EBF5EE;
+      border: 2px solid #2E7D52;
+      color: #1D5035;
+      font-weight: 600;
+    }
+    .opt-btn.is-wrong {
+      background: #FDEDEC;
+      border: 2px solid #C0392B;
+      color: #7B1D1D;
+      font-weight: 600;
+    }
+    .opt-btn.reveal-ans {
+      background: #EBF5EE;
+      border: 2px solid #2E7D52;
+      color: #1D5035;
+      font-weight: 600;
+    }
+
+    /* Feedback */
+    .feedback {
+      display: none;
+      border-radius: 9px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+    .feedback.ok  { background: #EBF5EE; border: 1px solid #2E7D52; }
+    .feedback.bad { background: #FDEDEC; border: 1px solid #C0392B; }
+    .feedback-head {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .feedback-head .icon { font-size: 16px; }
+    .feedback-head .ok  .icon { color: #2E7D52; }
+    .feedback-head .bad .icon { color: #C0392B; }
+    .feedback-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .feedback-title.ok  { color: #1D5035; }
+    .feedback-title.bad { color: #7B1D1D; }
+    .feedback-note {
+      font-size: 13px;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    /* Buttons */
+    .act-btn {
+      background: #fff;
+      border: 1px solid #C8BFB4;
+      border-radius: 9px;
+      padding: 13px 20px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      color: #1A1A1A;
+      cursor: pointer;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background .12s;
+    }
+    .act-btn:hover { background: #F5EFE6; }
+    .act-btn.primary {
+      background: #1C3D2C;
+      color: #fff;
+      border-color: #1C3D2C;
+    }
+    .act-btn.primary:hover { background: #254D38; }
+
+    /* Results */
+    #results-view { display: none; }
+    .results-hero {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .results-hero .big-icon {
+      font-size: 42px;
+      color: #EF9F27;
+      margin-bottom: 12px;
+    }
+    .results-hero h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: #1A1A1A;
+      margin-bottom: 4px;
+    }
+    .results-hero .sub {
+      font-size: 13px;
+      color: #888;
+    }
+    .score-summary {
+      background: #F5EFE6;
+      border: 1px solid #E5DDD4;
+      border-radius: 12px;
+      padding: 20px 22px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .score-summary .pct {
+      font-size: 26px;
+      font-weight: 600;
+      color: #1A1A1A;
+    }
+    .score-summary .msg {
+      font-size: 13px;
+      color: #666;
+      margin-top: 4px;
+      line-height: 1.5;
+      max-width: 260px;
+    }
+    .score-summary .frac {
+      font-size: 28px;
+      font-weight: 600;
+      color: #1A1A1A;
+      text-align: right;
+    }
+    .score-summary .frac-label {
+      font-size: 11px;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      text-align: right;
+      margin-top: 2px;
+    }
+    .review-section { margin-bottom: 16px; }
+    .review-kicker {
+      font-size: 11px;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .missed-item {
+      background: #F5EFE6;
+      border: 1px solid #E5DDD4;
+      border-radius: 9px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+    }
+    .missed-item .missed-q {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+    .missed-item .missed-a {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1A1A1A;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-left">
+      <div class="eyebrow">Ellii · functional English</div>
+      <div class="title">Tool kit quiz</div>
+    </div>
+    <div class="score-box">
+      <div class="pts" id="score-el">0</div>
+      <div class="label">score</div>
+    </div>
+  </div>
+
+  <div class="card">
+
+    <!-- Quiz view -->
+    <div id="quiz-view">
+
+      <div class="progress-section">
+        <p class="q-label" id="q-num">Question 1 of 12</p>
+        <div class="progress-bar">
+          <div class="progress-fill" id="prog-fill"></div>
+        </div>
+        <div class="dot-row" id="dot-row"></div>
+      </div>
+
+      <div class="question-card">
+        <div class="kicker">What tool do you need?</div>
+        <p class="scenario" id="scenario-el"></p>
+      </div>
+
+      <div class="opts-grid" id="opts-el"></div>
+
+      <div class="feedback" id="fb-el">
+        <div class="feedback-head" id="fb-head-row">
+          <i class="ti" id="fb-icon" aria-hidden="true"></i>
+          <span class="feedback-title" id="fb-title"></span>
+        </div>
+        <p class="feedback-note" id="fb-body"></p>
+      </div>
+
+      <button class="act-btn primary" id="next-el" style="display:none" onclick="nextQ()">
+        <span id="next-label">Next question</span>
+        <i id="next-icon" class="ti ti-arrow-right" aria-hidden="true"></i>
+      </button>
+
+    </div>
+
+    <!-- Results view -->
+    <div id="results-view">
+      <div class="results-hero">
+        <div class="big-icon"><i id="res-icon" class="ti ti-star" aria-hidden="true"></i></div>
+        <h2>Quiz complete</h2>
+        <p class="sub">Making home improvements · Ellii</p>
+      </div>
+
+      <div class="score-summary">
+        <div>
+          <div class="pct" id="res-pct"></div>
+          <div class="msg" id="res-msg"></div>
+        </div>
+        <div>
+          <div class="frac" id="res-frac"></div>
+          <div class="frac-label">correct</div>
+        </div>
+      </div>
+
+      <div class="review-section" id="missed-el" style="display:none">
+        <div class="review-kicker">Review — missed answers</div>
+        <div id="missed-list-el"></div>
+      </div>
+
+      <button class="act-btn" onclick="restart()">
+        <i class="ti ti-refresh" aria-hidden="true"></i>
+        Try again
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    const QS = [
+      {s:"I want to hang a picture.",a:"hammer",n:"A hammer drives a nail into the wall. You'd need a nail too!",o:["hammer","drill","wrench","sandpaper"]},
+      {s:"It's taking too long to paint this room.",a:"paint roller",n:"A paint roller covers large areas much faster than a small brush.",o:["paint roller","tape measure","screwdriver","level"]},
+      {s:"I need to find out the length of my desk.",a:"tape measure",n:"A tape measure is used to measure distances and lengths.",o:["tape measure","level","screwdriver","nail"]},
+      {s:"I need to tighten these chairs.",a:"wrench",n:"A wrench tightens nuts and bolts. A screwdriver or Allen key can also work!",o:["wrench","hammer","drill","tape measure"]},
+      {s:"I have to cut this piece of wood.",a:"saw",n:"A saw is the right tool for cutting through wood.",o:["saw","pliers","hammer","drill"]},
+      {s:"I want to hang my calendar on the wall.",a:"hammer",n:"You'd use a hammer to drive a nail into the wall.",o:["hammer","wrench","tape measure","pliers"]},
+      {s:"I need to make a hole in the wall for this screw.",a:"drill",n:"A drill makes holes in walls and other hard surfaces.",o:["drill","hammer","wrench","level"]},
+      {s:"This shelf isn't straight!",a:"level",n:"A level tells you whether a surface is perfectly horizontal or vertical.",o:["level","tape measure","drill","nail"]},
+      {s:"I need to take out these screws.",a:"screwdriver",n:"A screwdriver removes and tightens screws. There are flathead and Phillips types!",o:["screwdriver","pliers","hammer","saw"]},
+      {s:"I need to cut this wire.",a:"pliers",n:"Pliers can grip, bend, and cut wire.",o:["pliers","saw","wrench","screwdriver"]},
+      {s:"I need to smooth the plaster on the wall.",a:"sandpaper",n:"Sandpaper smooths rough surfaces like plaster, wood, and dried paint.",o:["sandpaper","paint roller","pliers","wrench"]},
+      {s:"I need to fasten these pieces of wood together.",a:"hammer",n:"You'd use a hammer to drive nails and join the pieces of wood.",o:["hammer","drill","wrench","level"]}
+    ];
+
+    let qi = 0, score = 0, answered = false, missed = [];
+
+    function shuf(a) {
+      const b = [...a];
+      for (let i = b.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [b[i], b[j]] = [b[j], b[i]];
+      }
+      return b;
+    }
+
+    function buildDots() {
+      const r = document.getElementById('dot-row');
+      r.innerHTML = '';
+      QS.forEach((_, i) => {
+        const d = document.createElement('div');
+        d.id = 'd' + i;
+        d.className = 'dot';
+        r.appendChild(d);
+      });
+    }
+
+    function setDot(i, state) {
+      const d = document.getElementById('d' + i);
+      if (!d) return;
+      d.className = 'dot ' + state;
+    }
+
+    function renderQ() {
+      answered = false;
+      const q = QS[qi];
+      const opts = shuf(q.o);
+      document.getElementById('q-num').textContent = 'Question ' + (qi + 1) + ' of ' + QS.length;
+      document.getElementById('prog-fill').style.width = ((qi / QS.length) * 100) + '%';
+      document.getElementById('scenario-el').textContent = q.s;
+      document.getElementById('fb-el').style.display = 'none';
+      document.getElementById('next-el').style.display = 'none';
+      document.getElementById('score-el').textContent = score;
+      setDot(qi, 'cur');
+
+      const g = document.getElementById('opts-el');
+      g.innerHTML = '';
+      opts.forEach(opt => {
+        const b = document.createElement('button');
+        b.className = 'opt-btn';
+        b.textContent = opt;
+        b.onclick = () => pick(opt);
+        g.appendChild(b);
+      });
+    }
+
+    function pick(opt) {
+      if (answered) return;
+      answered = true;
+      const q = QS[qi];
+      const ok = opt === q.a;
+      if (ok) score++; else missed.push(qi);
+
+      document.querySelectorAll('.opt-btn').forEach(b => {
+        b.disabled = true;
+        if (b.textContent === q.a) {
+          b.classList.add(ok && b.textContent === opt ? 'is-correct' : 'reveal-ans');
+        } else if (b.textContent === opt && !ok) {
+          b.classList.add('is-wrong');
+        }
+      });
+
+      setDot(qi, ok ? 'ok' : 'bad');
+
+      const fb = document.getElementById('fb-el');
+      const icon = document.getElementById('fb-icon');
+      const title = document.getElementById('fb-title');
+
+      if (ok) {
+        fb.className = 'feedback ok';
+        icon.className = 'ti ti-check';
+        icon.style.color = '#2E7D52';
+        title.className = 'feedback-title ok';
+        title.textContent = 'Correct!';
+      } else {
+        fb.className = 'feedback bad';
+        icon.className = 'ti ti-x';
+        icon.style.color = '#C0392B';
+        title.className = 'feedback-title bad';
+        title.textContent = 'The answer is: ' + q.a;
+      }
+      document.getElementById('fb-body').textContent = q.n;
+      fb.style.display = 'block';
+      document.getElementById('score-el').textContent = score;
+
+      const nb = document.getElementById('next-el');
+      nb.style.display = 'flex';
+      if (qi + 1 >= QS.length) {
+        document.getElementById('next-label').textContent = 'See my results';
+        document.getElementById('next-icon').className = 'ti ti-star';
+      } else {
+        document.getElementById('next-label').textContent = 'Next question';
+        document.getElementById('next-icon').className = 'ti ti-arrow-right';
+      }
+    }
+
+    function nextQ() {
+      qi++;
+      if (qi >= QS.length) showResults();
+      else renderQ();
+    }
+
+    function showResults() {
+      document.getElementById('quiz-view').style.display = 'none';
+      document.getElementById('results-view').style.display = 'block';
+      const pct = Math.round((score / QS.length) * 100);
+      document.getElementById('res-frac').textContent = score + '/' + QS.length;
+      document.getElementById('res-pct').textContent = pct + '% correct';
+
+      let msg = '';
+      if (pct === 100) msg = "Perfect score! You're ready for any home improvement project!";
+      else if (pct >= 84) msg = "Excellent work! You really know your tools!";
+      else if (pct >= 67) msg = "Good job! A bit more practice and you'll master it.";
+      else if (pct >= 50) msg = "Not bad! Review the missed answers below.";
+      else msg = "Keep practicing! Review the tools below and try again.";
+      document.getElementById('res-msg').textContent = msg;
+
+      const ri = document.getElementById('res-icon');
+      ri.className = pct === 100 ? 'ti ti-star' : (pct >= 67 ? 'ti ti-check' : 'ti ti-refresh');
+
+      if (missed.length > 0) {
+        document.getElementById('missed-el').style.display = 'block';
+        const ml = document.getElementById('missed-list-el');
+        ml.innerHTML = '';
+        missed.forEach(i => {
+          const q = QS[i];
+          const d = document.createElement('div');
+          d.className = 'missed-item';
+          d.innerHTML = '<p class="missed-q">"' + q.s + '"</p><p class="missed-a"><i class="ti ti-arrow-right" aria-hidden="true"></i>' + q.a + '</p>';
+          ml.appendChild(d);
+        });
+      }
+    }
+
+    function restart() {
+      qi = 0; score = 0; answered = false; missed = [];
+      document.getElementById('results-view').style.display = 'none';
+      document.getElementById('quiz-view').style.display = 'block';
+      buildDots();
+      renderQ();
+    }
+
+    buildDots();
+    renderQ();
+  </script>
+</body>
+</html>
