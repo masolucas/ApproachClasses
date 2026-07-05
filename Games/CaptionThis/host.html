@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Caption This — Host</title>
+<link rel="stylesheet" href="styles.css" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="config.js"></script>
+</head>
+<body>
+<div id="app" class="screen"></div>
+
+<script>
+const app = document.getElementById("app");
+const LS_KEY = "ct_host_game";
+
+let state = {
+  game: null,
+  players: [],
+  round: null,
+  plays: [],
+  votes: [],
+  pools: null, // {situations, answers, memes}
+};
+
+let playersChannel = null;
+let roundChannel = null;
+
+// ---------- boot ----------
+(async function init() {
+  const saved = localStorage.getItem(LS_KEY);
+  if (saved) {
+    const { gameId } = JSON.parse(saved);
+    const { data: game } = await sb.from(TABLES.games).select("*").eq("id", gameId).maybeSingle();
+    if (game && game.status !== "ended") {
+      state.game = game;
+      await loadPlayers();
+      if (game.status !== "lobby") await loadCurrentRound();
+      subscribePlayers();
+      render();
+      return;
+    } else {
+      localStorage.removeItem(LS_KEY);
+    }
+  }
+  renderSetup();
+})();
+
+// ---------- data loads ----------
+async function loadPlayers() {
+  const { data } = await sb.from(TABLES.players).select("*").eq("game_id", state.game.id).order("joined_at");
+  state.players = data || [];
+}
+
+async function loadCurrentRound() {
+  const { data } = await sb.from(TABLES.rounds).select("*")
+    .eq("game_id", state.game.id).eq("round_number", state.game.current_round).maybeSingle();
+  state.round = data;
+  if (data) {
+    await loadPlays();
+    await loadVotes();
+    subscribeRound();
+  }
+}
+
+async function loadPlays() {
+  const { data } = await sb.from(TABLES.plays).select("*").eq("round_id", state.round.id);
+  state.plays = data || [];
+}
+
+async function loadVotes() {
+  const { data } = await sb.from(TABLES.votes).select("*").eq("round_id", state.round.id);
+  state.votes = data || [];
+}
+
+async function loadPools() {
+  const [{ data: situations }, { data: answers }, { data: memes }] = await Promise.all([
+    sb.from(TABLES.situations).select("*"),
+    sb.from(TABLES.answerCards).select("*"),
+    sb.from(TABLES.memeCards).select("*"),
+  ]);
+  state.pools = { situations, answers, memes };
+}
+
+// ---------- realtime ----------
+function subscribePlayers() {
+  if (playersChannel) sb.removeChannel(playersChannel);
+  playersChannel = sb.channel("host-players-" + state.game.id)
+    .on("postgres_changes", { event: "*", schema: "public", table: TABLES.players, filter: `game_id=eq.${state.game.id}` },
+      async () => { await loadPlayers(); render(); })
+    .subscribe();
+}
+
+function subscribeRound() {
+  if (roundChannel) sb.removeChannel(roundChannel);
+  roundChannel = sb.channel("host-round-" + state.round.id)
+    .on("postgres_changes", { event: "*", schema: "public", table: TABLES.plays, filter: `round_id=eq.${state.round.id}` },
+      async () => { await loadPlays(); render(); })
+    .on("postgres_changes", { event: "*", schema: "public", table: TABLES.votes, filter: `round_id=eq.${state.round.id}` },
+      async () => { await loadVotes(); render(); })
+    .subscribe();
+}
+
+// ---------- setup ----------
+function renderSetup() {
+  app.innerHTML = `
+    <div class="card-frame" style="max-width:420px; width:100%;">
+      <div class="eyebrow">Caption This</div>
+      <h1>Start a new game</h1>
+      <p>Set how many rounds you'd like to play, then share the join code with your class.</p>
+      <label style="font-weight:700; color:var(--navy); display:block; margin-top:16px;">Number of rounds</label>
+      <input type="number" id="roundsInput" value="5" min="1" max="30" style="margin-top:6px;" />
+      <button class="gold" style="width:100%; margin-top:18px;" onclick="createGame()">Create Game</button>
+    </div>`;
+}
+
+async function createGame() {
+  const totalRounds = parseInt(document.getElementById("roundsInput").value) || 5;
+  let game = null;
+  for (let attempt = 0; attempt < 5 && !game; attempt++) {
+    const code = makeGameCode();
+    const { data } = await sb.from(TABLES.games)
+      .insert({ code, total_rounds: totalRounds }).select().maybeSingle();
+    if (data) game = data;
+  }
+  if (!game) { alert("Could not create game, please try again."); return; }
+  state.game = game;
+  state.players = [];
+  localStorage.setItem(LS_KEY, JSON.stringify({ gameId: game.id }));
+  subscribePlayers();
+  render();
+}
+
+// ---------- lobby ----------
+function joinUrl() {
+  const url = new URL("player.html", window.location.href);
+  url.searchParams.set("code", state.game.code);
+  return url.toString();
+}
+
+function renderLobby() {
+  const url = joinUrl();
+  app.innerHTML = `
+    <div class="card-frame" style="max-width:640px; width:100%; text-align:center;">
+      <div class="eyebrow">Join the game</div>
+      <div class="code-display">${state.game.code}</div>
+      <canvas id="qr" style="margin:12px 0;"></canvas>
+      <p style="word-break:break-all;">${url}</p>
+      <h3 style="margin-top:28px;">Players joined (${state.players.length})</h3>
+      <div id="playerList" style="text-align:left; max-width:360px; margin:12px auto;"></div>
+      <button class="gold" style="margin-top:20px;" id="startBtn" ${state.players.length < 2 ? "disabled" : ""} onclick="startGame()">
+        Start Game
+      </button>
+      <p class="muted-note">${state.players.length < 2 ? "Need at least 2 players to start." : "Ready when you are."}</p>
+    </div>`;
+  QRCode.toCanvas(document.getElementById("qr"), url, { width: 200, color: { dark: "#0f2340" } });
+  const list = document.getElementById("playerList");
+  list.innerHTML = state.players.map(p => `
+    <div class="player-chip">
+      <span>${escapeHtml(p.name)}</span>
+      <button class="remove" onclick="removePlayer('${p.id}')">Remove</button>
+    </div>`).join("") || `<p class="muted-note">Waiting for players to scan the QR code…</p>`;
+}
+
+async function removePlayer(id) {
+  await sb.from(TABLES.players).delete().eq("id", id);
+}
+
+// ---------- starting the game ----------
+async function startGame() {
+  await loadPools();
+  const dealtPlayers = [];
+  for (const p of state.players) {
+    const answer_hand = sample(state.pools.answers, 5).map(c => ({ id: c.id, text: c.text }));
+    const meme_hand = sample(state.pools.memes, Math.min(5, state.pools.memes.length)).map(c => ({ id: c.id, url: c.url }));
+    await sb.from(TABLES.players).update({ answer_hand, meme_hand }).eq("id", p.id);
+    dealtPlayers.push({ ...p, answer_hand, meme_hand });
+  }
+  state.players = dealtPlayers;
+  const rotation_queue = shuffle(state.players.map(p => p.id));
+  const { data: updatedGame } = await sb.from(TABLES.games)
+    .update({ rotation_queue, status: "playing", current_round: 1 })
+    .eq("id", state.game.id).select().maybeSingle();
+  state.game = updatedGame;
+  await createRound(1);
+}
+
+// ---------- round creation ----------
+function drawActive(queue, eligibleIds, count) {
+  let q = queue.filter(id => eligibleIds.includes(id));
+  const active = [];
+  while (active.length < count) {
+    if (q.length === 0) {
+      const pool = eligibleIds.filter(id => !active.includes(id));
+      if (pool.length === 0) break;
+      q = shuffle(pool);
+    }
+    active.push(q.shift());
+  }
+  return { active, remainingQueue: q };
+}
+
+function assignRoles(activeIds, byId, roundNumber) {
+  const n = activeIds.length;
+  let desiredAnswer, desiredMeme;
+  if (n === 4) { desiredAnswer = 2; desiredMeme = 2; }
+  else if (n === 3) { desiredAnswer = roundNumber % 2 === 0 ? 2 : 1; desiredMeme = n - desiredAnswer; }
+  else if (n === 2) { desiredAnswer = 1; desiredMeme = 1; }
+  else { desiredAnswer = 1; desiredMeme = 0; }
+
+  const forced = {};
+  const flexible = [];
+  activeIds.forEach(id => {
+    const p = byId[id];
+    const hasA = p.answer_hand.length > 0, hasM = p.meme_hand.length > 0;
+    if (hasA && !hasM) forced[id] = "answer";
+    else if (hasM && !hasA) forced[id] = "meme";
+    else flexible.push(id);
+  });
+
+  let countA = Object.values(forced).filter(r => r === "answer").length;
+  let countM = Object.values(forced).filter(r => r === "meme").length;
+  const assignments = { ...forced };
+  shuffle(flexible).forEach(id => {
+    if (countA < desiredAnswer) { assignments[id] = "answer"; countA++; }
+    else if (countM < desiredMeme) { assignments[id] = "meme"; countM++; }
+    else { assignments[id] = "answer"; countA++; }
+  });
+  return assignments;
+}
+
+function pickSituation() {
+  const used = state.game.used_situation_ids || [];
+  let avail = state.pools.situations.filter(s => !used.includes(s.id));
+  let newUsed = used;
+  if (avail.length === 0) { avail = state.pools.situations; newUsed = []; }
+  const chosen = avail[Math.floor(Math.random() * avail.length)];
+  return { chosen, newUsed: newUsed.concat([chosen.id]) };
+}
+
+async function createRound(roundNumber) {
+  if (!state.pools) await loadPools();
+  await loadPlayers();
+  const byId = Object.fromEntries(state.players.map(p => [p.id, p]));
+  const eligibleIds = state.players.filter(p => p.answer_hand.length > 0 || p.meme_hand.length > 0).map(p => p.id);
+  const activeCount = Math.min(4, eligibleIds.length);
+  const { active, remainingQueue } = drawActive(state.game.rotation_queue, eligibleIds, activeCount);
+  const roles = assignRoles(active, byId, roundNumber);
+  const assignments = active.map(id => ({ player_id: id, name: byId[id].name, role: roles[id] }));
+
+  const { chosen, newUsed } = pickSituation();
+
+  const { data: round } = await sb.from(TABLES.rounds).insert({
+    game_id: state.game.id,
+    round_number: roundNumber,
+    situation_id: chosen.id,
+    situation_text: chosen.text,
+    phase: "playing",
+    assignments,
+  }).select().maybeSingle();
+
+  const { data: updatedGame } = await sb.from(TABLES.games).update({
+    rotation_queue: remainingQueue,
+    used_situation_ids: newUsed,
+    current_round: roundNumber,
+    status: "playing",
+  }).eq("id", state.game.id).select().maybeSingle();
+
+  state.game = updatedGame;
+  state.round = round;
+  state.plays = [];
+  state.votes = [];
+  subscribeRound();
+  render();
+}
+
+// ---------- playing phase ----------
+function renderPlaying() {
+  const assignments = state.round.assignments;
+  const playedIds = new Set(state.plays.map(p => p.player_id));
+  const allPlayed = assignments.every(a => playedIds.has(a.player_id));
+
+  app.innerHTML = `
+    <div class="card-frame" style="max-width:720px; width:100%;">
+      <div class="eyebrow">Round ${state.round.round_number} of ${state.game.total_rounds} · Code ${state.game.code}</div>
+      <h1>${escapeHtml(state.round.situation_text)}</h1>
+      <div style="margin-top:24px;">
+        ${assignments.map(a => `
+          <div class="player-chip">
+            <span><span class="pill ${a.role}">${a.role}</span> &nbsp; ${escapeHtml(a.name)}</span>
+            <span class="${playedIds.has(a.player_id) ? "status-played" : "status-waiting"}">
+              ${playedIds.has(a.player_id) ? "Played ✓" : "Waiting…"}
+            </span>
+          </div>`).join("")}
+      </div>
+      <button class="gold" style="margin-top:24px;" ${allPlayed ? "" : "disabled"} onclick="goToVoting()">
+        Reveal Cards
+      </button>
+      ${allPlayed ? "" : `<p class="muted-note">Waiting on players to submit their cards.</p>`}
+    </div>`;
+}
+
+async function goToVoting() {
+  const votersCount = state.players.filter(p => !state.round.assignments.some(a => a.player_id === p.id)).length;
+  if (votersCount === 0) {
+    await sb.from(TABLES.rounds).update({ phase: "results" }).eq("id", state.round.id);
+  } else {
+    await sb.from(TABLES.rounds).update({ phase: "voting" }).eq("id", state.round.id);
+  }
+  const { data } = await sb.from(TABLES.rounds).select("*").eq("id", state.round.id).maybeSingle();
+  state.round = data;
+  render();
+}
+
+// ---------- voting phase (host view) ----------
+function renderVotingHost() {
+  const answerPlays = state.plays.filter(p => p.card_type === "answer");
+  const memePlays = state.plays.filter(p => p.card_type === "meme");
+  const votersCount = state.players.filter(p => !state.round.assignments.some(a => a.player_id === p.id)).length;
+  const votedSoFar = new Set(state.votes.map(v => v.voter_player_id)).size;
+
+  app.innerHTML = `
+    <div class="card-frame" style="max-width:820px; width:100%;">
+      <div class="eyebrow">Round ${state.round.round_number} of ${state.game.total_rounds} · Voting</div>
+      <h1>${escapeHtml(state.round.situation_text)}</h1>
+      <h3 style="margin-top:20px;">Best Answer</h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+        ${answerPlays.map(p => `<div class="played-card readonly">${escapeHtml(p.card_text)}</div>`).join("")}
+      </div>
+      <h3 style="margin-top:24px;">Best Meme</h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+        ${memePlays.map(p => `<div class="played-card readonly"><img src="${p.card_url}" /></div>`).join("")}
+      </div>
+      <p style="margin-top:20px; font-weight:700; color:var(--navy);">${votedSoFar} of ${votersCount} players have voted</p>
+      <button class="gold" onclick="showResults()">Show Results</button>
+    </div>`;
+}
+
+// ---------- results ----------
+async function showResults() {
+  if (!state.round.scored) {
+    const tally = {};
+    state.votes.forEach(v => { tally[v.voted_for_play_id] = (tally[v.voted_for_play_id] || 0) + 1; });
+    for (const play of state.plays) {
+      const pts = tally[play.id] || 0;
+      if (pts > 0) {
+        const player = state.players.find(p => p.id === play.player_id);
+        if (player) {
+          await sb.from(TABLES.players).update({ score: player.score + pts }).eq("id", player.id);
+        }
+      }
+    }
+    await sb.from(TABLES.rounds).update({ phase: "results", scored: true }).eq("id", state.round.id);
+  } else {
+    await sb.from(TABLES.rounds).update({ phase: "results" }).eq("id", state.round.id);
+  }
+  await loadPlayers();
+  const { data } = await sb.from(TABLES.rounds).select("*").eq("id", state.round.id).maybeSingle();
+  state.round = data;
+  render();
+}
+
+function renderResults() {
+  const tally = {};
+  state.votes.forEach(v => { tally[v.voted_for_play_id] = (tally[v.voted_for_play_id] || 0) + 1; });
+  const answerPlays = state.plays.filter(p => p.card_type === "answer").sort((a,b)=>(tally[b.id]||0)-(tally[a.id]||0));
+  const memePlays = state.plays.filter(p => p.card_type === "meme").sort((a,b)=>(tally[b.id]||0)-(tally[a.id]||0));
+  const leaderboard = state.players.slice().sort((a,b) => b.score - a.score);
+  const isLastRound = state.round.round_number >= state.game.total_rounds;
+
+  app.innerHTML = `
+    <div class="card-frame" style="max-width:820px; width:100%;">
+      <div class="eyebrow">Round ${state.round.round_number} of ${state.game.total_rounds} · Results</div>
+      <h1>${escapeHtml(state.round.situation_text)}</h1>
+      <h3 style="margin-top:20px;">Best Answer</h3>
+      ${answerPlays.map(p => `<div class="played-card readonly" style="text-align:left; margin-bottom:10px;">
+        <strong>${escapeHtml(p.player_name)}</strong> — ${escapeHtml(p.card_text)}
+        <span style="float:right; color:var(--gold); font-weight:700;">${tally[p.id]||0} vote${(tally[p.id]||0)===1?"":"s"}</span>
+      </div>`).join("") || `<p class="muted-note">No answer cards this round.</p>`}
+      <h3 style="margin-top:20px;">Best Meme</h3>
+      ${memePlays.map(p => `<div class="played-card readonly" style="text-align:left; margin-bottom:10px;">
+        <img src="${p.card_url}" style="max-height:140px; display:block; margin-bottom:6px;" />
+        <strong>${escapeHtml(p.player_name)}</strong>
+        <span style="float:right; color:var(--gold); font-weight:700;">${tally[p.id]||0} vote${(tally[p.id]||0)===1?"":"s"}</span>
+      </div>`).join("") || `<p class="muted-note">No meme cards this round.</p>`}
+
+      <h3 style="margin-top:28px;">Leaderboard</h3>
+      ${leaderboard.map((p,i) => `<div class="leaderboard-row"><span><span class="rank">#${i+1}</span>${escapeHtml(p.name)}</span><span>${p.score} pt${p.score===1?"":"s"}</span></div>`).join("")}
+
+      <button class="gold" style="margin-top:24px;" onclick="${isLastRound ? "endGame()" : "advanceRound()"}">
+        ${isLastRound ? "End Game" : "Next Round"}
+      </button>
+    </div>`;
+}
+
+async function advanceRound() {
+  await createRound(state.round.round_number + 1);
+}
+
+async function endGame() {
+  await sb.from(TABLES.games).update({ status: "ended" }).eq("id", state.game.id);
+  localStorage.removeItem(LS_KEY);
+  const { data } = await sb.from(TABLES.games).select("*").eq("id", state.game.id).maybeSingle();
+  state.game = data;
+  render();
+}
+
+function renderEnded() {
+  const leaderboard = state.players.slice().sort((a,b) => b.score - a.score);
+  app.innerHTML = `
+    <div class="card-frame" style="max-width:520px; width:100%; text-align:center;">
+      <div class="eyebrow">Game Over</div>
+      <h1>Final Leaderboard</h1>
+      ${leaderboard.map((p,i) => `<div class="leaderboard-row"><span><span class="rank">#${i+1}</span>${escapeHtml(p.name)}</span><span>${p.score} pt${p.score===1?"":"s"}</span></div>`).join("")}
+      <button class="gold" style="margin-top:24px;" onclick="location.reload()">Start a New Game</button>
+    </div>`;
+}
+
+// ---------- render dispatcher ----------
+function render() {
+  if (!state.game) return renderSetup();
+  if (state.game.status === "lobby") return renderLobby();
+  if (state.game.status === "ended") return renderEnded();
+  if (!state.round) return; // waiting on round load
+  if (state.round.phase === "playing") return renderPlaying();
+  if (state.round.phase === "voting") return renderVotingHost();
+  if (state.round.phase === "results") return renderResults();
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str ?? "";
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>

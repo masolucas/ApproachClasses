@@ -1,0 +1,193 @@
+:root {
+  --navy: #0f2340;
+  --navy-deep: #081527;
+  --gold: #c9a24b;
+  --gold-light: #e6cd8a;
+  --warm-white: #faf6ee;
+  --paper: #fffdf8;
+  --ink: #1c1c1c;
+  --muted: #6b6458;
+  --answer-accent: #2f6f5e;
+  --meme-accent: #a5432c;
+  --font-display: Cambria, Georgia, "Times New Roman", serif;
+  --font-body: Calibri, "Segoe UI", Helvetica, Arial, sans-serif;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--navy);
+  color: var(--ink);
+  font-family: var(--font-body);
+  min-height: 100vh;
+}
+
+.screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.card-frame {
+  position: relative;
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 32px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+}
+
+/* gold corner brackets — the ApproachISA signature */
+.card-frame::before,
+.card-frame::after,
+.corner-tl,
+.corner-br {
+  content: "";
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 3px solid var(--gold);
+}
+.card-frame::before { top: -8px; left: -8px; border-right: none; border-bottom: none; }
+.card-frame::after { bottom: -8px; right: -8px; border-left: none; border-top: none; }
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  color: var(--navy);
+  margin: 0 0 8px 0;
+}
+
+.eyebrow {
+  font-family: var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 12px;
+  color: var(--gold);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+p { color: var(--muted); line-height: 1.5; }
+
+button {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 15px;
+  padding: 12px 22px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background: var(--navy);
+  color: var(--warm-white);
+  transition: transform 0.1s ease, background 0.15s ease;
+}
+button:hover { background: var(--navy-deep); }
+button:active { transform: scale(0.97); }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+button.gold {
+  background: var(--gold);
+  color: var(--navy-deep);
+}
+button.gold:hover { background: var(--gold-light); }
+
+input[type="text"], input[type="number"] {
+  font-family: var(--font-body);
+  font-size: 16px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1.5px solid #d8d2c4;
+  width: 100%;
+  background: var(--warm-white);
+}
+input:focus { outline: 2px solid var(--gold); border-color: var(--gold); }
+
+.code-display {
+  font-family: var(--font-display);
+  font-size: 64px;
+  letter-spacing: 12px;
+  color: var(--navy);
+  font-weight: bold;
+  text-align: center;
+  margin: 12px 0;
+}
+
+.pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.pill.answer { background: rgba(47,111,94,0.12); color: var(--answer-accent); }
+.pill.meme { background: rgba(165,67,44,0.12); color: var(--meme-accent); }
+
+.status-waiting { color: var(--muted); }
+.status-played { color: var(--answer-accent); font-weight: 700; }
+
+.player-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 14px;
+  background: var(--warm-white);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.player-chip button.remove {
+  background: transparent;
+  color: var(--meme-accent);
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+.played-card {
+  border-radius: var(--radius);
+  padding: 20px;
+  background: var(--warm-white);
+  border: 2px solid transparent;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s ease, transform 0.1s ease;
+}
+.played-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+.played-card.selected { border-color: var(--gold); background: #fff8e6; }
+.played-card.readonly { cursor: default; }
+.played-card.readonly:hover { transform: none; border-color: transparent; }
+.played-card img { max-width: 100%; border-radius: 8px; }
+
+.hand-card {
+  border: 2px solid #e4ddcc;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  background: var(--paper);
+  font-weight: 600;
+}
+.hand-card:hover { border-color: var(--gold); }
+.hand-card img { max-width: 100%; border-radius: 6px; }
+
+.leaderboard-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 4px;
+  border-bottom: 1px solid #eee6d4;
+  font-family: var(--font-body);
+}
+.leaderboard-row .rank { color: var(--gold); font-weight: 700; width: 28px; }
+
+.muted-note { font-size: 13px; color: var(--muted); margin-top: 16px; }
+
+@media (max-width: 600px) {
+  .code-display { font-size: 40px; letter-spacing: 8px; }
+}
