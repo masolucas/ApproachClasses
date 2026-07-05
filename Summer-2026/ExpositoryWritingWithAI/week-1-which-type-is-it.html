@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Which Type Is It? — Expository Writing with AI</title>
+<style>
+  :root {
+    --navy: #0C2340;
+    --navy-l: #143865;
+    --navy-d: #081629;
+    --gold: #AE9142;
+    --gold-b: #D39F10;
+    --warm-w: #EFE9D9;
+    --paper: #FFFFFF;
+    --ink: #1A1A1A;
+    --ink-s: #3D3D3D;
+    --muted: #7A7A7A;
+    --sky: #EDF2F9;
+    --lt-gold: #F5EED2;
+    --green: #26890C;
+    --green-s: #D4EDDA;
+    --red: #C0392B;
+    --red-s: #F8D7DA;
+    --teal: #0E6B6B;
+    --amber: #B45309;
+    --blue: #1C4F8F;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: var(--navy);
+    font-family: Calibri, "Segoe UI", sans-serif;
+    overflow: hidden;
+    -webkit-user-select: none; user-select: none;
+  }
+
+  /* ---------- corner brackets, matching deck chrome ---------- */
+  .bracket { position: fixed; width: 26px; height: 26px; z-index: 40; pointer-events: none; }
+  .bracket::before, .bracket::after { content: ""; position: absolute; background: var(--gold); }
+  .bracket::before { width: 26px; height: 2px; }
+  .bracket::after { width: 2px; height: 26px; }
+  .tl { top: 18px; left: 18px; }
+  .tr { top: 18px; right: 18px; }
+  .bl { bottom: 18px; left: 18px; }
+  .br { bottom: 18px; right: 18px; }
+  .tr::before, .tr::after { right: 0; }
+  .bl::before, .bl::after { bottom: 0; }
+  .br::before, .br::after { bottom: 0; right: 0; }
+
+  /* ---------- header ---------- */
+  header {
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 46px 0 46px;
+    z-index: 30;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .monogram {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 1.25px solid var(--gold); display: flex; align-items: center; justify-content: center;
+    font-family: Cambria, serif; font-style: italic; font-weight: bold; color: var(--gold); font-size: 15px;
+  }
+  .brand-text { line-height: 1.15; }
+  .brand-text .l1 { font-size: 10px; font-weight: bold; letter-spacing: 2.5px; color: var(--gold); }
+  .brand-text .l2 { font-size: 9px; letter-spacing: 1.5px; color: var(--warm-w); opacity: 0.75; }
+
+  .scoreboard { display: flex; gap: 34px; align-items: center; }
+  .stat { text-align: right; }
+  .stat .num { font-family: Consolas, monospace; font-size: 26px; color: var(--warm-w); font-weight: bold; }
+  .stat .lbl { font-family: Calibri, sans-serif; font-size: 9px; letter-spacing: 2px; color: var(--gold); font-weight: bold; }
+
+  /* ---------- title strip ---------- */
+  .title-strip {
+    position: fixed; top: 50px; left: 0; right: 0; text-align: center; z-index: 20;
+  }
+  .title-strip h1 {
+    font-family: Cambria, serif; font-size: 30px; color: var(--warm-w); margin: 0; font-weight: normal;
+  }
+  .title-strip h1 em { color: var(--gold); font-style: italic; }
+  .title-strip p {
+    font-family: Cambria, serif; font-style: italic; font-size: 13px; color: var(--warm-w); opacity: 0.7; margin: 4px 0 0 0;
+  }
+
+  /* ---------- play field ---------- */
+  .field {
+    position: fixed; inset: 0; z-index: 5;
+  }
+
+  .zone {
+    position: absolute;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border-radius: 14px;
+    border: 2px dashed rgba(239,233,217,0.28);
+    transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    font-family: Calibri, sans-serif;
+  }
+  .zone .zicon { font-size: 22px; margin-bottom: 6px; opacity: 0.85; }
+  .zone .zlabel { font-size: 17px; font-weight: bold; letter-spacing: 0.5px; color: var(--warm-w); text-align: center; padding: 0 14px; }
+  .zone .zhint { font-size: 10px; letter-spacing: 2px; color: var(--gold); font-weight: bold; margin-top: 6px; }
+
+  .zone-top    { top: 140px; left: 50%; transform: translateX(-50%); width: 420px; height: 110px; }
+  .zone-left   { top: 50%; left: 46px; transform: translateY(-50%); width: 140px; height: 320px; }
+  .zone-right  { top: 50%; right: 46px; transform: translateY(-50%); width: 140px; height: 320px; }
+
+  .zone.hot { border-style: solid; border-width: 3px; }
+  .zone.hot .zlabel { transform: scale(1.05); }
+
+  /* ---------- card ---------- */
+  .card-stack {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .card {
+    position: absolute;
+    width: 560px; min-height: 210px;
+    background: var(--paper);
+    border-radius: 18px;
+    box-shadow: 0 22px 50px rgba(0,0,0,0.35);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px 46px;
+    cursor: grab;
+    touch-action: none;
+    will-change: transform;
+  }
+  .card:active { cursor: grabbing; }
+  .card.behind { z-index: 1; filter: brightness(0.94); }
+  .card.top { z-index: 2; }
+
+  .card .eyebrow {
+    font-family: Consolas, monospace; font-size: 10px; font-weight: bold; letter-spacing: 3px;
+    color: var(--gold); margin-bottom: 14px;
+  }
+  .card .headline {
+    font-family: Cambria, serif; font-size: 27px; line-height: 1.32; color: var(--navy);
+    text-align: center; font-style: italic;
+  }
+  .card .stamp {
+    position: absolute; top: 26px; font-family: Calibri, sans-serif; font-weight: bold; font-size: 22px;
+    letter-spacing: 3px; border: 4px solid; border-radius: 8px; padding: 4px 14px; opacity: 0;
+    transform: rotate(-14deg);
+  }
+  .card .stamp.correct { color: var(--green); border-color: var(--green); left: 26px; }
+  .card .stamp.wrong { color: var(--red); border-color: var(--red); right: 26px; }
+
+  /* ---------- footer controls ---------- */
+  .controls {
+    position: fixed; bottom: 24px; left: 0; right: 0; z-index: 30;
+    display: flex; align-items: center; justify-content: center; gap: 18px;
+  }
+  .btn {
+    font-family: Calibri, sans-serif; font-weight: bold; font-size: 11px; letter-spacing: 2px;
+    color: var(--navy); background: var(--warm-w); border: none; border-radius: 30px;
+    padding: 12px 26px; cursor: pointer; transition: transform .12s ease, background .12s ease;
+  }
+  .btn:hover { background: var(--gold); color: var(--navy); transform: translateY(-1px); }
+  .btn.ghost {
+    background: transparent; color: var(--warm-w); border: 1.5px solid rgba(239,233,217,0.4);
+  }
+  .btn.ghost:hover { background: rgba(239,233,217,0.12); color: var(--warm-w); }
+
+  .progress-track {
+    position: fixed; bottom: 76px; left: 50%; transform: translateX(-50%);
+    width: 320px; height: 4px; background: rgba(239,233,217,0.18); border-radius: 3px; z-index: 30;
+  }
+  .progress-fill { height: 100%; border-radius: 3px; background: var(--gold); width: 0%; transition: width .3s ease; }
+
+  /* ---------- end screen ---------- */
+  .end-screen {
+    position: fixed; inset: 0; background: var(--navy-d); z-index: 50;
+    display: none; align-items: center; justify-content: center; flex-direction: column;
+    text-align: center;
+  }
+  .end-screen.show { display: flex; }
+  .end-screen .eyebrow { font-family: Calibri, sans-serif; font-size: 12px; font-weight: bold; letter-spacing: 5px; color: var(--gold); margin-bottom: 18px; }
+  .end-screen h2 { font-family: Cambria, serif; font-size: 56px; color: var(--warm-w); margin: 0 0 10px 0; }
+  .end-screen h2 em { color: var(--gold); font-style: italic; }
+  .end-screen .final-score { font-family: Consolas, monospace; font-size: 22px; color: var(--warm-w); margin-bottom: 34px; }
+  .end-screen .final-score b { color: var(--gold); font-size: 30px; }
+
+  @media (max-width: 900px) {
+    .zone-left, .zone-right { width: 260px; height: 100px; top: 40%; }
+    .zone-left { rotate: -90deg; left: -42px; }
+    .zone-right { rotate: 90deg; right: -42px; }
+    .zone-top { width: 300px; height: 90px; top: 148px; }
+    .card { width: calc(100vw - 160px); padding: 30px 26px; margin-top: -85px; }
+    .card .headline { font-size: 21px; }
+    .scoreboard { gap: 18px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="bracket tl"></div><div class="bracket tr"></div>
+  <div class="bracket bl"></div><div class="bracket br"></div>
+
+  <header>
+    <div class="brand">
+      <div class="brand-text">
+        <div class="l1">EXPOSITORY WRITING WITH AI</div>
+        <div class="l2">WEEK 01 &nbsp;·&nbsp; WHICH TYPE IS IT?</div>
+      </div>
+    </div>
+    <div class="scoreboard">
+      <div class="stat"><div class="num" id="roundNum">1</div><div class="lbl">ROUND</div></div>
+      <div class="stat"><div class="num" id="scoreNum">0</div><div class="lbl">CORRECT</div></div>
+      <div class="stat"><div class="num" id="streakNum">0</div><div class="lbl">STREAK</div></div>
+    </div>
+  </header>
+
+  <div class="title-strip">
+    <h1>Which <em>type</em> is it?</h1>
+    <p>Drag the card toward the matching type. Fastest correct team wins the round.</p>
+  </div>
+
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="field">
+    <div class="zone zone-top" id="zoneTop" data-dir="top">
+      <div class="zicon">↑</div>
+      <div class="zlabel" id="labelTop">—</div>
+      <div class="zhint">SWIPE UP</div>
+    </div>
+    <div class="zone zone-left" id="zoneLeft" data-dir="left">
+      <div class="zicon">←</div>
+      <div class="zlabel" id="labelLeft">—</div>
+      <div class="zhint">SWIPE LEFT</div>
+    </div>
+    <div class="zone zone-right" id="zoneRight" data-dir="right">
+      <div class="zicon">→</div>
+      <div class="zlabel" id="labelRight">—</div>
+      <div class="zhint">SWIPE RIGHT</div>
+    </div>
+    <div class="card-stack" id="cardStack"></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn ghost" id="skipBtn">SKIP ROUND</button>
+    <button class="btn ghost" id="restartBtn">RESTART GAME</button>
+  </div>
+
+  <div class="end-screen" id="endScreen">
+    <div class="eyebrow">GAME COMPLETE</div>
+    <h2>Nice <em>reading.</em></h2>
+    <div class="final-score">You got <b id="finalScore">0</b> of <b id="finalTotal">0</b> correct</div>
+    <button class="btn" id="playAgainBtn">PLAY AGAIN</button>
+  </div>
+
+<script>
+(function() {
+  const TYPES = {
+    "Informational": { color: "#1C4F8F", icon: "📘" },
+    "Analytical": { color: "#0E6B6B", icon: "🔍" },
+    "Process": { color: "#D39F10", icon: `<span style="color: #D39F10;">🛠</span>` },
+    "Compare-Contrast": { color: "#C0392B", icon: `<span style="color: #C0392B;">⚖</span>` },
+    "Cause-Effect": { color: "#B45309", icon: "⚡" }
+  };
+
+  const HEADLINES = [
+    { text: "How Vaccines Work", type: "Informational" },
+    { text: "The History of the Internet", type: "Informational" },
+    { text: "How Solar Panels Generate Electricity", type: "Informational" },
+    { text: "What Happens During a Visa Interview", type: "Informational" },
+    { text: "How Coffee Beans Are Processed", type: "Informational" },
+
+    { text: "Why Remote Work Spread After 2020", type: "Analytical" },
+    { text: "Why Sales Increased After the New Website Launch", type: "Analytical" },
+    { text: "Why English Became a Global Business Language", type: "Analytical" },
+    { text: "Why Brazilian Coffee Exports Are Shifting to Asia", type: "Analytical" },
+    { text: "Why Some Students Struggle With Timed Writing", type: "Analytical" },
+
+    { text: "How to Apply for a Student Visa", type: "Process" },
+    { text: "How to Make the Perfect Brigadeiro", type: "Process" },
+    { text: "How to Write a Professional Email", type: "Process" },
+    { text: "How to Prepare for a Job Interview", type: "Process" },
+    { text: "How to Set Up a Video Call for Class", type: "Process" },
+
+    { text: "City Life vs. Country Life", type: "Compare-Contrast" },
+    { text: "Online vs. In-Person Learning", type: "Compare-Contrast" },
+    { text: "Studying in Brazil vs. Studying Abroad", type: "Compare-Contrast" },
+    { text: "Renting vs. Buying a Home", type: "Compare-Contrast" },
+    { text: "Working From Home vs. Working in an Office", type: "Compare-Contrast" },
+
+    { text: "Why Students Should Sleep 8 Hours", type: "Cause-Effect" },
+    { text: "The Effects of Sleep Deprivation on Performance", type: "Cause-Effect" },
+    { text: "Why Social Media Changes Our Behavior", type: "Cause-Effect" },
+    { text: "The Effects of Inflation on Household Budgets", type: "Cause-Effect" },
+    { text: "Why Traffic Congestion Is Getting Worse in Big Cities", type: "Cause-Effect" }
+  ];
+
+  const TOTAL_ROUNDS = 10;
+
+  let deck = [];
+  let roundIndex = 0;
+  let score = 0;
+  let streak = 0;
+  let currentAssignment = {}; // dir -> type
+  let dragging = false;
+  let startX = 0, startY = 0, curX = 0, curY = 0;
+  let cardEl = null;
+  let locked = false;
+
+  const cardStack = document.getElementById('cardStack');
+  const labelTop = document.getElementById('labelTop');
+  const labelLeft = document.getElementById('labelLeft');
+  const labelRight = document.getElementById('labelRight');
+  const zoneTop = document.getElementById('zoneTop');
+  const zoneLeft = document.getElementById('zoneLeft');
+  const zoneRight = document.getElementById('zoneRight');
+  const roundNum = document.getElementById('roundNum');
+  const scoreNum = document.getElementById('scoreNum');
+  const streakNum = document.getElementById('streakNum');
+  const progressFill = document.getElementById('progressFill');
+  const endScreen = document.getElementById('endScreen');
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function buildDeck() {
+    const shuffled = shuffle(HEADLINES);
+    deck = shuffled.slice(0, TOTAL_ROUNDS);
+    roundIndex = 0; score = 0; streak = 0;
+    updateHUD();
+    endScreen.classList.remove('show');
+    renderRound();
+  }
+
+  function updateHUD() {
+    roundNum.textContent = Math.min(roundIndex + 1, TOTAL_ROUNDS);
+    scoreNum.textContent = score;
+    streakNum.textContent = streak;
+    progressFill.style.width = (roundIndex / TOTAL_ROUNDS * 100) + '%';
+  }
+
+  function pickAssignment(correctType) {
+    const others = Object.keys(TYPES).filter(t => t !== correctType);
+    const distractors = shuffle(others).slice(0, 2);
+    const three = shuffle([correctType, ...distractors]);
+    return { top: three[0], left: three[1], right: three[2] };
+  }
+
+  function renderRound() {
+    locked = false;
+    if (roundIndex >= TOTAL_ROUNDS) { showEnd(); return; }
+
+    const item = deck[roundIndex];
+    currentAssignment = pickAssignment(item.type);
+
+    labelTop.textContent = currentAssignment.top;
+    labelLeft.textContent = currentAssignment.left;
+    labelRight.textContent = currentAssignment.right;
+    zoneTop.querySelector('.zicon').innerHTML = TYPES[currentAssignment.top].icon;
+    zoneLeft.querySelector('.zicon').innerHTML = TYPES[currentAssignment.left].icon;
+    zoneRight.querySelector('.zicon').innerHTML = TYPES[currentAssignment.right].icon;
+
+    cardStack.innerHTML = '';
+    const card = document.createElement('div');
+    card.className = 'card top';
+    card.innerHTML =
+      '<div class="stamp correct">✓ CORRECT</div>' +
+      '<div class="stamp wrong">✗ NOT QUITE</div>' +
+      '<div class="eyebrow">HEADLINE ' + (roundIndex + 1) + ' OF ' + TOTAL_ROUNDS + '</div>' +
+      '<div class="headline">&ldquo;' + item.text + '&rdquo;</div>';
+    cardStack.appendChild(card);
+    cardEl = card;
+    attachDrag(card, item.type);
+    updateHUD();
+  }
+
+  function clearHot() {
+    zoneTop.classList.remove('hot'); zoneLeft.classList.remove('hot'); zoneRight.classList.remove('hot');
+    zoneTop.style.borderColor = ''; zoneLeft.style.borderColor = ''; zoneRight.style.borderColor = '';
+  }
+
+  // Active-round drag state (single set of window listeners, re-used every round)
+  let activeCard = null;
+  let activeCorrectType = null;
+
+  function attachDrag(card, correctType) {
+    activeCard = card;
+    activeCorrectType = correctType;
+
+    function onDown(e) {
+      if (locked) return;
+      dragging = true;
+      const p = getPoint(e);
+      startX = p.x; startY = p.y;
+      activeCard.style.transition = 'none';
+    }
+    card.addEventListener('mousedown', onDown);
+    card.addEventListener('touchstart', onDown, { passive: true });
+  }
+
+  function getPoint(e) {
+    if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    return { x: e.clientX, y: e.clientY };
+  }
+
+  function onWindowMove(e) {
+    if (!dragging || locked || !activeCard) return;
+    const p = getPoint(e);
+    curX = p.x - startX;
+    curY = p.y - startY;
+    const rot = curX / 22;
+    activeCard.style.transform = 'translate(' + curX + 'px,' + curY + 'px) rotate(' + rot + 'deg)';
+
+    clearHot();
+    const THRESH = 70;
+    if (curY < -THRESH && Math.abs(curY) > Math.abs(curX)) {
+      zoneTop.classList.add('hot'); zoneTop.style.borderColor = TYPES[currentAssignment.top].color;
+    } else if (curX < -THRESH && Math.abs(curX) > Math.abs(curY)) {
+      zoneLeft.classList.add('hot'); zoneLeft.style.borderColor = TYPES[currentAssignment.left].color;
+    } else if (curX > THRESH && Math.abs(curX) > Math.abs(curY)) {
+      zoneRight.classList.add('hot'); zoneRight.style.borderColor = TYPES[currentAssignment.right].color;
+    }
+  }
+
+  function onWindowUp() {
+    if (!dragging || locked || !activeCard) return;
+    dragging = false;
+    const THRESH = 90;
+    let dir = null;
+    if (curY < -THRESH && Math.abs(curY) > Math.abs(curX)) dir = 'top';
+    else if (curX < -THRESH && Math.abs(curX) > Math.abs(curY)) dir = 'left';
+    else if (curX > THRESH && Math.abs(curX) > Math.abs(curY)) dir = 'right';
+
+    activeCard.style.transition = 'transform .35s ease';
+    clearHot();
+
+    if (dir) {
+      resolveDrop(dir, activeCorrectType, activeCard);
+    } else {
+      activeCard.style.transform = 'translate(0,0) rotate(0)';
+    }
+  }
+
+  window.addEventListener('mousemove', onWindowMove);
+  window.addEventListener('mouseup', onWindowUp);
+  window.addEventListener('touchmove', onWindowMove, { passive: true });
+  window.addEventListener('touchend', onWindowUp);
+
+  function resolveDrop(dir, correctType, card) {
+    locked = true;
+    const chosenType = currentAssignment[dir];
+    const isCorrect = chosenType === correctType;
+
+    const flyX = dir === 'left' ? -1400 : dir === 'right' ? 1400 : 0;
+    const flyY = dir === 'top' ? -1200 : 300;
+    card.style.transform = 'translate(' + flyX + 'px,' + flyY + 'px) rotate(' + (flyX/20) + 'deg)';
+
+    const stamp = card.querySelector(isCorrect ? '.stamp.correct' : '.stamp.wrong');
+    stamp.style.opacity = '1';
+
+    if (isCorrect) { score += 1; streak += 1; }
+    else { streak = 0; }
+    updateHUD();
+
+    setTimeout(function() {
+      roundIndex += 1;
+      renderRound();
+    }, 480);
+  }
+
+  function showEnd() {
+    document.getElementById('finalScore').textContent = score;
+    document.getElementById('finalTotal').textContent = TOTAL_ROUNDS;
+    endScreen.classList.add('show');
+  }
+
+  document.getElementById('skipBtn').addEventListener('click', function() {
+    if (locked) return;
+    locked = true;
+    streak = 0;
+    updateHUD();
+    setTimeout(function() { roundIndex += 1; renderRound(); }, 120);
+  });
+  document.getElementById('restartBtn').addEventListener('click', buildDeck);
+  document.getElementById('playAgainBtn').addEventListener('click', buildDeck);
+
+  // keyboard support for presenter (arrow keys = drop in that direction)
+  window.addEventListener('keydown', function(e) {
+    if (locked || !cardEl) return;
+    const item = deck[roundIndex];
+    if (e.key === 'ArrowUp') resolveDrop('top', item.type, cardEl);
+    if (e.key === 'ArrowLeft') resolveDrop('left', item.type, cardEl);
+    if (e.key === 'ArrowRight') resolveDrop('right', item.type, cardEl);
+  });
+
+  buildDeck();
+})();
+</script>
+</body>
+</html>
