@@ -28,6 +28,7 @@ let state = {
 let playersChannel = null;
 let roundChannel = null;
 let advancingToVoting = false;
+let advancingToResults = false;
 
 // ---------- boot ----------
 (async function init() {
@@ -274,101 +275,43 @@ async function createRound(roundNumber) {
   state.plays = [];
   state.votes = [];
   advancingToVoting = false;
+  advancingToResults = false;
   subscribeRound();
   render();
 }
 
-// ---------- playing phase ----------
-function renderPlaying() {
-  const assignments = state.round.assignments;
-  const playedIds = new Set(state.plays.map(p => p.player_id));
-  const waiting = assignments.filter(a => !playedIds.has(a.player_id));
+// ---------- shared helpers for the table view ----------
+function cardRotation(id) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return (((h % 141) / 10) - 7).toFixed(1);
+}
 
-  if (waiting.length === 0) {
-    if (!advancingToVoting) {
-      advancingToVoting = true;
-      goToVoting();
-    }
-    return;
-  }
+function votersForRound() {
+  return state.players.filter(p => !state.round.assignments.some(a => a.player_id === p.id));
+}
 
-  const answerPlays = state.plays.filter(p => p.card_type === "answer");
-  const memePlays = state.plays.filter(p => p.card_type === "meme");
-
-  app.innerHTML = `
-    <div class="table-layout">
-      <aside class="waiting-sidebar">
-        <h3>Waiting to play</h3>
-        ${waiting.map(a => `
-          <div class="player-chip">
-            <span class="pill ${a.role}">${a.role}</span>
-            <span>${escapeHtml(a.name)}</span>
-          </div>`).join("")}
-      </aside>
-      <div class="table-main">
-        <div class="card-frame situation-card">
-          <div class="eyebrow">Round ${state.round.round_number} of ${state.game.total_rounds} · Code ${state.game.code}</div>
-          <h1>${escapeHtml(state.round.situation_text)}</h1>
-        </div>
-        <div class="table-section">
-          <h3>Answers</h3>
-          <div class="table-cards">
-            ${answerPlays.map(p => `<div class="played-card readonly">${escapeHtml(p.card_text)}</div>`).join("")
-              || `<p class="muted-note">No answers played yet.</p>`}
-          </div>
-        </div>
-        <div class="table-section">
-          <h3>Memes</h3>
-          <div class="table-cards">
-            ${memePlays.map(p => `<div class="played-card readonly"><img src="${p.card_url}" /></div>`).join("")
-              || `<p class="muted-note">No memes played yet.</p>`}
-          </div>
-        </div>
-      </div>
-    </div>`;
+function voteTally() {
+  const tally = {};
+  state.votes.forEach(v => { tally[v.voted_for_play_id] = (tally[v.voted_for_play_id] || 0) + 1; });
+  return tally;
 }
 
 async function goToVoting() {
-  const votersCount = state.players.filter(p => !state.round.assignments.some(a => a.player_id === p.id)).length;
-  if (votersCount === 0) {
-    await sb.from(TABLES.rounds).update({ phase: "results" }).eq("id", state.round.id);
-  } else {
-    await sb.from(TABLES.rounds).update({ phase: "voting" }).eq("id", state.round.id);
+  const voters = votersForRound();
+  if (voters.length === 0) {
+    await scoreAndReveal();
+    return;
   }
+  await sb.from(TABLES.rounds).update({ phase: "voting" }).eq("id", state.round.id);
   const { data } = await sb.from(TABLES.rounds).select("*").eq("id", state.round.id).maybeSingle();
   state.round = data;
   render();
 }
 
-// ---------- voting phase (host view) ----------
-function renderVotingHost() {
-  const answerPlays = state.plays.filter(p => p.card_type === "answer");
-  const memePlays = state.plays.filter(p => p.card_type === "meme");
-  const votersCount = state.players.filter(p => !state.round.assignments.some(a => a.player_id === p.id)).length;
-  const votedSoFar = new Set(state.votes.map(v => v.voter_player_id)).size;
-
-  app.innerHTML = `
-    <div class="card-frame" style="max-width:820px; width:100%;">
-      <div class="eyebrow">Round ${state.round.round_number} of ${state.game.total_rounds} · Voting</div>
-      <h1>${escapeHtml(state.round.situation_text)}</h1>
-      <h3 style="margin-top:20px;">Best Answer</h3>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
-        ${answerPlays.map(p => `<div class="played-card readonly">${escapeHtml(p.card_text)}</div>`).join("")}
-      </div>
-      <h3 style="margin-top:24px;">Best Meme</h3>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
-        ${memePlays.map(p => `<div class="played-card readonly"><img src="${p.card_url}" /></div>`).join("")}
-      </div>
-      <p style="margin-top:20px; font-weight:700; color:var(--navy);">${votedSoFar} of ${votersCount} players have voted</p>
-      <button class="gold" onclick="showResults()">Show Results</button>
-    </div>`;
-}
-
-// ---------- results ----------
-async function showResults() {
+async function scoreAndReveal() {
   if (!state.round.scored) {
-    const tally = {};
-    state.votes.forEach(v => { tally[v.voted_for_play_id] = (tally[v.voted_for_play_id] || 0) + 1; });
+    const tally = voteTally();
     for (const play of state.plays) {
       const pts = tally[play.id] || 0;
       if (pts > 0) {
@@ -388,36 +331,122 @@ async function showResults() {
   render();
 }
 
-function renderResults() {
-  const tally = {};
-  state.votes.forEach(v => { tally[v.voted_for_play_id] = (tally[v.voted_for_play_id] || 0) + 1; });
-  const answerPlays = state.plays.filter(p => p.card_type === "answer").sort((a,b)=>(tally[b.id]||0)-(tally[a.id]||0));
-  const memePlays = state.plays.filter(p => p.card_type === "meme").sort((a,b)=>(tally[b.id]||0)-(tally[a.id]||0));
-  const leaderboard = state.players.slice().sort((a,b) => b.score - a.score);
+// ---------- the table (playing / voting / results share one view) ----------
+function renderRound() {
+  const phase = state.round.phase;
+
+  if (phase === "playing") {
+    const playedIds = new Set(state.plays.map(p => p.player_id));
+    const waiting = state.round.assignments.filter(a => !playedIds.has(a.player_id));
+    if (waiting.length === 0 && !advancingToVoting) {
+      advancingToVoting = true;
+      goToVoting();
+      return;
+    }
+  }
+
+  if (phase === "voting") {
+    const voters = votersForRound();
+    const requiredTypes = [...new Set(state.plays.map(p => p.card_type))];
+    const voterDone = (voterId) => requiredTypes.every(t =>
+      state.votes.some(v => v.voter_player_id === voterId && v.card_type === t));
+    const allVoted = voters.length > 0 && voters.every(v => voterDone(v.id));
+    if (allVoted && !advancingToResults) {
+      advancingToResults = true;
+      scoreAndReveal();
+      return;
+    }
+  }
+
+  const revealed = phase === "results";
+  const tally = voteTally();
+  const answerMax = Math.max(0, ...state.plays.filter(p => p.card_type === "answer").map(p => tally[p.id] || 0));
+  const memeMax = Math.max(0, ...state.plays.filter(p => p.card_type === "meme").map(p => tally[p.id] || 0));
+
+  const cardsHtml = state.plays.map(p => {
+    const votes = tally[p.id] || 0;
+    const max = p.card_type === "answer" ? answerMax : memeMax;
+    const isWinner = revealed && votes > 0 && votes === max;
+    const inner = p.card_type === "answer"
+      ? `<div class="card-author">${escapeHtml(p.player_name)}</div>
+         <div class="chat-bubble"><div class="card-text">${escapeHtml(p.card_text)}</div></div>`
+      : `<div class="card-meme-art"><img src="${p.card_url}" /></div>
+         <div class="card-author">${escapeHtml(p.player_name)}</div>`;
+    return `
+      <div class="card ${p.card_type} ${isWinner ? "winner" : ""} ${revealed ? "revealed" : ""}" style="--rot:${cardRotation(p.id)}deg">
+        <span class="crown ${isWinner ? "show" : ""}">👑</span>
+        <span class="vote-ribbon">${votes} vote${votes === 1 ? "" : "s"}</span>
+        <div class="card-edge"></div>
+        <div class="card-body">${inner}</div>
+      </div>`;
+  }).join("");
+
+  const railHtml = (() => {
+    if (phase === "playing") {
+      const playedIds = new Set(state.plays.map(p => p.player_id));
+      return `
+        <div class="eyebrow">Waiting to play</div>
+        <h3>Still choosing cards</h3>
+        ${state.round.assignments.map(a => `
+          <div class="roster-item ${playedIds.has(a.player_id) ? "done" : ""}">
+            <span class="roster-check">${playedIds.has(a.player_id) ? "✓" : "·"}</span>
+            <span class="pill ${a.role}">${a.role}</span>
+            <span>${escapeHtml(a.name)}</span>
+          </div>`).join("")}`;
+    }
+    const voters = votersForRound();
+    const requiredTypes = [...new Set(state.plays.map(p => p.card_type))];
+    const voterDone = (voterId) => requiredTypes.every(t =>
+      state.votes.some(v => v.voter_player_id === voterId && v.card_type === t));
+    return `
+      <div class="eyebrow">Waiting to vote</div>
+      <h3>Still casting votes</h3>
+      ${voters.map(v => `
+        <div class="roster-item ${voterDone(v.id) ? "done" : ""}">
+          <span class="roster-check">${voterDone(v.id) ? "✓" : "·"}</span>
+          <span>${escapeHtml(v.name)}</span>
+        </div>`).join("")}`;
+  })();
+
+  const leaderboard = state.players.slice().sort((a, b) => b.score - a.score);
+  const maxScore = Math.max(1, ...leaderboard.map(p => p.score));
+  const rankingHtml = `
+    <div class="eyebrow">Standings</div>
+    <h3>Ranking</h3>
+    ${leaderboard.map((p, i) => `
+      <div class="rank-row ${i === 0 && p.score > 0 ? "leader" : ""}">
+        <span class="rank-num">${i + 1}</span>
+        <span>${escapeHtml(p.name)}</span>
+        <span class="rank-score">${p.score}</span>
+        <div class="rank-bar-track"><div class="rank-bar-fill" style="width:${(p.score / maxScore) * 100}%"></div></div>
+      </div>`).join("")}`;
+
   const isLastRound = state.round.round_number >= state.game.total_rounds;
+  const nextEnabled = phase === "results";
+  const nextLabel = isLastRound ? "End Game" : "Next Round →";
+  const nextAction = isLastRound ? "endGame()" : "advanceRound()";
+  const statusText = phase === "playing"
+    ? "Waiting for all cards to be played…"
+    : phase === "voting"
+      ? "Waiting for all votes to be cast…"
+      : "Votes counted!";
 
   app.innerHTML = `
-    <div class="card-frame" style="max-width:820px; width:100%;">
-      <div class="eyebrow">Round ${state.round.round_number} of ${state.game.total_rounds} · Results</div>
-      <h1>${escapeHtml(state.round.situation_text)}</h1>
-      <h3 style="margin-top:20px;">Best Answer</h3>
-      ${answerPlays.map(p => `<div class="played-card readonly" style="text-align:left; margin-bottom:10px;">
-        <strong>${escapeHtml(p.player_name)}</strong> — ${escapeHtml(p.card_text)}
-        <span style="float:right; color:var(--gold); font-weight:700;">${tally[p.id]||0} vote${(tally[p.id]||0)===1?"":"s"}</span>
-      </div>`).join("") || `<p class="muted-note">No answer cards this round.</p>`}
-      <h3 style="margin-top:20px;">Best Meme</h3>
-      ${memePlays.map(p => `<div class="played-card readonly" style="text-align:left; margin-bottom:10px;">
-        <img src="${p.card_url}" style="max-height:140px; display:block; margin-bottom:6px;" />
-        <strong>${escapeHtml(p.player_name)}</strong>
-        <span style="float:right; color:var(--gold); font-weight:700;">${tally[p.id]||0} vote${(tally[p.id]||0)===1?"":"s"}</span>
-      </div>`).join("") || `<p class="muted-note">No meme cards this round.</p>`}
-
-      <h3 style="margin-top:28px;">Leaderboard</h3>
-      ${leaderboard.map((p,i) => `<div class="leaderboard-row"><span><span class="rank">#${i+1}</span>${escapeHtml(p.name)}</span><span>${p.score} pt${p.score===1?"":"s"}</span></div>`).join("")}
-
-      <button class="gold" style="margin-top:24px;" onclick="${isLastRound ? "endGame()" : "advanceRound()"}">
-        ${isLastRound ? "End Game" : "Next Round"}
-      </button>
+    <div class="board">
+      <aside class="rail">${railHtml}</aside>
+      <div class="table-wrap">
+        <div class="situation-card">
+          <div class="code-tag">CODE ${state.game.code}</div>
+          <div class="eyebrow">Round ${state.round.round_number} of ${state.game.total_rounds}</div>
+          <h1>${escapeHtml(state.round.situation_text)}</h1>
+        </div>
+        <div class="felt"><div class="thrown-cards">${cardsHtml}</div></div>
+      </div>
+      <aside class="ranking">${rankingHtml}</aside>
+    </div>
+    <div class="action-bar">
+      <span class="vote-status">${statusText}</span>
+      <button class="next-btn" ${nextEnabled ? "" : "disabled"} onclick="${nextAction}">${nextLabel}</button>
     </div>`;
 }
 
@@ -450,9 +479,7 @@ function render() {
   if (state.game.status === "lobby") return renderLobby();
   if (state.game.status === "ended") return renderEnded();
   if (!state.round) return; // waiting on round load
-  if (state.round.phase === "playing") return renderPlaying();
-  if (state.round.phase === "voting") return renderVotingHost();
-  if (state.round.phase === "results") return renderResults();
+  return renderRound();
 }
 
 function escapeHtml(str) {
