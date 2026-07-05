@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Writer's Toolbox — Matching Board | Expository Writing with AI</title>
+<style>
+  :root {
+    --navy: #0C2340;
+    --gold: #AE9142;
+    --warm-w: #EFE9D9;
+    --paper: #FFFFFF;
+    --ink: #1A1A1A;
+    --ink-s: #3D3D3D;
+    --muted: #7A7A7A;
+    --sky: #EDF2F9;
+    --lt-gold: #F5EED2;
+    --green: #26890C;
+    --green-s: #D4EDDA;
+    --red: #C0392B;
+    --red-s: #F8D7DA;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; min-height: 100%;
+    background: var(--navy);
+    font-family: Calibri, "Segoe UI", sans-serif;
+    -webkit-user-select: none; user-select: none;
+  }
+
+  .bracket { position: fixed; width: 24px; height: 24px; z-index: 40; pointer-events: none; }
+  .bracket::before, .bracket::after { content: ""; position: absolute; background: var(--gold); }
+  .bracket::before { width: 24px; height: 2px; }
+  .bracket::after { width: 2px; height: 24px; }
+  .tl { top: 16px; left: 16px; }
+  .tr { top: 16px; right: 16px; }
+  .bl { bottom: 16px; left: 16px; }
+  .br { bottom: 16px; right: 16px; }
+  .tr::before, .tr::after { right: 0; }
+  .bl::before, .bl::after { bottom: 0; }
+  .br::before, .br::after { bottom: 0; right: 0; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 26px 46px 0 46px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .monogram {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 1.25px solid var(--gold); display: flex; align-items: center; justify-content: center;
+    font-family: Cambria, serif; font-style: italic; font-weight: bold; color: var(--gold); font-size: 15px;
+  }
+  .brand-text { line-height: 1.15; }
+  .brand-text .l1 { font-size: 10px; font-weight: bold; letter-spacing: 2.5px; color: var(--gold); }
+  .brand-text .l2 { font-size: 9px; letter-spacing: 1.5px; color: var(--warm-w); opacity: 0.75; }
+
+  .score { text-align: right; }
+  .score .num { font-family: Consolas, monospace; font-size: 24px; color: var(--warm-w); font-weight: bold; }
+  .score .lbl { font-size: 9px; letter-spacing: 2px; color: var(--gold); font-weight: bold; }
+
+  .title-strip { text-align: center; margin-top: 18px; padding: 0 20px; }
+  .title-strip h1 { font-family: Cambria, serif; font-size: 30px; color: var(--warm-w); margin: 0; font-weight: normal; }
+  .title-strip h1 em { color: var(--gold); font-style: italic; }
+  .title-strip p { font-family: Cambria, serif; font-style: italic; font-size: 13px; color: var(--warm-w); opacity: 0.75; margin: 6px 0 0 0; }
+
+  .zones {
+    display: flex; gap: 22px; justify-content: center; margin: 34px auto 0 auto;
+    padding: 0 40px; max-width: 1180px; flex-wrap: wrap;
+  }
+  .zone {
+    flex: 1; min-width: 260px; min-height: 190px;
+    background: rgba(239,233,217,0.05);
+    border: 2px dashed rgba(239,233,217,0.3);
+    border-radius: 14px;
+    padding: 16px;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .zone.over { border-color: var(--gold); background: rgba(174,145,66,0.12); border-style: solid; }
+  .zone-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+  .zone-head h2 { font-family: Cambria, serif; font-size: 20px; color: var(--warm-w); margin: 0; }
+  .zone-head span { font-family: Calibri, sans-serif; font-size: 11px; font-style: italic; color: var(--gold); }
+  .zone .dropped { display: flex; flex-direction: column; gap: 8px; min-height: 40px; }
+
+  .tray-label {
+    text-align: center; margin-top: 40px;
+    font-family: Calibri, sans-serif; font-size: 10px; font-weight: bold; letter-spacing: 3px; color: var(--gold);
+  }
+  .tray {
+    display: flex; flex-wrap: wrap; gap: 14px; justify-content: center;
+    padding: 20px 40px 10px 40px; max-width: 1180px; margin: 0 auto;
+  }
+
+  .card {
+    background: var(--paper);
+    border-radius: 10px;
+    padding: 14px 18px;
+    width: 250px;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+    cursor: grab;
+    touch-action: none;
+    font-family: Cambria, serif; font-style: italic; font-size: 15px; color: var(--ink);
+    line-height: 1.35;
+    border: 3px solid transparent;
+    transition: border-color .2s ease, transform .12s ease;
+  }
+  .card:active { cursor: grabbing; }
+  .card.dragging { opacity: 0.95; box-shadow: 0 16px 32px rgba(0,0,0,0.4); transform: scale(1.03); cursor: grabbing; }
+  .card.placed { width: 100%; margin: 0; }
+  .card.correct { border-color: var(--green); background: var(--green-s); }
+  .card.wrong { border-color: var(--red); background: var(--red-s); }
+
+  .controls {
+    display: flex; justify-content: center; gap: 16px; margin: 36px 0 50px 0;
+  }
+  .btn {
+    font-family: Calibri, sans-serif; font-weight: bold; font-size: 11px; letter-spacing: 2px;
+    color: var(--navy); background: var(--warm-w); border: none; border-radius: 30px;
+    padding: 13px 30px; cursor: pointer; transition: transform .12s ease, background .12s ease;
+  }
+  .btn:hover { background: var(--gold); transform: translateY(-1px); }
+  .btn.ghost { background: transparent; color: var(--warm-w); border: 1.5px solid rgba(239,233,217,0.4); }
+  .btn.ghost:hover { background: rgba(239,233,217,0.12); color: var(--warm-w); }
+
+  .feedback {
+    text-align: center; font-family: Cambria, serif; font-style: italic; font-size: 15px; color: var(--gold);
+    min-height: 24px; margin-top: -18px; margin-bottom: 18px;
+  }
+
+  @media (max-width: 700px) {
+    .zone { min-width: 90%; }
+    .card { width: 90%; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="bracket tl"></div><div class="bracket tr"></div>
+  <div class="bracket bl"></div><div class="bracket br"></div>
+
+  <header>
+    <div class="brand">
+      <div class="monogram">A</div>
+      <div class="brand-text">
+        <div class="l1">EXPOSITORY WRITING WITH AI</div>
+        <div class="l2">WEEK 01 &nbsp;·&nbsp; WRITER'S TOOLBOX</div>
+      </div>
+    </div>
+    <div class="score">
+      <div class="num"><span id="placedCount">0</span>/6</div>
+      <div class="lbl">PLACED</div>
+    </div>
+  </header>
+
+  <div class="title-strip">
+    <h1>Match it to the <em>right register.</em></h1>
+    <p>Drag each scenario card into the register you think fits best, then check your answers.</p>
+  </div>
+
+  <div class="zones">
+    <div class="zone" data-zone="Formal">
+      <div class="zone-head"><h2>Formal</h2><span>no contractions</span></div>
+      <div class="dropped" id="dropFormal"></div>
+    </div>
+    <div class="zone" data-zone="Semi-Formal">
+      <div class="zone-head"><h2>Semi-Formal</h2><span>professional, warm</span></div>
+      <div class="dropped" id="dropSemi"></div>
+    </div>
+    <div class="zone" data-zone="Informal">
+      <div class="zone-head"><h2>Informal</h2><span>casual, conversational</span></div>
+      <div class="dropped" id="dropInformal"></div>
+    </div>
+  </div>
+
+  <div class="tray-label">SCENARIO CARDS — DRAG UP INTO A ZONE</div>
+  <div class="tray" id="tray"></div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="controls">
+    <button class="btn" id="checkBtn">CHECK ANSWERS</button>
+    <button class="btn ghost" id="resetBtn">RESET BOARD</button>
+  </div>
+
+<script>
+(function() {
+  const SCENARIOS = [
+    { id: 1, text: "A text message to a close friend about weekend plans.", answer: "Informal" },
+    { id: 2, text: "An email to a professor requesting a deadline extension.", answer: "Formal" },
+    { id: 3, text: "A LinkedIn message introducing yourself to a recruiter.", answer: "Semi-Formal" },
+    { id: 4, text: "A WhatsApp message to a classmate asking to borrow notes.", answer: "Informal" },
+    { id: 5, text: "A cover letter for a job application.", answer: "Formal" },
+    { id: 6, text: "An email to a coworker you know well, asking for a quick favor.", answer: "Semi-Formal" },
+  ];
+
+  const tray = document.getElementById('tray');
+  const dropFormal = document.getElementById('dropFormal');
+  const dropSemi = document.getElementById('dropSemi');
+  const dropInformal = document.getElementById('dropInformal');
+  const placedCount = document.getElementById('placedCount');
+  const feedback = document.getElementById('feedback');
+  const zones = document.querySelectorAll('.zone');
+
+  const zoneMap = { "Formal": dropFormal, "Semi-Formal": dropSemi, "Informal": dropInformal };
+
+  let dragEl = null;
+  let placements = {}; // id -> zone name
+  let dragOffsetX = 0, dragOffsetY = 0;
+  let originalParent = null;
+
+  function buildBoard() {
+    tray.innerHTML = '';
+    dropFormal.innerHTML = ''; dropSemi.innerHTML = ''; dropInformal.innerHTML = '';
+    placements = {};
+    feedback.textContent = '';
+    SCENARIOS.forEach(s => tray.appendChild(makeCard(s)));
+    updateCount();
+  }
+
+  function makeCard(s) {
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.textContent = s.text;
+    el.dataset.id = s.id;
+    attachDrag(el, s);
+    return el;
+  }
+
+  function getPoint(e) {
+    if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    if (e.changedTouches && e.changedTouches[0]) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+    return { x: e.clientX, y: e.clientY };
+  }
+
+  function attachDrag(el, s) {
+    function onDown(e) {
+      e.preventDefault();
+      dragEl = el;
+      originalParent = el.parentElement;
+
+      const r = el.getBoundingClientRect();
+      const p = getPoint(e);
+      dragOffsetX = p.x - r.left;
+      dragOffsetY = p.y - r.top;
+
+      // Lift the card out of document flow so it can follow the pointer freely
+      el.style.position = 'fixed';
+      el.style.left = r.left + 'px';
+      el.style.top = r.top + 'px';
+      el.style.width = r.width + 'px';
+      el.style.zIndex = '999';
+      el.classList.add('dragging');
+      document.body.appendChild(el);
+    }
+
+    el.addEventListener('mousedown', onDown);
+    el.addEventListener('touchstart', onDown, { passive: false });
+  }
+
+  function onWindowMove(e) {
+    if (!dragEl) return;
+    const p = getPoint(e);
+    dragEl.style.left = (p.x - dragOffsetX) + 'px';
+    dragEl.style.top = (p.y - dragOffsetY) + 'px';
+
+    zones.forEach(z => {
+      const r = z.getBoundingClientRect();
+      const over = p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom;
+      z.classList.toggle('over', over);
+    });
+  }
+
+  function onWindowUp(e) {
+    if (!dragEl) return;
+    const el = dragEl;
+    const s = SCENARIOS.find(x => x.id == el.dataset.id);
+    const p = getPoint(e);
+
+    let landed = null;
+    zones.forEach(z => {
+      const r = z.getBoundingClientRect();
+      if (p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom) landed = z;
+      z.classList.remove('over');
+    });
+
+    // Reset the "lifted out of flow" styles before re-inserting into the layout
+    el.style.position = '';
+    el.style.left = '';
+    el.style.top = '';
+    el.style.width = '';
+    el.style.zIndex = '';
+    el.classList.remove('dragging');
+
+    if (landed) {
+      const zoneName = landed.dataset.zone;
+      el.classList.add('placed');
+      el.classList.remove('correct', 'wrong');
+      zoneMap[zoneName].appendChild(el);
+      placements[s.id] = zoneName;
+    } else {
+      el.classList.remove('placed');
+      originalParent.appendChild(el);
+      delete placements[s.id];
+    }
+
+    dragEl = null;
+    updateCount();
+  }
+
+  window.addEventListener('mousemove', onWindowMove);
+  window.addEventListener('mouseup', onWindowUp);
+  window.addEventListener('touchmove', onWindowMove, { passive: true });
+  window.addEventListener('touchend', onWindowUp);
+
+  function updateCount() {
+    placedCount.textContent = Object.keys(placements).length;
+  }
+
+  document.getElementById('checkBtn').addEventListener('click', function() {
+    let correct = 0;
+    SCENARIOS.forEach(s => {
+      const el = document.querySelector('.card[data-id="' + s.id + '"]');
+      if (!el) return;
+      el.classList.remove('correct', 'wrong');
+      const placedZone = placements[s.id];
+      if (!placedZone) return;
+      if (placedZone === s.answer) { el.classList.add('correct'); correct += 1; }
+      else { el.classList.add('wrong'); }
+    });
+    const total = Object.keys(placements).length;
+    if (total < SCENARIOS.length) {
+      feedback.textContent = 'Place all 6 cards, then check again — ' + correct + ' correct so far.';
+    } else {
+      feedback.textContent = correct === SCENARIOS.length
+        ? 'All six correct — excellent ear for register.'
+        : correct + ' of 6 correct. Green = matched, red = try another zone.';
+    }
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', buildBoard);
+
+  buildBoard();
+})();
+</script>
+</body>
+</html>
