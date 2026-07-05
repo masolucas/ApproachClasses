@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grammar & Writing Quiz · Weeks 1–5 · Approach International</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #F1EBE0;
+      --card:        #FFFFFF;
+      --text:        #1A2B2E;
+      --muted:       #6B7C82;
+      --border:      #D9D0C2;
+      --teal:        #1B5F72;
+      --teal-mid:    #2476A0;
+      --teal-light:  #EBF4F7;
+      --correct:     #1A6E3E;
+      --correct-bg:  #E8F5EE;
+      --wrong:       #9E2A22;
+      --wrong-bg:    #FBEAEA;
+      --track:       #D9D0C2;
+    }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes popIn {
+      0%   { transform: scale(0.95); opacity: 0; }
+      60%  { transform: scale(1.03); }
+      100% { transform: scale(1);    opacity: 1; }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%      { transform: translateX(-5px); }
+      40%      { transform: translateX(5px); }
+      60%      { transform: translateX(-3px); }
+      80%      { transform: translateX(3px); }
+    }
+    @keyframes bounceIn {
+      0%   { transform: scale(0.7); opacity: 0; }
+      70%  { transform: scale(1.08); }
+      100% { transform: scale(1);   opacity: 1; }
+    }
+
+    body {
+      font-family: 'Nunito', system-ui, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 28px 16px 48px;
+    }
+
+    /* ── HEADER ── */
+    .app-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .school-name {
+      font-size: 10.5px;
+      font-weight: 900;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 3px;
+    }
+    .quiz-subtitle {
+      font-size: 12.5px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--card);
+      border-radius: 22px;
+      width: 100%;
+      max-width: 660px;
+      box-shadow: 0 6px 32px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+
+    /* ── WELCOME SCREEN ── */
+    .welcome {
+      padding: 52px 44px 48px;
+      text-align: center;
+      animation: fadeSlideIn 0.4s ease;
+    }
+    .welcome-emoji {
+      font-size: 56px;
+      line-height: 1;
+      margin-bottom: 22px;
+      display: block;
+    }
+    .welcome h1 {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--teal);
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    .welcome p {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.65;
+      max-width: 400px;
+      margin: 0 auto 30px;
+    }
+    .welcome-chips {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 36px;
+    }
+    .chip {
+      background: var(--teal-light);
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 800;
+      padding: 6px 15px;
+      border-radius: 100px;
+      letter-spacing: 0.03em;
+    }
+    .category-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      text-align: left;
+      background: #F7F3EC;
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 34px;
+    }
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .legend-count {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 15px;
+      padding: 13px 30px;
+      border-radius: 13px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.12s, box-shadow 0.12s;
+      gap: 6px;
+    }
+    .btn:active { transform: scale(0.96); }
+    .btn-primary {
+      background: var(--teal);
+      color: #fff;
+      box-shadow: 0 4px 18px rgba(27,95,114,0.38);
+    }
+    .btn-primary:hover {
+      background: var(--teal-mid);
+      box-shadow: 0 6px 22px rgba(27,95,114,0.45);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--teal);
+      border: 2px solid var(--border);
+    }
+    .btn-ghost:hover { background: var(--teal-light); }
+
+    /* ── PROGRESS ── */
+    .progress-section {
+      padding: 22px 28px 0;
+    }
+    .progress-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 9px;
+    }
+    .progress-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .progress-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .live-score-badge {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--correct);
+      background: var(--correct-bg);
+      padding: 3px 10px;
+      border-radius: 100px;
+    }
+    .q-counter {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--teal);
+    }
+    .progress-track {
+      height: 8px;
+      background: var(--track);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--teal), var(--teal-mid));
+      border-radius: 100px;
+      transition: width 0.45s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ── QUESTION AREA ── */
+    .question-area {
+      padding: 24px 28px 4px;
+    }
+    .cat-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      padding: 5px 13px;
+      border-radius: 100px;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+    .q-text {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.55;
+      color: var(--text);
+      white-space: pre-line;
+    }
+    .q-text .blank {
+      display: inline-block;
+      color: var(--teal);
+      font-weight: 900;
+      border-bottom: 2px dashed var(--teal);
+      padding-bottom: 1px;
+      margin: 0 2px;
+    }
+
+    /* ── OPTIONS ── */
+    .options-grid {
+      padding: 18px 28px 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 500px) {
+      .options-grid { grid-template-columns: 1fr; }
+    }
+    .opt {
+      display: flex;
+      align-items: flex-start;
+      gap: 11px;
+      padding: 13px 15px;
+      background: #F7F3EC;
+      border: 2px solid transparent;
+      border-radius: 13px;
+      cursor: pointer;
+      font-family: 'Nunito', sans-serif;
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--text);
+      text-align: left;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      line-height: 1.4;
+    }
+    .opt:not(:disabled):hover {
+      background: var(--teal-light);
+      border-color: var(--teal);
+      color: var(--teal);
+    }
+    .opt:not(:disabled):hover .ltr { background: var(--teal); color: #fff; }
+    .ltr {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--border);
+      font-size: 11px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      transition: background 0.15s, color 0.15s;
+    }
+    .opt.correct-ans {
+      background: var(--correct-bg);
+      border-color: var(--correct);
+      color: var(--correct);
+      animation: popIn 0.3s ease;
+    }
+    .opt.correct-ans .ltr { background: var(--correct); color: #fff; }
+    .opt.wrong-ans {
+      background: var(--wrong-bg);
+      border-color: var(--wrong);
+      color: var(--wrong);
+      animation: shake 0.4s ease;
+    }
+    .opt.wrong-ans .ltr { background: var(--wrong); color: #fff; }
+    .opt:disabled { cursor: default; opacity: 0.95; }
+
+    /* ── DIVIDER ── */
+    .card-divider { height: 1px; background: var(--border); margin: 0 28px; }
+
+    /* ── FEEDBACK ── */
+    .feedback-zone {
+      padding: 0 28px;
+      overflow: hidden;
+      transition: max-height 0.35s ease, padding 0.35s ease;
+      max-height: 0;
+    }
+    .feedback-zone.show {
+      max-height: 200px;
+      padding: 16px 28px 0;
+    }
+    .feedback-box {
+      padding: 14px 18px;
+      border-radius: 12px;
+      border-left: 4px solid;
+      animation: fadeSlideIn 0.3s ease;
+    }
+    .feedback-box.fb-correct { background: var(--correct-bg); border-color: var(--correct); }
+    .feedback-box.fb-wrong   { background: var(--wrong-bg);   border-color: var(--wrong); }
+    .fb-title {
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 5px;
+    }
+    .fb-correct .fb-title { color: var(--correct); }
+    .fb-wrong   .fb-title { color: var(--wrong); }
+    .fb-body {
+      font-size: 13.5px;
+      font-weight: 600;
+      line-height: 1.55;
+      color: var(--text);
+    }
+
+    /* ── QUESTION FOOTER ── */
+    .q-footer {
+      padding: 18px 28px 26px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    /* ── RESULTS ── */
+    .results {
+      padding: 44px 36px 44px;
+      text-align: center;
+      animation: fadeSlideIn 0.5s ease;
+    }
+    .score-ring {
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      background: var(--teal-light);
+      border: 7px solid var(--teal);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 26px;
+      animation: bounceIn 0.5s ease;
+    }
+    .score-num {
+      font-size: 38px;
+      font-weight: 900;
+      color: var(--teal);
+      line-height: 1;
+    }
+    .score-denom {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+    .results h2 {
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .results-sub {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 30px;
+      line-height: 1.5;
+    }
+    .breakdown {
+      background: #F7F3EC;
+      border-radius: 16px;
+      padding: 20px 22px;
+      margin-bottom: 30px;
+      text-align: left;
+    }
+    .breakdown-heading {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .bd-row {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      margin-bottom: 11px;
+    }
+    .bd-row:last-child { margin-bottom: 0; }
+    .bd-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .bd-label {
+      font-size: 13px;
+      font-weight: 700;
+      flex: 1;
+      color: var(--text);
+    }
+    .bd-bar-wrap {
+      width: 80px;
+      height: 6px;
+      background: var(--border);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+    .bd-bar {
+      height: 100%;
+      border-radius: 100px;
+      transition: width 0.6s ease;
+    }
+    .bd-score {
+      font-size: 13px;
+      font-weight: 900;
+      min-width: 32px;
+      text-align: right;
+    }
+    .results-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="school-name">Approach International Student Center</div>
+    <div class="quiz-subtitle">Grammar &amp; Writing · Basic Level · Weeks 1–5</div>
+  </header>
+
+  <div class="card">
+
+    <!-- ── WELCOME ── -->
+    <div id="screen-welcome" class="welcome">
+      <span class="welcome-emoji">📖</span>
+      <h1>Review Quiz</h1>
+      <p>Practice the grammar and vocabulary from Weeks 1–5. Read each question carefully and choose the best answer.</p>
+      <div class="welcome-chips">
+        <span class="chip">25 Questions</span>
+        <span class="chip">Multiple Choice</span>
+        <span class="chip">A1–A2 Level</span>
+      </div>
+      <div class="category-legend" id="legend"></div>
+      <button class="btn btn-primary" onclick="startQuiz()">Start Quiz &rarr;</button>
+    </div>
+
+    <!-- ── QUESTION ── -->
+    <div id="screen-question" class="hidden">
+      <div class="progress-section">
+        <div class="progress-row">
+          <span class="progress-label">Progress</span>
+          <div class="progress-right">
+            <span class="live-score-badge">✓ <span id="live-score">0</span></span>
+            <span class="q-counter" id="q-counter">1 / 25</span>
+          </div>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="prog-fill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="question-area">
+        <span class="cat-badge" id="cat-badge">Category</span>
+        <p class="q-text" id="q-text"></p>
+      </div>
+
+      <div class="options-grid" id="opts"></div>
+
+      <div class="card-divider"></div>
+
+      <div class="feedback-zone" id="fb-zone">
+        <div class="feedback-box" id="fb-box">
+          <div class="fb-title" id="fb-title"></div>
+          <div class="fb-body" id="fb-body"></div>
+        </div>
+      </div>
+
+      <div class="q-footer">
+        <button class="btn btn-primary hidden" id="btn-next" onclick="nextQuestion()">Next →</button>
+      </div>
+    </div>
+
+    <!-- ── RESULTS ── -->
+    <div id="screen-results" class="hidden results">
+      <div class="score-ring">
+        <div class="score-num" id="final-score">0</div>
+        <div class="score-denom">out of 25</div>
+      </div>
+      <h2 id="res-headline"></h2>
+      <p class="results-sub" id="res-sub"></p>
+      <div class="breakdown">
+        <div class="breakdown-heading">Score by Category</div>
+        <div id="bd-rows"></div>
+      </div>
+      <div class="results-actions">
+        <button class="btn btn-primary" onclick="restartQuiz()">&#8635; Play Again</button>
+        <button class="btn btn-ghost" onclick="goHome()">Home</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* ── DATA ─────────────────────────────────────────────────── */
+
+    const CATS = [
+      { name: "Simple Present / Continuous", color: "#1B5F72", questions: 5 },
+      { name: "WH Questions",                color: "#5E3B96", questions: 5 },
+      { name: "Object Pronouns",             color: "#B07300", questions: 5 },
+      { name: "Stative Verbs & Plurals",     color: "#1A6E3E", questions: 5 },
+      { name: "Vocabulary",                  color: "#B83B2E", questions: 5 },
+    ];
+
+    const QUESTIONS = [
+
+      /* ── SIMPLE PRESENT / PRESENT CONTINUOUS (5) ─────────── */
+      {
+        cat: "Simple Present / Continuous",
+        q: "Maria ___ at a hospital every day. She is a nurse.",
+        opts: ["is working", "works", "work", "working"],
+        ans: 1,
+        exp: "'Every day' signals a habit or routine. We use the Simple Present for regular activities (she works)."
+      },
+      {
+        cat: "Simple Present / Continuous",
+        q: "Right now, Pedro ___ for his English test at the library.",
+        opts: ["studies", "study", "is studying", "studying"],
+        ans: 2,
+        exp: "'Right now' tells us the action is happening at this moment. Use the Present Continuous (is studying)."
+      },
+      {
+        cat: "Simple Present / Continuous",
+        q: "Look! The children ___ outside in the snow.",
+        opts: ["play", "plays", "are playing", "playing"],
+        ans: 2,
+        exp: "'Look!' is a key signal word for the Present Continuous. The children are playing at this moment."
+      },
+      {
+        cat: "Simple Present / Continuous",
+        q: "Every Monday, Mr. Kim ___ grammar to his class.",
+        opts: ["teach", "teaches", "is teaching", "teaching"],
+        ans: 1,
+        exp: "'Every Monday' signals a regular routine. Use Simple Present. Third person singular adds -es (he teaches)."
+      },
+      {
+        cat: "Simple Present / Continuous",
+        q: "This week, David and Lena ___ for a new apartment in the city.",
+        opts: ["look", "looks", "are looking", "looking"],
+        ans: 2,
+        exp: "'This week' signals a temporary activity currently in progress. Use the Present Continuous (are looking)."
+      },
+
+      /* ── WH QUESTIONS (5) ───────────────────────────────── */
+      {
+        cat: "WH Questions",
+        q: "Answer: Sofia lives in Cambridge.\nWhich question is correct?",
+        opts: [
+          "Where does Sofia live?",
+          "Where is Sofia lives?",
+          "Where do Sofia lives?",
+          "Where Sofia lives?"
+        ],
+        ans: 0,
+        exp: "WH question formula (Simple Present): WH word + does/do + subject + base verb (no -s on the verb!)."
+      },
+      {
+        cat: "WH Questions",
+        q: "Answer: He studies English because he wants a better job.\nWhich question is correct?",
+        opts: [
+          "What does he study English?",
+          "Why does he study English?",
+          "When does he study English?",
+          "Why do he study English?"
+        ],
+        ans: 1,
+        exp: "Use 'Why' to ask about reasons. The answer starts with 'because', which gives us a reason."
+      },
+      {
+        cat: "WH Questions",
+        q: "Answer: Ana is talking on the phone right now.\nWhich question is correct?",
+        opts: [
+          "What does Ana do?",
+          "What is Ana doing?",
+          "What Ana is doing?",
+          "What does Ana doing?"
+        ],
+        ans: 1,
+        exp: "Present Continuous question: WH word + is/are + subject + verb-ing? (What is Ana doing?)"
+      },
+      {
+        cat: "WH Questions",
+        q: "Answer: The students meet on Tuesday evenings.\nWhich question is correct?",
+        opts: [
+          "Where do the students meet?",
+          "When do the students meet?",
+          "Why do the students meet?",
+          "When does the students meet?"
+        ],
+        ans: 1,
+        exp: "'Tuesday evenings' is a time expression. Use 'When' to ask about time. 'Do' is used for plural subjects."
+      },
+      {
+        cat: "WH Questions",
+        q: "Answer: Camila calls her mother on WhatsApp.\nWhich question asks about the way she communicates?",
+        opts: [
+          "Who does Camila call?",
+          "When does Camila call her mother?",
+          "How does Camila call her mother?",
+          "How do Camila calls her mother?"
+        ],
+        ans: 2,
+        exp: "Use 'How' to ask about the method or way. Formula: How + does + subject + base verb?"
+      },
+
+      /* ── OBJECT PRONOUNS (5) ────────────────────────────── */
+      {
+        cat: "Object Pronouns",
+        q: "Ana is a great teacher. Her students always thank ___.",
+        opts: ["she", "her", "him", "they"],
+        ans: 1,
+        exp: "Ana is a woman. As the object of the verb 'thank', we use 'her'. (Ana → subject: she / object: her)"
+      },
+      {
+        cat: "Object Pronouns",
+        q: "David and Lena live near the park. I see ___ every morning when I walk my dog.",
+        opts: ["them", "they", "their", "it"],
+        ans: 0,
+        exp: "David and Lena = two people = 'they' (subject). As the object of 'see', we use 'them'."
+      },
+      {
+        cat: "Object Pronouns",
+        q: "I have a new dictionary. I use ___ every day in class to find new words.",
+        opts: ["him", "her", "them", "it"],
+        ans: 3,
+        exp: "A dictionary is a singular thing. We use 'it' for singular objects. (the dictionary → it)"
+      },
+      {
+        cat: "Object Pronouns",
+        q: "My teacher explains the grammar very clearly. I always listen to ___.",
+        opts: ["he", "his", "him", "himself"],
+        ans: 2,
+        exp: "After the preposition 'to', we need an object pronoun. 'He' → object form = 'him'."
+      },
+      {
+        cat: "Object Pronouns",
+        q: "My sister and I are going to the outlet mall. Can you come with ___?",
+        opts: ["we", "our", "us", "they"],
+        ans: 2,
+        exp: "'We' is the subject form. After the preposition 'with', we need the object form: 'us'."
+      },
+
+      /* ── STATIVE VERBS & IRREGULAR PLURALS (5) ──────────── */
+      {
+        cat: "Stative Verbs & Plurals",
+        q: "I ___ this neighborhood is very quiet and safe. I like living here.",
+        opts: ["am thinking", "think", "thinks", "thought"],
+        ans: 1,
+        exp: "'Think' (a mental state) is a stative verb. Stative verbs do not use the continuous form."
+      },
+      {
+        cat: "Stative Verbs & Plurals",
+        q: "Right now, Sofia ___ lunch with a colleague at the café on the corner.",
+        opts: ["has", "is having", "have", "does have"],
+        ans: 1,
+        exp: "When 'have' means 'eat or share a meal', it describes an action — not a state. Use Present Continuous."
+      },
+      {
+        cat: "Stative Verbs & Plurals",
+        q: "Three ___ from Mexico are in my English class. They are very friendly.",
+        opts: ["womans", "womens", "woman", "women"],
+        ans: 3,
+        exp: "'Woman' has an irregular plural: woman → women. We never add -s or -es to 'woman'."
+      },
+      {
+        cat: "Stative Verbs & Plurals",
+        q: "There are two ___ playing with a dog in the park near the school.",
+        opts: ["childs", "childrens", "children", "child"],
+        ans: 2,
+        exp: "'Child' has an irregular plural: child → children. It is never 'childs' or 'childrens'."
+      },
+      {
+        cat: "Stative Verbs & Plurals",
+        q: "Camila ___ her new apartment very much. She says it is small but comfortable.",
+        opts: ["is loving", "love", "loves", "is love"],
+        ans: 2,
+        exp: "'Love' is a stative verb (an emotion). Stative verbs use Simple Present, not Present Continuous."
+      },
+
+      /* ── VOCABULARY (5) ─────────────────────────────────── */
+      {
+        cat: "Vocabulary",
+        q: "Pedro moved to Boston last year. He misses his family in Mexico every single day. How does he feel?",
+        opts: ["familiar", "gorgeous", "homesick", "blossoming"],
+        ans: 2,
+        exp: "'Homesick' describes the feeling of missing your home and family when you are far away from them."
+      },
+      {
+        cat: "Vocabulary",
+        q: "Every morning, Ana wakes up at six, makes coffee, and drives to work. This is her daily ___.",
+        opts: ["connection", "routine", "neighborhood", "community"],
+        ans: 1,
+        exp: "A 'routine' is a set of regular activities that you do every day — like a schedule or daily pattern."
+      },
+      {
+        cat: "Vocabulary",
+        q: "The cherry trees in the park are ___. There are pink flowers on every branch.",
+        opts: ["rarely", "blossoming", "familiar", "outlet"],
+        ans: 1,
+        exp: "'Blossoming' means producing flowers and opening up — it describes plants growing and blooming."
+      },
+      {
+        cat: "Vocabulary",
+        q: "Lena ___ goes to the cinema — maybe once a month, if that.",
+        opts: ["always", "usually", "rarely", "surprisingly"],
+        ans: 2,
+        exp: "'Rarely' means almost never. It is the opposite of 'often'. Use it for things that don't happen very much."
+      },
+      {
+        cat: "Vocabulary",
+        q: "Even though Camila is far from home, she feels a strong ___ with her family when they talk on WhatsApp.",
+        opts: ["neighborhood", "outlet", "community", "connection"],
+        ans: 3,
+        exp: "A 'connection' is a strong feeling or bond you have with someone, even across a long distance."
+      },
+
+    ];
+
+    /* ── LEGEND (build on load) ─────────────────────────────── */
+    const legend = document.getElementById('legend');
+    CATS.forEach(c => {
+      const row = document.createElement('div');
+      row.className = 'legend-row';
+      row.innerHTML = `
+        <span class="legend-dot" style="background:${c.color}"></span>
+        <span>${c.name}</span>
+        <span class="legend-count">${c.questions} questions</span>
+      `;
+      legend.appendChild(row);
+    });
+
+    /* ── STATE ───────────────────────────────────────────────── */
+    let idx = 0;
+    let score = 0;
+    let answered = false;
+    let catScores = {};
+
+    function catColor(name) {
+      const c = CATS.find(x => x.name === name);
+      return c ? c.color : '#555';
+    }
+
+    /* ── FLOW ────────────────────────────────────────────────── */
+    function startQuiz() {
+      idx = 0; score = 0; answered = false;
+      catScores = {};
+      CATS.forEach(c => { catScores[c.name] = { ok: 0, total: 0 }; });
+
+      show('screen-question');
+      hide('screen-welcome');
+      document.getElementById('live-score').textContent = '0';
+      renderQ();
+    }
+
+    function renderQ() {
+      answered = false;
+      const q = QUESTIONS[idx];
+      const total = QUESTIONS.length;
+
+      // Progress
+      document.getElementById('q-counter').textContent = `${idx + 1} / ${total}`;
+      document.getElementById('prog-fill').style.width = `${(idx / total) * 100}%`;
+
+      // Badge
+      const badge = document.getElementById('cat-badge');
+      badge.textContent = q.cat;
+      badge.style.background = catColor(q.cat);
+
+      // Question text
+      document.getElementById('q-text').textContent = q.q;
+
+      // Options
+      const grid = document.getElementById('opts');
+      grid.innerHTML = '';
+      q.opts.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'opt';
+        btn.innerHTML = `<span class="ltr">${'ABCD'[i]}</span><span>${opt}</span>`;
+        btn.onclick = () => pick(i);
+        grid.appendChild(btn);
+      });
+
+      // Reset feedback
+      const fbZone = document.getElementById('fb-zone');
+      fbZone.className = 'feedback-zone';
+      hide('btn-next');
+    }
+
+    function pick(chosen) {
+      if (answered) return;
+      answered = true;
+
+      const q = QUESTIONS[idx];
+      const btns = document.querySelectorAll('.opt');
+      btns.forEach(b => b.disabled = true);
+
+      const ok = chosen === q.ans;
+      if (!catScores[q.cat]) catScores[q.cat] = { ok: 0, total: 0 };
+      catScores[q.cat].total++;
+
+      if (ok) {
+        score++;
+        catScores[q.cat].ok++;
+        btns[chosen].classList.add('correct-ans');
+      } else {
+        btns[chosen].classList.add('wrong-ans');
+        btns[q.ans].classList.add('correct-ans');
+      }
+
+      document.getElementById('live-score').textContent = score;
+
+      // Feedback
+      const fbZone = document.getElementById('fb-zone');
+      const fbBox  = document.getElementById('fb-box');
+      document.getElementById('fb-title').textContent = ok ? '✓ Correct!' : '✗ Not quite.';
+      document.getElementById('fb-body').textContent  = q.exp;
+      fbBox.className = ok ? 'feedback-box fb-correct' : 'feedback-box fb-wrong';
+      fbZone.className = 'feedback-zone show';
+
+      // Next button
+      const btn = document.getElementById('btn-next');
+      btn.classList.remove('hidden');
+      btn.textContent = idx === QUESTIONS.length - 1 ? 'See Results →' : 'Next →';
+    }
+
+    function nextQuestion() {
+      idx++;
+      if (idx >= QUESTIONS.length) {
+        showResults();
+      } else {
+        renderQ();
+      }
+    }
+
+    function showResults() {
+      hide('screen-question');
+      show('screen-results');
+
+      const total = QUESTIONS.length;
+      const pct = score / total;
+      document.getElementById('final-score').textContent = score;
+
+      let headline, sub;
+      if (pct >= 0.92) {
+        headline = "Outstanding! 🌟";
+        sub = "Excellent understanding of Weeks 1–5. You are well prepared for the exam!";
+      } else if (pct >= 0.76) {
+        headline = "Great work! 👍";
+        sub = "Strong performance! Review the categories below to make it perfect.";
+      } else if (pct >= 0.56) {
+        headline = "Keep going! 💪";
+        sub = "You're making progress. Focus on the categories with the lowest scores.";
+      } else {
+        headline = "Don't give up! 📚";
+        sub = "Review the material and try again — every quiz is a learning step.";
+      }
+      document.getElementById('res-headline').textContent = headline;
+      document.getElementById('res-sub').textContent = sub;
+
+      // Breakdown
+      const bdRows = document.getElementById('bd-rows');
+      bdRows.innerHTML = '';
+      CATS.forEach(cat => {
+        const d = catScores[cat.name] || { ok: 0, total: 5 };
+        const pctCat = d.total > 0 ? (d.ok / d.total) * 100 : 0;
+        const row = document.createElement('div');
+        row.className = 'bd-row';
+        row.innerHTML = `
+          <span class="bd-dot" style="background:${cat.color}"></span>
+          <span class="bd-label">${cat.name}</span>
+          <div class="bd-bar-wrap">
+            <div class="bd-bar" style="width:0%;background:${cat.color}" data-w="${pctCat}"></div>
+          </div>
+          <span class="bd-score" style="color:${cat.color}">${d.ok} / ${d.total}</span>
+        `;
+        bdRows.appendChild(row);
+      });
+      // Animate bars after paint
+      setTimeout(() => {
+        document.querySelectorAll('.bd-bar').forEach(b => {
+          b.style.width = b.dataset.w + '%';
+        });
+      }, 80);
+    }
+
+    function restartQuiz() {
+      hide('screen-results');
+      startQuiz();
+    }
+
+    function goHome() {
+      hide('screen-results');
+      show('screen-welcome');
+    }
+
+    /* ── UTILS ───────────────────────────────────────────────── */
+    function show(id) { document.getElementById(id).classList.remove('hidden'); }
+    function hide(id) { document.getElementById(id).classList.add('hidden'); }
+  </script>
+
+</body>
+</html>
