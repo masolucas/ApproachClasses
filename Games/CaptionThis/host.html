@@ -27,6 +27,7 @@ let state = {
 
 let playersChannel = null;
 let roundChannel = null;
+let advancingToVoting = false;
 
 // ---------- boot ----------
 (async function init() {
@@ -272,6 +273,7 @@ async function createRound(roundNumber) {
   state.round = round;
   state.plays = [];
   state.votes = [];
+  advancingToVoting = false;
   subscribeRound();
   render();
 }
@@ -280,25 +282,49 @@ async function createRound(roundNumber) {
 function renderPlaying() {
   const assignments = state.round.assignments;
   const playedIds = new Set(state.plays.map(p => p.player_id));
-  const allPlayed = assignments.every(a => playedIds.has(a.player_id));
+  const waiting = assignments.filter(a => !playedIds.has(a.player_id));
+
+  if (waiting.length === 0) {
+    if (!advancingToVoting) {
+      advancingToVoting = true;
+      goToVoting();
+    }
+    return;
+  }
+
+  const answerPlays = state.plays.filter(p => p.card_type === "answer");
+  const memePlays = state.plays.filter(p => p.card_type === "meme");
 
   app.innerHTML = `
-    <div class="card-frame" style="max-width:720px; width:100%;">
-      <div class="eyebrow">Round ${state.round.round_number} of ${state.game.total_rounds} · Code ${state.game.code}</div>
-      <h1>${escapeHtml(state.round.situation_text)}</h1>
-      <div style="margin-top:24px;">
-        ${assignments.map(a => `
+    <div class="table-layout">
+      <aside class="waiting-sidebar">
+        <h3>Waiting to play</h3>
+        ${waiting.map(a => `
           <div class="player-chip">
-            <span><span class="pill ${a.role}">${a.role}</span> &nbsp; ${escapeHtml(a.name)}</span>
-            <span class="${playedIds.has(a.player_id) ? "status-played" : "status-waiting"}">
-              ${playedIds.has(a.player_id) ? "Played ✓" : "Waiting…"}
-            </span>
+            <span class="pill ${a.role}">${a.role}</span>
+            <span>${escapeHtml(a.name)}</span>
           </div>`).join("")}
+      </aside>
+      <div class="table-main">
+        <div class="card-frame situation-card">
+          <div class="eyebrow">Round ${state.round.round_number} of ${state.game.total_rounds} · Code ${state.game.code}</div>
+          <h1>${escapeHtml(state.round.situation_text)}</h1>
+        </div>
+        <div class="table-section">
+          <h3>Answers</h3>
+          <div class="table-cards">
+            ${answerPlays.map(p => `<div class="played-card readonly">${escapeHtml(p.card_text)}</div>`).join("")
+              || `<p class="muted-note">No answers played yet.</p>`}
+          </div>
+        </div>
+        <div class="table-section">
+          <h3>Memes</h3>
+          <div class="table-cards">
+            ${memePlays.map(p => `<div class="played-card readonly"><img src="${p.card_url}" /></div>`).join("")
+              || `<p class="muted-note">No memes played yet.</p>`}
+          </div>
+        </div>
       </div>
-      <button class="gold" style="margin-top:24px;" ${allPlayed ? "" : "disabled"} onclick="goToVoting()">
-        Reveal Cards
-      </button>
-      ${allPlayed ? "" : `<p class="muted-note">Waiting on players to submit their cards.</p>`}
     </div>`;
 }
 

@@ -188,6 +188,50 @@ input:focus { outline: 2px solid var(--gold); border-color: var(--gold); }
 
 .muted-note { font-size: 13px; color: var(--muted); margin-top: 16px; }
 
+.table-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 24px;
+  width: 100%;
+  max-width: 1200px;
+  align-items: start;
+}
+
+.waiting-sidebar {
+  position: relative;
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+}
+.waiting-sidebar .player-chip { justify-content: flex-start; }
+
+.table-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+.situation-card {
+  width: 100%;
+  max-width: 640px;
+  text-align: center;
+}
+
+.table-section { width: 100%; }
+.table-section h3 { color: var(--warm-white); text-align: center; margin-bottom: 12px; }
+
+.table-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 800px) {
+  .table-layout { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 600px) {
   .code-display { font-size: 40px; letter-spacing: 8px; }
 }
