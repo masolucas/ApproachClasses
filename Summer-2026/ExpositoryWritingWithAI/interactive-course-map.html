@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expository Writing with AI — Course Map</title>
+<style>
+
+  /* ============================================================
+     BRAND TOKENS — ApproachUSA / Expository Writing with AI
+     ============================================================ */
+  :root {
+    --navy: #0C2340;
+    --navy-l: #143865;
+    --navy-d: #081629;
+    --navy-s: #D9E2F1;
+    --gold: #AE9142;
+    --gold-b: #D39F10;
+    --warm-w: #EFE9D9;
+    --paper: #FFFFFF;
+    --ink: #1A1A1A;
+    --ink-s: #3D3D3D;
+    --muted: #7A7A7A;
+    --sky: #EDF2F9;
+    --lt-gold: #F5EED2;
+    --red: #C0392B;
+    --red-s: #F8D7DA;
+    --teal: #0E6B6B;
+    --teal-s: #D0EDED;
+    --amber: #B45309;
+    --amber-s: #FEF3C7;
+
+    --serif: Cambria, Georgia, "Times New Roman", serif;
+    --sans: Calibri, "Segoe UI", Arial, sans-serif;
+    --mono: Consolas, "Courier New", monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--sky);
+    color: var(--ink);
+    font-family: var(--serif);
+    -webkit-font-smoothing: antialiased;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+  }
+  a { color: inherit; }
+  button { font-family: inherit; }
+  :focus-visible { outline: 2px solid var(--gold-b); outline-offset: 2px; }
+
+  /* ============================================================
+     HERO
+     ============================================================ */
+  .hero {
+    position: relative;
+    background: var(--navy);
+    color: var(--warm-w);
+    padding: 2.6rem 2.5rem 2rem;
+    overflow: hidden;
+  }
+  .hero::before, .hero::after {
+    content: "";
+    position: absolute;
+    border: 1.5px solid var(--gold);
+    width: 34px; height: 34px;
+    opacity: 0.85;
+  }
+  .hero::before { top: 18px; left: 18px; border-right: none; border-bottom: none; }
+  .hero::after  { bottom: 18px; right: 18px; border-left: none; border-top: none; }
+  .hero-inner { max-width: 960px; margin: 0 auto; }
+  .hero-monogram {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 1.25px solid var(--gold); color: var(--gold);
+    font-style: italic; font-weight: 700; font-size: 1rem;
+    margin-bottom: 0.6rem;
+  }
+  .hero-logo img { width: 180px; max-width: 100%; margin-bottom: 0.6rem; float: right; }
+  .hero-eyebrow {
+    font-family: var(--sans); font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.2em; color: var(--gold); text-transform: uppercase;
+    margin: 0 0 0.35rem;
+  }
+  .hero h1 {
+    font-family: var(--serif); font-weight: 400; font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.08; margin: 0 0 0.5rem; letter-spacing: -0.5px;
+  }
+  .hero h1 em { color: var(--gold); font-style: italic; }
+  .hero p.sub {
+    font-size: 1rem; font-style: italic; color: var(--warm-w);
+    opacity: 0.9; margin: 0 0 1.6rem; max-width: 640px;
+  }
+  .hero-meta {
+    display: flex; flex-wrap: wrap; gap: 1.75rem;
+    border-top: 1px solid rgba(239,233,217,0.2); padding-top: 1.1rem;
+  }
+  .hero-meta div { min-width: 120px; }
+  .hero-meta .label {
+    font-family: var(--sans); font-size: 0.62rem; font-weight: 700;
+    letter-spacing: 0.18em; color: var(--gold); text-transform: uppercase;
+    margin-bottom: 0.2rem;
+  }
+  .hero-meta .value { font-size: 0.92rem; }
+
+  /* ============================================================
+     LEGEND
+     ============================================================ */
+  .legend {
+    max-width: 960px; margin: 1.1rem auto 0; padding: 0 1.5rem;
+    display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+    font-family: var(--sans); font-size: 0.72rem; color: var(--muted);
+  }
+  .legend .chip { font-weight: 700; letter-spacing: 0.05em; }
+
+  /* ============================================================
+     MAIN / PARTS
+     ============================================================ */
+  main { max-width: 960px; margin: 0 auto; padding: 1.75rem 1.5rem 4rem; }
+
+  .part { margin-bottom: 1.9rem; }
+  .part-header {
+    background: var(--navy); color: var(--warm-w);
+    border-radius: 6px 6px 0 0;
+    padding: 0.85rem 1.2rem;
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 0.75rem; flex-wrap: wrap;
+  }
+  .part-header .eyebrow {
+    font-family: var(--sans); font-size: 0.66rem; font-weight: 700;
+    letter-spacing: 0.18em; color: var(--gold); text-transform: uppercase;
+  }
+  .part-header h2 {
+    font-family: var(--serif); font-size: 1.35rem; font-weight: 400; margin: 0.15rem 0 0;
+  }
+  .part-header .range {
+    font-family: var(--mono); font-size: 0.78rem; color: var(--warm-w); opacity: 0.75;
+  }
+
+  .weeks { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.6rem; }
+
+  /* ============================================================
+     WEEK ROW
+     ============================================================ */
+  .week {
+    background: var(--paper);
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(12,35,64,0.08);
+    overflow: hidden;
+    border: 1px solid transparent;
+  }
+  .week.current { border-color: var(--gold-b); }
+  .week.locked { background: #F5F6F8; }
+
+  .week-header {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 2.6rem 1fr auto auto;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.85rem 1.1rem;
+    background: none; border: none; cursor: pointer;
+    text-align: left; color: inherit;
+  }
+  .week.locked .week-header { cursor: default; }
+
+  .week-num {
+    font-family: var(--serif); font-style: italic; font-size: 1.5rem; color: var(--gold);
+  }
+  .week.locked .week-num { color: #B9BEC7; }
+
+  .week-titleblock .wk-title {
+    font-size: 1.02rem; color: var(--navy); margin: 0;
+  }
+  .week.locked .wk-title { color: #8A8F98; }
+  .week-titleblock .wk-topic {
+    font-size: 0.86rem; font-style: italic; color: var(--ink-s); margin: 0.15rem 0 0;
+  }
+  .week.locked .wk-topic { color: #9AA0A8; }
+
+  .badges { display: flex; gap: 0.35rem; flex-wrap: wrap; justify-content: flex-end; }
+  .badge {
+    font-family: var(--sans); font-size: 0.6rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 0.22rem 0.5rem; border-radius: 3px; white-space: nowrap;
+  }
+  .badge.current { background: var(--lt-gold); color: var(--gold-b); }
+  .badge.assess { background: var(--red-s); color: var(--red); }
+  .badge.research { background: var(--teal-s); color: var(--teal); }
+  .badge.editorial { background: var(--amber-s); color: var(--amber); }
+
+  .lockwrap { display: flex; align-items: center; gap: 0.5rem; color: var(--gold); }
+  .week.locked .lockwrap { color: #B9BEC7; }
+  .chevron { transition: transform 0.15s ease; color: var(--muted); }
+  .week.open .chevron { transform: rotate(180deg); }
+  .week.locked .chevron { display: none; }
+
+  .week-body {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.22s ease;
+    border-top: 1px solid #EEE;
+  }
+  .week.open .week-body { max-height: 1200px; }
+  .week-body-inner { padding: 1rem 1.1rem 1.2rem; }
+  .week-desc { font-size: 0.9rem; font-style: italic; color: var(--ink-s); margin: 0 0 0.9rem; }
+
+  .materials-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 0.6rem;
+  }
+  .material-card {
+    display: flex; align-items: center; gap: 0.65rem;
+    background: var(--sky); border-radius: 5px; padding: 0.6rem 0.7rem;
+    text-decoration: none; color: inherit;
+    border: 1px solid transparent;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .material-card:hover { border-color: var(--gold-b); transform: translateY(-1px); }
+  .material-icon {
+    flex: none; width: 30px; height: 30px; border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .material-name { font-size: 0.85rem; color: var(--navy); line-height: 1.25; }
+  .material-type {
+    display: block; font-family: var(--mono); font-size: 0.6rem; font-weight: 700;
+    letter-spacing: 0.06em; margin-top: 0.1rem;
+  }
+  .type-pptx .material-icon { background: var(--navy-s); color: var(--navy); }
+  .type-pptx .material-type { color: var(--navy); }
+  .type-docx .material-icon { background: var(--teal-s); color: var(--teal); }
+  .type-docx .material-type { color: var(--teal); }
+  .type-pdf  .material-icon { background: var(--red-s); color: var(--red); }
+  .type-pdf  .material-type { color: var(--red); }
+  .type-html .material-icon { background: var(--amber-s); color: var(--amber); }
+  .type-html .material-type { color: var(--amber); }
+
+  .no-materials {
+    font-family: var(--sans); font-size: 0.8rem; color: var(--muted); font-style: italic;
+  }
+
+  footer.page-footer {
+    text-align: center; font-family: var(--sans); font-size: 0.68rem;
+    letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase;
+    padding: 2rem 1rem;
+  }
+
+  @media (max-width: 620px) {
+    .week-header { grid-template-columns: 2rem 1fr; grid-template-rows: auto auto; }
+    .badges { grid-column: 1 / -1; justify-content: flex-start; order: 3; margin-top: 0.3rem; }
+    .lockwrap { grid-column: 2; justify-self: end; grid-row: 1; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-logo"><img src="../../img/gold-logo-name.png" alt="Approach ISC"></div>
+    <p class="hero-eyebrow">Global Access Credential Program</p>
+    <h1>Expository Writing <em>with AI.</em></h1>
+    <p class="sub">Learn to think clearly, write powerfully, and use AI as a tool that strengthens your voice — never replaces it.</p>
+    <div class="hero-meta">
+      <div><div class="label">Schedule</div><div class="value">Monday · 9:00 AM</div></div>
+      <div><div class="label">Level</div><div class="value">B2 · B2+ → C1</div></div>
+      <div><div class="label">Duration</div><div class="value">11 Weeks · 50 Hours</div></div>
+      <div><div class="label">Instructor</div><div class="value">Lucas Maso</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="legend">
+  <span>Materials:</span>
+  <span class="chip" style="color:var(--navy)">PPTX</span>·
+  <span class="chip" style="color:var(--teal)">DOCX</span>·
+  <span class="chip" style="color:var(--red)">PDF</span>·
+  <span class="chip" style="color:var(--amber)">HTML</span>
+</div>
+
+<main id="app"></main>
+
+<footer class="page-footer">ApproachUSA · Global Access Credential Program</footer>
+
+<script>
+/* ================================================================
+   EDIT THIS SECTION — everything you need to update week to week
+   ================================================================ */
+
+// Which week number should show the gold "Current Week" badge.
+const CURRENT_WEEK = 1;
+
+// Which weeks are unlocked (materials visible + downloadable).
+// Add/remove numbers freely — they don't need to be in order,
+// so you can unlock a week early for a student who'll miss class.
+const UNLOCKED_WEEKS = [1];
+
+// Materials per week. Add as many cards as you want per week.
+// type must be one of: "pptx", "docx", "pdf", "html"
+const MATERIALS = {
+  1:  [
+      //  { name: "Week 1 Slide Deck", type: "pptx", url: "PASTE_LINK_HERE" },
+      //  { name: "Thesis Statement Examples", type: "docx", url: "PASTE_LINK_HERE" },
+      ],
+  2:  [],
+  3:  [],
+  4:  [],
+  5:  [],
+  6:  [],
+  7:  [],
+  8:  [],
+  9:  [],
+  10: [],
+  11: [],
+};
+
+/* ================================================================
+   END EDIT SECTION — course structure below is fixed (syllabus-based)
+   ================================================================ */
+
+const PARTS = [
+  { id: 1, title: "Writing Foundations", range: "Weeks 1–3" },
+  { id: 2, title: "Structure & AI as Partner", range: "Weeks 4–6" },
+  { id: 3, title: "Applied Genres", range: "Weeks 7–9" },
+  { id: 4, title: "Portfolio & Reflection", range: "Weeks 10–11" },
+];
+
+const WEEKS = [
+  { num:1, part:1, title:"What Is Expository Writing?", topic:"Foundations of expository writing, audience, purpose, and thesis basics." },
+  { num:2, part:1, title:"Finding Your Thesis", topic:"Weak vs. strong thesis statements, and building evidence-based paragraphs." },
+  { num:3, part:1, title:"Reading Like a Writer", topic:"Close reading, reverse-engineering model texts, and revision with Hemingway Editor." },
+  { num:4, part:2, title:"AI Enters the Workshop", topic:"Introducing Claude as a brainstorming and outlining partner." },
+  { num:5, part:2, title:"Revision with AI", topic:"Critical AI evaluation and paragraph coherence.", assessment:"Paragraph Construction Assessment" },
+  { num:6, part:2, title:"Midterm — Human vs. AI", topic:"Comparative analysis of human vs. AI-generated writing.", assessment:"Midterm: Comparative Analysis Essay" },
+  { num:7, part:3, title:"Professional Emails & Business Writing", topic:"Register, tone, and AI-assisted email revision." },
+  { num:8, part:3, title:"Research Summaries & Editorials", topic:"Paraphrasing, source verification, and persuasive editorial writing.", tags:["research","editorial"] },
+  { num:9, part:3, title:"Proposals & Reports", topic:"Professional formatting and persuasion through evidence." },
+  { num:10, part:4, title:"Building Your Portfolio Essay", topic:"Drafting and peer conferencing on the final portfolio essay." },
+  { num:11, part:4, title:"Portfolio Presentations", topic:"Final presentations and process log submission.", assessment:"Final: Portfolio Essay + Process Log" },
+];
+
+const ICONS = {
+  doc: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/></svg>',
+  lockClosed: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+  lockOpen: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>',
+  chevron: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>',
+  check: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>',
+};
+
+function materialCard(m) {
+  const type = m.type || "pdf";
+  return '<a class="material-card type-' + type + '" href="' + m.url + '" target="_blank" rel="noopener">' +
+    '<span class="material-icon">' + ICONS.doc + '</span>' +
+    '<span><span class="material-name">' + m.name + '</span>' +
+    '<span class="material-type">' + type.toUpperCase() + '</span></span>' +
+  '</a>';
+}
+
+function weekRow(w) {
+  const unlocked = UNLOCKED_WEEKS.includes(w.num);
+  const isCurrent = w.num === CURRENT_WEEK;
+  const mats = MATERIALS[w.num] || [];
+
+  let badges = "";
+  if (isCurrent) badges += '<span class="badge current">Current Week</span>';
+  if (w.assessment) badges += '<span class="badge assess">Assessment</span>';
+  if (w.tags) w.tags.forEach(t => badges += '<span class="badge ' + t + '">' + t + '</span>');
+
+  const lock = unlocked
+    ? '<span class="lockwrap" title="Unlocked">' + ICONS.lockOpen + '</span>'
+    : '<span class="lockwrap" title="Locked">' + ICONS.lockClosed + '</span>';
+
+  const body = unlocked
+    ? '<div class="week-body-inner">' +
+        '<p class="week-desc">' + w.topic + (w.assessment ? ' — <strong>' + w.assessment + '</strong>' : '') + '</p>' +
+        (mats.length
+          ? '<div class="materials-grid">' + mats.map(materialCard).join("") + '</div>'
+          : '<p class="no-materials">Materials for this week haven\'t been posted yet — check back soon.</p>') +
+      '</div>'
+    : '';
+
+  const rowClasses = ['week'];
+  if (isCurrent) rowClasses.push('current');
+  if (!unlocked) rowClasses.push('locked');
+
+  return '<div class="' + rowClasses.join(' ') + '" data-week="' + w.num + '">' +
+    '<button class="week-header" ' + (unlocked ? '' : 'aria-disabled="true"') + '>' +
+      '<span class="week-num">' + String(w.num).padStart(2,'0') + '</span>' +
+      '<span class="week-titleblock">' +
+        '<p class="wk-title">' + w.title + '</p>' +
+        '<p class="wk-topic">' + w.topic + '</p>' +
+      '</span>' +
+      '<span class="badges">' + badges + '</span>' +
+      lock +
+      (unlocked ? '<span class="chevron">' + ICONS.chevron + '</span>' : '') +
+    '</button>' +
+    '<div class="week-body">' + body + '</div>' +
+  '</div>';
+}
+
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = PARTS.map(p => {
+    const weeksHtml = WEEKS.filter(w => w.part === p.id).map(weekRow).join("");
+    return '<section class="part">' +
+      '<div class="part-header">' +
+        '<div><p class="eyebrow">Part ' + p.id + '</p><h2>' + p.title + '</h2></div>' +
+        '<span class="range">' + p.range + '</span>' +
+      '</div>' +
+      '<div class="weeks">' + weeksHtml + '</div>' +
+    '</section>';
+  }).join("");
+
+  app.querySelectorAll('.week-header').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const week = btn.closest('.week');
+      if (week.classList.contains('locked')) return;
+      week.classList.toggle('open');
+    });
+  });
+}
+
+render();
+</script>
+
+</body>
+</html>
