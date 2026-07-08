@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Gift of the Magi — Interactive Reading</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --navy:#0C2340;
+    --navy-d:#081629;
+    --gold:#AE9142;
+    --gold-b:#D39F10;
+    --warm-w:#EFE9D9;
+    --paper:#FFFFFF;
+    --ink:#1A1A1A;
+    --ink-s:#3D3D3D;
+    --muted:#7A7A7A;
+    --sky:#EDF2F9;
+    --story-size:19px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    font-family:'Calibri','Segoe UI',sans-serif;
+    color:var(--ink);
+  }
+
+  /* ---------- Header ---------- */
+  .chrome-header{
+    display:flex; align-items:center; gap:12px;
+    max-width:760px; margin:0 auto; padding:32px 24px 0 24px;
+  }
+  .monogram{
+    width:36px; height:36px; border-radius:50%;
+    border:1.5px solid var(--gold); background:var(--paper);
+    display:flex; align-items:center; justify-content:center;
+    font-family:Cambria,Georgia,serif; font-style:italic; font-weight:bold;
+    color:var(--gold); font-size:17px; flex-shrink:0;
+  }
+  .chrome-text .eyebrow{
+    font-family:Calibri,sans-serif; font-size:10px; font-weight:bold;
+    letter-spacing:3px; color:var(--navy); text-transform:uppercase;
+  }
+  .chrome-text .subline{
+    font-family:Calibri,sans-serif; font-size:10px; letter-spacing:1px;
+    color:var(--muted);
+  }
+
+  .titleblock{ max-width:760px; margin:0 auto; padding:22px 24px 18px 24px; border-bottom:2px solid var(--navy); }
+  .titleblock h1{
+    font-family:Cambria,Georgia,serif; color:var(--navy);
+    font-size:40px; margin:0 0 4px 0; font-weight:bold;
+  }
+  .titleblock h1 em{ color:var(--gold); font-style:italic; }
+  .titleblock p{
+    font-family:Cambria,Georgia,serif; font-style:italic; color:var(--ink-s);
+    font-size:16px; margin:0;
+  }
+
+  .howto{
+    max-width:760px; margin:16px auto 0 auto; padding:12px 18px;
+    background:var(--sky); border-left:4px solid var(--gold);
+    font-size:14px; color:var(--ink-s); font-family:Calibri,sans-serif;
+  }
+  .howto b{ color:var(--navy); }
+
+  /* ---------- Story ---------- */
+  .story{
+    max-width:760px; margin:0 auto; padding:28px 24px 100px 24px;
+    font-family:Cambria,Georgia,serif;
+    font-size:var(--story-size);
+    line-height:1.75;
+    color:var(--ink);
+  }
+  .story p{ margin:0 0 1.2em 0; }
+  .story .signature{ text-align:right; font-style:italic; color:var(--ink-s); margin-top:2em; }
+
+  /* ---------- Clickable vocabulary ---------- */
+  .voc{
+    position:relative;
+    z-index:1000;
+    cursor:pointer;
+    border-bottom:2px dotted var(--gold);
+    padding-bottom:1px;
+    transition:background .15s ease;
+  }
+  .voc:hover{ background:rgba(174,145,66,0.12); }
+  .voc.active{
+    position:relative;
+    z-index:1001;
+    background:var(--paper);
+    border-radius:3px;
+    box-shadow:0 0 0 6px var(--paper), 0 0 0 9999px rgba(8,22,41,0.72);
+    border-bottom:2px solid var(--gold-b);
+  }
+
+  /* ---------- Backdrop (click to close) ---------- */
+  .backdrop{
+    display:none;
+    position:fixed; inset:0;
+    z-index:999;
+  }
+  .backdrop.show{ display:block; }
+
+  /* ---------- Popover ---------- */
+  .popover{
+    display:none;
+    position:absolute;
+    z-index:1002;
+    width:320px;
+    max-width:88vw;
+    background:var(--navy);
+    border-radius:4px;
+    box-shadow:0 12px 32px rgba(0,0,0,0.35);
+    padding:18px 20px 16px 20px;
+    font-family:Calibri,sans-serif;
+  }
+  .popover.show{ display:block; }
+  .popover .pop-top{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:8px;
+    margin-bottom:8px;
+  }
+  .popover .pop-label{
+    font-family:Consolas,monospace; font-size:9px; font-weight:bold;
+    letter-spacing:2px; color:var(--gold); text-transform:uppercase;
+  }
+  .popover .pop-level{
+    font-family:Calibri,sans-serif; font-size:9px; font-weight:bold;
+    letter-spacing:1px; color:var(--navy); background:var(--gold);
+    border-radius:20px; padding:2px 9px; white-space:nowrap;
+  }
+  .popover .pop-close{
+    background:none; border:none; color:var(--warm-w); opacity:.6;
+    font-size:16px; cursor:pointer; line-height:1; padding:0 0 0 8px;
+  }
+  .popover .pop-close:hover{ opacity:1; }
+  .popover .pop-word{
+    font-family:Cambria,Georgia,serif; font-style:italic; font-weight:bold;
+    color:var(--gold-b); font-size:22px; margin:0 0 8px 0;
+  }
+  .popover .pop-def{
+    font-family:Cambria,Georgia,serif; font-style:italic;
+    color:var(--warm-w); font-size:15px; line-height:1.5; margin:0 0 12px 0;
+  }
+  .popover .pop-ex-label{
+    font-family:Calibri,sans-serif; font-size:9px; font-weight:bold;
+    letter-spacing:2px; color:var(--gold); text-transform:uppercase;
+    border-top:1px solid rgba(239,233,217,0.2); padding-top:10px; margin-bottom:6px;
+  }
+  .popover .pop-ex{
+    font-family:Cambria,Georgia,serif; color:var(--warm-w); font-size:14px;
+    line-height:1.5; margin:0;
+  }
+  .popover .pop-arrow{
+    position:absolute; width:14px; height:14px; background:var(--navy);
+    transform:rotate(45deg);
+  }
+
+  /* ---------- Floating font-size menu ---------- */
+  .font-menu{
+    position:fixed; bottom:24px; right:24px; z-index:1003;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .font-menu button{
+    width:44px; height:44px; border-radius:50%;
+    background:var(--navy); border:1.5px solid var(--gold);
+    color:var(--gold); font-family:Calibri,sans-serif; font-weight:bold;
+    font-size:15px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.25);
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .12s ease, background .12s ease;
+  }
+  .font-menu button:hover{ background:var(--navy-d); transform:scale(1.06); }
+  .font-menu button:active{ transform:scale(0.96); }
+  .font-menu .reset-btn{ font-size:12px; }
+
+  @media (max-width:600px){
+    .titleblock h1{ font-size:30px; }
+    .story{ padding:22px 18px 110px 18px; }
+    .popover{ width:270px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="chrome-header">
+    <div class="monogram">A</div>
+    <div class="chrome-text">
+      <div class="eyebrow">Reading &amp; Critical Thinking</div>
+      <div class="subline">Week 01 &nbsp;·&nbsp; Interactive Reading</div>
+    </div>
+  </div>
+
+  <div class="titleblock">
+    <h1>The Gift of the <em>Magi.</em></h1>
+    <p>O. Henry &nbsp;·&nbsp; Adapted Version &nbsp;·&nbsp; Unit 1: The Human Heart</p>
+  </div>
+
+  <div class="howto">
+    <b>How to use this page:</b> words and phrases with a dotted gold underline are clickable. Tap or click one to see its meaning and an example sentence. Use the buttons in the bottom-right corner to change the text size.
+  </div>
+
+  <div class="story" id="story">
+
+    <p>ONE DOLLAR AND EIGHTY-SEVEN CENTS. That was all. She had <span class="voc" data-term="put-aside">put it aside</span>, one cent and then another and then another, in her careful buying of meat and other food. Della counted it three times. One dollar and eighty-seven cents. And the next day would be Christmas.</p>
+
+    <p><span class="voc" data-term="fall-cry">There was nothing to do but fall on the bed and cry.</span> So Della did it.</p>
+
+    <p>While the lady of the home is slowly growing quieter, we can look at the home. <span class="voc" data-term="furnished">Furnished</span> rooms at a cost of $8 a week. There is little more to say about it.</p>
+
+    <p>In the hall below was a <span class="voc" data-term="letter-box">letter-box</span> too small to hold a letter. There was an electric bell, but it could not make a sound. Also there was a name beside the door: &ldquo;Mr. James Dillingham Young.&rdquo;</p>
+
+    <p>When the name was placed there, Mr. James Dillingham Young was being paid $30 a week. Now, when he was being paid only $20 a week, the name seemed too long and important. It should perhaps have been &ldquo;Mr. James D. Young.&rdquo; But when Mr. James Dillingham Young entered the <span class="voc" data-term="furnished">furnished</span> rooms, his name became very short indeed. Mrs. James Dillingham Young put her arms warmly about him and called him &ldquo;Jim.&rdquo; You have already met her. She is Della.</p>
+
+    <p>Della finished her crying and cleaned the marks of it from her face. She stood by the window and looked out with no interest. Tomorrow would be Christmas Day, and she had only $1.87 with which to buy Jim a gift. She had put aside as much as she could for months, with this result. Twenty dollars a week is not much. Everything had cost more than she had expected. It always happened like that.</p>
+
+    <p>Only $1.87 to buy a gift for Jim. Her Jim. She had had many happy hours planning something nice for him. Something nearly good enough. Something almost worth the <span class="voc" data-term="honor">honor</span> of belonging to Jim.</p>
+
+    <p>There was a <span class="voc" data-term="looking-glass">looking-glass</span> between the windows of the room. Perhaps you have seen the kind of looking-glass that is placed in $8 furnished rooms. It was very <span class="voc" data-term="narrow">narrow</span>. A person could see only a little of himself at a time. However, if he was very <span class="voc" data-term="thin">thin</span> and moved very quickly, he might be able to get a good view of himself. Della, being quite thin, had <span class="voc" data-term="mastered">mastered</span> this art.</p>
+
+    <p>Suddenly she turned from the window and stood before the glass. Her eyes were shining brightly, but <span class="voc" data-term="lost-color">her face had lost its color</span>. Quickly she pulled down her hair and let it fall to its complete length.</p>
+
+    <p>The James Dillingham Youngs were very <span class="voc" data-term="proud">proud</span> of two things which they owned. One thing was Jim's gold watch. It had once belonged to his father. And, long ago, it had belonged to his father's father. The other thing was Della's hair.</p>
+
+    <p>If a queen had lived in the rooms near theirs, Della would have washed and dried her hair where the queen could see it. Della knew her hair was more beautiful than any queen's jewels and gifts.</p>
+
+    <p>If a king had lived in the same house, with all his <span class="voc" data-term="riches">riches</span>, Jim would have looked at his watch every time they met. Jim knew that no king had anything so <span class="voc" data-term="valuable">valuable</span>.</p>
+
+    <p>So now Della's beautiful hair fell about her, <span class="voc" data-term="simile-hair">shining like a falling stream of brown water</span>. It reached below her knee. It almost made itself into a dress for her.</p>
+
+    <p>And then she put it up on her head again, nervously and quickly. Once she stopped for a moment and stood still while a tear or two ran down her face.</p>
+
+    <p>She put on her old brown coat. She put on her old brown hat. With the bright light still in her eyes, she moved quickly out the door and down to the street.</p>
+
+    <p>Where she stopped, the <span class="voc" data-term="sign">sign</span> said: &ldquo;Mrs. Sofronie. Hair Articles of all Kinds.&rdquo;</p>
+
+    <p>Up to the second floor Della ran, and stopped to get her <span class="voc" data-term="breath">breath</span>.</p>
+
+    <p>Mrs. Sofronie, large, too white, <span class="voc" data-term="cold-eyed">cold-eyed</span>, looked at her.</p>
+
+    <p>&ldquo;Will you buy my hair?&rdquo; asked Della.</p>
+
+    <p>&ldquo;I buy hair,&rdquo; said Mrs. Sofronie. &ldquo;Take your hat off and let me look at it.&rdquo;</p>
+
+    <p>Down fell the brown waterfall.</p>
+
+    <p>&ldquo;Twenty dollars,&rdquo; said Mrs. Sofronie, lifting the hair to feel its weight.</p>
+
+    <p>&ldquo;Give it to me quick,&rdquo; said Della.</p>
+
+    <p>Oh, and <span class="voc" data-term="seemed-fly">the next two hours seemed to fly</span>. She was going from one shop to another, to find a gift for Jim.</p>
+
+    <p>She found it at last. It surely had been made for Jim and no one else. There was no other like it in any of the shops, and she had looked in every shop in the city.</p>
+
+    <p>It was a gold watch chain, very simply made. Its value was in its rich and pure <span class="voc" data-term="material">material</span>. Because it was so <span class="voc" data-term="plain">plain</span> and simple, you knew that it was very valuable. All good things are like this.</p>
+
+    <p>It was good enough for The Watch.</p>
+
+    <p>As soon as she saw it, she knew that Jim must have it. It was like him. <span class="voc" data-term="quietness">Quietness</span> and value&mdash;Jim and the chain both had quietness and value. She paid twenty-one dollars for it. And she hurried home with the chain and eighty-seven cents.</p>
+
+    <p>With that chain on his watch, Jim could look at his watch and learn the time anywhere he might be. Though the watch was so <span class="voc" data-term="fine">fine</span>, it had never had a fine chain. He sometimes took it out and looked at it only when no one could see him do it.</p>
+
+    <p>When Della arrived home, her mind quieted a little. She began to think more <span class="voc" data-term="reasonably">reasonably</span>. She started to try to cover the sad marks of what she had done. Love and <span class="voc" data-term="large-hearted">large-hearted</span> giving, when added together, can leave deep marks. It is never easy to cover these marks, dear friends&mdash;never easy.</p>
+
+    <p>Within forty minutes her head looked a little better. With her short hair, she looked wonderfully like a schoolboy. She stood at the looking-glass for a long time.</p>
+
+    <p>&ldquo;If Jim doesn't kill me,&rdquo; she said to herself, &ldquo;before he looks at me a second time, he'll say I look like a girl who sings and dances for money. But what could I do&mdash;oh! What could I do with a dollar and eighty-seven cents?&rdquo;</p>
+
+    <p>At seven, Jim's dinner was ready for him.</p>
+
+    <p>Jim was never late. Della held the watch chain in her hand and sat near the door where he always entered. Then she heard his step in the hall and her face lost color for a moment. She often said little prayers quietly, about simple everyday things. And now she said: &ldquo;Please God, make him think I'm still pretty.&rdquo;</p>
+
+    <p>The door opened and Jim stepped in. He looked very thin and he was not smiling. <span class="voc" data-term="poor-fellow">Poor fellow</span>, he was only twenty-two&mdash;and with a family to take care of! He needed a new coat and he had nothing to cover his cold hands.</p>
+
+    <p>Jim stopped inside the door. He was <span class="voc" data-term="simile-dog">as quiet as a hunting dog when it is near a bird</span>. His eyes looked strangely at Della, and there was an <span class="voc" data-term="expression">expression</span> in them that she could not understand. It filled her with <span class="voc" data-term="fear">fear</span>. It was not anger, nor surprise, nor anything she had been ready for. He simply looked at her with that strange expression on his face.</p>
+
+    <p>Della went to him.</p>
+
+    <p>&ldquo;Jim, dear,&rdquo; she cried, &ldquo;don't look at me like that. I had my hair cut off and sold it. I couldn't live through Christmas without giving you a gift. My hair will grow again. You won't care, will you? My hair grows very fast. It's Christmas, Jim. Let's be happy. You don't know what a nice&mdash;what a beautiful nice gift I got for you.&rdquo;</p>
+
+    <p>&ldquo;You've cut off your hair?&rdquo; asked Jim slowly. He seemed to <span class="voc" data-term="labor">labor</span> to understand what had happened. He seemed not to feel sure he knew.</p>
+
+    <p>&ldquo;Cut it off and sold it,&rdquo; said Della. &ldquo;Don't you like me now? I'm me, Jim. I'm the same without my hair.&rdquo;</p>
+
+    <p>Jim looked around the room.</p>
+
+    <p>&ldquo;You say your hair is gone?&rdquo; he said.</p>
+
+    <p>&ldquo;You don't have to look for it,&rdquo; said Della. &ldquo;It's sold, I tell you&mdash;sold and gone, too. It's the night before Christmas, boy. Be good to me, because I sold it for you. <span class="voc" data-term="hairs-counted">Maybe the hairs of my head could be counted,</span>&rdquo; she said, &ldquo;but no one could ever count my love for you. Shall we eat dinner, Jim?&rdquo;</p>
+
+    <p>Jim put his arms around his Della. <span class="voc" data-term="ten-seconds">For ten seconds let us look in another direction.</span> Eight dollars a week or a million dollars a year&mdash;how different are they? Someone may give you an answer, but it will be wrong. The <span class="voc" data-term="magi">magi</span> brought valuable gifts, but that was not among them. My meaning will be explained soon.</p>
+
+    <p>From inside the coat, Jim took something tied in paper. He threw it upon the table.</p>
+
+    <p>&ldquo;I want you to understand me, Dell,&rdquo; he said. &ldquo;Nothing like a haircut could make me love you any less. But if you'll open that, you may know what I felt when I came in.&rdquo;</p>
+
+    <p>White fingers pulled off the paper. And then a cry of joy; and then a change to tears.</p>
+
+    <p>For there lay The Combs&mdash;the combs that Della had seen in a shop window and loved for a long time. Beautiful combs, with jewels, <span class="voc" data-term="perfect">perfect</span> for her beautiful hair. She had known they cost too much for her to buy them. She had looked at them without the least hope of owning them. And now they were hers, but her hair was gone.</p>
+
+    <p>But she <span class="voc" data-term="held-heart">held them to her heart</span>, and at last was able to look up and say: &ldquo;My hair grows so fast, Jim!&rdquo;</p>
+
+    <p>And then she jumped up and cried, &ldquo;Oh, oh!&rdquo;</p>
+
+    <p>Jim had not yet seen his beautiful gift. She held it out to him in her open hand. The gold seemed to shine softly as if with her own warm and loving <span class="voc" data-term="spirit">spirit</span>.</p>
+
+    <p>&ldquo;Isn't it perfect, Jim? I <span class="voc" data-term="hunted-town">hunted all over town</span> to find it. You'll have to look at your watch a hundred times a day now. Give me your watch. I want to see how they look together.&rdquo;</p>
+
+    <p>Jim sat down and smiled.</p>
+
+    <p>&ldquo;Della,&rdquo; said he, &ldquo;let's put our Christmas gifts away and keep them a while. They're too nice to use now. I sold the watch to get the money to buy the combs. And now I think we should have our dinner.&rdquo;</p>
+
+    <p>The magi, as you know, were <span class="voc" data-term="wise">wise</span> men&mdash;wonderfully wise men&mdash;who brought gifts to the <span class="voc" data-term="christ-child">newborn Christ-child</span>. They were the first to give Christmas gifts. Being wise, their gifts were <span class="voc" data-term="doubtless">doubtless</span> wise ones. And here I have told you the story of two children who were not wise. Each sold the most valuable thing he owned in order to buy a gift for the other. But let me speak a last word to the wise of these days: Of all who give gifts, these two were the most wise. Of all who give and receive gifts, such as they are the most wise. Everywhere they are the wise ones. They are the magi.</p>
+
+    <p class="signature">&mdash; O. Henry</p>
+
+  </div>
+
+  <!-- Backdrop that closes popover on outside click -->
+  <div class="backdrop" id="backdrop"></div>
+
+  <!-- Popover -->
+  <div class="popover" id="popover">
+    <div class="pop-top">
+      <div>
+        <div class="pop-label" id="pop-label">WORD</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="pop-level" id="pop-level">A2</span>
+        <button class="pop-close" id="pop-close" aria-label="Close">&#10005;</button>
+      </div>
+    </div>
+    <p class="pop-word" id="pop-word">word</p>
+    <p class="pop-def" id="pop-def">definition</p>
+    <div class="pop-ex-label">Example in another context</div>
+    <p class="pop-ex" id="pop-ex">example</p>
+  </div>
+
+  <!-- Floating font-size controls -->
+  <div class="font-menu">
+    <button id="font-inc" aria-label="Increase text size">A+</button>
+    <button id="font-reset" class="reset-btn" aria-label="Reset text size">&#8635;</button>
+    <button id="font-dec" aria-label="Decrease text size">A&minus;</button>
+  </div>
+
+<script>
+  var GLOSSARY = {
+    "put-aside":   { level:"B1",  word:"put it aside",          def:"to save money little by little over time",                                  example:"She put aside $20 every week to pay for her trip to Portugal." },
+    "fall-cry":    { level:"Idiom", word:"fall on the bed and cry", def:"to collapse in sadness, showing strong emotion",                          example:"After hearing the bad news, he fell onto the sofa and put his head in his hands." },
+    "furnished":   { level:"A2", word:"furnished",              def:"already has furniture inside",                                              example:"We rented a furnished studio, so we didn't need to buy a bed or a sofa." },
+    "letter-box":  { level:"A2", word:"letter-box",              def:"a box for receiving mail (also called a mailbox)",                          example:"The postman pushed the letters through the letter-box." },
+    "honor":       { level:"B1", word:"honor",                  def:"great respect, or a privilege",                                             example:"It was an honor to be invited to speak at the ceremony." },
+    "looking-glass": { level:"B1", word:"looking-glass",        def:"an old-fashioned word for \u201cmirror\u201d",                               example:"In the fairy tale, the queen asked the looking-glass who was the fairest of all." },
+    "narrow":      { level:"A2", word:"narrow",                 def:"not wide",                                                                  example:"The old street was so narrow that only one car could pass at a time." },
+    "thin":        { level:"A1", word:"thin",                   def:"not fat; not thick",                                                        example:"The ice on the lake was too thin to walk on safely." },
+    "mastered":    { level:"B1", word:"mastered",               def:"became very good at doing something",                                       example:"After two years of lessons, he had mastered the guitar." },
+    "lost-color":  { level:"Idiom", word:"her face had lost its color", def:"she became pale, often from fear or shock",                          example:"When he heard the news, his face lost its color completely." },
+    "proud":       { level:"A2", word:"proud",                  def:"feeling pleased about something you have or did",                          example:"He was proud of his daughter when she graduated from university." },
+    "riches":      { level:"B1", word:"riches",                 def:"wealth; valuable things a person owns",                                     example:"Despite all his riches, he was never truly happy." },
+    "valuable":    { level:"A2", word:"valuable",               def:"worth a lot of money, or very important",                                   example:"Grandma's old necklace turned out to be extremely valuable \u2014 a jeweler offered $2,000 for it." },
+    "simile-hair": { level:"Idiom", word:"shining like a falling stream of brown water", def:"a poetic way (simile) to describe hair flowing smoothly and shining", example:"Her red hair shone like a river of fire in the sunset." },
+    "sign":        { level:"A2", word:"sign",                   def:"a board with writing that gives information",                               example:"There was a sign in the window that said \u2018Closed for lunch.\u2019" },
+    "breath":      { level:"A1", word:"breath",                 def:"the air you take into your lungs",                                          example:"She stopped to catch her breath after running up the stairs." },
+    "cold-eyed":   { level:"B1+", word:"cold-eyed",             def:"having an unfriendly, unemotional look",                                    example:"The cold-eyed manager showed no sympathy when he heard the excuse." },
+    "seemed-fly":  { level:"Idiom", word:"the next two hours seemed to fly", def:"time passed very quickly",                                     example:"We were having so much fun that the whole afternoon seemed to fly by." },
+    "material":    { level:"B1", word:"material",               def:"the substance something is made of",                                        example:"The jacket is made of a soft, waterproof material." },
+    "plain":       { level:"A2", word:"plain",                  def:"simple, with no decoration",                                                example:"She wore a plain black dress with no jewelry to the interview." },
+    "quietness":   { level:"B1", word:"quietness",              def:"the quality of being quiet or calm",                                        example:"He loved the quietness of the countryside after years in the city." },
+    "fine":        { level:"B1", word:"fine",                   def:"of high quality (here \u2014 not \u2018okay\u2019 or \u2018a penalty\u2019)",  example:"They served us a fine wine with dinner." },
+    "reasonably":  { level:"B1", word:"reasonably",             def:"in a sensible, calm way",                                                   example:"Even during the argument, she spoke reasonably and never raised her voice." },
+    "large-hearted": { level:"B1+", word:"large-hearted",       def:"generous; kind and giving",                                                 example:"Their large-hearted neighbor cooked dinner for the whole street after the storm." },
+    "poor-fellow": { level:"A2", word:"poor fellow",            def:"an expression of sympathy for a man (\u2018poor\u2019 here means \u2018unfortunate,\u2019 not \u2018without money\u2019)", example:"Poor fellow \u2014 he waited an hour in the rain for a bus that never came." },
+    "simile-dog":  { level:"Idiom", word:"as quiet as a hunting dog when it is near a bird", def:"completely still and alert, ready to act (a simile)", example:"He stood as quiet as a hunting dog near a bird, waiting for his chance to speak." },
+    "expression":  { level:"B1", word:"expression",             def:"the look on someone's face that shows a feeling",                          example:"I could tell from her expression that something was wrong." },
+    "fear":        { level:"A2", word:"fear",                   def:"a feeling of being afraid",                                                 example:"His hands were shaking with fear before the interview." },
+    "labor":       { level:"B1", word:"labor",                  def:"(as a verb) to work hard, or to struggle to do something",                 example:"He labored for hours to fix the old engine." },
+    "hairs-counted": { level:"Idiom", word:"maybe the hairs of my head could be counted", def:"an old expression meaning that someone (often God) knows every small detail about a person", example:"My grandmother always said, \u2018God knows every hair on your head,\u2019 meaning nothing about us is too small to notice." },
+    "ten-seconds": { level:"Idiom", word:"for ten seconds let us look in another direction", def:"the narrator asks the reader to politely look away during a private, emotional moment", example:"A narrator might say, \u2018Let's leave them alone for a moment,\u2019 to give characters privacy during a personal scene." },
+    "magi":        { level:"B1+", word:"magi",                  def:"the \u201cwise men\u201d from the Christmas story in the Bible",             example:"In the play, three children dressed up as the magi and carried gifts." },
+    "perfect":     { level:"A2", word:"perfect",                def:"with no faults; exactly right",                                             example:"The weather was perfect for a picnic \u2014 sunny and warm." },
+    "held-heart":  { level:"Idiom", word:"held them to her heart", def:"hugged something close, showing love or strong emotion",                 example:"She held the old photograph to her heart and smiled." },
+    "spirit":      { level:"B1", word:"spirit",                 def:"a person's inner character or mood",                                        example:"Even after losing the game, the team kept a positive spirit." },
+    "hunted-town": { level:"Idiom", word:"hunted all over town", def:"searched everywhere",                                                       example:"We hunted all over town for a birthday present but found nothing." },
+    "wise":        { level:"A2", word:"wise",                   def:"showing good judgment; making smart, thoughtful choices",                  example:"It was wise of him to save some of his salary every month." },
+    "christ-child": { level:"B1+", word:"newborn Christ-child", def:"refers to the baby Jesus in the Christmas story",                           example:"The song describes shepherds visiting the newborn Christ-child." },
+    "doubtless":   { level:"B1+", word:"doubtless",             def:"certainly; without doubt",                                                  example:"She is doubtless the best student in the class." }
+  };
+
+  var activeSpan = null;
+
+  function positionPopover(span, pop){
+    var rect = span.getBoundingClientRect();
+    var scrollY = window.scrollY || document.documentElement.scrollTop;
+    var scrollX = window.scrollX || document.documentElement.scrollLeft;
+    var popWidth = pop.offsetWidth;
+    var popHeight = pop.offsetHeight;
+
+    var top = rect.bottom + scrollY + 14;
+    var left = rect.left + scrollX + (rect.width/2) - (popWidth/2);
+
+    var maxLeft = document.documentElement.clientWidth - popWidth - 12;
+    if(left > maxLeft) left = maxLeft;
+    if(left < 12) left = 12;
+
+    var viewportBottom = scrollY + window.innerHeight;
+    if(top + popHeight > viewportBottom - 10){
+      top = rect.top + scrollY - popHeight - 14;
+    }
+
+    pop.style.top = top + "px";
+    pop.style.left = left + "px";
+  }
+
+  function openPopover(span){
+    var id = span.getAttribute("data-term");
+    var data = GLOSSARY[id];
+    if(!data) return;
+
+    if(activeSpan) activeSpan.classList.remove("active");
+    activeSpan = span;
+    span.classList.add("active");
+
+    document.getElementById("pop-word").textContent = data.word;
+    document.getElementById("pop-def").textContent = data.def;
+    document.getElementById("pop-ex").textContent = data.example;
+    document.getElementById("pop-level").textContent = data.level;
+    document.getElementById("pop-label").textContent = "WORD / PHRASE";
+
+    var pop = document.getElementById("popover");
+    var backdrop = document.getElementById("backdrop");
+    pop.classList.add("show");
+    backdrop.classList.add("show");
+
+    positionPopover(span, pop);
+  }
+
+  function closePopover(){
+    if(activeSpan) activeSpan.classList.remove("active");
+    activeSpan = null;
+    document.getElementById("popover").classList.remove("show");
+    document.getElementById("backdrop").classList.remove("show");
+  }
+
+  document.querySelectorAll(".voc").forEach(function(span){
+    span.addEventListener("click", function(e){
+      e.stopPropagation();
+      if(activeSpan === span){ closePopover(); return; }
+      openPopover(span);
+    });
+  });
+
+  document.getElementById("backdrop").addEventListener("click", closePopover);
+  document.getElementById("pop-close").addEventListener("click", closePopover);
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") closePopover(); });
+  window.addEventListener("resize", function(){ if(activeSpan) positionPopover(activeSpan, document.getElementById("popover")); });
+  window.addEventListener("scroll", function(){ if(activeSpan) positionPopover(activeSpan, document.getElementById("popover")); }, true);
+
+  /* ---------- Font size controls ---------- */
+  var BASE_SIZE = 19, MIN_SIZE = 14, MAX_SIZE = 30, STEP = 2;
+  var currentSize = BASE_SIZE;
+
+  function applySize(){
+    document.documentElement.style.setProperty("--story-size", currentSize + "px");
+    if(activeSpan) positionPopover(activeSpan, document.getElementById("popover"));
+  }
+  document.getElementById("font-inc").addEventListener("click", function(){
+    currentSize = Math.min(MAX_SIZE, currentSize + STEP);
+    applySize();
+  });
+  document.getElementById("font-dec").addEventListener("click", function(){
+    currentSize = Math.max(MIN_SIZE, currentSize - STEP);
+    applySize();
+  });
+  document.getElementById("font-reset").addEventListener("click", function(){
+    currentSize = BASE_SIZE;
+    applySize();
+  });
+</script>
+
+</body>
+</html>
