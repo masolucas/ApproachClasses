@@ -6,16 +6,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   :root{
-    --navy:#0C2340;
-    --navy-d:#081629;
-    --gold:#AE9142;
-    --gold-b:#D39F10;
-    --warm-w:#EFE9D9;
-    --paper:#FFFFFF;
-    --ink:#1A1A1A;
-    --ink-s:#3D3D3D;
-    --muted:#7A7A7A;
-    --sky:#EDF2F9;
+    --navy: #0C2340;
+    --navy-l: #143865;
+    --navy-d: #081629;
+    --navy-s: #D9E2F1;
+    --gold: #AE9142;
+    --gold-b: #D39F10;
+    --warm-w: #EFE9D9;
+    --paper: #FFFFFF;
+    --ink: #1A1A1A;
+    --ink-s: #3D3D3D;
+    --muted: #7A7A7A;
+    --sky: #EDF2F9;
+    --lt-gold: #F5EED2;
+    --red: #C0392B;
+    --red-s: #F8D7DA;
+    --teal: #0E6B6B;
+    --teal-s: #D0EDED;
+    --amber: #B45309;
+    --amber-s: #FEF3C7;
     --story-size:19px;
   }
   *{box-sizing:border-box;}
@@ -64,6 +73,29 @@
     font-size:14px; color:var(--ink-s); font-family:Calibri,sans-serif;
   }
   .howto b{ color:var(--navy); }
+
+  /* ============================================================
+     BUTTONS
+     ============================================================ */
+  .btn {
+    font-family: var(--sans); font-size: 0.86rem; font-weight: 700; letter-spacing: 0.02em;
+    padding: 0.65rem 1.3rem; border-radius: 5px; border: 1.5px solid transparent; cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease; display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn--primary { background: var(--navy); color: var(--warm-w); }
+  .btn--primary:hover { background: var(--navy-l); }
+  .btn--gold { background: var(--gold); color: var(--navy); }
+  .btn--gold:hover { background: var(--gold-b); }
+  .btn--secondary { background: transparent; border-color: var(--navy); color: var(--navy); }
+  .btn--secondary:hover { background: var(--sky); }
+  .btn--ghost { background: transparent; color: var(--navy); }
+  .btn--ghost:hover { background: var(--sky); }
+  .btn--danger { background: var(--red); color: #fff; }
+  .btn--danger:hover { background: #a52d20; }
+  .btn--sm { padding: 0.42rem 0.9rem; font-size: 0.76rem; }
+  .btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+  a.btn { text-decoration: none; }
+
 
   /* ---------- Story ---------- */
   .story{
@@ -184,6 +216,7 @@
 <body>
 
   <div class="chrome-header">
+    <a href="#" onclick="history.back(); return false;" target="_blank" class="btn btn--primary" style="padding: 5px 10px;"> &#x2B05;</a>
     <div class="monogram">A</div>
     <div class="chrome-text">
       <div class="eyebrow">Reading &amp; Critical Thinking</div>
