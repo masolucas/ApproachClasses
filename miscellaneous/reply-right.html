@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReplyRight — Grammar Chat Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#10162B;
+    --ink-soft:#1A2240;
+    --bubble-in:#DCD6F7;
+    --bubble-in-text:#1B1533;
+    --teal:#2FE6C0;
+    --amber:#FFC857;
+    --good:#6FCF97;
+    --bad:#EF6461;
+    --paper:#F5F3FA;
+    --muted:#8B93B8;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    font-family:'Inter',sans-serif;
+    color:var(--paper);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px 12px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+
+  .phone{
+    width:100%;
+    max-width:460px;
+    background:linear-gradient(180deg,var(--ink-soft),var(--ink) 40%);
+    border-radius:28px;
+    border:1px solid rgba(255,255,255,0.08);
+    box-shadow:0 30px 80px rgba(0,0,0,0.5), 0 0 0 6px rgba(255,255,255,0.02);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    height:min(780px, 92vh);
+  }
+
+  /* HEADER */
+  .chatHeader{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:16px 18px;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    flex-shrink:0;
+  }
+  .avatar{
+    width:40px;height:40px;border-radius:50%;
+    background:conic-gradient(from 200deg, var(--teal), var(--amber), var(--teal));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;font-size:15px;color:var(--ink);
+    flex-shrink:0;
+  }
+  .headerText{flex:1; min-width:0;}
+  .headerName{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700; font-size:16px; letter-spacing:0.2px;
+  }
+  .headerStatus{font-size:12px; color:var(--teal); display:flex; align-items:center; gap:6px;}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--teal); box-shadow:0 0 8px var(--teal);}
+  .streak{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px; font-weight:600;
+    background:rgba(255,200,87,0.12);
+    color:var(--amber);
+    padding:6px 10px; border-radius:20px;
+    display:flex; align-items:center; gap:5px;
+    flex-shrink:0;
+    white-space:nowrap;
+  }
+
+  .progressRow{
+    display:flex; gap:4px; padding:10px 18px 0 18px; flex-shrink:0;
+  }
+  .progressDot{
+    flex:1; height:4px; border-radius:3px;
+    background:rgba(255,255,255,0.1);
+    overflow:hidden;
+  }
+  .progressDot.done{background:var(--teal);}
+  .progressDot.now{background:rgba(47,230,192,0.35);}
+
+  /* CHAT LOG */
+  .chatLog{
+    flex:1;
+    overflow-y:auto;
+    padding:18px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    scroll-behavior:smooth;
+  }
+  .chatLog::-webkit-scrollbar{width:6px;}
+  .chatLog::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15); border-radius:3px;}
+
+  .bubbleRow{display:flex; animation:rise 0.35s ease;}
+  @keyframes rise{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+
+  .bubbleRow.in{justify-content:flex-start;}
+  .bubbleRow.out{justify-content:flex-end;}
+  .bubbleRow.note{justify-content:center;}
+
+  .bubble{
+    max-width:82%;
+    padding:11px 15px;
+    border-radius:18px;
+    font-size:15px;
+    line-height:1.45;
+  }
+  .bubble.in{
+    background:var(--bubble-in);
+    color:var(--bubble-in-text);
+    border-bottom-left-radius:4px;
+  }
+  .bubble.out{
+    background:var(--teal);
+    color:var(--ink);
+    font-weight:600;
+    border-bottom-right-radius:4px;
+  }
+  .bubble.out.wrong{
+    background:var(--bad);
+    color:#2b0d0c;
+  }
+  .bubble.out.right{
+    background:var(--good);
+    color:#0d2b18;
+  }
+  .bubble.note{
+    background:transparent;
+    border:1px dashed rgba(255,255,255,0.18);
+    color:var(--muted);
+    font-size:12.5px;
+    font-style:italic;
+    text-align:center;
+    max-width:92%;
+  }
+  .blank{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    border-bottom:2px solid rgba(27,21,51,0.35);
+    padding:0 3px;
+  }
+
+  /* CHIP RACK */
+  .chipArea{
+    flex-shrink:0;
+    padding:12px 18px 18px 18px;
+    border-top:1px solid rgba(255,255,255,0.08);
+  }
+  .chipLabel{
+    font-size:11px; text-transform:uppercase; letter-spacing:1.2px;
+    color:var(--muted); margin-bottom:8px; font-weight:600;
+  }
+  .chipRack{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  .chip{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px; font-weight:600;
+    background:rgba(255,255,255,0.06);
+    color:var(--paper);
+    border:1px solid rgba(255,255,255,0.14);
+    border-radius:14px;
+    padding:12px 10px;
+    cursor:pointer;
+    transition:transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+    text-align:center;
+  }
+  .chip:hover:not(:disabled){transform:translateY(-2px); border-color:var(--teal);}
+  .chip:focus-visible{outline:2px solid var(--teal); outline-offset:2px;}
+  .chip:disabled{cursor:default;}
+  .chip.correct{background:rgba(111,207,151,0.2); border-color:var(--good); color:var(--good);}
+  .chip.incorrect{background:rgba(239,100,97,0.2); border-color:var(--bad); color:var(--bad); opacity:0.7;}
+  .chip.dim{opacity:0.35;}
+
+  .nextBtn{
+    width:100%;
+    margin-top:10px;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700; font-size:15px;
+    background:var(--teal);
+    color:var(--ink);
+    border:none; border-radius:14px;
+    padding:13px;
+    cursor:pointer;
+    transition:transform 0.12s ease;
+  }
+  .nextBtn:hover{transform:translateY(-2px);}
+  .nextBtn:focus-visible{outline:2px solid var(--amber); outline-offset:2px;}
+
+  /* START / END SCREENS */
+  .screen{
+    flex:1;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    text-align:center;
+    padding:36px 30px;
+    gap:16px;
+  }
+  .logo{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700; font-size:34px;
+    background:linear-gradient(90deg, var(--teal), var(--amber));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .tagline{color:var(--muted); font-size:14.5px; max-width:280px; line-height:1.5;}
+  .startBtn{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700; font-size:16px;
+    background:var(--teal); color:var(--ink);
+    border:none; border-radius:16px;
+    padding:15px 36px;
+    cursor:pointer; margin-top:8px;
+    transition:transform 0.12s ease;
+  }
+  .startBtn:hover{transform:translateY(-2px);}
+  .startBtn:focus-visible{outline:2px solid var(--amber); outline-offset:3px;}
+
+  .topicPreview{
+    display:flex; flex-wrap:wrap; gap:6px; justify-content:center; max-width:320px;
+  }
+  .topicPill{
+    font-size:11.5px; font-family:'IBM Plex Mono',monospace;
+    color:var(--teal); border:1px solid rgba(47,230,192,0.35);
+    padding:5px 10px; border-radius:20px;
+  }
+
+  .scoreBig{
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:56px;
+    color:var(--teal); line-height:1;
+  }
+  .scoreSub{color:var(--muted); font-size:14px;}
+
+  .breakdown{width:100%; max-width:320px; display:flex; flex-direction:column; gap:10px; text-align:left;}
+  .breakRow{display:flex; flex-direction:column; gap:4px;}
+  .breakTop{display:flex; justify-content:space-between; font-size:12.5px; color:var(--muted);}
+  .breakBarBg{height:7px; border-radius:4px; background:rgba(255,255,255,0.08); overflow:hidden;}
+  .breakBarFill{height:100%; background:var(--teal); border-radius:4px; transition:width 0.5s ease;}
+</style>
+</head>
+<body>
+
+<div class="phone" id="phone"></div>
+
+<script>
+const TOPIC_NAMES = {
+  NQ: "Negative Questions",
+  TQ: "Tag Questions",
+  SO: "So / Too / Neither",
+  SR: "Short Responses",
+  INV: "Inversion"
+};
+
+const QUESTIONS = [
+  {topic:"NQ", prompt:"___ you like coffee? I could've sworn you always order one.", blank:"___", options:["Don't","Doesn't","Isn't","Wasn't"], correct:0,
+   note:"Negative yes/no questions use auxiliary + n't + subject. Here it checks an assumption: \"Don't you like coffee?\""},
+  {topic:"NQ", prompt:"___ she coming to the party tonight? I thought she RSVP'd yes.", blank:"___", options:["Doesn't","Haven't","Isn't","Don't"], correct:2,
+   note:"\"Isn't she coming?\" — auxiliary (is) + n't + subject, expressing mild surprise."},
+  {topic:"NQ", prompt:"___ they finished the project yet? The deadline was Monday.", blank:"___", options:["Hasn't","Don't","Isn't","Haven't"], correct:3,
+   note:"\"Haven't they finished yet?\" uses the auxiliary have with they."},
+  {topic:"NQ", prompt:"Look at that sunset. ___ it beautiful?", blank:"___", options:["Isn't","Doesn't","Wasn't","Aren't"], correct:0,
+   note:"Negative questions often express expectation — the speaker clearly thinks it IS beautiful."},
+  {topic:"NQ", prompt:"___ you hear the news? It's been all over the group chat!", blank:"___", options:["Doesn't","Wasn't","Haven't","Didn't"], correct:3,
+   note:"\"Didn't you hear?\" expresses surprise that the other person doesn't already know."},
+
+  {topic:"TQ", prompt:"You look exhausted. You're tired, ___?", blank:"___", options:["are you","aren't you","don't you","isn't it"], correct:1,
+   note:"Positive statement → negative tag. \"You're tired\" (positive) pairs with \"aren't you?\""},
+  {topic:"TQ", prompt:"She isn't at her desk. She isn't here, ___?", blank:"___", options:["is she","isn't she","does she","doesn't she"], correct:0,
+   note:"Negative statement → positive tag. \"She isn't here\" pairs with \"is she?\""},
+  {topic:"TQ", prompt:"I heard he's great in the pool. He can swim, ___?", blank:"___", options:["can he","can't he","does he","isn't he"], correct:1,
+   note:"The tag repeats the same auxiliary (can) but flips polarity: \"can't he?\""},
+  {topic:"TQ", prompt:"The report looks done. They have finished, ___?", blank:"___", options:["haven't they","have they","didn't they","don't they"], correct:0,
+   note:"Auxiliary \"have\" carries over into the tag: \"haven't they?\""},
+  {topic:"TQ", prompt:"There's no auxiliary here, so use do/does/did. You like pizza, ___?", blank:"___", options:["do you","don't you","aren't you","didn't you"], correct:1,
+   note:"Present simple with no auxiliary → borrow \"do\": \"You like pizza, don't you?\""},
+  {topic:"TQ", prompt:"Past simple, same rule. They went home early, ___?", blank:"___", options:["did they","didn't they","weren't they","haven't they"], correct:1,
+   note:"Past simple with no auxiliary → borrow \"did\": \"didn't they?\""},
+  {topic:"TQ", prompt:"Falling intonation here — you expect agreement. It's a nice day, ___?", blank:"___", options:["is it","isn't it"], correct:1,
+   note:"Falling tone on a tag means you're expecting the listener to agree, not really asking."},
+
+  {topic:"SO", prompt:"Sam: \"I love this playlist.\"  Reply: \"___ do I.\"", blank:"___", options:["So","Too","Neither","But"], correct:0,
+   note:"\"So + auxiliary + subject\" agrees with a POSITIVE statement: \"So do I.\""},
+  {topic:"SO", prompt:"Sam: \"I like this tea.\"  Reply: \"I do ___.\"", blank:"___", options:["too","so","neither","either"], correct:0,
+   note:"\"Too\" goes at the END of a positive sentence to agree: \"I do too.\""},
+  {topic:"SO", prompt:"Sam: \"I don't like fish.\"  Reply: \"___ do I.\"", blank:"___", options:["So","Too","Neither","Either"], correct:2,
+   note:"\"Neither + auxiliary + subject\" agrees with a NEGATIVE statement: \"Neither do I.\""},
+  {topic:"SO", prompt:"Sam: \"She isn't tired.\"  Reply: \"___ is he.\"", blank:"___", options:["So","Neither","Too","Not"], correct:1,
+   note:"Negative statement, negative agreement: \"Neither is he.\""},
+  {topic:"SO", prompt:"Sam: \"I don't eat meat.\"  Reply: \"I don't ___.\"", blank:"___", options:["either","too","so","neither"], correct:0,
+   note:"\"Not either\" also agrees with negatives, placed at the end: \"I don't either.\""},
+  {topic:"SO", prompt:"Complete the contrast: \"I like coffee, ___ I don't like tea.\"", blank:"___", options:["but","so","too","neither"], correct:0,
+   note:"\"But\" links two contrasting ideas — liking one thing, not the other."},
+
+  {topic:"SR", prompt:"Sam: \"Are you ready?\"  Reply:", blank:"___", options:["Yes, I am.","Yes, I do.","Yes, I have.","Yes, I can."], correct:0,
+   note:"Short responses repeat the AUXILIARY from the question — \"Are\" → \"I am.\""},
+  {topic:"SR", prompt:"Sam: \"Did they leave already?\"  Reply:", blank:"___", options:["Yes, they are.","Yes, they have.","Yes, they did.","Yes, they do."], correct:2,
+   note:"The question used \"did,\" so the short answer repeats \"did\": \"Yes, they did.\""},
+  {topic:"SR", prompt:"Sam: \"I love this song!\"  Reply (informal): \"Me ___!\"", blank:"___", options:["too","so","neither","either"], correct:0,
+   note:"\"Me too\" is the casual, spoken version of agreeing with a positive statement."},
+  {topic:"SR", prompt:"Sam: \"I think pizza is the best food ever.\"  Reply: \"___, I disagree.\"", blank:"___", options:["Actually","So","Too","Neither"], correct:0,
+   note:"Disagreement doesn't use so/too/neither — plain phrases like \"Actually...\" work better."},
+  {topic:"SR", prompt:"Sam: \"I can't swim.\"  Reply: \"I can't ___.\"", blank:"___", options:["either","too","so","neither"], correct:0,
+   note:"Agreeing with a negative statement about yourself: \"I can't either.\""},
+
+  {topic:"INV", prompt:"Texting to make plans: \"___ you ready to go?\"", blank:"___", options:["Are","Do","Is","Have"], correct:0,
+   note:"Questions invert word order: auxiliary before subject. \"Are you ready?\""},
+  {topic:"INV", prompt:"Asking about a job: \"___ they work here?\"", blank:"___", options:["Are","Do","Does","Have"], correct:1,
+   note:"Present simple questions need \"do/does\" + subject: \"Do they work here?\""},
+  {topic:"INV", prompt:"Checking on a coworker: \"___ she arrived yet?\"", blank:"___", options:["Has","Have","Is","Does"], correct:0,
+   note:"Present perfect inverts with \"has/have\": \"Has she arrived?\""},
+  {topic:"INV", prompt:"Formal, after a negative adverb: \"Never ___ I seen such a beautiful place.\"", blank:"___", options:["have","do","am","has"], correct:0,
+   note:"Adverbs like \"never\" at the start trigger inversion too: \"Never have I seen...\""},
+  {topic:"INV", prompt:"Same formal pattern: \"Rarely ___ we get snow here.\"", blank:"___", options:["do","does","have","are"], correct:0,
+   note:"\"Rarely\" up front → auxiliary \"do\" moves before the subject: \"Rarely do we get snow.\""}
+];
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+let deck = [];
+let idx = 0;
+let score = 0;
+let streak = 0;
+let bestStreak = 0;
+let topicStats = {};
+
+const phone = document.getElementById('phone');
+
+function renderStart(){
+  phone.innerHTML = `
+    <div class="screen">
+      <div class="logo">ReplyRight</div>
+      <div class="tagline">Sam's texting you. Pick the reply that actually makes grammatical sense — tags, negatives, agreements, and inversion, all live in the chat.</div>
+      <div class="topicPreview">
+        ${Object.values(TOPIC_NAMES).map(t=>`<span class="topicPill">${t}</span>`).join('')}
+      </div>
+      <button class="startBtn" id="startBtn">Start chatting</button>
+    </div>
+  `;
+  document.getElementById('startBtn').addEventListener('click', startGame);
+}
+
+function startGame(){
+  deck = shuffle(QUESTIONS);
+  idx = 0; score = 0; streak = 0; bestStreak = 0;
+  topicStats = {};
+  Object.keys(TOPIC_NAMES).forEach(k => topicStats[k] = {correct:0,total:0});
+  renderGameShell();
+  renderQuestion();
+}
+
+function renderGameShell(){
+  phone.innerHTML = `
+    <div class="chatHeader">
+      <div class="avatar">S</div>
+      <div class="headerText">
+        <div class="headerName">Sam</div>
+        <div class="headerStatus"><span class="dot"></span>online</div>
+      </div>
+      <div class="streak" id="streakBadge">🔥 0</div>
+    </div>
+    <div class="progressRow" id="progressRow"></div>
+    <div class="chatLog" id="chatLog"></div>
+    <div class="chipArea" id="chipArea"></div>
+  `;
+  renderProgress();
+}
+
+function renderProgress(){
+  const row = document.getElementById('progressRow');
+  row.innerHTML = deck.map((_,i)=>{
+    let cls = 'progressDot';
+    if(i < idx) cls += ' done';
+    else if(i === idx) cls += ' now';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+}
+
+function renderQuestion(){
+  if(idx >= deck.length){ return renderEnd(); }
+  renderProgress();
+  const q = deck[idx];
+  const log = document.getElementById('chatLog');
+
+  const promptHtml = q.prompt.replace(q.blank, `<span class="blank">${q.blank}</span>`);
+  const row = document.createElement('div');
+  row.className = 'bubbleRow in';
+  row.innerHTML = `<div class="bubble in">${promptHtml}</div>`;
+  log.appendChild(row);
+  log.scrollTop = log.scrollHeight;
+
+  const chipArea = document.getElementById('chipArea');
+  chipArea.innerHTML = `
+    <div class="chipLabel">Choose your reply · ${idx+1} / ${deck.length}</div>
+    <div class="chipRack" id="chipRack"></div>
+  `;
+  const rack = document.getElementById('chipRack');
+  q.options.forEach((opt, i) => {
+    const chip = document.createElement('button');
+    chip.className = 'chip';
+    chip.textContent = opt;
+    chip.addEventListener('click', () => answer(i));
+    rack.appendChild(chip);
+  });
+}
+
+function answer(choiceIndex){
+  const q = deck[idx];
+  const isRight = choiceIndex === q.correct;
+  const chips = document.querySelectorAll('#chipRack .chip');
+  chips.forEach((chip, i) => {
+    chip.disabled = true;
+    if(i === q.correct) chip.classList.add('correct');
+    if(i === choiceIndex && !isRight) chip.classList.add('incorrect');
+    if(i !== choiceIndex && i !== q.correct) chip.classList.add('dim');
+  });
+
+  topicStats[q.topic].total++;
+  if(isRight){
+    score++; streak++; bestStreak = Math.max(bestStreak, streak);
+    topicStats[q.topic].correct++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('streakBadge').textContent = `🔥 ${streak}`;
+
+  const log = document.getElementById('chatLog');
+
+  const replyRow = document.createElement('div');
+  replyRow.className = 'bubbleRow out';
+  replyRow.innerHTML = `<div class="bubble out ${isRight ? 'right':'wrong'}">${q.options[choiceIndex]}</div>`;
+  log.appendChild(replyRow);
+
+  const noteRow = document.createElement('div');
+  noteRow.className = 'bubbleRow note';
+  noteRow.innerHTML = `<div class="bubble note">${isRight ? '✓ ' : '✗ '}${q.note}</div>`;
+  log.appendChild(noteRow);
+
+  log.scrollTop = log.scrollHeight;
+
+  const chipArea = document.getElementById('chipArea');
+  chipArea.innerHTML = `<button class="nextBtn" id="nextBtn">${idx+1 < deck.length ? 'Next message →' : 'See results →'}</button>`;
+  document.getElementById('nextBtn').addEventListener('click', () => { idx++; renderQuestion(); });
+}
+
+function renderEnd(){
+  const pct = Math.round((score/deck.length)*100);
+  let verdict;
+  if(pct >= 90) verdict = "Fluent texter. Sam's impressed.";
+  else if(pct >= 70) verdict = "Solid conversation skills — a few rules to polish.";
+  else if(pct >= 50) verdict = "Getting there — review the topics below.";
+  else verdict = "Good start — worth another round after a quick review.";
+
+  const rows = Object.entries(topicStats).map(([code, s]) => {
+    const p = s.total ? Math.round((s.correct/s.total)*100) : 0;
+    return `
+      <div class="breakRow">
+        <div class="breakTop"><span>${TOPIC_NAMES[code]}</span><span>${s.correct}/${s.total}</span></div>
+        <div class="breakBarBg"><div class="breakBarFill" style="width:${p}%"></div></div>
+      </div>
+    `;
+  }).join('');
+
+  phone.innerHTML = `
+    <div class="screen">
+      <div class="scoreBig">${score}/${deck.length}</div>
+      <div class="scoreSub">Best streak: 🔥 ${bestStreak} · ${verdict}</div>
+      <div class="breakdown">${rows}</div>
+      <button class="startBtn" id="retryBtn">Chat again</button>
+    </div>
+  `;
+  document.getElementById('retryBtn').addEventListener('click', startGame);
+}
+
+renderStart();
+</script>
+</body>
+</html>
