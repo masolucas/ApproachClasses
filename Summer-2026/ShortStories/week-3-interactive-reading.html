@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Tell-Tale Heart — Interactive Reading</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --navy: #0C2340;
+    --navy-l: #143865;
+    --navy-d: #081629;
+    --navy-s: #D9E2F1;
+    --gold: #AE9142;
+    --gold-b: #D39F10;
+    --warm-w: #EFE9D9;
+    --paper: #FFFFFF;
+    --ink: #1A1A1A;
+    --ink-s: #3D3D3D;
+    --muted: #7A7A7A;
+    --sky: #EDF2F9;
+    --lt-gold: #F5EED2;
+    --red: #C0392B;
+    --red-s: #F8D7DA;
+    --teal: #0E6B6B;
+    --teal-s: #D0EDED;
+    --amber: #B45309;
+    --amber-s: #FEF3C7;
+    --story-size:19px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    font-family:'Calibri','Segoe UI',sans-serif;
+    color:var(--ink);
+  }
+
+  /* ---------- Header ---------- */
+  .chrome-header{
+    display:flex; align-items:center; gap:12px;
+    max-width:760px; margin:0 auto; padding:32px 24px 0 24px;
+  }
+  .monogram{
+    width:36px; height:36px; border-radius:50%;
+    border:1.5px solid var(--gold); background:var(--paper);
+    display:flex; align-items:center; justify-content:center;
+    font-family:Cambria,Georgia,serif; font-style:italic; font-weight:bold;
+    color:var(--gold); font-size:17px; flex-shrink:0;
+  }
+  .chrome-text .eyebrow{
+    font-family:Calibri,sans-serif; font-size:10px; font-weight:bold;
+    letter-spacing:3px; color:var(--navy); text-transform:uppercase;
+  }
+  .chrome-text .subline{
+    font-family:Calibri,sans-serif; font-size:10px; letter-spacing:1px;
+    color:var(--muted);
+  }
+
+  .titleblock{ max-width:760px; margin:0 auto; padding:22px 24px 18px 24px; border-bottom:2px solid var(--navy); }
+  .titleblock h1{
+    font-family:Cambria,Georgia,serif; color:var(--navy);
+    font-size:40px; margin:0 0 4px 0; font-weight:bold;
+  }
+  .titleblock h1 em{ color:var(--gold); font-style:italic; }
+  .titleblock p{
+    font-family:Cambria,Georgia,serif; font-style:italic; color:var(--ink-s);
+    font-size:16px; margin:0;
+  }
+
+  .howto{
+    max-width:760px; margin:16px auto 0 auto; padding:12px 18px;
+    background:var(--sky); border-left:4px solid var(--gold);
+    font-size:14px; color:var(--ink-s); font-family:Calibri,sans-serif;
+  }
+  .howto b{ color:var(--navy); }
+
+  /* ============================================================
+     BUTTONS
+     ============================================================ */
+  .btn {
+    font-family: var(--sans); font-size: 0.86rem; font-weight: 700; letter-spacing: 0.02em;
+    padding: 0.65rem 1.3rem; border-radius: 5px; border: 1.5px solid transparent; cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease; display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn--primary { background: var(--navy); color: var(--warm-w); }
+  .btn--primary:hover { background: var(--navy-l); }
+  .btn--gold { background: var(--gold); color: var(--navy); }
+  .btn--gold:hover { background: var(--gold-b); }
+  .btn--secondary { background: transparent; border-color: var(--navy); color: var(--navy); }
+  .btn--secondary:hover { background: var(--sky); }
+  .btn--ghost { background: transparent; color: var(--navy); }
+  .btn--ghost:hover { background: var(--sky); }
+  .btn--danger { background: var(--red); color: #fff; }
+  .btn--danger:hover { background: #a52d20; }
+  .btn--sm { padding: 0.42rem 0.9rem; font-size: 0.76rem; }
+  .btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+  a.btn { text-decoration: none; }
+
+
+  /* ---------- Story ---------- */
+  .story{
+    max-width:760px; margin:0 auto; padding:28px 24px 100px 24px;
+    font-family:Cambria,Georgia,serif;
+    font-size:var(--story-size);
+    line-height:1.75;
+    color:var(--ink);
+  }
+  .story p{ margin:0 0 1.2em 0; }
+  .story .signature{ text-align:right; font-style:italic; color:var(--ink-s); margin-top:2em; }
+
+  /* ---------- Clickable vocabulary ---------- */
+  .voc{
+    position:relative;
+    z-index:1000;
+    cursor:pointer;
+    border-bottom:2px dotted var(--gold);
+    padding-bottom:1px;
+    transition:background .15s ease;
+  }
+  .voc:hover{ background:rgba(174,145,66,0.12); }
+  .voc.active{
+    position:relative;
+    z-index:1001;
+    background:var(--paper);
+    border-radius:3px;
+    box-shadow:0 0 0 6px var(--paper), 0 0 0 9999px rgba(8,22,41,0.72);
+    border-bottom:2px solid var(--gold-b);
+  }
+
+  /* ---------- Backdrop (click to close) ---------- */
+  .backdrop{
+    display:none;
+    position:fixed; inset:0;
+    z-index:999;
+  }
+  .backdrop.show{ display:block; }
+
+  /* ---------- Popover ---------- */
+  .popover{
+    display:none;
+    position:absolute;
+    z-index:1002;
+    width:320px;
+    max-width:88vw;
+    background:var(--navy);
+    border-radius:4px;
+    box-shadow:0 12px 32px rgba(0,0,0,0.35);
+    padding:18px 20px 16px 20px;
+    font-family:Calibri,sans-serif;
+  }
+  .popover.show{ display:block; }
+  .popover .pop-top{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:8px;
+    margin-bottom:8px;
+  }
+  .popover .pop-label{
+    font-family:Consolas,monospace; font-size:9px; font-weight:bold;
+    letter-spacing:2px; color:var(--gold); text-transform:uppercase;
+  }
+  .popover .pop-level{
+    font-family:Calibri,sans-serif; font-size:9px; font-weight:bold;
+    letter-spacing:1px; color:var(--navy); background:var(--gold);
+    border-radius:20px; padding:2px 9px; white-space:nowrap;
+  }
+  .popover .pop-close{
+    background:none; border:none; color:var(--warm-w); opacity:.6;
+    font-size:16px; cursor:pointer; line-height:1; padding:0 0 0 8px;
+  }
+  .popover .pop-close:hover{ opacity:1; }
+  .popover .pop-word{
+    font-family:Cambria,Georgia,serif; font-style:italic; font-weight:bold;
+    color:var(--gold-b); font-size:22px; margin:0 0 8px 0;
+  }
+  .popover .pop-def{
+    font-family:Cambria,Georgia,serif; font-style:italic;
+    color:var(--warm-w); font-size:15px; line-height:1.5; margin:0 0 12px 0;
+  }
+  .popover .pop-ex-label{
+    font-family:Calibri,sans-serif; font-size:9px; font-weight:bold;
+    letter-spacing:2px; color:var(--gold); text-transform:uppercase;
+    border-top:1px solid rgba(239,233,217,0.2); padding-top:10px; margin-bottom:6px;
+  }
+  .popover .pop-ex{
+    font-family:Cambria,Georgia,serif; color:var(--warm-w); font-size:14px;
+    line-height:1.5; margin:0;
+  }
+  .popover .pop-arrow{
+    position:absolute; width:14px; height:14px; background:var(--navy);
+    transform:rotate(45deg);
+  }
+
+  /* ---------- Floating font-size menu ---------- */
+  .font-menu{
+    position:fixed; bottom:24px; right:24px; z-index:1003;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .font-menu button{
+    width:44px; height:44px; border-radius:50%;
+    background:var(--navy); border:1.5px solid var(--gold);
+    color:var(--gold); font-family:Calibri,sans-serif; font-weight:bold;
+    font-size:15px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.25);
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .12s ease, background .12s ease;
+  }
+  .font-menu button:hover{ background:var(--navy-d); transform:scale(1.06); }
+  .font-menu button:active{ transform:scale(0.96); }
+  .font-menu .reset-btn{ font-size:12px; }
+
+  @media (max-width:600px){
+    .titleblock h1{ font-size:30px; }
+    .story{ padding:22px 18px 110px 18px; }
+    .popover{ width:270px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="chrome-header">
+    <a href="#" onclick="history.back(); return false;" target="_blank" class="btn btn--primary" style="padding: 5px 10px;"> &#x2B05;</a>
+    <div class="monogram">A</div>
+    <div class="chrome-text">
+      <div class="eyebrow">Reading &amp; Critical Thinking</div>
+      <div class="subline">Week 03 &nbsp;·&nbsp; Interactive Reading</div>
+    </div>
+  </div>
+
+  <div class="titleblock">
+    <h1>The Tell-Tale <em>Heart.</em></h1>
+    <p>Edgar Allan Poe &nbsp;·&nbsp; Adapted Version &nbsp;·&nbsp; Unit 2: Justice &amp; Morality</p>
+  </div>
+
+  <div class="howto">
+    <b>How to use this page:</b> words and phrases with a dotted gold underline are clickable. Tap or click one to see its meaning and an example sentence. Use the buttons in the bottom-right corner to change the text size.
+  </div>
+
+  <div class="story" id="story">
+
+    <p>IT&rsquo;S TRUE! YES, I HAVE BEEN ILL, very ill. But why do you say that I have lost control of my mind, why do you say that I am <span class="voc" data-term="mad">mad</span>? Can you not see that I have full control of my mind? Is it not clear that I am not mad? Indeed, the illness only made my mind, my feelings, my <span class="voc" data-term="senses">senses</span> stronger, more powerful. My sense of hearing especially became more powerful. I could hear sounds I had never heard before. I heard sounds from heaven; and I heard sounds from hell!</p>
+
+    <p><span class="voc" data-term="listen-narrator">Listen! Listen, and I will tell you how it happened.</span> You will see, you will hear how healthy my mind is.</p>
+
+    <p>It is impossible to say how the idea first entered my head. There was no reason for what I did. I did not hate the old man; I even loved him. He had never hurt me. I did not want his money. I think it was his eye. His eye was like the eye of a <span class="voc" data-term="vulture">vulture</span>, the eye of one of those terrible birds that watch and wait while an animal dies, and then fall upon the dead body and <span class="voc" data-term="pull-pieces">pull it to pieces</span> to eat it. When the old man looked at me with his vulture eye <span class="voc" data-term="cold-back">a cold feeling went up and down my back</span>; even <span class="voc" data-term="blood-cold">my blood became cold</span>. And so, I finally decided I had to kill the old man and <span class="voc" data-term="close-eye">close that eye forever</span>!</p>
+
+    <p>So you think that I am <span class="voc" data-term="mad">mad</span>? A <span class="voc" data-term="madman">madman</span> cannot plan. But you should have seen me. During all of that week I was as friendly to the old man as I could be, and warm, and loving.</p>
+
+    <p>Every night about twelve o&rsquo;clock I slowly opened his door. And when the door was opened wide enough I put my hand in, and then my head. In my hand I held a light covered over with a cloth so that no light showed. And I stood there quietly. Then, carefully, I lifted the cloth, just a little, so that a single, thin, small light fell across that eye. For seven nights I did this, seven long nights, every night at midnight. Always the eye was closed, so it was impossible for me to do the work. For it was not the old man I felt I had to kill; it was the eye, his <span class="voc" data-term="evil-eye">Evil Eye</span>.</p>
+
+    <p>And every morning I went to his room, and with a warm, friendly voice I asked him how he had slept. He could not <span class="voc" data-term="guess">guess</span> that every night, just at twelve, I looked in at him as he slept.</p>
+
+    <p>The eighth night I was more than usually careful as I opened the door. <span class="voc" data-term="clock-hands">The hands of a clock move more quickly than did my hand.</span> Never before had I felt so strongly my own power; I was now sure of success.</p>
+
+    <p>The old man was lying there not dreaming that I was at his door. Suddenly he moved in his bed. You may think I became afraid. But no. <span class="voc" data-term="darkness-thick">The darkness in his room was thick and black.</span> I knew he could not see the opening of the door. I continued to push the door, slowly, softly. I put in my head. I put in my hand, with the covered light. Suddenly the old man sat straight up in bed and cried, &ldquo;Who&rsquo;s there??!&rdquo;</p>
+
+    <p>I stood quite still. For a whole hour I did not move. Nor did I hear him again lie down in his bed. He just sat there, listening. Then I heard a sound, <span class="voc" data-term="cry-escaped">a low cry of fear which escaped from the old man</span>. Now I knew that he was sitting up in his bed, <span class="voc" data-term="filled-fear">filled with fear</span>; I knew that he knew that I was there. He did not see me there. He could not hear me there. He felt me there. Now he knew that <span class="voc" data-term="death-standing">Death was standing there</span>.</p>
+
+    <p>Slowly, little by little, I lifted the cloth, until a small, small light <span class="voc" data-term="escaped">escaped</span> from under it to fall upon &mdash; to fall upon that <span class="voc" data-term="vulture">vulture</span> eye! It was open &mdash; wide, wide open, and my anger <span class="voc" data-term="increase">increased</span> as it looked straight at me. I could not see the old man&rsquo;s face. Only that eye, that <span class="voc" data-term="hard-eye">hard</span> blue eye, and <span class="voc" data-term="blood-cold">the blood in my body became like ice</span>.</p>
+
+    <p>Have I not told you that my hearing had become <span class="voc" data-term="unusually">unusually</span> strong? Now I could hear a quick, low, soft sound, <span class="voc" data-term="clock-wall">like the sound of a clock heard through a wall</span>. It was the <span class="voc" data-term="beating">beating</span> of the old man&rsquo;s heart. I tried to stand quietly. But the sound grew louder. The old man&rsquo;s fear must have been great indeed. And as the sound grew louder my anger became greater and more painful. But it was more than anger. In the quiet night, in the dark <span class="voc" data-term="silence">silence</span> of the bedroom my anger became fear &mdash; for the heart was beating so loudly that I was sure some one must hear. The time had come! I rushed into the room, crying, &ldquo;Die! Die!&rdquo; The old man gave a loud cry of fear as I fell upon him and held the bedcovers tightly over his head. Still his heart was beating; but I smiled as I felt that success was near. For many minutes that heart continued to beat; but at last the beating stopped. The old man was dead. I took away the bedcovers and held my ear over his heart. There was no sound. Yes. He was dead! <span class="voc" data-term="dead-stone">Dead as a stone.</span> His eye would <span class="voc" data-term="trouble">trouble</span> me no more!</p>
+
+    <p>So I am mad, you say? You should have seen how careful I was to put the body where no one could find it. First I <span class="voc" data-term="cut-off">cut off</span> the head, then the arms and the legs. I was careful not to let a single drop of blood fall on the floor. I pulled up three of the <span class="voc" data-term="boards">boards</span> that formed the floor, and put the pieces of the body there. Then I put the boards down again, carefully, so carefully that no human eye could see that they had been moved.</p>
+
+    <p>As I finished this work I heard that someone was at the door. It was now four o&rsquo;clock in the morning, but still dark. I had no fear, however, as I went down to open the door. Three men were at the door, three officers of the police. One of the neighbors had heard the old man&rsquo;s cry and had called the police; these three had come to ask questions and to search the house.</p>
+
+    <p>I asked the policemen to come in. The cry, I said, was my own, in a dream. The old man, I said, was away; he had gone to visit a friend in the country. I took them through the whole house, telling them to search it all, to search well. I led them finally into the old man&rsquo;s bedroom. As if <span class="voc" data-term="playing-game">playing a game with them</span> I asked them to sit down and talk for a while.</p>
+
+    <p>My easy, quiet <span class="voc" data-term="manner">manner</span> made the policemen believe my story. So they sat talking with me in a friendly way. But although I answered them in the same way, I soon wished that they would go. My head hurt and there was a strange sound in my ears. I talked more, and faster. The sound became clearer. And still they sat and talked.</p>
+
+    <p>Suddenly I knew that the sound was not in my ears, it was not just inside my head. At that moment I must have become quite white. I talked still faster and louder. And the sound, too, became louder. It was a quick, low, soft sound, <span class="voc" data-term="clock-wall">like the sound of a clock heard through a wall</span>, a sound I knew well. Louder it became, and louder. Why did the men not go? Louder, louder. I stood up and walked quickly around the room. I pushed my chair across the floor to make more noise, to cover that terrible sound. I talked even louder. And still the men sat and talked, and smiled. Was it possible that they could not hear??</p>
+
+    <p>No! They heard! I was <span class="voc" data-term="certain">certain</span> of it. They knew! Now it was they who were <span class="voc" data-term="playing-game">playing a game with me</span>. I was <span class="voc" data-term="suffering">suffering</span> more than I could <span class="voc" data-term="bear">bear</span>, from their smiles, and from that sound. Louder, louder, louder! Suddenly <span class="voc" data-term="bear-no-longer">I could bear it no longer</span>. I pointed at the <span class="voc" data-term="boards">boards</span> and cried, &ldquo;Yes! Yes, I killed him. Pull up the boards and you shall see! I killed him. But why does his heart not stop beating?! Why does it not stop!?&rdquo;</p>
+
+    <p class="signature">&mdash; Edgar Allan Poe</p>
+
+  </div>
+
+  <!-- Backdrop that closes popover on outside click -->
+  <div class="backdrop" id="backdrop"></div>
+
+  <!-- Popover -->
+  <div class="popover" id="popover">
+    <div class="pop-top">
+      <div>
+        <div class="pop-label" id="pop-label">WORD</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="pop-level" id="pop-level">A2</span>
+        <button class="pop-close" id="pop-close" aria-label="Close">&#10005;</button>
+      </div>
+    </div>
+    <p class="pop-word" id="pop-word">word</p>
+    <p class="pop-def" id="pop-def">definition</p>
+    <div class="pop-ex-label">Example in another context</div>
+    <p class="pop-ex" id="pop-ex">example</p>
+  </div>
+
+  <!-- Floating font-size controls -->
+  <div class="font-menu">
+    <button id="font-inc" aria-label="Increase text size">A+</button>
+    <button id="font-reset" class="reset-btn" aria-label="Reset text size">&#8635;</button>
+    <button id="font-dec" aria-label="Decrease text size">A&minus;</button>
+  </div>
+
+<script>
+  var GLOSSARY = {
+    "mad":            { level:"B1", word:"mad",                  def:"having a mental illness, or thinking and acting in a wild, uncontrolled way", example:"Some people thought the inventor was mad because his ideas seemed so strange at first." },
+    "senses":         { level:"B1", word:"senses",                def:"the natural abilities of sight, hearing, smell, taste, and touch",            example:"After years of training, the chef's sense of taste became far more sensitive than average." },
+    "listen-narrator": { level:"Idiom", word:"Listen! Listen, and I will tell you\u2026", def:"the narrator speaks directly to the reader, as if telling the story out loud", example:"A grandmother might begin a bedtime story with, \u2018Listen, children, and I will tell you what happened long ago.\u2019" },
+    "vulture":        { level:"B1", word:"vulture",              def:"a large bird that eats the bodies of dead animals",                            example:"A vulture circled slowly above the desert, watching for anything that had died." },
+    "pull-pieces":    { level:"Idiom", word:"pull it to pieces", def:"to tear something apart violently, often used about an animal attacking prey", example:"The wolves pulled the deer to pieces within minutes." },
+    "cold-back":      { level:"Idiom", word:"a cold feeling went up and down my back", def:"a physical description of sudden fear or dread, like a shiver", example:"A cold feeling went up and down my back the moment the lights went out." },
+    "blood-cold":     { level:"Idiom", word:"my blood became cold / like ice", def:"an expression for feeling intense fear or horror",                  example:"Her blood turned to ice when she heard footsteps behind her in the empty house." },
+    "close-eye":      { level:"Idiom", word:"close that eye forever", def:"a way of saying \u201cto kill,\u201d making the idea of death sound less direct", example:"In the old story, the knight vowed to close the dragon's eye forever." },
+    "madman":         { level:"B1", word:"madman",               def:"a man who is mentally ill, or who behaves in a wild, dangerous way",           example:"Onlookers said the driver sped through town like a madman." },
+    "evil-eye":       { level:"B1+", word:"the Evil Eye",        def:"an old folk belief that an unfriendly look from someone's eye can bring bad luck or harm", example:"In some cultures, people wear a small blue charm to protect themselves from the Evil Eye." },
+    "guess":          { level:"A2", word:"guess",                def:"to give an answer or opinion without being completely sure",                  example:"I don't know the answer, but I'd guess it's around three o'clock." },
+    "clock-hands":    { level:"Idiom", word:"the hands of a clock move more quickly than did my hand", def:"a comparison used to emphasize how extremely slow and careful an action was", example:"He unwrapped the fragile gift so slowly that the hands of a clock seemed to move faster than his fingers." },
+    "darkness-thick": { level:"Idiom", word:"the darkness was thick and black", def:"a way of emphasizing total, heavy darkness, as if you could almost touch it", example:"Out in the countryside, with no streetlights at all, the darkness felt thick and black." },
+    "cry-escaped":    { level:"Idiom", word:"a low cry of fear escaped from him", def:"an involuntary sound came out of someone suddenly, without their control", example:"A small cry escaped from the boy when he saw the spider on his sleeve." },
+    "filled-fear":    { level:"Idiom", word:"filled with fear",  def:"feeling a great amount of fear",                                               example:"She was filled with fear the first time she had to speak in front of a large audience." },
+    "death-standing": { level:"Idiom", word:"Death was standing there", def:"a way of describing Death as if it were a person actually present in the room (personification)", example:"In the old painting, Death stands quietly at the edge of the battlefield, waiting." },
+    "escaped":        { level:"B1", word:"escaped",              def:"came out or got away, often suddenly and without being controlled",           example:"A little steam escaped from the lid every time the pot boiled." },
+    "increase":       { level:"B1", word:"increased",            def:"became larger, greater, or stronger",                                          example:"Ticket prices increased sharply just before the concert sold out." },
+    "hard-eye":       { level:"B1", word:"hard",                 def:"(describing a look or a person) cold, unfriendly, without warmth or sympathy", example:"She gave the rude customer a hard stare and said nothing." },
+    "unusually":      { level:"B1", word:"unusually",            def:"in a way that is different from what is normal or expected",                  example:"The traffic was unusually light for a Monday morning." },
+    "clock-wall":     { level:"Idiom", word:"like the sound of a clock heard through a wall", def:"a comparison (simile) describing a faint, steady, mysterious sound", example:"From the next room came a soft ticking, like the sound of a clock heard through a wall." },
+    "beating":        { level:"A2", word:"beating",              def:"the regular movement or sound that something, like a heart or a drum, makes", example:"You could hear the steady beating of the drums from across the festival grounds." },
+    "silence":        { level:"A2", word:"silence",              def:"complete quiet; the complete absence of sound",                                example:"The library was so silent you could hear the pages turning." },
+    "dead-stone":     { level:"Idiom", word:"dead as a stone",   def:"completely and certainly dead, with no doubt at all",                          example:"By the time the doctor arrived, the old tree in the yard was dead as a stone." },
+    "trouble":        { level:"A2", word:"trouble",              def:"to cause someone to feel worried, or to cause a problem for someone",          example:"A small noise from the engine had been troubling her for weeks before the car finally broke down." },
+    "cut-off":        { level:"B1", word:"cut off",              def:"to remove something completely by cutting",                                   example:"The gardener cut off the dead branches before winter." },
+    "boards":         { level:"A2", word:"boards",               def:"flat, thin pieces of wood, often used to build floors or walls",              example:"The old barn was made entirely of wooden boards." },
+    "playing-game":   { level:"Idiom", word:"playing a game with them", def:"trying to trick, test, or deceive someone",                              example:"The manager felt like her coworkers were playing a game with her, hiding information about the meeting." },
+    "manner":         { level:"B1", word:"manner",               def:"the way a person behaves, speaks, or does something",                         example:"The new teacher had a calm, patient manner that put the students at ease." },
+    "certain":        { level:"A2", word:"certain",              def:"completely sure, without any doubt",                                          example:"She was certain she had locked the door, but she checked twice anyway." },
+    "suffering":      { level:"B1", word:"suffering",            def:"feeling great pain or difficulty, either physically or emotionally",           example:"The team's fans have been suffering through a long losing streak this season." },
+    "bear":           { level:"B1", word:"bear",                 def:"to accept or deal with something difficult or unpleasant without giving up",  example:"He could barely bear the cold as he waited for the bus in January." },
+    "bear-no-longer": { level:"Idiom", word:"I could bear it no longer", def:"reached the point of being unable to tolerate a situation any longer, often just before losing control", example:"After hours of noisy construction next door, he could bear it no longer and knocked on their window." }
+  };
+
+  var activeSpan = null;
+
+  function positionPopover(span, pop){
+    var rect = span.getBoundingClientRect();
+    var scrollY = window.scrollY || document.documentElement.scrollTop;
+    var scrollX = window.scrollX || document.documentElement.scrollLeft;
+    var popWidth = pop.offsetWidth;
+    var popHeight = pop.offsetHeight;
+
+    var top = rect.bottom + scrollY + 14;
+    var left = rect.left + scrollX + (rect.width/2) - (popWidth/2);
+
+    var maxLeft = document.documentElement.clientWidth - popWidth - 12;
+    if(left > maxLeft) left = maxLeft;
+    if(left < 12) left = 12;
+
+    var viewportBottom = scrollY + window.innerHeight;
+    if(top + popHeight > viewportBottom - 10){
+      top = rect.top + scrollY - popHeight - 14;
+    }
+
+    pop.style.top = top + "px";
+    pop.style.left = left + "px";
+  }
+
+  function openPopover(span){
+    var id = span.getAttribute("data-term");
+    var data = GLOSSARY[id];
+    if(!data) return;
+
+    if(activeSpan) activeSpan.classList.remove("active");
+    activeSpan = span;
+    span.classList.add("active");
+
+    document.getElementById("pop-word").textContent = data.word;
+    document.getElementById("pop-def").textContent = data.def;
+    document.getElementById("pop-ex").textContent = data.example;
+    document.getElementById("pop-level").textContent = data.level;
+    document.getElementById("pop-label").textContent = "WORD / PHRASE";
+
+    var pop = document.getElementById("popover");
+    var backdrop = document.getElementById("backdrop");
+    pop.classList.add("show");
+    backdrop.classList.add("show");
+
+    positionPopover(span, pop);
+  }
+
+  function closePopover(){
+    if(activeSpan) activeSpan.classList.remove("active");
+    activeSpan = null;
+    document.getElementById("popover").classList.remove("show");
+    document.getElementById("backdrop").classList.remove("show");
+  }
+
+  document.querySelectorAll(".voc").forEach(function(span){
+    span.addEventListener("click", function(e){
+      e.stopPropagation();
+      if(activeSpan === span){ closePopover(); return; }
+      openPopover(span);
+    });
+  });
+
+  document.getElementById("backdrop").addEventListener("click", closePopover);
+  document.getElementById("pop-close").addEventListener("click", closePopover);
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") closePopover(); });
+  window.addEventListener("resize", function(){ if(activeSpan) positionPopover(activeSpan, document.getElementById("popover")); });
+  window.addEventListener("scroll", function(){ if(activeSpan) positionPopover(activeSpan, document.getElementById("popover")); }, true);
+
+  /* ---------- Font size controls ---------- */
+  var BASE_SIZE = 19, MIN_SIZE = 14, MAX_SIZE = 30, STEP = 2;
+  var currentSize = BASE_SIZE;
+
+  function applySize(){
+    document.documentElement.style.setProperty("--story-size", currentSize + "px");
+    if(activeSpan) positionPopover(activeSpan, document.getElementById("popover"));
+  }
+  document.getElementById("font-inc").addEventListener("click", function(){
+    currentSize = Math.min(MAX_SIZE, currentSize + STEP);
+    applySize();
+  });
+  document.getElementById("font-dec").addEventListener("click", function(){
+    currentSize = Math.max(MIN_SIZE, currentSize - STEP);
+    applySize();
+  });
+  document.getElementById("font-reset").addEventListener("click", function(){
+    currentSize = BASE_SIZE;
+    applySize();
+  });
+</script>
+
+</body>
+</html>

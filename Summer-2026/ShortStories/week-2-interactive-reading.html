@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Kiss — Interactive Reading</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --navy: #0C2340;
+    --navy-l: #143865;
+    --navy-d: #081629;
+    --navy-s: #D9E2F1;
+    --gold: #AE9142;
+    --gold-b: #D39F10;
+    --warm-w: #EFE9D9;
+    --paper: #FFFFFF;
+    --ink: #1A1A1A;
+    --ink-s: #3D3D3D;
+    --muted: #7A7A7A;
+    --sky: #EDF2F9;
+    --lt-gold: #F5EED2;
+    --red: #C0392B;
+    --red-s: #F8D7DA;
+    --teal: #0E6B6B;
+    --teal-s: #D0EDED;
+    --amber: #B45309;
+    --amber-s: #FEF3C7;
+    --story-size:19px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    font-family:'Calibri','Segoe UI',sans-serif;
+    color:var(--ink);
+  }
+
+  /* ---------- Header ---------- */
+  .chrome-header{
+    display:flex; align-items:center; gap:12px;
+    max-width:760px; margin:0 auto; padding:32px 24px 0 24px;
+  }
+  .monogram{
+    width:36px; height:36px; border-radius:50%;
+    border:1.5px solid var(--gold); background:var(--paper);
+    display:flex; align-items:center; justify-content:center;
+    font-family:Cambria,Georgia,serif; font-style:italic; font-weight:bold;
+    color:var(--gold); font-size:17px; flex-shrink:0;
+  }
+  .chrome-text .eyebrow{
+    font-family:Calibri,sans-serif; font-size:10px; font-weight:bold;
+    letter-spacing:3px; color:var(--navy); text-transform:uppercase;
+  }
+  .chrome-text .subline{
+    font-family:Calibri,sans-serif; font-size:10px; letter-spacing:1px;
+    color:var(--muted);
+  }
+
+  .titleblock{ max-width:760px; margin:0 auto; padding:22px 24px 18px 24px; border-bottom:2px solid var(--navy); }
+  .titleblock h1{
+    font-family:Cambria,Georgia,serif; color:var(--navy);
+    font-size:40px; margin:0 0 4px 0; font-weight:bold;
+  }
+  .titleblock h1 em{ color:var(--gold); font-style:italic; }
+  .titleblock p{
+    font-family:Cambria,Georgia,serif; font-style:italic; color:var(--ink-s);
+    font-size:16px; margin:0;
+  }
+
+  .howto{
+    max-width:760px; margin:16px auto 0 auto; padding:12px 18px;
+    background:var(--sky); border-left:4px solid var(--gold);
+    font-size:14px; color:var(--ink-s); font-family:Calibri,sans-serif;
+  }
+  .howto b{ color:var(--navy); }
+
+  /* ============================================================
+     BUTTONS
+     ============================================================ */
+  .btn {
+    font-family: var(--sans); font-size: 0.86rem; font-weight: 700; letter-spacing: 0.02em;
+    padding: 0.65rem 1.3rem; border-radius: 5px; border: 1.5px solid transparent; cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease; display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn--primary { background: var(--navy); color: var(--warm-w); }
+  .btn--primary:hover { background: var(--navy-l); }
+  .btn--gold { background: var(--gold); color: var(--navy); }
+  .btn--gold:hover { background: var(--gold-b); }
+  .btn--secondary { background: transparent; border-color: var(--navy); color: var(--navy); }
+  .btn--secondary:hover { background: var(--sky); }
+  .btn--ghost { background: transparent; color: var(--navy); }
+  .btn--ghost:hover { background: var(--sky); }
+  .btn--danger { background: var(--red); color: #fff; }
+  .btn--danger:hover { background: #a52d20; }
+  .btn--sm { padding: 0.42rem 0.9rem; font-size: 0.76rem; }
+  .btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+  a.btn { text-decoration: none; }
+
+
+  /* ---------- Story ---------- */
+  .story{
+    max-width:760px; margin:0 auto; padding:28px 24px 100px 24px;
+    font-family:Cambria,Georgia,serif;
+    font-size:var(--story-size);
+    line-height:1.75;
+    color:var(--ink);
+  }
+  .story p{ margin:0 0 1.2em 0; }
+  .story .signature{ text-align:right; font-style:italic; color:var(--ink-s); margin-top:2em; }
+
+  /* ---------- Clickable vocabulary ---------- */
+  .voc{
+    position:relative;
+    z-index:1000;
+    cursor:pointer;
+    border-bottom:2px dotted var(--gold);
+    padding-bottom:1px;
+    transition:background .15s ease;
+  }
+  .voc:hover{ background:rgba(174,145,66,0.12); }
+  .voc.active{
+    position:relative;
+    z-index:1001;
+    background:var(--paper);
+    border-radius:3px;
+    box-shadow:0 0 0 6px var(--paper), 0 0 0 9999px rgba(8,22,41,0.72);
+    border-bottom:2px solid var(--gold-b);
+  }
+
+  /* ---------- Backdrop (click to close) ---------- */
+  .backdrop{
+    display:none;
+    position:fixed; inset:0;
+    z-index:999;
+  }
+  .backdrop.show{ display:block; }
+
+  /* ---------- Popover ---------- */
+  .popover{
+    display:none;
+    position:absolute;
+    z-index:1002;
+    width:320px;
+    max-width:88vw;
+    background:var(--navy);
+    border-radius:4px;
+    box-shadow:0 12px 32px rgba(0,0,0,0.35);
+    padding:18px 20px 16px 20px;
+    font-family:Calibri,sans-serif;
+  }
+  .popover.show{ display:block; }
+  .popover .pop-top{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:8px;
+    margin-bottom:8px;
+  }
+  .popover .pop-label{
+    font-family:Consolas,monospace; font-size:9px; font-weight:bold;
+    letter-spacing:2px; color:var(--gold); text-transform:uppercase;
+  }
+  .popover .pop-level{
+    font-family:Calibri,sans-serif; font-size:9px; font-weight:bold;
+    letter-spacing:1px; color:var(--navy); background:var(--gold);
+    border-radius:20px; padding:2px 9px; white-space:nowrap;
+  }
+  .popover .pop-close{
+    background:none; border:none; color:var(--warm-w); opacity:.6;
+    font-size:16px; cursor:pointer; line-height:1; padding:0 0 0 8px;
+  }
+  .popover .pop-close:hover{ opacity:1; }
+  .popover .pop-word{
+    font-family:Cambria,Georgia,serif; font-style:italic; font-weight:bold;
+    color:var(--gold-b); font-size:22px; margin:0 0 8px 0;
+  }
+  .popover .pop-def{
+    font-family:Cambria,Georgia,serif; font-style:italic;
+    color:var(--warm-w); font-size:15px; line-height:1.5; margin:0 0 12px 0;
+  }
+  .popover .pop-ex-label{
+    font-family:Calibri,sans-serif; font-size:9px; font-weight:bold;
+    letter-spacing:2px; color:var(--gold); text-transform:uppercase;
+    border-top:1px solid rgba(239,233,217,0.2); padding-top:10px; margin-bottom:6px;
+  }
+  .popover .pop-ex{
+    font-family:Cambria,Georgia,serif; color:var(--warm-w); font-size:14px;
+    line-height:1.5; margin:0;
+  }
+  .popover .pop-arrow{
+    position:absolute; width:14px; height:14px; background:var(--navy);
+    transform:rotate(45deg);
+  }
+
+  /* ---------- Floating font-size menu ---------- */
+  .font-menu{
+    position:fixed; bottom:24px; right:24px; z-index:1003;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .font-menu button{
+    width:44px; height:44px; border-radius:50%;
+    background:var(--navy); border:1.5px solid var(--gold);
+    color:var(--gold); font-family:Calibri,sans-serif; font-weight:bold;
+    font-size:15px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.25);
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .12s ease, background .12s ease;
+  }
+  .font-menu button:hover{ background:var(--navy-d); transform:scale(1.06); }
+  .font-menu button:active{ transform:scale(0.96); }
+  .font-menu .reset-btn{ font-size:12px; }
+
+  @media (max-width:600px){
+    .titleblock h1{ font-size:30px; }
+    .story{ padding:22px 18px 110px 18px; }
+    .popover{ width:270px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="chrome-header">
+    <a href="#" onclick="history.back(); return false;" target="_blank" class="btn btn--primary" style="padding: 5px 10px;"> &#x2B05;</a>
+    <div class="monogram">A</div>
+    <div class="chrome-text">
+      <div class="eyebrow">Reading &amp; Critical Thinking</div>
+      <div class="subline">Week 02 &nbsp;·&nbsp; Interactive Reading</div>
+    </div>
+  </div>
+
+  <div class="titleblock">
+    <h1>The <em>Kiss.</em></h1>
+    <p>Anton Chekhov &nbsp;·&nbsp; Adapted Version &nbsp;·&nbsp; Unit 1: The Human Heart</p>
+  </div>
+
+  <div class="howto">
+    <b>How to use this page:</b> words and phrases with a dotted gold underline are clickable. Tap or click one to see its meaning and an example sentence. Use the buttons in the bottom-right corner to change the text size.
+  </div>
+
+  <div class="story" id="story">
+
+    <p>At eight o&rsquo;clock on the evening of May twentieth, six artillery batteries stopped for the night in the small village of Myestetchki. While the officers were busy with their horses and guns, a stranger on a horse appeared near the church. He took off his hat and said:</p>
+
+    <p>&ldquo;General von Rabbek invites you gentlemen to come and drink tea with him.&rdquo;</p>
+
+    <p>Then he turned his horse and disappeared.</p>
+
+    <p>&ldquo;What does this mean?&rdquo; the officers <span class="voc" data-term="grumbled">grumbled</span>. &ldquo;We&rsquo;re tired, and now we have to go drink tea with some general!&rdquo;</p>
+
+    <p>They remembered a similar invitation the year before. An old count had invited them to his house, fed them well, and then kept them awake all night telling long stories about his youth. Would this von Rabbek be the same? There was no way to refuse, so the officers changed their uniforms and walked together toward the general&rsquo;s house.</p>
+
+    <p>They found the house at the end of a long road lined with stone storehouses. Von Rabbek himself, a <span class="voc" data-term="distinguished">distinguished-looking</span> man of about sixty, met them at the door. He said he was very glad to see them, but he apologized &mdash; his house was already full of visiting family, so he could not offer the officers a place to sleep. His wife, a tall woman with <span class="voc" data-term="practiced-smile">a graceful, practiced smile</span>, said much the same thing. It was clear that both of them were only inviting the officers because <span class="voc" data-term="good-manners">good manners required it</span>, not because they truly wanted the company.</p>
+
+    <p>Inside, about a dozen guests sat at a long table having tea. The officers, feeling awkward, sat down among them. The shyest of them all was Ryabovitch &mdash; a small officer in glasses, with <span class="voc" data-term="sloping-shoulders">sloping shoulders</span> and thin <span class="voc" data-term="side-whiskers">side-whiskers</span>. He had always felt himself to be the least interesting man in the room, and tonight was no exception. At first he could hardly focus on anything &mdash; the faces, the lamps, the conversation all <span class="voc" data-term="blurred">blurred</span> together. Slowly, though, his eyes adjusted, and he began to notice the confident, easy manner of von Rabbek&rsquo;s family as they drew the officers into a <span class="voc" data-term="lively">lively</span> argument about which branch of the army had the easier life.</p>
+
+    <p>After tea, everyone moved to another room, where a piano began to play a waltz. Ryabovitch had never once danced in his life, and had never once put his arm around a woman&rsquo;s waist. He watched the other officers dance and felt no <span class="voc" data-term="jealousy">jealousy</span> anymore &mdash; only a quiet sadness, the kind that had become familiar to him over the years.</p>
+
+    <p>When one of von Rabbek&rsquo;s sons invited two officers to play billiards, Ryabovitch followed, simply because he had nothing else to do. But in the billiard room, no one paid him any attention, and after a while he felt he was only <span class="voc" data-term="in-the-way">in the way</span>. He decided to go back to the drawing room.</p>
+
+    <p>On the way, he took a wrong turn. He walked through several <span class="voc" data-term="unfamiliar">unfamiliar</span> rooms, and finally opened a door into complete darkness. Through a crack in a far doorway, he could see a thin line of light, and the sound of music came <span class="voc" data-term="faintly">faintly</span> from the other side. He stood still, unsure which way to go.</p>
+
+    <p>Suddenly he heard fast footsteps, and a woman&rsquo;s <span class="voc" data-term="breathless">breathless</span> voice whispered, &ldquo;At last!&rdquo; Two soft arms wrapped around his neck. A warm cheek pressed against his. He heard the small sound of a kiss.</p>
+
+    <p>Then the woman <span class="voc" data-term="gasped">gasped</span> &mdash; clearly realizing her mistake &mdash; and rushed away. Ryabovitch, just as <span class="voc" data-term="startled">startled</span>, hurried toward the light at the door.</p>
+
+    <p>When he returned to the drawing room, his hands were shaking so much that he hid them behind his back. At first he was afraid that everyone could somehow tell what had just happened to him. But no one even looked at him twice, and slowly his fear turned into something else &mdash; a strange, powerful joy that he had never felt before. His neck still seemed to <span class="voc" data-term="tingle">tingle</span> where her arms had been. He wanted to laugh, to dance, to run outside. For the first time, he forgot that he was shy and <span class="voc" data-term="unremarkable">unremarkable</span>. He even smiled so warmly at von Rabbek&rsquo;s wife that she looked at him in surprise.</p>
+
+    <p>At supper, Ryabovitch ate without noticing what was on his plate. He kept turning the mystery over in his mind. Some woman, he decided, must have been waiting in the dark for a lover, grew impatient, and <span class="voc" data-term="mistook">mistook</span> him for the man she was expecting. But who was she? He studied the faces of the young women at the table, trying to guess. He looked at one woman&rsquo;s shoulders, another&rsquo;s voice, a third&rsquo;s laugh, and tried to build the face of his mystery woman out of pieces &mdash; but no single face matched all of it. The image stayed blurred, always slipping away.</p>
+
+    <p>Later, walking home through the dark garden with the other officers, no one spoke for a while. <span class="voc" data-term="narrator-guess">Ryabovitch guessed that they were all thinking the same private thought</span>: would they, too, one day have a house like this, a family, a life <span class="voc" data-term="grand">grand</span> enough to invite strangers in for tea?</p>
+
+    <p>That night, back in his <span class="voc" data-term="quarters">quarters</span>, Ryabovitch lay in bed replaying the moment in his mind &mdash; the footsteps, the whisper, the kiss &mdash; and felt an unreasonable happiness rise in him again. His roommate Lobytko came in loudly, annoyed that his servant hadn&rsquo;t been able to find any beer, and eventually went out to search for some himself. The other roommate, Merzlyakov, a quiet and serious man, read his newspaper by candlelight and said nothing.</p>
+
+    <p>The next morning, the joy was still there. A few days later, <span class="voc" data-term="kept-to-himself">unable to keep it to himself any longer</span>, Ryabovitch told his roommates the whole story. Lobytko, who rarely believed anything, just laughed. Merzlyakov, without even looking up from his paper, said flatly, &ldquo;She must be some sort of <span class="voc" data-term="hysterical">hysterical</span> woman, throwing herself at a stranger like that.&rdquo; Ryabovitch quietly agreed, then walked away and promised himself he would never share the story again.</p>
+
+    <p>Camp life continued, day after day. But something in Ryabovitch had changed. Every morning he woke with the sense that something warm and good was in his life. In the evenings, when the other officers talked about women, <span class="voc" data-term="simile-soldier">he listened closely, as a soldier listens to stories of a battle he was once part of</span>. And whenever he joined the others on their evening outings into town, he felt strangely guilty afterward, as though he had <span class="voc" data-term="betrayed">betrayed</span> someone. In quiet moments, he thought constantly of Myestetchki &mdash; the strange horse, von Rabbek&rsquo;s tired smile, the dark room, the line of light under the door.</p>
+
+    <p>Weeks later, his unit marched back the same way, and Ryabovitch felt his heart racing with hope. Surely, he thought, he would see her again &mdash; or at least walk through that same dark room and remember. As the familiar church came into view, his heart <span class="voc" data-term="pounded">pounded</span>.</p>
+
+    <p>But this time, no messenger came riding out to invite them to tea.</p>
+
+    <p>Ryabovitch waited in his quarters, sure that word would come at any moment. It did not. Finally, unable to sit still, he walked alone to the church, then down the same path toward the river, then to the garden gate. He looked in. It was completely dark and silent. He waited a long while, hoping for a light, a voice, anything &mdash; but nothing came.</p>
+
+    <p>He walked down to the little bridge by the riverbank and stood there, looking at the water moving quickly past in the moonlight. Now that he expected nothing, the whole adventure suddenly looked small and plain to him. Of course he would never see her again. It would have been strange if he had.</p>
+
+    <p>The water flowed on beneath him, going nowhere in particular, just as it had done in May. And looking up at the sky, Ryabovitch felt, for a moment, that his whole life &mdash; his hopes, his daydreams, the kiss itself &mdash; was a kind of <span class="voc" data-term="pointless">pointless</span>, unremarkable joke. He thought of his summer of <span class="voc" data-term="daydreaming">daydreaming</span> and felt his life was plain and a little sad.</p>
+
+    <p>Back at his quarters, he learned that his roommates had gone to von Rabbek&rsquo;s &mdash; a messenger had come, after all, but only after Ryabovitch had already given up and gone home. For one instant, hope <span class="voc" data-term="flickered">flickered</span> in his chest.</p>
+
+    <p>Then he <span class="voc" data-term="pushed-down">pushed it down</span>, got into bed, and &mdash; almost <span class="voc" data-term="to-spite">to spite</span> his own bad luck &mdash; did not go.</p>
+
+    <p class="signature">&mdash; Adapted from Anton Chekhov</p>
+
+  </div>
+
+  <!-- Backdrop that closes popover on outside click -->
+  <div class="backdrop" id="backdrop"></div>
+
+  <!-- Popover -->
+  <div class="popover" id="popover">
+    <div class="pop-top">
+      <div>
+        <div class="pop-label" id="pop-label">WORD</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="pop-level" id="pop-level">A2</span>
+        <button class="pop-close" id="pop-close" aria-label="Close">&#10005;</button>
+      </div>
+    </div>
+    <p class="pop-word" id="pop-word">word</p>
+    <p class="pop-def" id="pop-def">definition</p>
+    <div class="pop-ex-label">Example in another context</div>
+    <p class="pop-ex" id="pop-ex">example</p>
+  </div>
+
+  <!-- Floating font-size controls -->
+  <div class="font-menu">
+    <button id="font-inc" aria-label="Increase text size">A+</button>
+    <button id="font-reset" class="reset-btn" aria-label="Reset text size">&#8635;</button>
+    <button id="font-dec" aria-label="Decrease text size">A&minus;</button>
+  </div>
+
+<script>
+  var GLOSSARY = {
+    "grumbled":        { level:"B1",  word:"grumbled",              def:"complained in a low, unhappy voice",                                                              example:"The kids grumbled about doing homework on a Friday night." },
+    "distinguished":   { level:"B1+", word:"distinguished-looking",  def:"looking successful, respected, and impressive",                                                  example:"A distinguished-looking gentleman in a gray suit greeted the guests at the gala." },
+    "practiced-smile": { level:"Phrase", word:"a practiced smile",   def:"a smile that looks rehearsed or automatic rather than genuinely felt",                            example:"The politician gave the cameras a practiced smile before answering the difficult question." },
+    "good-manners":    { level:"Phrase", word:"good manners required it", def:"done out of politeness or social duty, not because you truly wanted to",                    example:"He thanked his boring uncle for the gift only because good manners required it." },
+    "sloping-shoulders": { level:"B1", word:"sloping shoulders",     def:"shoulders that slant downward instead of standing straight and square",                          example:"The tailor said the jacket wouldn't fit well because of his sloping shoulders." },
+    "side-whiskers":   { level:"B1",  word:"side-whiskers",          def:"facial hair grown on the sides of a man's face, in front of the ears",                            example:"In old photographs, many Victorian gentlemen wore long side-whiskers." },
+    "blurred":         { level:"B1",  word:"blurred",                def:"became unclear or mixed together, hard to make out separately",                                  example:"Without her glasses, all the street signs blurred into shapes she couldn't read." },
+    "lively":          { level:"A2",  word:"lively",                 def:"full of energy and excitement",                                                                   example:"The market was lively on Saturday mornings, full of noise and color." },
+    "jealousy":        { level:"A2",  word:"jealousy",               def:"an unhappy feeling of wanting what someone else has",                                             example:"He felt a flash of jealousy when his friend got the promotion instead of him." },
+    "in-the-way":      { level:"Idiom", word:"in the way",           def:"blocking someone, or an inconvenient, unwanted presence",                                         example:"I felt like I was in the way at the family dinner, so I left early." },
+    "unfamiliar":      { level:"A2",  word:"unfamiliar",             def:"not known or recognized; new to you",                                                             example:"She got lost in the unfamiliar streets of the old city." },
+    "faintly":         { level:"B1",  word:"faintly",                def:"weakly; in a way that is barely possible to hear, see, or smell",                                 example:"From the kitchen, we could faintly smell something burning." },
+    "breathless":      { level:"B1",  word:"breathless",             def:"out of breath, often from running, excitement, or shock",                                         example:"She arrived breathless after running to catch the last train." },
+    "gasped":          { level:"B1",  word:"gasped",                 def:"took a sudden, sharp breath in from surprise or shock",                                           example:"The audience gasped when the magician made the box disappear." },
+    "startled":        { level:"B1",  word:"startled",               def:"suddenly surprised or slightly frightened",                                                       example:"The loud thunder startled the cat, and it jumped off the sofa." },
+    "unremarkable":    { level:"B1+", word:"unremarkable",           def:"not special, interesting, or unusual in any way",                                                 example:"The restaurant's food was unremarkable, but the service was excellent." },
+    "tingle":          { level:"B1",  word:"tingle",                 def:"a light prickling or stinging feeling on the skin",                                               example:"Her fingers began to tingle after being out in the cold too long." },
+    "mistook":         { level:"B1",  word:"mistook",                def:"wrongly believed one person or thing to be another",                                             example:"I mistook my neighbor's dog for a wolf in the dark." },
+    "narrator-guess":  { level:"Craft Note", word:"Ryabovitch guessed that they were all thinking the same private thought", def:"the narrator lets us into a character's guess about what OTHERS are silently thinking \u2014 a technique Chekhov uses instead of having characters say it aloud", example:"In many quiet stories, the narrator tells us what a character imagines others feel, without anyone actually speaking the thought." },
+    "grand":           { level:"B1",  word:"grand",                  def:"impressive because of its size, beauty, or importance",                                           example:"They got married in a grand old hotel with marble staircases." },
+    "quarters":        { level:"B1",  word:"quarters",               def:"a place where soldiers or workers live or sleep",                                                 example:"The new recruits were shown to their quarters on the base." },
+    "kept-to-himself": { level:"Idiom", word:"unable to keep it to himself", def:"couldn't stop himself from telling a secret to someone",                                  example:"She was so excited about the engagement that she couldn't keep it to herself for even a day." },
+    "hysterical":      { level:"B1+", word:"hysterical",             def:"showing extreme, uncontrolled emotion",                                                           example:"She became hysterical when she thought she had lost her passport." },
+    "simile-soldier":  { level:"Simile", word:"as a soldier listens to stories of a battle he was once part of", def:"a comparison describing someone listening with nostalgic, personal attention, as if reliving their own experience", example:"She read the old letters as a traveler studies a map of a country she once called home." },
+    "betrayed":        { level:"B1+", word:"betrayed",               def:"was disloyal or unfaithful to someone who trusted you",                                           example:"He felt he had betrayed his best friend by not telling him the truth." },
+    "pounded":         { level:"B1",  word:"pounded",                def:"(of a heart) beat strongly and quickly, often from fear or excitement",                           example:"Her heart pounded as she waited for the exam results." },
+    "pointless":       { level:"B1",  word:"pointless",              def:"having no purpose or meaning",                                                                    example:"Arguing about it now feels pointless \u2014 the decision has already been made." },
+    "daydreaming":     { level:"A2",  word:"daydreaming",            def:"imagining pleasant or interesting things while awake, not paying attention to what's around you", example:"He was daydreaming about his vacation instead of listening to the meeting." },
+    "flickered":       { level:"B1+", word:"flickered",              def:"shone unsteadily, going on and off; can also describe a feeling that appears briefly",             example:"A flicker of doubt crossed his mind before he agreed to the plan." },
+    "pushed-down":     { level:"Idiom", word:"pushed it down",       def:"suppressed or hid a feeling instead of expressing it",                                            example:"He pushed down his anger and smiled politely at the customer." },
+    "to-spite":        { level:"Idiom", word:"to spite",             def:"to do something deliberately to annoy, hurt, or oppose someone or something, even if it also hurts you", example:"She skipped the party just to spite her sister, even though she wanted to go." }
+  };
+
+  var activeSpan = null;
+
+  function positionPopover(span, pop){
+    var rect = span.getBoundingClientRect();
+    var scrollY = window.scrollY || document.documentElement.scrollTop;
+    var scrollX = window.scrollX || document.documentElement.scrollLeft;
+    var popWidth = pop.offsetWidth;
+    var popHeight = pop.offsetHeight;
+
+    var top = rect.bottom + scrollY + 14;
+    var left = rect.left + scrollX + (rect.width/2) - (popWidth/2);
+
+    var maxLeft = document.documentElement.clientWidth - popWidth - 12;
+    if(left > maxLeft) left = maxLeft;
+    if(left < 12) left = 12;
+
+    var viewportBottom = scrollY + window.innerHeight;
+    if(top + popHeight > viewportBottom - 10){
+      top = rect.top + scrollY - popHeight - 14;
+    }
+
+    pop.style.top = top + "px";
+    pop.style.left = left + "px";
+  }
+
+  function openPopover(span){
+    var id = span.getAttribute("data-term");
+    var data = GLOSSARY[id];
+    if(!data) return;
+
+    if(activeSpan) activeSpan.classList.remove("active");
+    activeSpan = span;
+    span.classList.add("active");
+
+    document.getElementById("pop-word").textContent = data.word;
+    document.getElementById("pop-def").textContent = data.def;
+    document.getElementById("pop-ex").textContent = data.example;
+    document.getElementById("pop-level").textContent = data.level;
+    document.getElementById("pop-label").textContent = "WORD / PHRASE";
+
+    var pop = document.getElementById("popover");
+    var backdrop = document.getElementById("backdrop");
+    pop.classList.add("show");
+    backdrop.classList.add("show");
+
+    positionPopover(span, pop);
+  }
+
+  function closePopover(){
+    if(activeSpan) activeSpan.classList.remove("active");
+    activeSpan = null;
+    document.getElementById("popover").classList.remove("show");
+    document.getElementById("backdrop").classList.remove("show");
+  }
+
+  document.querySelectorAll(".voc").forEach(function(span){
+    span.addEventListener("click", function(e){
+      e.stopPropagation();
+      if(activeSpan === span){ closePopover(); return; }
+      openPopover(span);
+    });
+  });
+
+  document.getElementById("backdrop").addEventListener("click", closePopover);
+  document.getElementById("pop-close").addEventListener("click", closePopover);
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") closePopover(); });
+  window.addEventListener("resize", function(){ if(activeSpan) positionPopover(activeSpan, document.getElementById("popover")); });
+  window.addEventListener("scroll", function(){ if(activeSpan) positionPopover(activeSpan, document.getElementById("popover")); }, true);
+
+  /* ---------- Font size controls ---------- */
+  var BASE_SIZE = 19, MIN_SIZE = 14, MAX_SIZE = 30, STEP = 2;
+  var currentSize = BASE_SIZE;
+
+  function applySize(){
+    document.documentElement.style.setProperty("--story-size", currentSize + "px");
+    if(activeSpan) positionPopover(activeSpan, document.getElementById("popover"));
+  }
+  document.getElementById("font-inc").addEventListener("click", function(){
+    currentSize = Math.min(MAX_SIZE, currentSize + STEP);
+    applySize();
+  });
+  document.getElementById("font-dec").addEventListener("click", function(){
+    currentSize = Math.max(MIN_SIZE, currentSize - STEP);
+    applySize();
+  });
+  document.getElementById("font-reset").addEventListener("click", function(){
+    currentSize = BASE_SIZE;
+    applySize();
+  });
+</script>
+
+</body>
+</html>

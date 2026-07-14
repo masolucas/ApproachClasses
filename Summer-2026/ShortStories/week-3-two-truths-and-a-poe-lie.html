@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Two Truths and a Poe-Lie — The Tell-Tale Heart</title>
+<style>
+  :root{
+    --navy:#0C2340;
+    --navy-l:#143865;
+    --navy-d:#081629;
+    --gold:#AE9142;
+    --gold-b:#D39F10;
+    --warm-w:#EFE9D9;
+    --paper:#FFFFFF;
+    --ink:#1A1A1A;
+    --ink-s:#3D3D3D;
+    --muted:#7A7A7A;
+    --amber:#B45309;
+    --amber-s:#FEF3C7;
+    --red:#C0392B;
+    --red-s:#F8D7DA;
+    --green:#26890C;
+    --green-s:#D4EDDA;
+    --serif:"Cambria","Georgia",serif;
+    --sans:"Calibri","Segoe UI",sans-serif;
+    --mono:"Consolas","Courier New",monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--navy);
+    color:var(--warm-w);
+    font-family:var(--serif);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px 16px;
+  }
+
+  .stage{
+    position:relative;
+    width:100%;
+    max-width:760px;
+    background:var(--navy);
+    border:1px solid rgba(174,145,66,0.35);
+    border-radius:4px;
+    padding:34px 30px 28px;
+    overflow:hidden;
+  }
+
+  /* corner brackets — gold, ApproachUSA chrome */
+  .bracket{position:absolute;background:var(--gold);}
+  .bk-tl-h{top:14px;left:14px;width:26px;height:2px;}
+  .bk-tl-v{top:14px;left:14px;width:2px;height:26px;}
+  .bk-tr-h{top:14px;right:14px;width:26px;height:2px;}
+  .bk-tr-v{top:14px;right:14px;width:2px;height:26px;}
+  .bk-bl-h{bottom:14px;left:14px;width:26px;height:2px;}
+  .bk-bl-v{bottom:14px;left:14px;width:2px;height:26px;}
+  .bk-br-h{bottom:14px;right:14px;width:26px;height:2px;}
+  .bk-br-v{bottom:14px;right:14px;width:2px;height:26px;}
+  .stage.danger .bracket{background:var(--red);}
+
+  header{
+    text-align:center;
+    margin-bottom:18px;
+  }
+  .monogram{
+    width:34px;height:34px;border-radius:50%;
+    border:1.25px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    font-style:italic;font-weight:bold;color:var(--gold);
+    margin:0 auto 10px;
+    font-size:16px;
+  }
+  .eyebrow{
+    font-family:var(--sans);
+    font-size:10px;
+    font-weight:bold;
+    letter-spacing:4px;
+    color:var(--gold);
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  h1{
+    font-family:var(--serif);
+    font-size:30px;
+    font-weight:normal;
+    margin:0 0 4px;
+    color:var(--warm-w);
+    letter-spacing:-0.5px;
+  }
+  h1 em{color:var(--gold);font-style:italic;}
+  .subtitle{
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:13.5px;
+    color:var(--warm-w);
+    opacity:0.85;
+    margin:0;
+  }
+
+  /* ECG heartbeat strip = life meter */
+  .ecg-wrap{
+    margin:20px 0 10px;
+    background:var(--navy-d);
+    border:1px solid rgba(174,145,66,0.3);
+    border-radius:3px;
+    padding:10px 12px 6px;
+  }
+  .ecg-label{
+    font-family:var(--sans);
+    font-size:8px;
+    font-weight:bold;
+    letter-spacing:3px;
+    color:var(--gold);
+    text-transform:uppercase;
+    margin-bottom:4px;
+  }
+  svg#ecg{width:100%;height:52px;display:block;}
+  .ecg-line{
+    fill:none;
+    stroke:var(--gold-b);
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+  }
+  .ecg-line.flat{stroke:var(--red);}
+  .pulse-dot{fill:var(--gold-b);}
+  .pulse-dot.flat{fill:var(--red);}
+
+  @keyframes beat{
+    0%,100%{opacity:1;}
+    50%{opacity:0.55;}
+  }
+  .beating{animation:beat 0.9s ease-in-out infinite;}
+
+  .case-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin:16px 0 4px;
+    font-family:var(--sans);
+    font-size:9px;
+    letter-spacing:2px;
+    color:var(--muted);
+    text-transform:uppercase;
+  }
+  .case-row .num{
+    font-family:var(--mono);
+    color:var(--warm-w);
+    letter-spacing:1px;
+  }
+
+  .prompt{
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:15px;
+    color:var(--warm-w);
+    margin:10px 0 16px;
+  }
+  .prompt strong{
+    font-style:normal;
+    color:var(--amber);
+    font-family:var(--sans);
+    font-size:10px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+  }
+
+  .statements{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:6px;
+  }
+  .stmt{
+    background:var(--navy-l);
+    border:1px solid rgba(239,233,217,0.14);
+    border-left:3px solid var(--amber);
+    border-radius:2px;
+    padding:13px 16px;
+    text-align:left;
+    cursor:pointer;
+    font-family:var(--serif);
+    font-size:14.5px;
+    line-height:1.45;
+    color:var(--warm-w);
+    transition:background 0.15s ease, transform 0.1s ease;
+    width:100%;
+  }
+  .stmt:hover:not(:disabled){background:#1c4a8a44;transform:translateX(2px);}
+  .stmt:focus-visible{outline:2px solid var(--gold-b);outline-offset:2px;}
+  .stmt:disabled{cursor:default;}
+  .stmt .tag{
+    font-family:var(--mono);
+    font-size:10px;
+    color:var(--gold);
+    margin-right:8px;
+  }
+
+  .stmt.correct{background:var(--green-s);color:var(--ink);border-left-color:var(--green);}
+  .stmt.correct .tag{color:var(--green);}
+  .stmt.wrong{background:var(--red-s);color:var(--ink);border-left-color:var(--red);}
+  .stmt.wrong .tag{color:var(--red);}
+  .stmt.reveal-lie{background:var(--red-s);color:var(--ink);border-left-color:var(--red);}
+  .stmt.reveal-lie .tag{color:var(--red);}
+
+  .feedback{
+    min-height:44px;
+    font-family:var(--sans);
+    font-size:12.5px;
+    letter-spacing:0.3px;
+    color:var(--warm-w);
+    margin:10px 0 4px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .feedback .badge{
+    font-family:var(--mono);
+    font-size:9px;
+    letter-spacing:2px;
+    padding:3px 8px;
+    border-radius:2px;
+    text-transform:uppercase;
+  }
+  .badge.caught{background:var(--green);color:#fff;}
+  .badge.missed{background:var(--red);color:#fff;}
+
+  .next-btn{
+    display:block;
+    margin:14px auto 0;
+    background:var(--gold);
+    color:var(--navy-d);
+    border:none;
+    font-family:var(--sans);
+    font-weight:bold;
+    font-size:10px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    padding:11px 26px;
+    border-radius:2px;
+    cursor:pointer;
+  }
+  .next-btn:hover{background:var(--gold-b);}
+  .next-btn:focus-visible{outline:2px solid var(--warm-w);outline-offset:2px;}
+
+  .end-screen{
+    text-align:center;
+    padding:20px 0 6px;
+  }
+  .end-screen .verdict{
+    font-family:var(--serif);
+    font-size:44px;
+    letter-spacing:-1px;
+    margin:6px 0 10px;
+  }
+  .end-screen.busted .verdict{color:var(--gold);}
+  .end-screen.closed .verdict{color:var(--red);}
+  .end-screen .sub{
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:14px;
+    color:var(--warm-w);
+    opacity:0.9;
+    max-width:480px;
+    margin:0 auto 18px;
+    line-height:1.5;
+  }
+  .end-screen .score{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:2px;
+    color:var(--muted);
+    margin-bottom:18px;
+    text-transform:uppercase;
+  }
+  .end-screen .score b{color:var(--warm-w);}
+
+  footer{
+    margin-top:22px;
+    display:flex;
+    justify-content:space-between;
+    font-family:var(--sans);
+    font-size:8px;
+    letter-spacing:3px;
+    color:var(--gold);
+    font-weight:bold;
+    text-transform:uppercase;
+  }
+  footer .num{
+    font-family:var(--mono);
+    font-size:9px;
+    color:var(--muted);
+    letter-spacing:1px;
+    font-weight:normal;
+  }
+
+  .sr-only{position:absolute;left:-9999px;}
+
+  @media (prefers-reduced-motion:reduce){
+    .beating{animation:none;}
+  }
+
+  @media (max-width:480px){
+    h1{font-size:24px;}
+    .stage{padding:26px 18px 22px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <div class="bracket bk-tl-h"></div><div class="bracket bk-tl-v"></div>
+  <div class="bracket bk-tr-h"></div><div class="bracket bk-tr-v"></div>
+  <div class="bracket bk-bl-h"></div><div class="bracket bk-bl-v"></div>
+  <div class="bracket bk-br-h"></div><div class="bracket bk-br-v"></div>
+
+  <header>
+    <img style="height: 90px;" src="https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/54a606b9-2167-4b76-b3c8-53a5dace1296/deconf9-34b67b2d-07d9-44ff-9b5f-45dc733c47ba.gif?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiIvZi81NGE2MDZiOS0yMTY3LTRiNzYtYjNjOC01M2E1ZGFjZTEyOTYvZGVjb25mOS0zNGI2N2IyZC0wN2Q5LTQ0ZmYtOWI1Zi00NWRjNzMzYzQ3YmEuZ2lmIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.FUj6HFyQ7yfXRdK8J7AQ4Zj2lnaFc9wDFqoJ9QOcOMM">
+    <div class="eyebrow">Two Truths and a Poe-Lie</div>
+    <h1>The Tell-Tale <em>Heart.</em></h1>
+    <p class="subtitle">Catch the narrator's lies before your heartbeats run out.</p>
+  </header>
+
+  <div class="ecg-wrap">
+    <div class="ecg-label">Heartbeats Remaining</div>
+    <svg id="ecg" viewBox="0 0 600 60" preserveAspectRatio="none" aria-hidden="true"></svg>
+  </div>
+
+  <div id="game-area"></div>
+
+  <footer>
+    <span>Case File · Justice &amp; Morality</span>
+    <span class="num" id="footer-progress">ROUND 01 / 06</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+
+  // ---- Round data (grounded in the adapted classroom text) ----
+  var rounds = [
+    {
+      title: "The Motive",
+      statements: [
+        "I did not hate the old man, and I did not want his money.",
+        "I had hated the old man for many years before that night.",
+        "It was his vulture-like eye that I could not bear to look at."
+      ],
+      lieIndex: 1,
+      reveal: "The narrator insists he did NOT hate the old man at all — the eye, not old hatred, is his stated reason."
+    },
+    {
+      title: "The Watching",
+      statements: [
+        "For seven nights, he opened the old man's door at midnight to look at the eye.",
+        "Every night, the eye was closed, so he could not do the work.",
+        "On the fourth night, he found the eye open and killed him right away."
+      ],
+      lieIndex: 2,
+      reveal: "The eye stayed closed for seven straight nights. He didn't act until the eighth."
+    },
+    {
+      title: "The Eighth Night",
+      statements: [
+        "On the eighth night, the old man sat up and cried, \"Who's there?\"",
+        "The old man jumped out of bed and ran to the door for help.",
+        "The narrator stood without moving for a whole hour."
+      ],
+      lieIndex: 1,
+      reveal: "The old man never got up — he just sat frozen in fear, listening, while the narrator waited in the dark."
+    },
+    {
+      title: "After the Deed",
+      statements: [
+        "He held the bedcovers tightly over the old man until his heart stopped.",
+        "He cut the body into pieces and hid them beneath the floorboards.",
+        "He carried the body out to the garden and buried it before sunrise."
+      ],
+      lieIndex: 2,
+      reveal: "There was no garden burial — the body stayed in the house, hidden under three floorboards."
+    },
+    {
+      title: "The Police at the Door",
+      statements: [
+        "A neighbor heard a cry in the night and reported it to the police.",
+        "He invited the three officers inside and let them search the whole house.",
+        "He refused to open the door, so the police broke it down."
+      ],
+      lieIndex: 2,
+      reveal: "He opened the door himself, calm and friendly, and led the search — that composure is the whole point of the scene."
+    },
+    {
+      title: "The Confession",
+      statements: [
+        "He brought the officers into the old man's room and asked them to sit down.",
+        "He began to hear a low, quick sound that grew louder and louder.",
+        "He quietly slipped out the back door before the officers noticed."
+      ],
+      lieIndex: 2,
+      reveal: "He never left the room. The sound (real or imagined) drove him to scream out a full confession instead."
+    }
+  ];
+
+  var TOTAL_LIVES = 3;
+  var lives = TOTAL_LIVES;
+  var round = 0;
+  var caught = 0;
+
+  var gameArea = document.getElementById("game-area");
+  var stage = document.getElementById("stage");
+  var footerProgress = document.getElementById("footer-progress");
+  var ecgSvg = document.getElementById("ecg");
+
+  function drawECG(){
+    // three heartbeat segments across the strip; lost lives render flat/red
+    var segW = 200;
+    var pathParts = [];
+    var dots = [];
+    for (var i = 0; i < TOTAL_LIVES; i++){
+      var x0 = i * segW;
+      var alive = i < lives;
+      if (alive){
+        pathParts.push(
+          "M" + x0 + ",30 L" + (x0+30) + ",30 L" + (x0+45) + ",8 L" + (x0+60) + ",52 L" + (x0+75) + ",22 L" + (x0+90) + ",30 L" + (x0+segW) + ",30"
+        );
+      } else {
+        pathParts.push("M" + x0 + ",30 L" + (x0+segW) + ",30");
+      }
+      dots.push({x:x0+45, y:30, alive:alive});
+    }
+    var html = "";
+    pathParts.forEach(function(d, i){
+      var isAlive = i < lives;
+      html += '<path class="ecg-line' + (isAlive ? " beating" : " flat") + '" d="' + d + '"></path>';
+    });
+    dots.forEach(function(d){
+      html += '<circle class="pulse-dot' + (d.alive ? "" : " flat") + '" cx="' + d.x + '" cy="' + d.y + '" r="3"></circle>';
+    });
+    ecgSvg.innerHTML = html;
+  }
+
+  function renderRound(){
+    if (round >= rounds.length){
+      renderEnd("busted");
+      return;
+    }
+    if (lives <= 0){
+      renderEnd("closed");
+      return;
+    }
+
+    var r = rounds[round];
+    footerProgress.textContent = "ROUND " + String(round+1).padStart(2,"0") + " / " + String(rounds.length).padStart(2,"0");
+
+    var html = '';
+    html += '<div class="case-row"><span>Case File</span><span class="num">' + String(round+1).padStart(2,"0") + '</span></div>';
+    html += '<p class="prompt"><strong>' + r.title + '</strong><br>Two of these are true. One is the narrator\'s lie. Which one?</p>';
+    html += '<div class="statements" id="stmt-list">';
+    r.statements.forEach(function(s, i){
+      html += '<button class="stmt" data-index="' + i + '"><span class="tag">' + String.fromCharCode(65+i) + '</span>' + s + '</button>';
+    });
+    html += '</div>';
+    html += '<div class="feedback" id="feedback"></div>';
+
+    gameArea.innerHTML = html;
+    drawECG();
+
+    var buttons = gameArea.querySelectorAll(".stmt");
+    buttons.forEach(function(btn){
+      btn.addEventListener("click", function(){
+        handleGuess(parseInt(btn.getAttribute("data-index"), 10), buttons, r);
+      });
+    });
+  }
+
+  function handleGuess(index, buttons, r){
+    buttons.forEach(function(b){ b.disabled = true; });
+    var feedback = document.getElementById("feedback");
+    var correct = index === r.lieIndex;
+
+    buttons[r.lieIndex].classList.add(correct ? "correct" : "reveal-lie");
+    if (!correct){
+      buttons[index].classList.add("wrong");
+    }
+
+    if (correct){
+      caught++;
+      feedback.innerHTML = '<span class="badge caught">Caught</span> ' + r.reveal;
+    } else {
+      lives--;
+      stage.classList.toggle("danger", lives === 0);
+      feedback.innerHTML = '<span class="badge missed">Missed</span> ' + r.reveal;
+      drawECG();
+    }
+
+    var btn = document.createElement("button");
+    btn.className = "next-btn";
+    btn.textContent = (round + 1 >= rounds.length) ? "Close the Case File" : "Next Case File →";
+    btn.addEventListener("click", function(){
+      round++;
+      renderRound();
+    });
+    gameArea.appendChild(btn);
+  }
+
+  function renderEnd(result){
+    stage.classList.remove("danger");
+    footerProgress.textContent = "CASE " + (result === "busted" ? "CLOSED" : "UNSOLVED");
+    var html = '';
+    if (result === "busted"){
+      html += '<div class="end-screen busted">';
+      html += '<div class="verdict">Busted!</div>';
+      html += '<p class="sub">You caught every lie the narrator told. His calm, careful voice couldn\'t hide the truth from you — which is exactly the kind of close reading Poe is testing his readers with.</p>';
+      html += '<div class="score">Evidence gathered: <b>' + caught + ' / ' + rounds.length + '</b> &nbsp;·&nbsp; Heartbeats left: <b>' + lives + ' / ' + TOTAL_LIVES + '</b></div>';
+    } else {
+      html += '<div class="end-screen closed">';
+      html += '<div class="verdict">Case Closed.</div>';
+      html += '<p class="sub">The narrator\'s calm voice was convincing enough to fool you three times. That\'s the trap of an unreliable narrator — he sounds sane precisely because he insists on it so much.</p>';
+      html += '<div class="score">Evidence gathered: <b>' + caught + ' / ' + rounds.length + '</b> before your heartbeats ran out</div>';
+    }
+    html += '<button class="next-btn" id="restart-btn">Reopen the Case</button>';
+    html += '</div>';
+    gameArea.innerHTML = html;
+    ecgSvg.innerHTML = '<path class="ecg-line flat" d="M0,30 L600,30"></path>';
+    document.getElementById("restart-btn").addEventListener("click", function(){
+      lives = TOTAL_LIVES;
+      round = 0;
+      caught = 0;
+      renderRound();
+    });
+  }
+
+  renderRound();
+})();
+</script>
+
+</body>
+</html>
