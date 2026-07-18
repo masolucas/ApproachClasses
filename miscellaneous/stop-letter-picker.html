@@ -66,6 +66,15 @@
     margin-bottom: 28px;
   }
 
+  .game-area{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap: 36px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
   .stage{
     position:relative;
     width: min(360px, 82vw);
@@ -73,8 +82,97 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    margin-bottom: 28px;
+    margin-bottom: 20px;
   }
+
+  .timer-panel{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap: 14px;
+    width: 168px;
+  }
+
+  .timer-ring-wrap{
+    position:relative;
+    width: 150px;
+    height: 150px;
+  }
+
+  .timer-ring-wrap svg{
+    width:100%;
+    height:100%;
+    transform: rotate(-90deg);
+  }
+
+  .timer-ring-bg{
+    fill:none;
+    stroke: #e7dfcb;
+    stroke-width: 9;
+  }
+
+  .timer-ring-fg{
+    fill:none;
+    stroke: var(--gold);
+    stroke-width: 9;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.25s linear, stroke 0.25s ease;
+  }
+
+  .timer-ring-fg.low{ stroke: var(--stop-red); }
+
+  #timer-number{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family: Cambria, Georgia, serif;
+    font-weight:bold;
+    font-size: 40px;
+    color: var(--navy);
+  }
+
+  #timer-number.low{ color: var(--stop-red); }
+
+  .timer-durations{
+    display:flex;
+    gap:8px;
+  }
+
+  .duration-btn{
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1.5px solid var(--navy);
+    background: transparent;
+    color: var(--navy);
+    font-size: 13px;
+    cursor:pointer;
+  }
+
+  .duration-btn.active{
+    background: var(--navy);
+    color: var(--gold-light);
+  }
+
+  .timer-actions{
+    display:flex;
+    gap:8px;
+    width:100%;
+  }
+
+  .timer-actions button{
+    flex:1;
+    padding: 8px 6px;
+    border-radius: 4px;
+    border: 1.5px solid var(--navy);
+    background: transparent;
+    color: var(--navy);
+    font-size: 13px;
+    cursor:pointer;
+  }
+
+  .timer-actions button:hover{ background: rgba(15,35,64,0.06); }
 
   #sign-svg{
     width:100%;
@@ -181,7 +279,7 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:14px;
+    font-size:12px;
     font-weight:bold;
     background: #ece4d0;
     color:#8a8272;
@@ -260,23 +358,93 @@
     line-height:1;
   }
 
+  /* time's up flash */
+  .stop-flash{
+    position:fixed;
+    inset:0;
+    background: var(--stop-red);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index: 200;
+    cursor:pointer;
+  }
+
+  .stop-flash.open{
+    display:flex;
+    animation: flash-in 0.25s ease;
+  }
+
+  .stop-flash-text{
+    font-family: Cambria, Georgia, serif;
+    font-weight:bold;
+    color:#ffffff;
+    font-size: min(22vw, 180px);
+    letter-spacing: 4px;
+    animation: pulse 0.7s ease-in-out infinite;
+  }
+
+  .stop-flash-hint{
+    position:absolute;
+    bottom: 40px;
+    color: rgba(255,255,255,0.85);
+    font-size: 15px;
+  }
+
+  @keyframes flash-in{
+    from{ opacity:0; }
+    to{ opacity:1; }
+  }
+
+  @keyframes pulse{
+    0%, 100%{ transform: scale(1); }
+    50%{ transform: scale(1.06); }
+  }
+
   @media (max-width: 420px){
     h1{ font-size: 26px; }
     #letter-text{ font-size: 120px; }
+    .timer-panel{ width: 150px; }
   }
 </style>
 </head>
 <body>
 
-  <div class="brand" style="margin-left: auto;"><div class="bracket"></div><span>ApproachUSA</span></div>
-  <h1 style="margin-left: auto;">STOP!</h1>
+  <div class="brand" style="margin-right: auto;"><div class="bracket"></div><span>ApproachUSA</span></div>
+  <h1 style="margin-right: auto;">STOP!</h1>
 
-  <div class="stage">
-    <svg id="sign-svg" viewBox="0 0 300 300">
-      <polygon class="octagon" points="93,10 207,10 290,93 290,207 207,290 93,290 10,207 10,93"></polygon>
-      <polygon class="octagon-inner" points="100,22 200,22 278,100 278,200 200,278 100,278 22,200 22,100"></polygon>
-      <text id="letter-text" x="150" y="158">?</text>
-    </svg>
+  <div class="game-area">
+    <div class="stage">
+      <svg id="sign-svg" viewBox="0 0 300 300">
+        <polygon class="octagon" points="93,10 207,10 290,93 290,207 207,290 93,290 10,207 10,93"></polygon>
+        <polygon class="octagon-inner" points="100,22 200,22 278,100 278,200 200,278 100,278 22,200 22,100"></polygon>
+        <text id="letter-text" x="150" y="158">?</text>
+      </svg>
+    </div>
+
+    <div class="timer-panel">
+      <div class="timer-ring-wrap">
+        <svg viewBox="0 0 150 150">
+          <circle class="timer-ring-bg" cx="75" cy="75" r="65"></circle>
+          <circle class="timer-ring-fg" id="timer-ring-fg" cx="75" cy="75" r="65"></circle>
+        </svg>
+        <div id="timer-number">90</div>
+      </div>
+      <div class="timer-durations">
+        <button class="duration-btn" data-secs="60">60s</button>
+        <button class="duration-btn active" data-secs="90">90s</button>
+        <button class="duration-btn" data-secs="120">120s</button>
+      </div>
+      <div class="timer-actions">
+        <button id="timer-toggle-btn">Start</button>
+        <button id="timer-reset-btn">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="stop-flash" id="stop-flash">
+    <div class="stop-flash-text">STOP!</div>
+    <div class="stop-flash-hint">Tap anywhere to dismiss</div>
   </div>
 
   <div class="controls">
@@ -298,8 +466,8 @@
       <h2>How to play STOP!</h2>
       <ul>
         <li><strong>Draw a letter.</strong> Tap the button — a letter appears on the sign.</li>
-        <li><strong>Write fast.</strong> Everyone writes one word for each category on the worksheet that starts with that letter. You have 60–90 seconds.</li>
-        <li><strong>Call "Stop!"</strong> The first student to finish every category calls "Stop!" and everyone puts their pens down.</li>
+        <li><strong>Write fast.</strong> Everyone writes one word for each category on the worksheet that starts with that letter. The timer on the right starts automatically — pick 60, 90, or 120 seconds before you draw.</li>
+        <li><strong>Call "Stop!"</strong> When the timer hits zero the screen flashes red — that's everyone's cue to put pens down (or call "Stop!" early if someone finishes first).</li>
         <li><strong>Score it.</strong> 20 points for a valid, unique word. 10 points if someone else wrote the same word. 0 points for a blank or invalid answer.</li>
         <li><strong>Next round.</strong> Draw a new letter and repeat. Letters already used are marked below the sign so no round repeats until every letter has had a turn.</li>
       </ul>
@@ -320,8 +488,111 @@
   const excludeHard = document.getElementById("exclude-hard");
   const usedTrack = document.getElementById("used-track");
 
+  const timerNumber = document.getElementById("timer-number");
+  const timerRingFg = document.getElementById("timer-ring-fg");
+  const timerToggleBtn = document.getElementById("timer-toggle-btn");
+  const timerResetBtn = document.getElementById("timer-reset-btn");
+  const durationBtns = document.querySelectorAll(".duration-btn");
+  const stopFlash = document.getElementById("stop-flash");
+
+  const RING_RADIUS = 65;
+  const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+  timerRingFg.style.strokeDasharray = String(RING_CIRCUMFERENCE);
+
   let usedLetters = new Set();
   let spinning = false;
+
+  let timerDuration = 90;
+  let timerRemaining = 90;
+  let timerHandle = null;
+  let timerRunning = false;
+
+  function updateTimerDisplay(){
+    timerNumber.textContent = timerRemaining;
+    const fraction = timerRemaining / timerDuration;
+    const offset = RING_CIRCUMFERENCE * (1 - fraction);
+    timerRingFg.style.strokeDashoffset = String(offset);
+    const isLow = timerRemaining <= 10;
+    timerNumber.classList.toggle("low", isLow);
+    timerRingFg.classList.toggle("low", isLow);
+  }
+
+  function setTimerDuration(secs){
+    timerDuration = secs;
+    timerRemaining = secs;
+    durationBtns.forEach(b => b.classList.toggle("active", Number(b.dataset.secs) === secs));
+    updateTimerDisplay();
+  }
+
+  function startTimer(){
+    if (timerRunning || timerRemaining <= 0) return;
+    timerRunning = true;
+    timerToggleBtn.textContent = "Pause";
+    timerHandle = setInterval(() => {
+      timerRemaining--;
+      updateTimerDisplay();
+      if (timerRemaining <= 0){
+        clearInterval(timerHandle);
+        timerRunning = false;
+        timerToggleBtn.textContent = "Start";
+        playStopBeep();
+        openStopFlash();
+      }
+    }, 1000);
+  }
+
+  function pauseTimer(){
+    clearInterval(timerHandle);
+    timerRunning = false;
+    timerToggleBtn.textContent = "Start";
+  }
+
+  function resetTimer(secs){
+    clearInterval(timerHandle);
+    timerRunning = false;
+    timerToggleBtn.textContent = "Start";
+    timerRemaining = secs !== undefined ? secs : timerDuration;
+    updateTimerDisplay();
+  }
+
+  function openStopFlash(){
+    stopFlash.classList.add("open");
+  }
+  function closeStopFlash(){
+    stopFlash.classList.remove("open");
+  }
+
+  function playStopBeep(){
+    try{
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const times = [0, 0.22, 0.44];
+      times.forEach(t => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "square";
+        osc.frequency.value = 880;
+        gain.gain.value = 0.15;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + t);
+        osc.stop(ctx.currentTime + t + 0.16);
+      });
+    } catch(e){}
+  }
+
+  timerToggleBtn.addEventListener("click", () => {
+    if (timerRunning) pauseTimer(); else startTimer();
+  });
+  timerResetBtn.addEventListener("click", () => resetTimer());
+  durationBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      pauseTimer();
+      setTimerDuration(Number(btn.dataset.secs));
+    });
+  });
+  stopFlash.addEventListener("click", closeStopFlash);
+
+  updateTimerDisplay();
 
   function activeLetterPool(){
     return ALL_LETTERS.filter(l => !(excludeHard.checked && HARD_LETTERS.has(l)));
@@ -365,6 +636,9 @@
         renderTrack();
         spinning = false;
         drawBtn.disabled = false;
+        closeStopFlash();
+        resetTimer(timerDuration);
+        startTimer();
       }
     }, 60);
   }
