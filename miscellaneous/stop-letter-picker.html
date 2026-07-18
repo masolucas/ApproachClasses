@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STOP! Letter Picker — ApproachUSA</title>
+<style>
+  :root{
+    --navy:#0f2340;
+    --navy-light:#1a3459;
+    --gold:#c9a24b;
+    --gold-light:#e0c383;
+    --cream:#faf6ee;
+    --stop-red:#c8102e;
+    --stop-red-dark:#9c0c22;
+    --ink:#1a1a1a;
+  }
+
+  * { box-sizing: border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background: var(--cream);
+    font-family: Calibri, "Segoe UI", Arial, sans-serif;
+    color: var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding: 32px 16px 56px;
+  }
+
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom: 6px;
+  }
+
+  .brand .bracket{
+    width:10px; height:10px;
+    border-top:3px solid var(--gold);
+    border-left:3px solid var(--gold);
+  }
+
+  .brand span{
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 13px;
+    color: var(--navy-light);
+    font-weight: bold;
+  }
+
+  h1{
+    font-family: Cambria, Georgia, serif;
+    color: var(--navy);
+    font-size: 34px;
+    margin: 4px 0 2px;
+    letter-spacing: 0.5px;
+  }
+
+  .subtitle{
+    color:#5a5142;
+    font-style: italic;
+    font-size: 15px;
+    margin-bottom: 28px;
+  }
+
+  .stage{
+    position:relative;
+    width: min(360px, 82vw);
+    aspect-ratio: 1 / 1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom: 28px;
+  }
+
+  #sign-svg{
+    width:100%;
+    height:100%;
+    filter: drop-shadow(0 10px 22px rgba(15,35,64,0.25));
+  }
+
+  .octagon{
+    fill: var(--stop-red);
+    stroke: #ffffff;
+    stroke-width: 6;
+  }
+
+  .octagon-inner{
+    fill:none;
+    stroke:#ffffff;
+    stroke-width: 2.5;
+  }
+
+  #letter-text{
+    font-family: Cambria, Georgia, serif;
+    font-weight: bold;
+    fill: #ffffff;
+    font-size: 150px;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+
+  #letter-text.spinning{
+    animation: flicker 0.06s linear infinite;
+  }
+
+  @keyframes flicker{
+    0%{ opacity:1; }
+    50%{ opacity:0.55; }
+    100%{ opacity:1; }
+  }
+
+  .controls{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap: 16px;
+    width: min(360px, 82vw);
+  }
+
+  button.primary{
+    width:100%;
+    padding: 16px 20px;
+    background: var(--navy);
+    color: var(--gold-light);
+    border: none;
+    border-radius: 4px;
+    font-family: Cambria, Georgia, serif;
+    font-size: 19px;
+    letter-spacing: 0.5px;
+    cursor:pointer;
+    transition: transform 0.12s ease, background 0.15s ease;
+  }
+
+  button.primary:hover{ background: var(--navy-light); }
+  button.primary:active{ transform: scale(0.98); }
+
+  button.primary:disabled{
+    opacity:0.6;
+    cursor:default;
+    transform:none;
+  }
+
+  .row{
+    display:flex;
+    gap:12px;
+    width:100%;
+  }
+
+  button.secondary{
+    flex:1;
+    padding: 11px 14px;
+    background: transparent;
+    color: var(--navy);
+    border: 1.5px solid var(--navy);
+    border-radius: 4px;
+    font-family: Calibri, Arial, sans-serif;
+    font-size: 14px;
+    cursor:pointer;
+  }
+
+  button.secondary:hover{ background: rgba(15,35,64,0.06); }
+
+  .used-track{
+    width:100%;
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    justify-content:center;
+    margin-top:4px;
+    min-width: 420px;
+  }
+
+  .used-letter{
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:14px;
+    font-weight:bold;
+    background: #ece4d0;
+    color:#8a8272;
+  }
+
+  .used-letter.done{
+    background: var(--gold);
+    color: var(--navy);
+  }
+
+  label.toggle{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    color:#5a5142;
+    margin-top: 2px;
+    cursor:pointer;
+  }
+
+  /* modal */
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    background: rgba(15,35,64,0.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding: 20px;
+    z-index: 100;
+  }
+
+  .modal-overlay.open{ display:flex; }
+
+  .modal{
+    background: var(--cream);
+    border-radius: 6px;
+    max-width: 460px;
+    width:100%;
+    max-height: 80vh;
+    overflow-y:auto;
+    padding: 28px 26px 26px;
+    position:relative;
+    border-top: 5px solid var(--gold);
+  }
+
+  .modal h2{
+    font-family: Cambria, Georgia, serif;
+    color: var(--navy);
+    margin: 0 0 14px;
+    font-size: 24px;
+  }
+
+  .modal p, .modal li{
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
+  .modal ul{
+    margin: 0 0 14px;
+    padding-left: 20px;
+  }
+
+  .modal ul li{ margin-bottom: 8px; }
+
+  .modal .close-btn{
+    position:absolute;
+    top:16px;
+    right:16px;
+    background:none;
+    border:none;
+    font-size: 22px;
+    color: var(--navy);
+    cursor:pointer;
+    line-height:1;
+  }
+
+  @media (max-width: 420px){
+    h1{ font-size: 26px; }
+    #letter-text{ font-size: 120px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="brand" style="margin-left: auto;"><div class="bracket"></div><span>ApproachUSA</span></div>
+  <h1 style="margin-left: auto;">STOP!</h1>
+
+  <div class="stage">
+    <svg id="sign-svg" viewBox="0 0 300 300">
+      <polygon class="octagon" points="93,10 207,10 290,93 290,207 207,290 93,290 10,207 10,93"></polygon>
+      <polygon class="octagon-inner" points="100,22 200,22 278,100 278,200 200,278 100,278 22,200 22,100"></polygon>
+      <text id="letter-text" x="150" y="158">?</text>
+    </svg>
+  </div>
+
+  <div class="controls">
+    <button class="primary" id="draw-btn">Draw a letter</button>
+    <div class="row">
+      <button class="secondary" id="rules-btn">Game rules</button>
+      <button class="secondary" id="reset-btn">Reset letters</button>
+    </div>
+    <label class="toggle">
+      <input type="checkbox" id="exclude-hard" checked>
+      Skip tricky letters (Q, X, Z)
+    </label>
+    <div class="used-track" id="used-track"></div>
+  </div>
+
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <button class="close-btn" id="modal-close" aria-label="Close rules">&times;</button>
+      <h2>How to play STOP!</h2>
+      <ul>
+        <li><strong>Draw a letter.</strong> Tap the button — a letter appears on the sign.</li>
+        <li><strong>Write fast.</strong> Everyone writes one word for each category on the worksheet that starts with that letter. You have 60–90 seconds.</li>
+        <li><strong>Call "Stop!"</strong> The first student to finish every category calls "Stop!" and everyone puts their pens down.</li>
+        <li><strong>Score it.</strong> 20 points for a valid, unique word. 10 points if someone else wrote the same word. 0 points for a blank or invalid answer.</li>
+        <li><strong>Next round.</strong> Draw a new letter and repeat. Letters already used are marked below the sign so no round repeats until every letter has had a turn.</li>
+      </ul>
+      <p>Tip: turn off "Skip tricky letters" for higher-level classes who are ready for Q, X, and Z.</p>
+    </div>
+  </div>
+
+<script>
+  const ALL_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+  const HARD_LETTERS = new Set(["Q","X","Z"]);
+
+  const letterText = document.getElementById("letter-text");
+  const drawBtn = document.getElementById("draw-btn");
+  const rulesBtn = document.getElementById("rules-btn");
+  const resetBtn = document.getElementById("reset-btn");
+  const modalOverlay = document.getElementById("modal-overlay");
+  const modalClose = document.getElementById("modal-close");
+  const excludeHard = document.getElementById("exclude-hard");
+  const usedTrack = document.getElementById("used-track");
+
+  let usedLetters = new Set();
+  let spinning = false;
+
+  function activeLetterPool(){
+    return ALL_LETTERS.filter(l => !(excludeHard.checked && HARD_LETTERS.has(l)));
+  }
+
+  function renderTrack(){
+    const pool = activeLetterPool();
+    usedTrack.innerHTML = "";
+    pool.forEach(l => {
+      const el = document.createElement("div");
+      el.className = "used-letter" + (usedLetters.has(l) ? " done" : "");
+      el.textContent = l;
+      usedTrack.appendChild(el);
+    });
+  }
+
+  function pickLetter(){
+    if (spinning) return;
+    let pool = activeLetterPool().filter(l => !usedLetters.has(l));
+    if (pool.length === 0){
+      usedLetters = new Set();
+      pool = activeLetterPool();
+    }
+    const finalLetter = pool[Math.floor(Math.random() * pool.length)];
+
+    spinning = true;
+    drawBtn.disabled = true;
+    letterText.classList.add("spinning");
+
+    const allForSpin = activeLetterPool();
+    let ticks = 0;
+    const maxTicks = 14;
+    const interval = setInterval(() => {
+      letterText.textContent = allForSpin[Math.floor(Math.random() * allForSpin.length)];
+      ticks++;
+      if (ticks >= maxTicks){
+        clearInterval(interval);
+        letterText.textContent = finalLetter;
+        letterText.classList.remove("spinning");
+        usedLetters.add(finalLetter);
+        renderTrack();
+        spinning = false;
+        drawBtn.disabled = false;
+      }
+    }, 60);
+  }
+
+  function openModal(){
+    modalOverlay.classList.add("open");
+  }
+  function closeModal(){
+    modalOverlay.classList.remove("open");
+  }
+
+  drawBtn.addEventListener("click", pickLetter);
+  rulesBtn.addEventListener("click", openModal);
+  modalClose.addEventListener("click", closeModal);
+  modalOverlay.addEventListener("click", (e) => {
+    if (e.target === modalOverlay) closeModal();
+  });
+  resetBtn.addEventListener("click", () => {
+    usedLetters = new Set();
+    letterText.textContent = "?";
+    renderTrack();
+  });
+  excludeHard.addEventListener("change", () => {
+    usedLetters = new Set();
+    letterText.textContent = "?";
+    renderTrack();
+  });
+
+  renderTrack();
+</script>
+
+</body>
+</html>
