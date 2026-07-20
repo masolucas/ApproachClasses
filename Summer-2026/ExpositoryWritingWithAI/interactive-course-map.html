@@ -311,12 +311,12 @@
    ================================================================ */
 
 // Which week number should show the gold "Current Week" badge.
-const CURRENT_WEEK = 2;
+const CURRENT_WEEK = 3;
 
 // Which weeks are unlocked (materials visible + downloadable).
 // Add/remove numbers freely — they don't need to be in order,
 // so you can unlock a week early for a student who'll miss class.
-const UNLOCKED_WEEKS = [1,2];
+const UNLOCKED_WEEKS = [1,2,3];
 
 // Materials per week. Add as many cards as you want per week.
 // type must be one of: "pptx", "docx", "pdf", "html"
@@ -333,7 +333,10 @@ const MATERIALS = {
         { name: "Handout: Model Text Analysis", type: "docx", url: "https://docs.google.com/document/d/1CfDtk-1haesQGbUWb5SmU4MGrp1S9dqBWvjEtu4P6II/copy" },
         { name: "Topic or Thesis - Sorting Game", type: "html", url: "https://masolucas.github.io/ApproachClasses/ExpositoryWritingWithAI/Week2_Topic_or_Thesis_Sorting_Game.html" },
   ],
-  3:  [],
+  3:  [
+        { name: "Slide Presentation", type: "pptx", url: "https://docs.google.com/presentation/d/1EiLeo4tM609mN4aDhtxkaVUloyCEfIo6kvp5WCjO-vg" },
+        { name: "Handout Packet", type: "docx", url: "https://docs.google.com/document/d/1JaG_6-GE3THPvZbHPj6W0vdDGz25C2FHeazhtjaPP4w/copy" },
+  ],
   4:  [],
   5:  [],
   6:  [],
