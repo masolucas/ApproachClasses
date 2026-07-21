@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Symptom Charades — Match the Illness</title>
+<style>
+  :root{
+    --navy:#0C2340;
+    --navy-l:#143865;
+    --gold:#AE9142;
+    --gold-b:#D39F10;
+    --teal:#0E6B6B;
+    --teal-s:#D0EDED;
+    --warm-w:#EFE9D9;
+    --paper:#FFFFFF;
+    --ink:#1A1A1A;
+    --ink-s:#3D3D3D;
+    --muted:#7A7A7A;
+    --sky:#EDF2F9;
+    --red:#C0392B;
+    --red-s:#F8D7DA;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    font-family:'Calibri','Segoe UI',sans-serif;
+    color:var(--ink-s);
+    min-height:100vh;
+  }
+  .wrap{
+    max-width:1080px;
+    margin:0 auto;
+    padding:28px 20px 60px;
+  }
+  header{
+    border-bottom:2px solid var(--gold);
+    padding-bottom:18px;
+    margin-bottom:26px;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:14px;
+  }
+  .title-block .eyebrow{
+    font-family:'Calibri','Segoe UI',sans-serif;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:3px;
+    color:var(--gold);
+    text-transform:uppercase;
+    margin:0 0 6px;
+  }
+  h1{
+    font-family:'Cambria',Georgia,serif;
+    font-size:38px;
+    font-weight:400;
+    color:var(--navy);
+    margin:0 0 8px;
+    letter-spacing:-0.5px;
+  }
+  h1 em{
+    color:var(--teal);
+    font-style:italic;
+  }
+  .instructions{
+    font-family:'Cambria',Georgia,serif;
+    font-style:italic;
+    font-size:15px;
+    color:var(--ink-s);
+    margin:0;
+    max-width:520px;
+  }
+  .score-pill{
+    font-family:'Consolas','Courier New',monospace;
+    background:var(--navy);
+    color:var(--warm-w);
+    padding:10px 18px;
+    border-radius:999px;
+    font-size:14px;
+    font-weight:700;
+    letter-spacing:1px;
+    white-space:nowrap;
+  }
+  .score-pill span{color:var(--gold-b);}
+
+  .board{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:14px;
+    margin-bottom:34px;
+  }
+  @media (max-width:820px){ .board{ grid-template-columns:repeat(3, 1fr); } }
+  @media (max-width:560px){ .board{ grid-template-columns:repeat(2, 1fr); } }
+
+  .box{
+    position:relative;
+    background:var(--sky);
+    border:2px dashed var(--gold);
+    border-radius:6px;
+    padding:14px 12px 40px;
+    min-height:118px;
+    transition:border-color .18s ease, background .18s ease, transform .12s ease;
+  }
+  .box.dragover{
+    border-color:var(--teal);
+    background:var(--teal-s);
+  }
+  .box.matched{
+    border-style:solid;
+    border-color:var(--teal);
+    background:var(--teal-s);
+  }
+  .box.shake{
+    animation:shake .32s ease;
+    border-color:var(--red);
+    background:var(--red-s);
+  }
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    20%{transform:translateX(-5px);}
+    40%{transform:translateX(5px);}
+    60%{transform:translateX(-4px);}
+    80%{transform:translateX(4px);}
+  }
+  .box .hint-label{
+    font-family:'Calibri','Segoe UI',sans-serif;
+    font-size:9.5px;
+    font-weight:700;
+    letter-spacing:1.5px;
+    color:var(--teal);
+    text-transform:uppercase;
+    display:block;
+    margin-bottom:6px;
+  }
+  .box.matched .hint-label{color:var(--navy);}
+  .box .hint-text{
+    font-family:'Cambria',Georgia,serif;
+    font-style:italic;
+    font-size:13.5px;
+    color:var(--ink-s);
+    line-height:1.35;
+  }
+  .box .slot{
+    position:absolute;
+    left:12px;
+    right:12px;
+    bottom:10px;
+    min-height:26px;
+    font-family:'Cambria',Georgia,serif;
+    font-size:13px;
+    color:var(--muted);
+    font-style:italic;
+    border-top:1px solid rgba(12,35,64,0.12);
+    padding-top:6px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .box.matched .slot{
+    color:var(--navy);
+    font-weight:700;
+    font-style:normal;
+  }
+  .pulse-icon{
+    width:16px;height:16px;flex:0 0 auto;
+    opacity:0;
+  }
+  .box.matched .pulse-icon{opacity:1;}
+  .pulse-icon path{
+    stroke:var(--teal);
+    stroke-width:2;
+    fill:none;
+    stroke-dasharray:40;
+    stroke-dashoffset:40;
+  }
+  .box.matched .pulse-icon path{
+    animation:draw .5s ease forwards;
+  }
+  @keyframes draw{ to{ stroke-dashoffset:0; } }
+
+  .tray-wrap{
+    background:var(--warm-w);
+    border-radius:8px;
+    padding:18px 18px 20px;
+    margin-bottom:22px;
+  }
+  .tray-label{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:2.5px;
+    text-transform:uppercase;
+    color:var(--navy);
+    margin-bottom:12px;
+  }
+  .tray{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    min-height:48px;
+  }
+  .tile{
+    font-family:'Cambria',Georgia,serif;
+    font-style:italic;
+    font-size:14.5px;
+    color:var(--navy);
+    background:var(--paper);
+    border:1.5px solid var(--gold);
+    border-radius:5px;
+    padding:9px 16px;
+    cursor:grab;
+    user-select:none;
+    touch-action:none;
+    transition:opacity .15s ease, box-shadow .15s ease, transform .1s ease;
+  }
+  .tile:hover{border-color:var(--gold-b);}
+  .tile:focus-visible{
+    outline:3px solid var(--teal);
+    outline-offset:2px;
+  }
+  .tile.selected{
+    background:var(--navy);
+    color:var(--warm-w);
+    border-color:var(--teal);
+    box-shadow:0 3px 10px rgba(12,35,64,0.25);
+    transform:translateY(-2px);
+  }
+  .tile.dragging{
+    opacity:0.25;
+  }
+  .tile.matched{
+    display:none;
+  }
+  .tile.wrong{
+    animation:shake .32s ease;
+    border-color:var(--red);
+  }
+
+  .ghost{
+    position:fixed;
+    top:0; left:0;
+    pointer-events:none;
+    z-index:999;
+    font-family:'Cambria',Georgia,serif;
+    font-style:italic;
+    font-size:14.5px;
+    color:var(--navy);
+    background:var(--paper);
+    border:1.5px solid var(--teal);
+    border-radius:5px;
+    padding:9px 16px;
+    box-shadow:0 8px 20px rgba(12,35,64,0.3);
+    transform:translate(-9999px,-9999px);
+  }
+
+  .controls{
+    display:flex;
+    justify-content:center;
+    margin-top:6px;
+  }
+  button.reset-btn{
+    font-family:'Calibri','Segoe UI',sans-serif;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--navy);
+    background:transparent;
+    border:1.5px solid var(--navy);
+    border-radius:999px;
+    padding:11px 26px;
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease;
+  }
+  button.reset-btn:hover{background:var(--navy); color:var(--warm-w);}
+  button.reset-btn:focus-visible{outline:3px solid var(--teal); outline-offset:2px;}
+
+  .banner{
+    margin-top:24px;
+    background:var(--navy);
+    color:var(--warm-w);
+    border-radius:8px;
+    padding:22px 24px;
+    text-align:center;
+    font-family:'Cambria',Georgia,serif;
+  }
+  .banner .big{
+    font-size:24px;
+    margin-bottom:6px;
+  }
+  .banner .big em{color:var(--gold-b); font-style:italic;}
+  .banner p{
+    font-size:14px;
+    font-style:italic;
+    color:var(--warm-w);
+    margin:0 0 16px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .box, .tile, .box.shake, .tile.wrong, .pulse-icon path{
+      animation:none !important;
+      transition:none !important;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title-block">
+        <p class="eyebrow">Week 03 · Functional Language</p>
+        <h1>Symptom <em>Charades.</em></h1>
+        <p class="instructions">Drag an illness tile onto the box whose symptoms match it — or tap a tile, then tap a box.</p>
+      </div>
+      <div class="score-pill">MATCHED&nbsp;<span id="scoreVal">0</span>&nbsp;/&nbsp;<span id="scoreMax">12</span></div>
+    </header>
+
+    <div class="board" id="board"></div>
+
+    <div class="tray-wrap">
+      <div class="tray-label">Illness Tiles</div>
+      <div class="tray" id="tray"></div>
+    </div>
+
+    <div class="controls">
+      <button class="reset-btn" id="resetBtn" type="button">Shuffle &amp; Restart</button>
+    </div>
+
+    <div class="banner" id="banner" hidden>
+      <div class="big">All matched — <em>nice work.</em></div>
+      <p>Ready to try a fresh shuffle?</p>
+      <button class="reset-btn" id="bannerResetBtn" type="button" style="border-color:var(--gold-b); color:var(--warm-w);">Play Again</button>
+    </div>
+  </div>
+
+  <div class="ghost" id="ghost" hidden></div>
+
+<script>
+(function(){
+  var ITEMS = [
+    {id:'cold',      name:'Common Cold',       hints:'sneezing, runny nose, sore throat'},
+    {id:'flu',       name:'The Flu',           hints:'fever, body aches, fatigue'},
+    {id:'food',      name:'Food Poisoning',    hints:'nausea, stomach pain, vomiting'},
+    {id:'migraine',  name:'Migraine',          hints:'throbbing headache, sensitivity to light'},
+    {id:'arm',       name:'Broken Arm',        hints:"sharp pain, swelling, can't move it"},
+    {id:'ankle',     name:'Sprained Ankle',    hints:'swelling, pain when walking'},
+    {id:'allergy',   name:'Allergic Reaction', hints:'itchy skin, rash, swelling'},
+    {id:'ear',       name:'Ear Infection',     hints:'ear pain, trouble hearing'},
+    {id:'strep',     name:'Strep Throat',      hints:'very sore throat, fever, trouble swallowing'},
+    {id:'stomach',   name:'Stomach Virus',     hints:'nausea, diarrhea, stomach cramps'},
+    {id:'sunburn',   name:'Sunburn',           hints:'red skin, pain, peeling'},
+    {id:'insomnia',  name:'Insomnia',          hints:"can't sleep, tired all day"}
+  ];
+
+  var board = document.getElementById('board');
+  var tray = document.getElementById('tray');
+  var scoreVal = document.getElementById('scoreVal');
+  var banner = document.getElementById('banner');
+  var ghost = document.getElementById('ghost');
+  var resetBtn = document.getElementById('resetBtn');
+  var bannerResetBtn = document.getElementById('bannerResetBtn');
+
+  var selectedTileId = null;
+  var matchedCount = 0;
+  var boxEls = {};
+  var tileEls = {};
+
+  var PULSE_SVG = '<svg class="pulse-icon" viewBox="0 0 40 16" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M0 8 L10 8 L14 2 L18 14 L22 4 L25 8 L40 8" /></svg>';
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  function buildBoard(){
+    board.innerHTML = '';
+    boxEls = {};
+    var order = shuffle(ITEMS);
+    order.forEach(function(item){
+      var box = document.createElement('div');
+      box.className = 'box';
+      box.dataset.id = item.id;
+      box.innerHTML =
+        '<span class="hint-label">Hints</span>' +
+        '<div class="hint-text">' + item.hints + '</div>' +
+        '<div class="slot">' + PULSE_SVG + '<span class="slot-text">Drop illness here</span></div>';
+      board.appendChild(box);
+      boxEls[item.id] = box;
+
+      box.addEventListener('pointerup', function(){
+        if (selectedTileId){
+          attemptMatch(selectedTileId, item.id);
+          selectedTileId = null;
+        }
+      });
+      box.tabIndex = 0;
+      box.setAttribute('role','button');
+      box.setAttribute('aria-label','Drop zone: ' + item.hints);
+      box.addEventListener('keydown', function(e){
+        if ((e.key === 'Enter' || e.key === ' ') && selectedTileId){
+          e.preventDefault();
+          attemptMatch(selectedTileId, item.id);
+          selectedTileId = null;
+        }
+      });
+    });
+  }
+
+  function buildTray(){
+    tray.innerHTML = '';
+    tileEls = {};
+    var order = shuffle(ITEMS);
+    order.forEach(function(item){
+      var tile = document.createElement('div');
+      tile.className = 'tile';
+      tile.dataset.id = item.id;
+      tile.textContent = item.name;
+      tile.tabIndex = 0;
+      tile.setAttribute('role','button');
+      tile.setAttribute('aria-label','Illness tile: ' + item.name);
+      tray.appendChild(tile);
+      tileEls[item.id] = tile;
+      attachTileEvents(tile, item.id);
+    });
+  }
+
+  function attachTileEvents(tile, id){
+    var startX = 0, startY = 0, dragging = false, moved = false;
+
+    tile.addEventListener('pointerdown', function(e){
+      if (tile.classList.contains('matched')) return;
+      tile.setPointerCapture(e.pointerId);
+      startX = e.clientX; startY = e.clientY;
+      dragging = true; moved = false;
+    });
+
+    tile.addEventListener('pointermove', function(e){
+      if (!dragging) return;
+      var dx = e.clientX - startX, dy = e.clientY - startY;
+      if (!moved && Math.hypot(dx, dy) > 6){
+        moved = true;
+        tile.classList.add('dragging');
+        ghost.hidden = false;
+        ghost.textContent = tile.textContent;
+      }
+      if (moved){
+        ghost.style.transform = 'translate(' + (e.clientX - 40) + 'px,' + (e.clientY - 20) + 'px)';
+      }
+    });
+
+    tile.addEventListener('pointerup', function(e){
+      if (!dragging) return;
+      dragging = false;
+
+      if (moved){
+        tile.classList.remove('dragging');
+        ghost.hidden = true;
+        ghost.style.transform = 'translate(-9999px,-9999px)';
+        var target = document.elementFromPoint(e.clientX, e.clientY);
+        var boxEl = target ? target.closest('.box') : null;
+        if (boxEl){
+          attemptMatch(id, boxEl.dataset.id);
+        }
+      } else {
+        // simple tap: toggle selection
+        if (selectedTileId === id){
+          selectedTileId = null;
+          tile.classList.remove('selected');
+        } else {
+          if (selectedTileId && tileEls[selectedTileId]){
+            tileEls[selectedTileId].classList.remove('selected');
+          }
+          selectedTileId = id;
+          tile.classList.add('selected');
+        }
+      }
+    });
+
+    tile.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        if (tile.classList.contains('matched')) return;
+        if (selectedTileId === id){
+          selectedTileId = null;
+          tile.classList.remove('selected');
+        } else {
+          if (selectedTileId && tileEls[selectedTileId]){
+            tileEls[selectedTileId].classList.remove('selected');
+          }
+          selectedTileId = id;
+          tile.classList.add('selected');
+        }
+      }
+    });
+  }
+
+  function attemptMatch(tileId, boxId){
+    var box = boxEls[boxId];
+    var tile = tileEls[tileId];
+    if (!box || !tile || box.classList.contains('matched') || tile.classList.contains('matched')) return;
+
+    if (tileId === boxId){
+      box.classList.add('matched');
+      box.classList.remove('dragover');
+      box.querySelector('.slot-text').textContent = tile.textContent;
+      tile.classList.remove('selected');
+      tile.classList.add('matched');
+      matchedCount++;
+      scoreVal.textContent = String(matchedCount);
+      if (matchedCount >= ITEMS.length){
+        banner.hidden = false;
+        banner.scrollIntoView({behavior:'smooth', block:'nearest'});
+      }
+    } else {
+      box.classList.remove('dragover');
+      box.classList.add('shake');
+      tile.classList.add('wrong');
+      tile.classList.remove('selected');
+      setTimeout(function(){
+        box.classList.remove('shake');
+        tile.classList.remove('wrong');
+      }, 340);
+    }
+  }
+
+  function resetGame(){
+    matchedCount = 0;
+    scoreVal.textContent = '0';
+    selectedTileId = null;
+    banner.hidden = true;
+    buildBoard();
+    buildTray();
+  }
+
+  resetBtn.addEventListener('click', resetGame);
+  bannerResetBtn.addEventListener('click', resetGame);
+
+  resetGame();
+})();
+</script>
+</body>
+</html>
