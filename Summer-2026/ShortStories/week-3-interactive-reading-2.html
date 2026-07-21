@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Lottery — Interactive Reading</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --navy: #0C2340;
+    --navy-l: #143865;
+    --navy-d: #081629;
+    --navy-s: #D9E2F1;
+    --gold: #AE9142;
+    --gold-b: #D39F10;
+    --warm-w: #EFE9D9;
+    --paper: #FFFFFF;
+    --ink: #1A1A1A;
+    --ink-s: #3D3D3D;
+    --muted: #7A7A7A;
+    --sky: #EDF2F9;
+    --lt-gold: #F5EED2;
+    --red: #C0392B;
+    --red-s: #F8D7DA;
+    --teal: #0E6B6B;
+    --teal-s: #D0EDED;
+    --amber: #B45309;
+    --amber-s: #FEF3C7;
+    --story-size:19px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    font-family:'Calibri','Segoe UI',sans-serif;
+    color:var(--ink);
+  }
+
+  /* ---------- Header ---------- */
+  .chrome-header{
+    display:flex; align-items:center; gap:12px;
+    max-width:760px; margin:0 auto; padding:32px 24px 0 24px;
+  }
+  .monogram{
+    width:36px; height:36px; border-radius:50%;
+    border:1.5px solid var(--gold); background:var(--paper);
+    display:flex; align-items:center; justify-content:center;
+    font-family:Cambria,Georgia,serif; font-style:italic; font-weight:bold;
+    color:var(--gold); font-size:17px; flex-shrink:0;
+  }
+  .chrome-text .eyebrow{
+    font-family:Calibri,sans-serif; font-size:10px; font-weight:bold;
+    letter-spacing:3px; color:var(--navy); text-transform:uppercase;
+  }
+  .chrome-text .subline{
+    font-family:Calibri,sans-serif; font-size:10px; letter-spacing:1px;
+    color:var(--muted);
+  }
+
+  .titleblock{ max-width:760px; margin:0 auto; padding:22px 24px 18px 24px; border-bottom:2px solid var(--navy); }
+  .titleblock h1{
+    font-family:Cambria,Georgia,serif; color:var(--navy);
+    font-size:40px; margin:0 0 4px 0; font-weight:bold;
+  }
+  .titleblock h1 em{ color:var(--gold); font-style:italic; }
+  .titleblock p{
+    font-family:Cambria,Georgia,serif; font-style:italic; color:var(--ink-s);
+    font-size:16px; margin:0;
+  }
+
+  .howto{
+    max-width:760px; margin:16px auto 0 auto; padding:12px 18px;
+    background:var(--sky); border-left:4px solid var(--gold);
+    font-size:14px; color:var(--ink-s); font-family:Calibri,sans-serif;
+  }
+  .howto b{ color:var(--navy); }
+
+  /* ============================================================
+     BUTTONS
+     ============================================================ */
+  .btn {
+    font-family: var(--sans); font-size: 0.86rem; font-weight: 700; letter-spacing: 0.02em;
+    padding: 0.65rem 1.3rem; border-radius: 5px; border: 1.5px solid transparent; cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease; display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn--primary { background: var(--navy); color: var(--warm-w); }
+  .btn--primary:hover { background: var(--navy-l); }
+  .btn--gold { background: var(--gold); color: var(--navy); }
+  .btn--gold:hover { background: var(--gold-b); }
+  .btn--secondary { background: transparent; border-color: var(--navy); color: var(--navy); }
+  .btn--secondary:hover { background: var(--sky); }
+  .btn--ghost { background: transparent; color: var(--navy); }
+  .btn--ghost:hover { background: var(--sky); }
+  .btn--danger { background: var(--red); color: #fff; }
+  .btn--danger:hover { background: #a52d20; }
+  .btn--sm { padding: 0.42rem 0.9rem; font-size: 0.76rem; }
+  .btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+  a.btn { text-decoration: none; }
+
+
+  /* ---------- Story ---------- */
+  .story{
+    max-width:760px; margin:0 auto; padding:28px 24px 100px 24px;
+    font-family:Cambria,Georgia,serif;
+    font-size:var(--story-size);
+    line-height:1.75;
+    color:var(--ink);
+  }
+  .story p{ margin:0 0 1.2em 0; }
+  .story .signature{ text-align:right; font-style:italic; color:var(--ink-s); margin-top:2em; }
+  .story .callname{ text-align:center; font-family:Calibri,sans-serif; font-weight:bold; letter-spacing:3px; color:var(--navy); margin:1.6em 0; }
+
+  /* ---------- Clickable vocabulary ---------- */
+  .voc{
+    position:relative;
+    z-index:1000;
+    cursor:pointer;
+    border-bottom:2px dotted var(--gold);
+    padding-bottom:1px;
+    transition:background .15s ease;
+  }
+  .voc:hover{ background:rgba(174,145,66,0.12); }
+  .voc.active{
+    position:relative;
+    z-index:1001;
+    background:var(--paper);
+    border-radius:3px;
+    box-shadow:0 0 0 6px var(--paper), 0 0 0 9999px rgba(8,22,41,0.72);
+    border-bottom:2px solid var(--gold-b);
+  }
+
+  /* ---------- Backdrop (click to close) ---------- */
+  .backdrop{
+    display:none;
+    position:fixed; inset:0;
+    z-index:999;
+  }
+  .backdrop.show{ display:block; }
+
+  /* ---------- Popover ---------- */
+  .popover{
+    display:none;
+    position:absolute;
+    z-index:1002;
+    width:320px;
+    max-width:88vw;
+    background:var(--navy);
+    border-radius:4px;
+    box-shadow:0 12px 32px rgba(0,0,0,0.35);
+    padding:18px 20px 16px 20px;
+    font-family:Calibri,sans-serif;
+  }
+  .popover.show{ display:block; }
+  .popover .pop-top{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:8px;
+    margin-bottom:8px;
+  }
+  .popover .pop-label{
+    font-family:Consolas,monospace; font-size:9px; font-weight:bold;
+    letter-spacing:2px; color:var(--gold); text-transform:uppercase;
+  }
+  .popover .pop-level{
+    font-family:Calibri,sans-serif; font-size:9px; font-weight:bold;
+    letter-spacing:1px; color:var(--navy); background:var(--gold);
+    border-radius:20px; padding:2px 9px; white-space:nowrap;
+  }
+  .popover .pop-close{
+    background:none; border:none; color:var(--warm-w); opacity:.6;
+    font-size:16px; cursor:pointer; line-height:1; padding:0 0 0 8px;
+  }
+  .popover .pop-close:hover{ opacity:1; }
+  .popover .pop-word{
+    font-family:Cambria,Georgia,serif; font-style:italic; font-weight:bold;
+    color:var(--gold-b); font-size:22px; margin:0 0 8px 0;
+  }
+  .popover .pop-def{
+    font-family:Cambria,Georgia,serif; font-style:italic;
+    color:var(--warm-w); font-size:15px; line-height:1.5; margin:0 0 12px 0;
+  }
+  .popover .pop-ex-label{
+    font-family:Calibri,sans-serif; font-size:9px; font-weight:bold;
+    letter-spacing:2px; color:var(--gold); text-transform:uppercase;
+    border-top:1px solid rgba(239,233,217,0.2); padding-top:10px; margin-bottom:6px;
+  }
+  .popover .pop-ex{
+    font-family:Cambria,Georgia,serif; color:var(--warm-w); font-size:14px;
+    line-height:1.5; margin:0;
+  }
+  .popover .pop-arrow{
+    position:absolute; width:14px; height:14px; background:var(--navy);
+    transform:rotate(45deg);
+  }
+
+  /* ---------- Floating font-size menu ---------- */
+  .font-menu{
+    position:fixed; bottom:24px; right:24px; z-index:1003;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .font-menu button{
+    width:44px; height:44px; border-radius:50%;
+    background:var(--navy); border:1.5px solid var(--gold);
+    color:var(--gold); font-family:Calibri,sans-serif; font-weight:bold;
+    font-size:15px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.25);
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .12s ease, background .12s ease;
+  }
+  .font-menu button:hover{ background:var(--navy-d); transform:scale(1.06); }
+  .font-menu button:active{ transform:scale(0.96); }
+  .font-menu .reset-btn{ font-size:12px; }
+
+  @media (max-width:600px){
+    .titleblock h1{ font-size:30px; }
+    .story{ padding:22px 18px 110px 18px; }
+    .popover{ width:270px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="chrome-header">
+    <a href="#" onclick="history.back(); return false;" target="_blank" class="btn btn--primary" style="padding: 5px 10px;"> &#x2B05;</a>
+    <div class="monogram">A</div>
+    <div class="chrome-text">
+      <div class="eyebrow">Reading &amp; Critical Thinking</div>
+      <div class="subline">Week 03 &nbsp;·&nbsp; Interactive Reading</div>
+    </div>
+  </div>
+
+  <div class="titleblock">
+    <h1>The <em>Lottery.</em></h1>
+    <p>Shirley Jackson &nbsp;·&nbsp; Adapted Version &nbsp;·&nbsp; Unit 2: Justice &amp; Morality</p>
+  </div>
+
+  <div class="howto">
+    <b>How to use this page:</b> words and phrases with a dotted gold underline are clickable. Tap or click one to see its meaning and an example sentence. Use the buttons in the bottom-right corner to change the text size.
+  </div>
+
+  <div class="story" id="story">
+
+    <p>The morning of June 27th is a clear, warm summer day. There are many colorful flowers and the grass is beautiful and green. At about 10 o'clock in the morning, the people of the village begin to arrive in the town square, located between the post office and the bank. In some towns there are so many people that the <span class="voc" data-term="lottery">lottery</span> takes two days and must be started on June 26th.</p>
+
+    <p>But in this village, there are only about three hundred people, and the whole lottery takes less than two hours. So, it can begin at 10 o'clock in the morning and end in time for the villagers to go home for noon lunch. The children arrive first, of course. Summer is just beginning and the children do not have to go to school.</p>
+
+    <p>The feeling of liberty is still new for most of them. They tend to stay together quietly in small groups for a time before they run and play loudly. And they still talk about school and the teacher, books and punishments.</p>
+
+    <p>Bobby Martin already has many rocks in his pockets, and the other boys copy his example, choosing the best stones — the ones that fit perfectly in their hands.</p>
+
+    <p>Bobby and Harry Jones and Dickie Delacroix — the people in the town pronounce his name <span class="voc" data-term="dellacroy">'Dellacroy'</span> — make a very large pile of stones in one corner of the square and defend it from the attacks of the other boys.</p>
+
+    <p>The girls stand away from the boys, talking to each other, pretending not to look at the boys. And the very small children play in the dirt or hold the hands of their older brothers or sisters.</p>
+
+    <p>Soon, the men begin to arrive, watching their own children. They talk to each other about planting and rain, tractors and taxes. They stand together, away from the pile of stones in the corner of the square. Their jokes are quiet and they smile — they do not laugh.</p>
+
+    <p>The women arrive soon after their husbands. They are wearing the old dresses and sweaters they normally wear at home. They say hello to each other and tell each other stories of gossip before they go to their husbands. Soon the women, standing next to their husbands, begin to call their children.</p>
+
+    <p>The children come <span class="voc" data-term="reluctantly">reluctantly</span>. The mothers have to call them four or five times. Bobby Martin runs away from his mother back to the pile of stones, laughing. His father speaks <span class="voc" data-term="severely">severely</span> to him, and Bobby comes back quickly and stands in the correct place between his father and his oldest brother.</p>
+
+    <p>The lottery is organized by Mr. Summers. He also organizes the town dances, the teenage club and the Halloween program. He has the time and energy to devote to the town activities.</p>
+
+    <p>He is a <span class="voc" data-term="jovial">jovial</span> man with a round face. He operates the coal company. People feel sorry for him because he does not have any children and his wife often treats him badly.</p>
+
+    <p>When he arrives in the square, he is carrying a black box made of wood. People begin to talk as he arrives. Mr. Summers waves and says, 'I'm sorry I'm a little late today, everyone.'</p>
+
+    <p>The postmaster, Mr. Graves, follows him. He is carrying a stool with three legs. He puts the stool in the center of the square and Mr. Summers puts the black box on it. The villagers stay far away from the stool.</p>
+
+    <p>When Mr. Summers asks, 'Can someone help me?' No one comes to help at first. But soon, two men, Mr. Martin and his oldest son, Baxter, come and hold the box firmly on the stool while Mr. Summers mixes the papers that are inside.</p>
+
+    <p>The original <span class="voc" data-term="paraphernalia">paraphernalia</span> for the lottery was lost a long time ago. The <span class="voc" data-term="blackbox">black box</span> that is on the stool now was first used before Old Man Warner was born, and he is the oldest man in town. Mr. Summers speaks frequently to the villagers and says he wants to build a new box. But no one wants to interfere in the important tradition that the black box represents.</p>
+
+    <p>There is a story that says that the current box was made with some pieces of the box that was used before it. That box was constructed when the first people started the village here long ago.</p>
+
+    <p>Every year, after the lottery, Mr. Summers begins talking again about making a new box. But as the year goes on, people start to talk less and less about the subject, and they do nothing about the box.</p>
+
+    <p>Mr. Martin and his oldest son, Baxter, hold the black box firmly on the stool until Mr. Summers finishes mixing the papers with his hand. Because the villagers have forgotten so many of the rituals, Mr. Summers was able to substitute pieces of paper for the pieces of wood that were used for generations before.</p>
+
+    <p>The night before the lottery, Mr. Summers and Mr. Graves prepare the pieces of paper and put them in the box. Then they put the box in Mr. Summers' <span class="voc" data-term="safe">safe</span> at the <span class="voc" data-term="coalcompany">coal company</span>. It stays there until Mr. Summers is ready to take it to the square the next morning.</p>
+
+    <p>During the rest of the year, they leave the box in one place or another. Once it stayed in Mr. Grave's barn and another year it was used as a table in the post office. Sometimes it was placed on a shelf in Mr. Martin's grocery store.</p>
+
+    <p>There are many things to do before Mr. Summers can begin the lottery. He needs to prepare the lists — the list of the heads of families, the list of the heads of each house in each family, and the list of the members of each house in each family.</p>
+
+    <p>Mr. Graves, the postmaster, also needs to correctly introduce Mr. Summers as the official of the lottery. Few people in the town remember that at some time in the past, the <span class="voc" data-term="official">official</span> of the lottery performed a <span class="voc" data-term="recital">recital</span> of some kind. It was a very short, unmusical recitation that was said <span class="voc" data-term="obediently">obediently</span> every year.</p>
+
+    <p>Some people believe that the official used to stand in a very specific way when he said or sang the recitation. Other people believe that the official was supposed to walk through the crowd of people. But many, many years ago, people stopped performing these elements of the ritual.</p>
+
+    <p>There was also a <span class="voc" data-term="ritualsalute">ritual salute</span> that the official of the lottery had to use to greet each person who approached to <span class="voc" data-term="draw">draw</span> from the box ('to draw' means 'to choose' or 'to remove' in this context). But this has also changed over the years, until now people think it is only necessary for the official to talk to each person who comes up to the box.</p>
+
+    <p>Mr. Summers is very good at all of this. In his clean white shirt and blue jeans, and with one hand naturally resting on the black box, he seems very proper and important as he talks <span class="voc" data-term="interminably">interminably</span> to Mr. Graves and the Martins.</p>
+
+    <p>Just as Mr. Summers finally stops talking and turns to all the people of the village, Mrs. Hutchinson comes quickly along the path to the square.</p>
+
+    <p>She finds a place in the back of the <span class="voc" data-term="crowd">group of people</span>. 'I completely forgot what day it was,' she says to Mrs. Delacroix, who is standing next to her. They both laugh softly. 'I thought my husband was in the yard cutting wood,' Mrs. Hutchinson continues, 'and then I looked out the window and my children weren't there, and then I remembered that today was the 27th and I came as quickly as I could.'</p>
+
+    <p>She dries her hands on her kitchen apron, and Mrs. Delacroix says, 'You arrived in time, though. They're still talking over there at the box.'</p>
+
+    <p>Mrs. Hutchinson raises her head to look over the crowd and finds her husband and children standing near the front. She touches Mrs. Delacroix on the arm as a good-bye and begins to move through the crowd.</p>
+
+    <p>The people separate good-humoredly to allow her to pass. Two or three people say in voices just loud enough for everyone to hear, 'Here comes your wife, Hutchinson,' and 'Bill, she's finally here.' Mrs. Hutchinson reaches her husband, and Mr. Summers, who was waiting, says happily, 'I thought we were going to have to start without you, Tessie.'</p>
+
+    <p>Mrs. Hutchinson says, smiling, 'You wouldn't make me leave my dishes in the sink without drying them, would you, Joe?' and the people in the crowd laugh softly as they move back into their positions after Mrs. Hutchinson's arrival.</p>
+
+    <p>'Ok, now,' Mr. Summers says seriously, 'I think we should begin. Let's finish this as quickly as we can, so we can all go back to work. Is there anyone who is not here?'</p>
+
+    <p>'Dunbar,' several people say. 'Dunbar, Dunbar.'</p>
+
+    <p>Mr. Summers looks at his list. 'Clyde Dunbar,' he says. 'That's right. He broke his leg, didn't he? Who's choosing for him?'</p>
+
+    <p>'Me, I guess,' a woman says.</p>
+
+    <p>Mr. Summers turns to look at her. 'A wife draws for her husband,' Mr. Summers says. 'Don't you have a grown boy who can do it for you, Janey?'</p>
+
+    <p>Mr. Summers and everyone else in the village know the answer perfectly well. But it is the job of the official of the lottery to ask questions like that formally. Mr. Summers waits politely as Mrs. Dunbar answers.</p>
+
+    <p>'My son Horace is still only sixteen,' Mrs. Dunbar says with <span class="voc" data-term="remorse">remorse</span>. 'I guess I have to take my husband's place this year.'</p>
+
+    <p>'All right,' Mr. Summers says. He writes something on the list he is holding. Then he asks, 'Is the Watson boy drawing this year?'</p>
+
+    <p>A tall boy in the crowd raises his hand. 'I'm here,' he says. 'I'm drawing for my mother and me.'</p>
+
+    <p>He stands there nervously and puts his head down as some people in the crowd say things like <span class="voc" data-term="goodkid">'You're a good kid, Jack,'</span> and 'I'm glad to see your mother has a man to choose for her.'</p>
+
+    <p>'Well,' Mr. Summers says, 'I guess that's everyone. Is Old Man Warner here?'</p>
+
+    <p>'Here,' a voice says, and Mr. Summers nods his head up and down. The crowd suddenly becomes quiet as Mr. Summers clears his throat and looks at the list. 'Is everybody ready?' he calls.</p>
+
+    <p>'Now, I'll read the names — the heads of all the families first — and the men come up and take a paper out of the box. Keep the paper folded in your hand and don't look at it until everyone takes their turn. Do you all understand?'</p>
+
+    <p>The people have done this lottery so many times that they do not pay close attention to the directions anymore. Most of the people are quiet and do not look around at the other people in the crowd. Then Mr. Summers raises one hand up high and says...</p>
+
+    <p class="callname">"ADAMS"</p>
+
+    <p>A man leaves the crowd and comes forward.</p>
+
+    <p>'Hi, Steve,' Mr. Summers says, and Mr. Adams says, 'Hi, Joe.' They smile at each other <span class="voc" data-term="soberly">soberly</span> and nervously. Then Mr. Adams reaches into the black box and takes out a folded piece of paper. He holds the paper firmly by one corner as he turns and goes back quickly to his place in the crowd. He stands a little away from his family, and does not look down at his hand.</p>
+
+    <p class="callname">"ALLEN"</p>
+    <p>Mr. Summers says.</p>
+    <p class="callname">"ANDERSON"</p>
+    <p class="callname">"BENTHAM"</p>
+
+    <p>'It seems like there's no time between the lotteries any more,' Mrs. Delacroix says to Mrs. Graves in the back of the crowd. 'It seems like we finished the last lottery only last week.'</p>
+    <p>'Time really does pass quickly,' Mrs. Graves says.</p>
+
+    <p class="callname">"CLARK"</p>
+    <p class="callname">"DELACROIX"</p>
+
+    <p>'There goes my husband,' Mrs. Delacroix says. She does not breathe as her husband walks forward to the box.</p>
+
+    <p class="callname">"DUNBAR"</p>
+
+    <p>Mr. Summers says, and Mrs. Dunbar walks to the box while one of the women says, <span class="voc" data-term="goon">'Go on, Janey,'</span> and another says, 'There she goes.'</p>
+
+    <p>'We're next,' Mrs. Graves says. She watches while Mr. Graves comes to the front of the box, says hello to Mr. Summers <span class="voc" data-term="somberly">somberly</span>, and selects a piece of paper from the box.</p>
+
+    <p>By now, there are many men holding small pieces of folded paper in their large hands, turning them over and over nervously. Mrs. Dunbar and her two sons stand together, with Mrs. Dunbar holding the piece of paper.</p>
+
+    <p class="callname">"HARBURT"</p>
+    <p class="callname">"HUTCHINSON"</p>
+    <p>'Go on, Bill,' Mrs. Hutchinson says, and the people near her laugh.</p>
+    <p class="callname">"JONES"</p>
+
+    <p>'Some people say,' Mr. Adams says to Old Man Warner, who is standing next to him, 'that in the village to the north, they're thinking about not doing the lottery anymore.</p>
+
+    <p>Old Man Warner <span class="voc" data-term="grunts">grunts</span>. 'They're a <span class="voc" data-term="packoffools">pack of crazy fools</span>,' he says. 'They're crazy because they're listening to the young people. Nothing is good enough for the young people. The next thing you know, they'll want to live in caves again, with nobody working anymore. Try and live like that for a while.</p>
+
+    <p>There used to be a saying: <span class="voc" data-term="cornproverb">'With the lottery in June, the corn will grow strong soon.'</span></p>
+
+    <p>If we stop the lottery, all of us will be <span class="voc" data-term="weedsandnuts">eating weeds and nuts</span>. We have always had a lottery,' he says angrily. 'I think it's already bad to see that young Joe Summers is making jokes with everybody who goes to the box.'</p>
+
+    <p>'Some places don't have the lotteries at all anymore,' Mr. Adams says. 'That'll only cause trouble,' Old Man Warner says firmly. 'They're a pack of young fools.</p>
+
+    <p class="callname">"MARTIN"</p>
+    <p>And little Bobby Martin watches as his father goes forward.</p>
+    <p class="callname">"OVERDYKE"</p>
+    <p class="callname">"PERCY"</p>
+
+    <p>'I wish they would go faster,' Mrs. Dunbar says to her older son. 'I wish they would hurry.'</p>
+    <p>'They're almost finished,' her son says. 'You get ready to run and tell your father,' Mrs. Dunbar says.</p>
+
+    <p>Mr. Summers <span class="voc" data-term="consults">calls his own name</span> and then steps forward <span class="voc" data-term="precisely">precisely</span> and selects a piece of paper from the box. Then he calls...</p>
+
+    <p class="callname">"WARNER".</p>
+
+    <p>'This is the seventy-seventh year I'll be in the lottery,' Old Man Warner says as he goes through the crowd. Seventy-seventh time.</p>
+
+    <p class="callname">"WATSON"</p>
+
+    <p>The tall boy comes through the crowd <span class="voc" data-term="self-consciously">self-consciously</span>. Someone says, 'Don't be nervous, Jack,' and Mr. Summers says, <span class="voc" data-term="takeyourtime">'Take your time, son.'</span></p>
+
+    <p class="callname">"ZANINI"</p>
+
+    <p>After that, there is a long pause where nobody breathes, until Mr. Summers, holding his piece of paper in the air, says, 'All right, everybody.' For a minute, no one moves, and then all the men open their folded pieces of paper. Suddenly, all the women begin to talk at the same time, saying...</p>
+
+    <p>'Who is it?' 'Who has it?' 'Is it the Dunbars?' 'Is it the Watsons?'</p>
+
+    <p>Then the voices begin to say, 'It's Hutchinson. It's Bill,' 'Bill Hutchinson has it.'</p>
+
+    <p>'Go tell your father,' Mrs. Dunbar says to her older son.</p>
+
+    <p>People begin to look around to see the Hutchinsons. Bill Hutchinson is standing quiet, looking down at the piece of paper in his hand. Suddenly, Tessie Hutchinson shouts at Mr. Summers, 'You didn't give him enough time to take the paper he wanted. I saw you. It wasn't fair!'</p>
+
+    <p>'Don't complain, Tessie,' Mrs. Delacroix says, and Mrs. Graves says, 'All of us took the same chance.' <span class="voc" data-term="shutup">'Shut up, Tessie,'</span> Bill Hutchinson says. 'Well, everyone,' Mr. Summers says, 'we did that pretty quickly, and now we need to hurry a little more to finish in time.' He consults his next list. 'Bill,' he says, 'you draw for the Hutchinson family. Do you have any other houses in the Hutchinson family?'</p>
+
+    <p>'There's Don and Eva,' Mrs. Hutchinson yells. 'Make them take their chance!' 'Daughters draw with the family of their husbands, Tessie,' Mr. Summers says gently. 'You know that as well as anyone else.' 'It wasn't fair,' Tessie says. 'I guess not, Joe,' Bill Hutchinson says with remorse. 'My daughter draws with her husband's family. That's fair. And I don't have any other family except my kids.'</p>
+
+    <p>'So, the person who draws as the head of the family, that is you,' Mr. Summers explains, 'and the person who will draw for each house in the family, that is you, too. Right?' 'Right,' Bill Hutchinson says. 'How many kids do you have, Bill?' Mr. Summers asks formally. 'Three,' Bill Hutchinson says. 'There's Bill, Jr., and Nancy, and little Dave. And Tessie and me.'</p>
+
+    <p>'All right, then,' Mr. Summers says. 'Harry, did you get their pieces of paper back?' Mr. Graves nods and holds up the pieces of paper. 'Put them in the box, then,' Mr. Summers says. 'Take Bill's paper and put it in.' 'I think we should start over,' Mrs. Hutchinson says, as quietly as she can. 'I tell you it wasn't fair. You didn't give him enough time to choose. Everybody saw that.'</p>
+
+    <p>Mr. Graves selects the five pieces of paper and puts them in the box, and he throws all the other pieces of paper onto the ground, where the breeze lifts them away. 'Listen, everybody,' Mrs. Hutchinson says to the people around her. 'Are you ready, Bill?' Mr. Summers asks, and Bill Hutchinson looks quickly at his wife and children, and nods his head up and down — yes.</p>
+
+    <p>'Remember,' Mr. Summers says, 'take the pieces of paper and keep them folded until each person has one. Harry, you help little Dave.' Mr. Graves takes the hand of the little boy, who comes with him happily up to the box.</p>
+
+    <p>'Take a paper out of the box, Davy,' Mr. Summers says. Davy puts his hand into the box and laughs. 'Take just one paper,' Mr. Summers says. 'Harry, you hold it for him.'</p>
+
+    <p>Mr. Graves takes the child's hand and removes the folded paper from it and holds it while little Dave stands next to him and looks up at him in admiration.</p>
+
+    <p>'Nancy is next,' Mr. Summers says. Nancy is twelve, and her friends from school are very nervous as she goes forward, moving her skirt back and forth. She takes a piece of paper <span class="voc" data-term="delicately">delicately</span> from the box.</p>
+
+    <p>'Bill, Jr.,' Mr. Summers says, and Billy, his face red and his feet <span class="voc" data-term="overlarge">overlarge</span>, almost knocks over the box as he is trying to get the paper out.</p>
+
+    <p>'Tessie,' Mr. Summers says. She hesitates for a minute. She looks around her <span class="voc" data-term="defiantly">defiantly</span>, and then, with a severe look on her face, she goes up to the box. She quickly takes a piece of paper out and holds it behind her.</p>
+
+    <p>'Bill,' Mr. Summers says, and Bill Hutchinson reaches into the box and feels around. He finally brings out his hand with a piece of paper in it. The crowd is quiet. A girl whispers, 'I hope it's not Nancy,' and everyone hears the sound of the whisper. 'It's not the way it used to be,' Old Man Warner says clearly. 'People aren't the way they used to be.'</p>
+
+    <p>'All right,' Mr. Summers says. 'Open the papers. Harry, you open little Dave's.' Mr. Graves opens the piece of paper and the people in the crowd begin to talk quietly as he holds up the paper and everyone can see that there is nothing on it. The paper is blank. Nancy and Bill, Jr., open theirs at the same time, and both are excited and they laugh. They turn around to the crowd and hold their pieces of paper above their heads.</p>
+
+    <p>'Tessie,' Mr. Summers says. There is a pause, and then Mr. Summers looks at Bill Hutchinson, and Bill unfolds his paper and shows it. It is blank. 'It's Tessie,' Mr. Summers says, and his voice is quiet. 'Show us her paper, Bill.' Bill Hutchinson goes over to his wife and forces the piece of paper out of her hand. It has a <span class="voc" data-term="blackspot">black spot</span> on it, the black spot Mr. Summers made the night before with the dark pencil in his office in the coal company.</p>
+
+    <p>Bill Hutchinson holds it up, and the people in the crowd begin to move. 'All right, everyone,' Mr. Summers says. 'Let's finish quickly.' The people of the town forgot the details of the ritual, and they lost the original black box...</p>
+
+    <p>...but they still remember to use <span class="voc" data-term="stones">stones</span>. The pile of stones the boys made earlier is ready.</p>
+
+    <p>There are stones on the ground with the pieces of paper that came out of the box.</p>
+
+    <p>Mrs. Delacroix selects a stone so large she has to pick it up with both hands and she turns to Mrs. Dunbar. <span class="voc" data-term="comeon">'Come on,'</span> she says. 'Hurry up.'</p>
+
+    <p>Mrs. Dunbar has small stones in both hands, and she says, having difficulty breathing, 'I can't run fast at all. You will have to go ahead of me and I'll catch up with you.'</p>
+
+    <p>The children have stones already, and someone gives little Davy Hutchinson a few pebbles.</p>
+
+    <p>Tessie Hutchinson is in the center of the square now, and she holds her hands out in front of her desperately as the people of the town move in closer, all around her.</p>
+
+    <p>'It isn't fair,' she says. A stone hits her on the side of the head.</p>
+
+    <p>Old Man Warner is saying, 'Come on, come on, everyone.' Steve Adams is in the front of the crowd of villagers, with Mrs. Graves next to him. 'It isn't fair, it isn't right,' Mrs. Hutchinson screams, and then the people strike.</p>
+
+    <p class="signature">&mdash; Shirley Jackson</p>
+
+  </div>
+
+  <!-- Backdrop that closes popover on outside click -->
+  <div class="backdrop" id="backdrop"></div>
+
+  <!-- Popover -->
+  <div class="popover" id="popover">
+    <div class="pop-top">
+      <div>
+        <div class="pop-label" id="pop-label">WORD</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="pop-level" id="pop-level">A2</span>
+        <button class="pop-close" id="pop-close" aria-label="Close">&#10005;</button>
+      </div>
+    </div>
+    <p class="pop-word" id="pop-word">word</p>
+    <p class="pop-def" id="pop-def">definition</p>
+    <div class="pop-ex-label">Example in another context</div>
+    <p class="pop-ex" id="pop-ex">example</p>
+  </div>
+
+  <!-- Floating font-size controls -->
+  <div class="font-menu">
+    <button id="font-inc" aria-label="Increase text size">A+</button>
+    <button id="font-reset" class="reset-btn" aria-label="Reset text size">&#8635;</button>
+    <button id="font-dec" aria-label="Decrease text size">A&minus;</button>
+  </div>
+
+<script>
+  var GLOSSARY = {
+    "lottery":       { level:"A2",    word:"lottery",                  def:"a game in which people win prizes by chance; here, the word turns out to mean something very different than expected", example:"My neighbor won $500 in the office lottery last month." },
+    "dellacroy":     { level:"B1",    word:"'Dellacroy'",               def:"a local, spoken pronunciation of the family name \u201cDelacroix\u201d \u2014 villagers say it differently than it's spelled", example:"Some families pronounce their last name differently than it looks \u2014 my friend's name 'Depeaux' is actually said 'Duh-po.'" },
+    "reluctantly":   { level:"B1",    word:"reluctantly",               def:"unwillingly; slowly and without wanting to",                                     example:"He reluctantly agreed to work the extra shift on Saturday." },
+    "severely":      { level:"B1",    word:"severely",                  def:"in a strict, serious, or harsh way",                                             example:"The coach spoke severely to the players after they missed practice." },
+    "jovial":        { level:"B1",    word:"jovial",                    def:"cheerful and friendly",                                                          example:"The jovial host greeted every guest with a big smile at the door." },
+    "paraphernalia": { level:"B1+",   word:"paraphernalia",             def:"the equipment or objects used for a particular activity",                       example:"Her desk was covered in art paraphernalia \u2014 brushes, paints, and rags." },
+    "blackbox":      { level:"Idiom", word:"the black box",             def:"a symbol in the story \u2014 an old tradition people are afraid to question or replace, even though it's worn out", example:"In many stories, a locked door or an old photograph can symbolize a secret from the past." },
+    "official":      { level:"A2",    word:"official",                  def:"the person with authority to run an event or process",                          example:"A race official checked everyone's time at the finish line." },
+    "recital":       { level:"B1",    word:"recital",                   def:"a formal spoken or sung performance",                                            example:"My daughter has a piano recital next Friday evening." },
+    "obediently":    { level:"B1",    word:"obediently",                def:"following rules or orders without question",                                    example:"The dog obediently sat as soon as its owner gave the command." },
+    "ritualsalute":  { level:"Idiom", word:"ritual salute",             def:"a traditional greeting or gesture used as part of a ceremony",                  example:"Soldiers exchange a ritual salute when passing an officer on base." },
+    "draw":          { level:"Idiom", word:"draw",                      def:"in this story, \u2018to draw\u2019 means to choose or remove something \u2014 not to sketch a picture", example:"Each contestant will draw a number from a hat to decide the order of performances." },
+    "interminably":  { level:"B1+",   word:"interminably",              def:"in a way that seems like it will never end",                                    example:"The meeting dragged on interminably, and everyone was exhausted by the end of it." },
+    "crowd":         { level:"A1",    word:"crowd",                     def:"a large group of people gathered together in one place",                        example:"A crowd gathered outside the stadium hours before the concert started." },
+    "remorse":       { level:"B1+",   word:"remorse",                   def:"a deep feeling of guilt or regret",                                              example:"He felt real remorse after forgetting his best friend's birthday." },
+    "goodkid":       { level:"Idiom", word:"\u201cYou're a good kid\u201d", def:"an idiom \u2014 an approving comment about a young person's behavior",         example:"Thanks for helping your grandmother carry the groceries \u2014 you're a good kid." },
+    "goon":          { level:"Idiom", word:"\u201cGo on\u201d",          def:"an idiom used to encourage someone to continue or proceed",                     example:"Go on, tell me what happened next! I want to hear the whole story." },
+    "somberly":      { level:"B1+",   word:"somberly",                  def:"in a serious, sad, or solemn manner",                                            example:"They spoke somberly about the factory closing and what it meant for the town." },
+    "grunts":        { level:"B1",    word:"grunts",                    def:"makes a short, low, rough sound instead of speaking clearly",                    example:"My brother just grunts when I ask him how school was." },
+    "packoffools":   { level:"Idiom", word:"\u201cpack of crazy fools\u201d", def:"an idiom meaning a foolish or badly-behaved group (\u2018pack\u2019 usually describes a group of animals, like wolves)", example:"He called the committee a pack of fools after they rejected his idea without even reading it." },
+    "cornproverb":   { level:"Idiom", word:"the corn proverb",          def:"an old saying (proverb) \u2014 a short traditional statement people repeat as if it were common wisdom", example:"My grandmother always said, \u2018Red sky at night, sailor's delight\u2019 \u2014 an old saying about predicting the weather." },
+    "weedsandnuts":  { level:"Idiom", word:"\u201ceating weeds and nuts\u201d", def:"an idiom \u2014 an exaggerated way of describing extreme poverty or hardship", example:"\u201cIf we lose this contract, we'll be eating weeds and nuts by winter,\u201d he joked nervously." },
+    "consults":      { level:"B1",    word:"calls / consults",          def:"to look at something (like a list or notes) to check information, or to call out formally", example:"The doctor consulted her notes before answering the patient's question." },
+    "precisely":     { level:"A2",    word:"precisely",                 def:"exactly; in a careful, exact way",                                               example:"The train arrived precisely at 9:00 \u2014 not a minute late." },
+    "self-consciously": { level:"B1+", word:"self-consciously",         def:"in a way that shows nervous awareness of being watched by others",              example:"She laughed self-consciously when she realized everyone in the room was staring at her." },
+    "takeyourtime":  { level:"Idiom", word:"\u201cTake your time\u201d", def:"an idiom meaning there's no need to hurry",                                      example:"Take your time with the exam \u2014 you have two full hours to finish." },
+    "shutup":        { level:"Idiom", word:"\u201cShut up\u201d",       def:"an informal, rude idiom meaning \u201cbe quiet\u201d",                          example:"He rudely told his brother to shut up during the movie, which upset everyone." },
+    "delicately":    { level:"B1",    word:"delicately",                def:"gently and carefully",                                                           example:"She delicately placed the antique vase back on the shelf so it wouldn't break." },
+    "overlarge":     { level:"A2",    word:"overlarge",                 def:"bigger than normal; awkwardly large",                                            example:"He wore an overlarge coat that used to belong to his father." },
+    "defiantly":     { level:"B1",    word:"defiantly",                 def:"in a way that shows open, bold refusal to obey",                                 example:"The teenager crossed her arms and looked at her mother defiantly." },
+    "blackspot":     { level:"Idiom", word:"black spot",                def:"a symbol in the story \u2014 a mark that identifies the person chosen for something terrible", example:"In 'Treasure Island,' receiving the black spot means a pirate has been condemned by the crew." },
+    "stones":        { level:"Idiom", word:"stones",                    def:"a symbol in the story \u2014 they represent the violence that tradition can hide inside a peaceful community", example:"In poetry, a wilted flower is sometimes used as a symbol of a love that has faded." },
+    "comeon":        { level:"Idiom", word:"\u201cCome on\u201d",       def:"an idiom used to encourage or hurry someone along",                             example:"\u201cCome on, we're going to be late for the bus!\u201d she called from the car." },
+    "soberly":       { level:"B1+",   word:"soberly",                   def:"seriously and calmly, without humor or excess",                                  example:"The doctor soberly explained the risks of the surgery to the family." },
+    "safe":          { level:"A2",    word:"safe",                      def:"a strong, locked box used to protect valuable or important things",             example:"We keep our passports in the hotel room's safe while we travel." },
+    "coalcompany":   { level:"A2",    word:"coal company",              def:"a business that mines and sells coal",                                           example:"Her grandfather worked for a coal company in Pennsylvania for over 40 years." }
+  };
+
+  var activeSpan = null;
+
+  function positionPopover(span, pop){
+    var rect = span.getBoundingClientRect();
+    var scrollY = window.scrollY || document.documentElement.scrollTop;
+    var scrollX = window.scrollX || document.documentElement.scrollLeft;
+    var popWidth = pop.offsetWidth;
+    var popHeight = pop.offsetHeight;
+
+    var top = rect.bottom + scrollY + 14;
+    var left = rect.left + scrollX + (rect.width/2) - (popWidth/2);
+
+    var maxLeft = document.documentElement.clientWidth - popWidth - 12;
+    if(left > maxLeft) left = maxLeft;
+    if(left < 12) left = 12;
+
+    var viewportBottom = scrollY + window.innerHeight;
+    if(top + popHeight > viewportBottom - 10){
+      top = rect.top + scrollY - popHeight - 14;
+    }
+
+    pop.style.top = top + "px";
+    pop.style.left = left + "px";
+  }
+
+  function openPopover(span){
+    var id = span.getAttribute("data-term");
+    var data = GLOSSARY[id];
+    if(!data) return;
+
+    if(activeSpan) activeSpan.classList.remove("active");
+    activeSpan = span;
+    span.classList.add("active");
+
+    document.getElementById("pop-word").textContent = data.word;
+    document.getElementById("pop-def").textContent = data.def;
+    document.getElementById("pop-ex").textContent = data.example;
+    document.getElementById("pop-level").textContent = data.level;
+    document.getElementById("pop-label").textContent = "WORD / PHRASE";
+
+    var pop = document.getElementById("popover");
+    var backdrop = document.getElementById("backdrop");
+    pop.classList.add("show");
+    backdrop.classList.add("show");
+
+    positionPopover(span, pop);
+  }
+
+  function closePopover(){
+    if(activeSpan) activeSpan.classList.remove("active");
+    activeSpan = null;
+    document.getElementById("popover").classList.remove("show");
+    document.getElementById("backdrop").classList.remove("show");
+  }
+
+  document.querySelectorAll(".voc").forEach(function(span){
+    span.addEventListener("click", function(e){
+      e.stopPropagation();
+      if(activeSpan === span){ closePopover(); return; }
+      openPopover(span);
+    });
+  });
+
+  document.getElementById("backdrop").addEventListener("click", closePopover);
+  document.getElementById("pop-close").addEventListener("click", closePopover);
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") closePopover(); });
+  window.addEventListener("resize", function(){ if(activeSpan) positionPopover(activeSpan, document.getElementById("popover")); });
+  window.addEventListener("scroll", function(){ if(activeSpan) positionPopover(activeSpan, document.getElementById("popover")); }, true);
+
+  /* ---------- Font size controls ---------- */
+  var BASE_SIZE = 19, MIN_SIZE = 14, MAX_SIZE = 30, STEP = 2;
+  var currentSize = BASE_SIZE;
+
+  function applySize(){
+    document.documentElement.style.setProperty("--story-size", currentSize + "px");
+    if(activeSpan) positionPopover(activeSpan, document.getElementById("popover"));
+  }
+  document.getElementById("font-inc").addEventListener("click", function(){
+    currentSize = Math.min(MAX_SIZE, currentSize + STEP);
+    applySize();
+  });
+  document.getElementById("font-dec").addEventListener("click", function(){
+    currentSize = Math.max(MIN_SIZE, currentSize - STEP);
+    applySize();
+  });
+  document.getElementById("font-reset").addEventListener("click", function(){
+    currentSize = BASE_SIZE;
+    applySize();
+  });
+</script>
+
+</body>
+</html>
