@@ -325,23 +325,28 @@
    ================================================================ */
 
 // Which week number should show the gold "Current Week" badge.
-const CURRENT_WEEK = 2;
+const CURRENT_WEEK = 3;
 
 // Which weeks are unlocked (materials visible + downloadable).
 // Add/remove numbers freely — they don't need to be in order.
-const UNLOCKED_WEEKS = [1,2];
+const UNLOCKED_WEEKS = [1,2,3];
 
 // Materials per week. Add as many cards as you want per week.
 // type must be one of: "pptx", "docx", "pdf", "html"
 const MATERIALS = {
   1:  [
-        { name: "Slide Presentation", type: "pptx", url: "https://docs.google.com/presentation/d/12eOrut9rGjEXJ1A4iU_OhdXQ__KZQdmCn1tW6g69-TQ" }
+        { name: "Presentation: What is AI Fluency?", type: "pptx", url: "https://docs.google.com/presentation/d/12eOrut9rGjEXJ1A4iU_OhdXQ__KZQdmCn1tW6g69-TQ" }
       ],
   2:  [
-        { name: "Slide Presentation", type: "pptx", url: "https://docs.google.com/presentation/d/1tm-se-mmSjndji07jIbbOZE4b1zFIQ1Nkj90DwMXEHg" },
+        { name: "Presentation: Delegation", type: "pptx", url: "https://docs.google.com/presentation/d/1tm-se-mmSjndji07jIbbOZE4b1zFIQ1Nkj90DwMXEHg" },
         { name: "Handout: Delegation Decision Matrix", type: "docx", url: "https://docs.google.com/document/d/1KDh1wRiTxa2M-CCAlKZchBx0VikeFeDJx76qrYol8mc/copy" },
   ],
-  3:  [],
+  3:  [
+        { name: "Presentation: Description", type: "pptx", url: "https://docs.google.com/presentation/d/1lM3KUylOAcn8xt0Au4zJzCm-3dImtWNg_qA2g055nGs" },
+        { name: "Handout: RCTFCE Cheat Sheet", type: "docx", url: "https://docs.google.com/document/d/1Vkdp1VLm7tz44lWmiGGhdiKOTIGxKC8UWIbZE5XQcxE/copy" },
+        { name: "Handout: Workshop Scenarios", type: "docx", url: "https://docs.google.com/document/d/1X63wc71NKb8A4yUPwQkgS0Zq2jRhbNFj_Fg9nxCPcRQ/copy" },
+        { name: "Creations Gallery", type: "html", url: "https://masolucas.github.io/ApproachClasses/Summer-2026/AIFluency/week-3-creations-gallery/index.html" },
+  ],
   4:  [],
   5:  [],
   6:  [],
