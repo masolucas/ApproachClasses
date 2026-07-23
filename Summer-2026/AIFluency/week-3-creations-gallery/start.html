@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Start Here · Describe It Into Existence</title>
+<link rel="stylesheet" href="styles.css" />
+<style>
+  .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0 24px 0; }
+  @media (max-width: 680px) { .panels { grid-template-columns: 1fr; } }
+  .panel { background: var(--sky); border-radius: 4px; padding: 22px; }
+  .panel.song { background: #FEF3C7; }
+  .panel-head { font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--teal); margin-bottom: 14px; }
+  .panel.song .panel-head { color: var(--amber); }
+  .panel label { display:block; font-family: var(--sans); font-size:12px; font-weight:700; color: var(--navy); margin: 14px 0 5px 0; }
+  .panel label:first-of-type { margin-top: 0; }
+  .panel input[type=text] { width:100%; border:1px solid #cfd8e3; border-radius:3px; padding:8px 10px; font-family: var(--serif); font-style: italic; font-size:14px; color: var(--ink); background: var(--paper); }
+  .generate-row { display:flex; align-items:center; gap:14px; margin-bottom: 10px; }
+  .output { background: var(--navy); border-radius:4px; padding:22px; margin-bottom:18px; }
+  .output-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .output-label { font-family: var(--sans); font-size:11px; font-weight:700; letter-spacing:2px; color: var(--gold); text-transform:uppercase; }
+  .output-target { font-family: var(--sans); font-size:11px; font-weight:700; color: var(--warm-w); background: rgba(255,255,255,0.08); padding:4px 10px; border-radius:12px; }
+  .output-text { font-family: var(--serif); font-style:italic; font-size:15px; color: var(--warm-w); white-space: pre-wrap; line-height:1.5; margin-bottom:14px; }
+  button.copy { font-family: var(--sans); font-weight:700; font-size:12px; letter-spacing:0.5px; background:transparent; border:1px solid var(--gold); color: var(--gold); border-radius:3px; padding:7px 16px; cursor:pointer; }
+  button.copy:hover, button.copy.copied { background: var(--gold); color: var(--navy); }
+  .reflect { background: var(--lt-gold); border-radius:4px; padding:20px 22px; font-style:italic; font-size:15px; color: var(--navy); margin-bottom: 22px; }
+  .error-box { font-family: var(--sans); font-size:13px; color:#C0392B; background:#F8D7DA; border-radius:3px; padding:10px 14px; margin-bottom:20px; }
+  .next-step { background: var(--navy); border-radius: 5px; padding: 26px 28px; margin-top: 10px; }
+  .next-step .k { font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; margin-bottom: 8px; }
+  .next-step h3 { font-size: 22px; font-weight: 400; font-style: italic; color: var(--warm-w); margin: 0 0 10px 0; }
+  .next-step p { font-size: 14px; color: var(--warm-w); margin: 0 0 16px 0; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="monogram">A</div>
+  <div class="brand-text">
+    <div class="eyebrow">AI Fluency</div>
+    <div class="sub">WEEK 03 · DESCRIPTION</div>
+  </div>
+  <nav class="site-nav">
+    <a href="index.html">← Back to Gallery</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  <section class="hero">
+    <div class="eyebrow">Block 3 · Apply · Start Here</div>
+    <h1>Build Your <em>Meta-Prompt.</em></h1>
+    <p class="sub">Answer honestly and specifically — vague answers make vague prompts. This tool assembles one ready-to-paste prompt. You'll hand it to Claude yourself, then take Claude's two prompts to Gemini and Suno.</p>
+  </section>
+
+  <div class="panels">
+    <div class="panel image">
+      <div class="panel-head">🖼&nbsp;&nbsp;For Your Image</div>
+      <label for="dii-subject">Subject</label>
+      <input type="text" id="dii-subject" placeholder="e.g. a lighthouse keeper mid-storm" />
+      <label for="dii-setting">Setting</label>
+      <input type="text" id="dii-setting" placeholder="e.g. a rocky coast in northern Portugal, dusk" />
+      <label for="dii-mood">Mood / atmosphere</label>
+      <input type="text" id="dii-mood" placeholder="e.g. tense but hopeful, isolated" />
+      <label for="dii-style">Visual style</label>
+      <input type="text" id="dii-style" placeholder="e.g. oil painting, muted blues, Turner-like" />
+    </div>
+    <div class="panel song">
+      <div class="panel-head">🎵&nbsp;&nbsp;For Your Song</div>
+      <label for="dii-theme">Theme</label>
+      <input type="text" id="dii-theme" placeholder="e.g. leaving home for a new country" />
+      <label for="dii-genre">Genre</label>
+      <input type="text" id="dii-genre" placeholder="e.g. bossa nova, indie folk, MPB" />
+      <label for="dii-tempo">Tempo / emotional arc</label>
+      <input type="text" id="dii-tempo" placeholder="e.g. slow start, builds to hopeful chorus" />
+      <label for="dii-instruments">Instrumentation</label>
+      <input type="text" id="dii-instruments" placeholder="e.g. acoustic guitar, soft strings, light percussion" />
+    </div>
+  </div>
+
+  <div class="generate-row">
+    <button class="btn btn-primary" id="dii-generate">Build My Meta-Prompt</button>
+    <span class="status-line" id="dii-status"></span>
+  </div>
+
+  <div id="dii-error-slot"></div>
+  <div id="dii-output-slot"></div>
+
+  <div class="next-step" id="next-step" style="display:none;">
+    <div class="k">Next</div>
+    <h3>Paste it into Claude.</h3>
+    <p>Go to <a href="https://claude.ai" target="_blank" rel="noopener" style="color: var(--warm-w);">claude.ai</a>, paste the prompt above, and Claude will hand you back two labeled prompts: an <strong>IMAGE PROMPT</strong> and a <strong>SONG PROMPT</strong>. Copy the image one into Gemini and the song one into Suno. Once you've got your cover art and your song, come back here to publish them.</p>
+    <a href="index.html?upload=1" class="btn btn-outline" style="border-color: var(--gold); color: var(--gold);">Go Upload My Creations →</a>
+  </div>
+</div>
+
+<footer class="site-footer">APPROACH INTERNATIONAL STUDENT CENTER · AI FLUENCY · WEEK 3</footer>
+
+<script src="start.js"></script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Fluency · Week 3 Gallery</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="monogram">A</div>
+  <div class="brand-text">
+    <div class="eyebrow">AI Fluency</div>
+    <div class="sub">WEEK 03 · DESCRIPTION</div>
+  </div>
+  <nav class="site-nav">
+    <a href="start.html">Start Here</a>
+    <a href="#" id="nav-share" class="primary">Share Yours</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  <section class="hero">
+    <div class="eyebrow">Block 3 · Apply</div>
+    <h1>Describe It Into <em>Existence.</em></h1>
+    <p class="sub">Every album cover and song in this gallery was described into being by a classmate — nothing here was uploaded from stock. Add yours, or browse everyone else's.</p>
+    <div class="cta-row">
+      <a href="start.html" class="btn btn-primary">Start Here — Build My Prompts</a>
+      <a href="#" id="cta-share" class="btn btn-outline">Share My Creations</a>
+    </div>
+  </section>
+
+  <div class="section-label">The Gallery</div>
+  <div id="status" class="status-line">Loading entries…</div>
+  <div id="gallery" class="gallery-grid"></div>
+</div>
+
+<footer class="site-footer">APPROACH INTERNATIONAL STUDENT CENTER · AI FLUENCY · WEEK 3</footer>
+
+<!-- ============ IDENTIFY MODAL ============ -->
+<div class="modal-overlay" id="identify-overlay" style="display:none;">
+  <div class="modal">
+    <button class="close-x" id="identify-close">×</button>
+    <div class="modal-eyebrow">Step 1 of 2</div>
+    <h2>Who's sharing?</h2>
+    <p class="hint">First time here: pick a 4-digit PIN — you'll use it to edit your entry later. Already shared? Enter the same email + PIN to update it.</p>
+    <div id="identify-error"></div>
+    <form id="identify-form">
+      <div class="field">
+        <label for="id-name">Your name</label>
+        <input type="text" id="id-name" required maxlength="60" />
+      </div>
+      <div class="field">
+        <label for="id-email">Your email</label>
+        <input type="email" id="id-email" required maxlength="120" />
+      </div>
+      <div class="field">
+        <label for="id-pin">4-digit PIN</label>
+        <input type="password" id="id-pin" required maxlength="4" minlength="4" inputmode="numeric" pattern="[0-9]{4}" />
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-primary" id="identify-submit">Continue</button>
+        <button type="button" class="btn btn-outline" id="identify-cancel">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ UPLOAD MODAL ============ -->
+<div class="modal-overlay" id="upload-overlay" style="display:none;">
+  <div class="modal">
+    <button class="close-x" id="upload-close">×</button>
+    <div class="modal-eyebrow">Step 2 of 2</div>
+    <h2>Your album</h2>
+    <p class="hint" id="upload-hint">Upload your cover image and your song. First submission needs both — after that you can update just one.</p>
+    <div id="upload-error"></div>
+    <div id="upload-success"></div>
+    <form id="upload-form">
+      <div class="field">
+        <label for="up-title">Album / song title</label>
+        <input type="text" id="up-title" maxlength="80" placeholder="e.g. Leaving Lisbon" />
+      </div>
+      <div class="field">
+        <label for="up-image">Cover image (jpg, png, webp — max 8MB)</label>
+        <input type="file" id="up-image" accept="image/*" />
+        <div class="filehint">Leave blank to keep your current cover.</div>
+      </div>
+      <div class="field">
+        <label for="up-audio">Song (mp3, wav, m4a — max 20MB)</label>
+        <input type="file" id="up-audio" accept="audio/*" />
+        <div class="filehint">Leave blank to keep your current song.</div>
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-primary" id="upload-submit">Publish to Gallery</button>
+        <button type="button" class="btn btn-outline" id="upload-cancel">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

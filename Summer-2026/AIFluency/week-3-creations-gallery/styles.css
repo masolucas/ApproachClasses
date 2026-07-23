@@ -1,0 +1,228 @@
+:root {
+  --navy: #0C2340;
+  --navy-l: #143865;
+  --gold: #AE9142;
+  --gold-b: #D39F10;
+  --warm-w: #EFE9D9;
+  --paper: #FFFFFF;
+  --ink: #1A1A1A;
+  --ink-s: #3D3D3D;
+  --muted: #7A7A7A;
+  --sky: #EDF2F9;
+  --lt-gold: #F5EED2;
+  --teal: #0E6B6B;
+  --amber: #B45309;
+  --red: #C0392B;
+  --red-s: #F8D7DA;
+  --green: #26890C;
+  --green-s: #D4EDDA;
+  --serif: Cambria, Georgia, serif;
+  --sans: Calibri, "Segoe UI", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--serif);
+  color: var(--ink-s);
+  background: var(--paper);
+}
+
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px 80px 24px;
+}
+
+header.site-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.monogram {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  font-style: italic; font-weight: bold; color: var(--gold);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.brand-text .eyebrow {
+  font-family: var(--sans);
+  font-size: 11px; font-weight: 700; letter-spacing: 3px;
+  color: var(--navy); text-transform: uppercase;
+}
+.brand-text .sub {
+  font-family: var(--sans);
+  font-size: 10px; letter-spacing: 1.5px; color: var(--muted);
+}
+nav.site-nav {
+  margin-left: auto;
+  display: flex; gap: 10px;
+}
+nav.site-nav a {
+  font-family: var(--sans);
+  font-size: 12px; font-weight: 700; letter-spacing: 1px;
+  text-decoration: none;
+  color: var(--navy);
+  border: 1px solid var(--navy);
+  padding: 8px 16px;
+  border-radius: 3px;
+}
+nav.site-nav a.primary {
+  background: var(--navy);
+  color: var(--warm-w);
+  border-color: var(--navy);
+}
+nav.site-nav a:hover { opacity: 0.85; }
+
+.hero {
+  padding: 40px 0 20px 0;
+}
+.hero .eyebrow {
+  font-family: var(--sans); font-size: 11px; font-weight: 700;
+  letter-spacing: 4px; color: var(--gold); text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.hero h1 {
+  font-size: 42px; font-weight: 400; color: var(--navy);
+  margin: 0 0 10px 0; letter-spacing: -0.5px;
+}
+.hero h1 em { color: var(--gold); font-style: italic; }
+.hero p.sub {
+  font-style: italic; font-size: 16px; color: var(--ink-s);
+  max-width: 640px; margin: 0 0 22px 0;
+}
+.cta-row { display: flex; gap: 14px; flex-wrap: wrap; }
+
+button, .btn {
+  font-family: var(--sans);
+  font-weight: 700; font-size: 13px; letter-spacing: 0.5px;
+  border-radius: 3px; cursor: pointer; border: none;
+  padding: 13px 24px;
+  display: inline-block;
+  text-decoration: none;
+}
+.btn-primary { background: var(--navy); color: var(--warm-w); }
+.btn-primary:hover { background: var(--navy-l); }
+.btn-outline { background: transparent; color: var(--navy); border: 1.5px solid var(--navy); }
+.btn-outline:hover { background: var(--sky); }
+button:disabled { opacity: 0.5; cursor: default; }
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 22px;
+  margin-top: 30px;
+}
+.card {
+  background: var(--sky);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.card .cover {
+  width: 100%; aspect-ratio: 1 / 1;
+  object-fit: cover;
+  background: var(--navy);
+  display: block;
+}
+.card .cover-empty {
+  width: 100%; aspect-ratio: 1/1;
+  background: var(--navy);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gold); font-size: 12px; font-family: var(--sans);
+}
+.card .card-body { padding: 14px 16px 18px 16px; }
+.card .card-title {
+  font-size: 17px; color: var(--navy); font-style: italic;
+  margin: 0 0 3px 0;
+}
+.card .card-by {
+  font-family: var(--sans); font-size: 11px; color: var(--muted);
+  letter-spacing: 0.5px; margin-bottom: 10px;
+}
+.card audio { width: 100%; height: 34px; }
+
+.empty-state {
+  margin-top: 40px; padding: 30px; text-align: center;
+  background: var(--lt-gold); border-radius: 4px;
+  font-style: italic; color: var(--navy);
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(12,35,64,0.55);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; z-index: 50;
+}
+.modal {
+  background: var(--paper); border-radius: 5px;
+  max-width: 460px; width: 100%;
+  padding: 28px 28px 24px 28px;
+  max-height: 90vh; overflow-y: auto;
+}
+.modal .modal-eyebrow {
+  font-family: var(--sans); font-size: 10px; font-weight: 700;
+  letter-spacing: 3px; color: var(--gold); text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.modal h2 {
+  font-size: 24px; font-weight: 400; font-style: italic;
+  color: var(--navy); margin: 0 0 14px 0;
+}
+.modal p.hint {
+  font-family: var(--sans); font-size: 12.5px; color: var(--muted);
+  margin: 0 0 18px 0; line-height: 1.5;
+}
+.field { margin-bottom: 14px; }
+.field label {
+  display: block; font-family: var(--sans); font-size: 12px;
+  font-weight: 700; color: var(--navy); margin-bottom: 5px;
+}
+.field input[type=text], .field input[type=email], .field input[type=password],
+.field input[type=file] {
+  width: 100%; border: 1px solid #cfd8e3; border-radius: 3px;
+  padding: 9px 11px; font-family: var(--serif); font-style: italic;
+  font-size: 14px; color: var(--ink); background: var(--paper);
+}
+.field .filehint {
+  font-family: var(--sans); font-size: 11px; color: var(--muted); margin-top: 3px;
+}
+.modal-actions {
+  display: flex; gap: 10px; margin-top: 20px;
+}
+.modal-error {
+  background: var(--red-s); color: var(--red); font-family: var(--sans);
+  font-size: 12.5px; padding: 10px 12px; border-radius: 3px; margin-bottom: 14px;
+}
+.modal-success {
+  background: var(--green-s); color: var(--green); font-family: var(--sans);
+  font-size: 12.5px; padding: 10px 12px; border-radius: 3px; margin-bottom: 14px;
+}
+.close-x {
+  position: absolute; top: 14px; right: 16px;
+  background: none; border: none; color: var(--muted);
+  font-size: 20px; padding: 4px; line-height: 1;
+}
+.modal { position: relative; }
+
+.section-label {
+  font-family: var(--sans); font-size: 11px; font-weight: 700;
+  letter-spacing: 3px; color: var(--gold); text-transform: uppercase;
+  margin: 46px 0 4px 0;
+}
+.status-line {
+  font-family: var(--sans); font-size: 13px; color: var(--muted); font-style: italic;
+}
+
+footer.site-footer {
+  text-align: center; padding: 40px 24px;
+  font-family: var(--sans); font-size: 11px; color: var(--muted);
+  letter-spacing: 1px;
+}
