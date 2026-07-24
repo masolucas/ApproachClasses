@@ -64,12 +64,19 @@
 
       const { data: signUpData, error: signUpError } = await sb.auth.signUp({ email, password });
 
-      if (signUpError) {
-        identifyError.innerHTML = `<div class="modal-error">${escapeHtml(signUpError.message)}</div>`;
-        return;
-      }
+      let isNewUser = false;
 
-      const isNewUser = signUpData?.user?.identities && signUpData.user.identities.length > 0;
+      if (signUpError) {
+        const msg = (signUpError.message || '').toLowerCase();
+        const alreadyRegistered = msg.includes('already registered') || msg.includes('already exists');
+        if (!alreadyRegistered) {
+          identifyError.innerHTML = `<div class="modal-error">${escapeHtml(signUpError.message)}</div>`;
+          return;
+        }
+        // Existing student — fall through to verify their PIN via sign-in below.
+      } else {
+        isNewUser = !!(signUpData?.user?.identities && signUpData.user.identities.length > 0);
+      }
 
       if (!isNewUser) {
         // Email already registered — this PIN attempt needs to be verified for real.
