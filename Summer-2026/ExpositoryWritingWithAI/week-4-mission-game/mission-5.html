@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Mission 5 · Same Idea, Different Voice · ApproachUSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --nd-blue: #0c2340;
+    --nd-blue-light: #143865;
+    --nd-gold: #ae9142;
+    --warm-white: #efe9d9;
+    --light-warm: #f8f4ec;
+    --paper: #faf6ec;
+    --ink: #1a1a1a;
+    --ink-soft: #3d3d3d;
+    --muted: #6a6a6a;
+    --m5-color: #8e44ad;
+
+    /* Tone-specific accent colors */
+    --tone-formal: #34495e;
+    --tone-casual: #16a085;
+    --tone-urgent: #e74c3c;
+    --tone-apologetic: #9b59b6;
+
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    line-height: 1.5;
+    padding-bottom: 80px;
+  }
+
+  /* Top bar */
+  .top-bar {
+    background: var(--nd-blue);
+    color: var(--warm-white);
+    padding: 16px 20px;
+    border-bottom: 3px solid var(--m5-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .top-bar-inner { display: flex; align-items: center; justify-content: space-between; }
+  .top-eyebrow { font-family: var(--mono); font-size: 9px; letter-spacing: 0.25em; color: var(--nd-gold); text-transform: uppercase; }
+  .top-title { font-family: var(--serif); font-size: 16px; font-style: italic; color: var(--warm-white); margin-top: 2px; }
+  .timer-pill { background: rgba(174, 145, 66, 0.2); border: 1px solid var(--nd-gold); color: var(--nd-gold); font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.15em; padding: 6px 12px; border-radius: 20px; text-transform: uppercase; white-space: nowrap; }
+
+  /* Hero */
+  .hero {
+    padding: 40px 24px 30px;
+    background: var(--nd-blue);
+    color: var(--warm-white);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(142, 68, 173, 0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .mission-badge { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .mission-num-circle {
+    width: 38px; height: 38px; border-radius: 50%; background: var(--m5-color);
+    color: var(--warm-white); display: flex; align-items: center; justify-content: center;
+    font-family: var(--serif); font-style: italic; font-weight: 700; font-size: 20px;
+  }
+  .mission-meta { font-family: var(--mono); font-size: 10px; letter-spacing: 0.25em; color: var(--nd-gold); text-transform: uppercase; }
+  .hero h1 {
+    font-family: var(--serif); font-size: 42px; font-weight: 500;
+    line-height: 1.05; letter-spacing: -0.015em; margin-bottom: 18px; color: var(--warm-white);
+  }
+  .hero h1 em { font-style: italic; color: var(--m5-color); }
+  .hero-intro {
+    font-family: var(--serif); font-size: 18px; line-height: 1.45; opacity: 0.9;
+  }
+
+  /* Deliverable */
+  .deliverable-card {
+    margin: 30px 20px 0;
+    background: rgba(174, 145, 66, 0.08);
+    border-left: 3px solid var(--nd-gold);
+    padding: 16px 18px;
+    border-radius: 4px;
+  }
+  .deliverable-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.3em; color: var(--nd-gold); text-transform: uppercase; margin-bottom: 6px; }
+  .deliverable-text { font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--ink); line-height: 1.4; }
+
+  /* Section */
+  .section { padding: 36px 20px 0; }
+  .section-eyebrow {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.3em;
+    color: var(--nd-gold); text-transform: uppercase; margin-bottom: 8px;
+  }
+  .section-title {
+    font-family: var(--serif); font-size: 28px; font-weight: 500;
+    color: var(--nd-blue); margin-bottom: 12px; line-height: 1.1;
+  }
+  .section-intro {
+    font-family: var(--serif); font-size: 17px; color: var(--ink-soft);
+    margin-bottom: 20px; line-height: 1.5;
+  }
+
+  /* Core message box */
+  .core-message {
+    background: var(--nd-blue);
+    color: var(--warm-white);
+    border-radius: 10px;
+    padding: 22px 20px;
+    margin-bottom: 24px;
+    border: 2px solid var(--m5-color);
+  }
+  .core-message-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--m5-color);
+    margin-bottom: 12px;
+  }
+  .core-message-text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 20px;
+    line-height: 1.4;
+    color: var(--warm-white);
+  }
+
+  /* Tone cards */
+  .tone-card {
+    margin-bottom: 18px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(12, 35, 64, 0.08);
+    border: 1px solid rgba(174, 145, 66, 0.2);
+    background: white;
+  }
+  .tone-header {
+    padding: 14px 18px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .tone-header.formal { background: var(--tone-formal); }
+  .tone-header.casual { background: var(--tone-casual); }
+  .tone-header.urgent { background: var(--tone-urgent); }
+  .tone-header.apologetic { background: var(--tone-apologetic); }
+  .tone-num {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 700;
+    font-size: 24px;
+    width: 32px;
+    flex-shrink: 0;
+  }
+  .tone-meta { flex: 1; }
+  .tone-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+  .tone-title {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-style: italic;
+    margin-top: 2px;
+  }
+  .tone-prompt {
+    padding: 16px 18px;
+    background: var(--paper);
+    border-bottom: 1px solid rgba(174, 145, 66, 0.2);
+  }
+  .tone-prompt-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--m5-color);
+    margin-bottom: 8px;
+  }
+  .tone-prompt-text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+    line-height: 1.45;
+    color: var(--ink);
+  }
+  .tone-actions {
+    padding: 12px 16px;
+    background: white;
+    display: flex;
+    justify-content: flex-end;
+  }
+  .copy-btn {
+    background: var(--m5-color);
+    border: none;
+    color: white;
+    padding: 8px 18px;
+    border-radius: 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .copy-btn:active, .copy-btn.copied {
+    background: var(--nd-gold);
+  }
+
+  /* Reflection prompt */
+  .reflection-section { padding: 36px 20px 0; }
+  .reflection-card {
+    background: linear-gradient(135deg, #fef9e8 0%, #f5eed2 100%);
+    border-radius: 10px;
+    padding: 22px 20px;
+    border: 2px solid var(--nd-gold);
+  }
+  .reflection-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--nd-gold);
+    margin-bottom: 10px;
+  }
+  .reflection-question {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 20px;
+    line-height: 1.4;
+    color: var(--nd-blue);
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+  .reflection-textarea {
+    width: 100%;
+    min-height: 130px;
+    padding: 14px;
+    border: 1.5px solid rgba(174, 145, 66, 0.3);
+    border-radius: 8px;
+    font-family: var(--serif);
+    font-size: 16px;
+    line-height: 1.5;
+    background: white;
+    outline: none;
+    resize: vertical;
+    transition: border-color 0.2s ease;
+  }
+  .reflection-textarea:focus { border-color: var(--m5-color); }
+  .reflection-counter {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    margin-top: 6px;
+  }
+  .reflection-counter.target {
+    color: var(--m5-color);
+    font-weight: 600;
+  }
+
+  /* Lesson callout */
+  .callout {
+    margin: 36px 20px 0;
+    background: var(--nd-blue);
+    color: var(--warm-white);
+    border-radius: 10px;
+    padding: 22px 20px;
+    border-left: 4px solid var(--m5-color);
+  }
+  .callout-icon { font-size: 22px; margin-bottom: 8px; }
+  .callout-title {
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.3em; text-transform: uppercase; color: var(--m5-color);
+    margin-bottom: 10px;
+  }
+  .callout-text {
+    font-family: var(--serif); font-style: italic; font-size: 17px;
+    line-height: 1.45; color: var(--warm-white);
+  }
+
+  /* Checklist */
+  .checklist-section { padding: 36px 20px 0; }
+  .checklist {
+    background: var(--warm-white); border-radius: 10px;
+    padding: 20px 18px; border: 1px solid rgba(174, 145, 66, 0.3);
+  }
+  .checklist-title {
+    font-family: var(--mono); font-size: 10px; font-weight: 600;
+    letter-spacing: 0.3em; text-transform: uppercase; color: var(--nd-gold);
+    margin-bottom: 14px;
+  }
+  .checklist-item {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 10px 0; border-bottom: 1px solid rgba(174, 145, 66, 0.15);
+  }
+  .checklist-item:last-child { border-bottom: none; }
+  .checklist-checkbox {
+    width: 22px; height: 22px;
+    border: 2px solid var(--m5-color);
+    border-radius: 4px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s ease;
+  }
+  .checklist-checkbox.checked { background: var(--m5-color); }
+  .checklist-checkbox.checked::after {
+    content: '✓'; color: white; font-weight: bold; font-size: 14px;
+  }
+  .checklist-label {
+    font-family: var(--serif); font-size: 16px;
+    color: var(--ink); line-height: 1.4; flex: 1;
+  }
+  .checklist-checkbox.checked + .checklist-label {
+    text-decoration: line-through; opacity: 0.5;
+  }
+
+  /* Footer hint */
+  .footer-hint {
+    margin: 50px 20px 0; text-align: center;
+    padding: 24px 20px; border-top: 1px solid rgba(174, 145, 66, 0.3);
+  }
+  .footer-hint-text {
+    font-family: var(--serif); font-style: italic;
+    font-size: 16px; color: var(--muted); line-height: 1.5;
+  }
+  .footer-hint-eyebrow {
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.3em;
+    color: var(--nd-gold); text-transform: uppercase; margin-bottom: 8px;
+  }
+
+  /* Toast */
+  .copy-toast {
+    position: fixed; bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--nd-blue); color: var(--warm-white);
+    padding: 14px 26px; border-radius: 30px;
+    font-family: var(--sans); font-size: 14px; font-weight: 600;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+    z-index: 200;
+    transition: transform 0.35s ease;
+    border: 1px solid var(--nd-gold);
+  }
+  .copy-toast.visible { transform: translateX(-50%) translateY(0); }
+
+  @media (min-width: 700px) {
+    body {
+      max-width: 720px;
+      margin: 0 auto;
+      box-shadow: 0 0 40px rgba(0,0,0,0.08);
+    }
+    .hero h1 { font-size: 52px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top-bar">
+  <div class="top-bar-inner">
+    <div>
+      <div class="top-eyebrow">MISSION 05 · LAST ONE</div>
+      <div class="top-title">Same Idea, Different Voice</div>
+    </div>
+    <div class="timer-pill">⏱ 15 MIN</div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="mission-badge">
+    <div class="mission-num-circle">5</div>
+    <div class="mission-meta">PROMPTING FOR TONE · 15 MIN</div>
+  </div>
+  <h1>Same idea.<br><em>Different voice.</em></h1>
+  <p class="hero-intro">This Mission teaches you how to prompt AI for a specific REGISTER and TONE. Same message, four different voices.</p>
+</section>
+
+<div class="deliverable-card">
+  <div class="deliverable-label">✓ DELIVERABLE</div>
+  <div class="deliverable-text">4 different-tone outputs in your Process Journal — Section 5 — plus a 50-word reflection.</div>
+</div>
+
+<section class="section">
+  <div class="section-eyebrow">THE CORE MESSAGE</div>
+  <h2 class="section-title">One simple message.<br>Four different voices.</h2>
+  <p class="section-intro">You'll give Claude the same core message four times. Each time, you'll change ONLY the register and tone instructions. Watch how the output changes.</p>
+
+  <div class="core-message">
+    <div class="core-message-label">📨 THE MESSAGE TO COMMUNICATE</div>
+    <div class="core-message-text">"Tell my boss I need to leave early on Friday because of a family commitment."</div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-eyebrow">THE FOUR PROMPTS · RUN THEM ALL</div>
+  <h2 class="section-title">Each one. Same idea. New voice.</h2>
+  <p class="section-intro" style="margin-bottom: 24px;">Paste each response into your Process Journal under: <em>Entry 4 — Section 5 — Tone Variations</em>.</p>
+
+  <!-- FORMAL -->
+  <div class="tone-card">
+    <div class="tone-header formal">
+      <div class="tone-num">1</div>
+      <div class="tone-meta">
+        <div class="tone-tag">FORMAL</div>
+        <div class="tone-title">Professional, deferential</div>
+      </div>
+    </div>
+    <div class="tone-prompt">
+      <div class="tone-prompt-label">📋 PROMPT</div>
+      <div class="tone-prompt-text" id="t1">Write a formal email from me to my boss explaining that I need to leave early on Friday because of a family commitment. Use a professional, deferential tone.</div>
+    </div>
+    <div class="tone-actions">
+      <button class="copy-btn" onclick="copyPrompt(this, 't1')">COPY</button>
+    </div>
+  </div>
+
+  <!-- CASUAL -->
+  <div class="tone-card">
+    <div class="tone-header casual">
+      <div class="tone-num">2</div>
+      <div class="tone-meta">
+        <div class="tone-tag">CASUAL</div>
+        <div class="tone-title">Friendly, brief</div>
+      </div>
+    </div>
+    <div class="tone-prompt">
+      <div class="tone-prompt-label">📋 PROMPT</div>
+      <div class="tone-prompt-text" id="t2">Write a casual Slack message from me to my boss saying I need to leave early on Friday because of a family thing. Use a friendly, brief tone.</div>
+    </div>
+    <div class="tone-actions">
+      <button class="copy-btn" onclick="copyPrompt(this, 't2')">COPY</button>
+    </div>
+  </div>
+
+  <!-- URGENT -->
+  <div class="tone-card">
+    <div class="tone-header urgent">
+      <div class="tone-num">3</div>
+      <div class="tone-meta">
+        <div class="tone-tag">URGENT</div>
+        <div class="tone-title">Serious, time-pressured</div>
+      </div>
+    </div>
+    <div class="tone-prompt">
+      <div class="tone-prompt-label">📋 PROMPT</div>
+      <div class="tone-prompt-text" id="t3">Write a brief, urgent message from me to my boss saying I have to leave early Friday for an unexpected family situation. Use a serious, time-pressured tone.</div>
+    </div>
+    <div class="tone-actions">
+      <button class="copy-btn" onclick="copyPrompt(this, 't3')">COPY</button>
+    </div>
+  </div>
+
+  <!-- APOLOGETIC -->
+  <div class="tone-card">
+    <div class="tone-header apologetic">
+      <div class="tone-num">4</div>
+      <div class="tone-meta">
+        <div class="tone-tag">APOLOGETIC</div>
+        <div class="tone-title">Regretful, accommodating</div>
+      </div>
+    </div>
+    <div class="tone-prompt">
+      <div class="tone-prompt-label">📋 PROMPT</div>
+      <div class="tone-prompt-text" id="t4">Write an apologetic email from me to my boss explaining that I need to leave early on Friday for a family commitment. Use a regretful, accommodating tone.</div>
+    </div>
+    <div class="tone-actions">
+      <button class="copy-btn" onclick="copyPrompt(this, 't4')">COPY</button>
+    </div>
+  </div>
+</section>
+
+<section class="reflection-section">
+  <div class="reflection-card">
+    <div class="reflection-eyebrow">YOUR REFLECTION · 50 WORDS</div>
+    <div class="reflection-question">Read all 4 versions. Which one sounds most like YOU? Which would you actually send to your real boss? Why?</div>
+    <textarea class="reflection-textarea" id="reflection" placeholder="Write your 50-word reflection here…" oninput="updateWordCount()"></textarea>
+    <div class="reflection-counter" id="word-counter">0 words</div>
+  </div>
+</section>
+
+<div class="callout">
+  <div class="callout-icon">⚡</div>
+  <div class="callout-title">THE LESSON</div>
+  <div class="callout-text">Register and tone are not optional. When you prompt AI, telling it WHAT you want is half the job. Telling it HOW you want it is the other half.</div>
+</div>
+
+<section class="checklist-section">
+  <div class="checklist">
+    <div class="checklist-title">BEFORE YOU FINISH</div>
+    <div class="checklist-item">
+      <div class="checklist-checkbox" onclick="toggleCheck(this)"></div>
+      <div class="checklist-label">I ran all 4 tone prompts in Claude</div>
+    </div>
+    <div class="checklist-item">
+      <div class="checklist-checkbox" onclick="toggleCheck(this)"></div>
+      <div class="checklist-label">All 4 outputs are pasted in my Process Journal</div>
+    </div>
+    <div class="checklist-item">
+      <div class="checklist-checkbox" onclick="toggleCheck(this)"></div>
+      <div class="checklist-label">I read my partner's 4 versions</div>
+    </div>
+    <div class="checklist-item">
+      <div class="checklist-checkbox" onclick="toggleCheck(this)"></div>
+      <div class="checklist-label">I wrote my 50-word reflection</div>
+    </div>
+  </div>
+</section>
+
+<div class="footer-hint">
+  <div class="footer-hint-eyebrow">YOU'RE DONE</div>
+  <div class="footer-hint-text">Five missions complete. Look up at the projector for the closing reflection.<br><br>Good work today.</div>
+</div>
+
+<div class="copy-toast" id="copy-toast">✓ Copied to clipboard</div>
+
+<script>
+function copyPrompt(btn, id) {
+  const text = document.getElementById(id).innerText;
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => showCopyFeedback(btn)).catch(() => fallbackCopy(text, btn));
+  } else {
+    fallbackCopy(text, btn);
+  }
+}
+function fallbackCopy(text, btn) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); showCopyFeedback(btn); } catch (e) { console.error(e); }
+  document.body.removeChild(ta);
+}
+function showCopyFeedback(btn) {
+  btn.classList.add('copied');
+  btn.textContent = '✓ COPIED';
+  const toast = document.getElementById('copy-toast');
+  toast.classList.add('visible');
+  setTimeout(() => {
+    btn.classList.remove('copied');
+    btn.textContent = 'COPY';
+    toast.classList.remove('visible');
+  }, 2200);
+}
+function toggleCheck(box) { box.classList.toggle('checked'); }
+
+function updateWordCount() {
+  const text = document.getElementById('reflection').value.trim();
+  const words = text === '' ? 0 : text.split(/\s+/).length;
+  const counter = document.getElementById('word-counter');
+  counter.textContent = words + ' words';
+  counter.classList.toggle('target', words >= 40 && words <= 70);
+}
+</script>
+
+</body>
+</html>
