@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mosquito Match — Week 5 Vocabulary Review</title>
+<style>
+  :root {
+    --navy: #0C2340;
+    --navy-l: #143865;
+    --navy-d: #081629;
+    --gold: #AE9142;
+    --gold-b: #D39F10;
+    --warm-w: #EFE9D9;
+    --paper: #FFFFFF;
+    --ink: #1A1A1A;
+    --ink-s: #3D3D3D;
+    --muted: #7A7A7A;
+    --sky: #EDF2F9;
+    --lt-gold: #F5EED2;
+    --teal: #0E6B6B;
+    --teal-s: #D0EDED;
+    --green: #26890C;
+    --green-s: #D4EDDA;
+    --red: #C0392B;
+    --red-s: #F8D7DA;
+    --serif: Cambria, Georgia, "Times New Roman", serif;
+    --sans: Calibri, "Segoe UI", Arial, sans-serif;
+    --mono: Consolas, "Courier New", monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--navy);
+    font-family: var(--sans); color: var(--ink);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .app { width: 100%; max-width: 780px; }
+
+  /* ---------- header ---------- */
+  .header { text-align: center; margin-bottom: 18px; color: var(--warm-w); }
+  .monogram {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid var(--gold);
+    color: var(--gold); font-family: var(--serif); font-style: italic; font-weight: 700; font-size: 20px; margin-bottom: 10px;
+  }
+  .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; }
+  h1 { font-family: var(--serif); font-weight: 400; font-size: 2.1rem; margin: 6px 0 4px; }
+  h1 em { color: var(--gold); font-style: italic; }
+  .sub { font-family: var(--serif); font-style: italic; font-size: 0.95rem; color: var(--warm-w); opacity: 0.85; }
+
+  /* ---------- card / panel ---------- */
+  .panel {
+    background: var(--paper); border-radius: 10px; padding: 28px 26px;
+    position: relative; box-shadow: 0 18px 45px rgba(0,0,0,0.35);
+  }
+  .panel .corner { position: absolute; width: 18px; height: 18px; border-color: var(--gold); }
+  .panel .corner.tl { top: 10px; left: 10px; border-top: 2px solid var(--gold); border-left: 2px solid var(--gold); }
+  .panel .corner.br { bottom: 10px; right: 10px; border-bottom: 2px solid var(--gold); border-right: 2px solid var(--gold); }
+
+  /* ---------- scoreboard ---------- */
+  .scoreboard { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .score-item { text-align: center; }
+  .score-label { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+  .score-value { font-family: var(--serif); font-size: 1.8rem; color: var(--navy); }
+  .score-value.gold { color: var(--gold-b); }
+  .progress-track { background: var(--sky); border-radius: 999px; height: 8px; width: 100%; overflow: hidden; margin: 14px 0 0; }
+  .progress-fill { background: linear-gradient(90deg, var(--gold), var(--gold-b)); height: 100%; border-radius: 999px; transition: width 0.3s ease; }
+
+  /* ---------- question ---------- */
+  .q-eyebrow { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 2px; color: var(--teal); text-transform: uppercase; margin-bottom: 8px; }
+  .q-text { font-family: var(--serif); font-size: 1.35rem; color: var(--navy); line-height: 1.4; margin-bottom: 22px; min-height: 70px; }
+  .q-text .blank { border-bottom: 2px solid var(--gold-b); padding: 0 4px; color: var(--gold-b); font-weight: 700; }
+
+  /* ---------- mosquito options (flying buttons) ---------- */
+  .options { position: relative; height: 300px; }
+  .mosquito-btn {
+    position: absolute; display: flex; align-items: center; gap: 10px;
+    background: var(--sky); border: 1.5px solid var(--sky); border-radius: 999px;
+    padding: 10px 18px 10px 10px; cursor: pointer; font-family: var(--sans); font-size: 15px;
+    font-weight: 700; color: var(--navy); transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    animation: drift 6s ease-in-out infinite;
+    box-shadow: 0 2px 6px rgba(12,35,64,0.08);
+  }
+  .mosquito-btn:hover { transform: scale(1.04); box-shadow: 0 4px 14px rgba(12,35,64,0.18); background: var(--paper); border-color: var(--gold-b); }
+  .mosquito-btn:active { transform: scale(0.98); }
+  .mosquito-btn.correct { background: var(--green-s); border-color: var(--green); color: #1c5c08; animation: none; }
+  .mosquito-btn.wrong { background: var(--red-s); border-color: var(--red); color: var(--red); animation: none; }
+  .mosquito-btn.disabled { pointer-events: none; opacity: 0.55; animation: none; }
+
+  .mosquito-icon { flex: none; width: 26px; height: 20px; }
+
+  @keyframes drift {
+    0%   { transform: translate(0px, 0px); }
+    25%  { transform: translate(4px, -6px); }
+    50%  { transform: translate(-3px, 3px); }
+    75%  { transform: translate(3px, 5px); }
+    100% { transform: translate(0px, 0px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mosquito-btn { animation: none; }
+  }
+
+  /* ---------- feedback ---------- */
+  .feedback {
+    margin-top: 16px; min-height: 26px; font-family: var(--sans); font-size: 14px; font-weight: 700;
+    text-align: center;
+  }
+  .feedback.correct { color: var(--green); }
+  .feedback.wrong { color: var(--red); }
+
+  .btn-row { display: flex; justify-content: center; margin-top: 12px; }
+  .next-btn {
+    font-family: var(--sans); font-size: 14px; font-weight: 700; letter-spacing: 0.02em;
+    padding: 10px 26px; border-radius: 5px; border: none; cursor: pointer;
+    background: var(--navy); color: var(--warm-w); display: none;
+  }
+  .next-btn.show { display: inline-flex; }
+  .next-btn:hover { background: var(--navy-l); }
+
+  /* ---------- end screen ---------- */
+  .end-screen { text-align: center; }
+  .end-screen .big-score { font-family: var(--serif); font-size: 3.4rem; color: var(--navy); margin: 6px 0; }
+  .end-screen .big-score em { color: var(--gold-b); font-style: italic; }
+  .end-msg { font-family: var(--serif); font-style: italic; font-size: 1.1rem; color: var(--ink-s); margin-bottom: 22px; }
+  .restart-btn {
+    font-family: var(--sans); font-size: 14px; font-weight: 700; padding: 11px 28px; border-radius: 5px;
+    border: 1.5px solid var(--navy); background: transparent; color: var(--navy); cursor: pointer;
+  }
+  .restart-btn:hover { background: var(--sky); }
+
+  .footer-note { text-align: center; color: var(--warm-w); opacity: 0.6; font-size: 11px; margin-top: 16px; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div class="monogram">A</div>
+    <div class="eyebrow">Current Issues · Week 05</div>
+    <h1>Mosquito <em>Match.</em></h1>
+    <div class="sub">Squash the correct mosquito to review this week's vocabulary.</div>
+  </div>
+
+  <div class="panel" id="panel">
+    <span class="corner tl"></span><span class="corner br"></span>
+
+    <!-- GAME SCREEN -->
+    <div id="gameScreen">
+      <div class="scoreboard">
+        <div class="score-item">
+          <div class="score-label">Question</div>
+          <div class="score-value" id="qNumDisplay">1 / 8</div>
+        </div>
+        <div class="score-item">
+          <div class="score-label">Score</div>
+          <div class="score-value gold" id="scoreDisplay">0</div>
+        </div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:12.5%"></div></div>
+
+      <div style="margin-top:24px;">
+        <div class="q-eyebrow">Fill in the blank</div>
+        <div class="q-text" id="qText"></div>
+      </div>
+
+      <div class="options" id="optionsWrap"></div>
+
+      <div class="feedback" id="feedback"></div>
+      <div class="btn-row"><button class="next-btn" id="nextBtn">Next Question →</button></div>
+    </div>
+
+    <!-- END SCREEN -->
+    <div class="end-screen" id="endScreen" style="display:none;">
+      <div class="q-eyebrow" style="text-align:center;">Game Complete</div>
+      <div class="big-score"><span id="finalScore">0</span> / <em id="finalTotal">8</em></div>
+      <div class="end-msg" id="endMsg">Great job reviewing this week's words!</div>
+      <button class="restart-btn" id="restartBtn">Play Again</button>
+    </div>
+  </div>
+
+  <div class="footer-note">APPROACH INTERNATIONAL STUDENT CENTER &nbsp;·&nbsp; OFFLINE-READY &nbsp;·&nbsp; WORKS ON ANY COMPUTER</div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- SVG mosquito icon (no emoji / unicode dependency — Windows-safe) ----
+  var MOSQUITO_SVG =
+    '<svg class="mosquito-icon" viewBox="0 0 60 44" xmlns="http://www.w3.org/2000/svg">' +
+    '<line x1="30" y1="14" x2="8" y2="2" stroke="#7A7A7A" stroke-width="1.4"/>' +
+    '<line x1="30" y1="14" x2="14" y2="4" stroke="#7A7A7A" stroke-width="1.4"/>' +
+    '<line x1="30" y1="16" x2="54" y2="6" stroke="#7A7A7A" stroke-width="1.4"/>' +
+    '<line x1="30" y1="16" x2="48" y2="4" stroke="#7A7A7A" stroke-width="1.4"/>' +
+    '<ellipse cx="26" cy="26" rx="16" ry="7" fill="#1A1A1A" transform="rotate(8 26 26)"/>' +
+    '<circle cx="44" cy="18" r="4.2" fill="#1A1A1A"/>' +
+    '<line x1="47" y1="16" x2="58" y2="10" stroke="#1A1A1A" stroke-width="1.6" stroke-linecap="round"/>' +
+    '<line x1="14" y1="30" x2="6" y2="40" stroke="#1A1A1A" stroke-width="1.6" stroke-linecap="round"/>' +
+    '<line x1="22" y1="32" x2="18" y2="42" stroke="#1A1A1A" stroke-width="1.6" stroke-linecap="round"/>' +
+    '<line x1="30" y1="33" x2="30" y2="43" stroke="#1A1A1A" stroke-width="1.6" stroke-linecap="round"/>' +
+    '</svg>';
+
+  // ---- Question bank: fill-in-the-blank using the 8 target words ----
+  var QUESTIONS = [
+    { text: 'The insect that bit me last night was a ____.', answer: 'mosquito', options: ['mosquito', 'bacteria', 'area'] },
+    { text: 'Mosquitoes ____ people, and it can be itchy.', answer: 'bite', options: ['bite', 'release', 'safe'] },
+    { text: 'Some mosquitoes carry a dangerous ____.', answer: 'disease', options: ['disease', 'eggs', 'area'] },
+    { text: 'The special mosquitoes have ____ inside their bodies.', answer: 'bacteria', options: ['bacteria', 'disease', 'safe'] },
+    { text: 'Scientists plan to ____ 600,000 male mosquitoes.', answer: 'release', options: ['release', 'bite', 'area'] },
+    { text: 'The female mosquito lays ____, but they never open.', answer: 'eggs', options: ['eggs', 'bacteria', 'release'] },
+    { text: 'The new plan is completely ____ for people and animals.', answer: 'safe', options: ['safe', 'disease', 'bite'] },
+    { text: 'There will be fewer mosquitoes in this ____ by next month.', answer: 'area', options: ['area', 'mosquito', 'eggs'] },
+  ];
+
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  var order = shuffle(QUESTIONS.map(function (_, i) { return i; }));
+  var current = 0;
+  var score = 0;
+  var answered = false;
+
+  var qTextEl = document.getElementById('qText');
+  var optionsWrap = document.getElementById('optionsWrap');
+  var feedbackEl = document.getElementById('feedback');
+  var nextBtn = document.getElementById('nextBtn');
+  var scoreDisplay = document.getElementById('scoreDisplay');
+  var qNumDisplay = document.getElementById('qNumDisplay');
+  var progressFill = document.getElementById('progressFill');
+  var gameScreen = document.getElementById('gameScreen');
+  var endScreen = document.getElementById('endScreen');
+  var finalScore = document.getElementById('finalScore');
+  var finalTotal = document.getElementById('finalTotal');
+  var endMsg = document.getElementById('endMsg');
+  var restartBtn = document.getElementById('restartBtn');
+
+  // Fixed, non-overlapping positions for up to 3 options within the .options box
+  var POS = [
+    { top: '10px',  left: '4%'  },
+    { top: '120px', left: '46%' },
+    { top: '230px', left: '10%' }
+  ];
+
+  function renderQuestion() {
+    answered = false;
+    feedbackEl.textContent = '';
+    feedbackEl.className = 'feedback';
+    nextBtn.classList.remove('show');
+
+    var qIndex = order[current];
+    var q = QUESTIONS[qIndex];
+    qTextEl.innerHTML = q.text.replace('____', '<span class="blank">____</span>');
+
+    qNumDisplay.textContent = (current + 1) + ' / ' + QUESTIONS.length;
+    scoreDisplay.textContent = score;
+    progressFill.style.width = (((current) / QUESTIONS.length) * 100) + '%';
+
+    var opts = shuffle(q.options);
+    optionsWrap.innerHTML = '';
+    opts.forEach(function (opt, i) {
+      var btn = document.createElement('button');
+      btn.className = 'mosquito-btn';
+      btn.style.top = POS[i % POS.length].top;
+      btn.style.left = POS[i % POS.length].left;
+      btn.style.animationDelay = (i * 0.6) + 's';
+      btn.innerHTML = MOSQUITO_SVG + '<span>' + opt + '</span>';
+      btn.addEventListener('click', function () { handleAnswer(opt, q.answer, btn); });
+      optionsWrap.appendChild(btn);
+    });
+  }
+
+  function handleAnswer(chosen, correctAnswer, btnEl) {
+    if (answered) return;
+    answered = true;
+
+    var allBtns = optionsWrap.querySelectorAll('.mosquito-btn');
+    allBtns.forEach(function (b) { b.classList.add('disabled'); });
+
+    if (chosen === correctAnswer) {
+      score += 1;
+      btnEl.classList.remove('disabled');
+      btnEl.classList.add('correct');
+      feedbackEl.textContent = 'Correct! Well done.';
+      feedbackEl.className = 'feedback correct';
+    } else {
+      btnEl.classList.remove('disabled');
+      btnEl.classList.add('wrong');
+      allBtns.forEach(function (b) {
+        if (b.textContent.trim() === correctAnswer) {
+          b.classList.remove('disabled');
+          b.classList.add('correct');
+        }
+      });
+      feedbackEl.textContent = 'Not quite — the answer is "' + correctAnswer + '".';
+      feedbackEl.className = 'feedback wrong';
+    }
+    scoreDisplay.textContent = score;
+    nextBtn.classList.add('show');
+  }
+
+  function nextQuestion() {
+    current += 1;
+    if (current >= QUESTIONS.length) {
+      showEnd();
+    } else {
+      renderQuestion();
+    }
+  }
+
+  function showEnd() {
+    gameScreen.style.display = 'none';
+    endScreen.style.display = 'block';
+    finalScore.textContent = score;
+    finalTotal.textContent = QUESTIONS.length;
+    var pct = score / QUESTIONS.length;
+    if (pct === 1) endMsg.textContent = 'Perfect score! You know all 8 words.';
+    else if (pct >= 0.75) endMsg.textContent = 'Great job reviewing this week\'s words!';
+    else if (pct >= 0.5) endMsg.textContent = 'Good try! Look at Handout A again and play once more.';
+    else endMsg.textContent = 'Let\'s review Handout A together, then try again.';
+  }
+
+  function restart() {
+    order = shuffle(QUESTIONS.map(function (_, i) { return i; }));
+    current = 0;
+    score = 0;
+    gameScreen.style.display = 'block';
+    endScreen.style.display = 'none';
+    renderQuestion();
+  }
+
+  nextBtn.addEventListener('click', nextQuestion);
+  restartBtn.addEventListener('click', restart);
+
+  renderQuestion();
+})();
+</script>
+
+</body>
+</html>
