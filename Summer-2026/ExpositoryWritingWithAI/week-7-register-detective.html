@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Register Detective · ApproachUSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Montserrat:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0c2340;
+  --navy-light: #143865;
+  --navy-deep: #081629;
+  --gold: #ae9142;
+  --gold-bright: #d39f10;
+  --warm-white: #efe9d9;
+  --paper: #faf6ec;
+  --ink: #1a1a1a;
+  --ink-soft: #4a4a4a;
+  --muted: #7a7a7a;
+  --casual: #26890c;
+  --casual-soft: #d4edda;
+  --semi: #e67e22;
+  --semi-soft: #fdebd0;
+  --formal: #8b0000;
+  --formal-soft: #f8d7da;
+  --correct: #26890c;
+  --wrong: #c0392b;
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'Montserrat', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--navy);
+  color: var(--warm-white);
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* ── SCREENS ── */
+.screen {
+  display: none;
+  min-height: 100vh;
+  min-height: 100dvh;
+  flex-direction: column;
+}
+.screen.active { display: flex; }
+
+/* ── SPLASH SCREEN ── */
+#splash {
+  background: radial-gradient(ellipse at 30% 20%, var(--navy-light) 0%, var(--navy) 50%, var(--navy-deep) 100%);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 24px;
+  position: relative;
+  overflow: hidden;
+}
+#splash::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(174,145,66,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px; height: 88px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  margin-bottom: 28px;
+  font-size: 40px;
+  animation: badgePulse 3s ease-in-out infinite;
+}
+@keyframes badgePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(174,145,66,0.3); }
+  50% { box-shadow: 0 0 0 12px rgba(174,145,66,0); }
+}
+
+.splash-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+}
+
+.splash-title {
+  font-family: var(--serif);
+  font-size: 52px;
+  font-weight: 500;
+  line-height: 1.0;
+  letter-spacing: -0.02em;
+  color: var(--warm-white);
+  margin-bottom: 15px;
+}
+.splash-title em { color: var(--gold); font-style: italic; }
+
+.splash-sub {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--warm-white);
+  opacity: 0.8;
+  margin-bottom: 40px;
+  line-height: 1.4;
+}
+
+.how-box {
+  background: rgba(174,145,66,0.1);
+  border: 1px solid rgba(174,145,66,0.35);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 36px;
+  text-align: left;
+  max-width: 360px;
+  width: 100%;
+}
+.how-title {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+.how-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.how-row:last-child { margin-bottom: 0; }
+.how-num {
+  min-width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--navy);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.how-text {
+  font-family: var(--serif);
+  font-size: 15px;
+  color: var(--warm-white);
+  line-height: 1.4;
+  opacity: 0.9;
+}
+
+.stats-row {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 40px;
+}
+.stat-item { text-align: center; }
+.stat-val {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 40px;
+  color: var(--gold);
+  line-height: 1;
+}
+.stat-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--warm-white);
+  opacity: 0.6;
+  margin-top: 4px;
+}
+
+.start-btn {
+  background: var(--gold);
+  color: var(--navy);
+  border: none;
+  border-radius: 4px;
+  padding: 18px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  width: 100%;
+  max-width: 320px;
+}
+.start-btn:active { transform: scale(0.97); }
+
+.credit {
+  margin-top: 24px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--warm-white);
+  opacity: 0.35;
+}
+
+/* ── GAME SCREEN ── */
+#game {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.game-header {
+  background: var(--navy);
+  padding: 16px 20px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid var(--gold);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.header-icon {
+  font-size: 20px;
+}
+.header-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+.header-round {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--warm-white);
+  opacity: 0.7;
+}
+
+.score-pill {
+  background: rgba(174,145,66,0.15);
+  border: 1px solid var(--gold);
+  border-radius: 20px;
+  padding: 5px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.score-icon { font-size: 14px; }
+.score-val {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gold);
+}
+
+/* Progress bar */
+.progress-track {
+  height: 3px;
+  background: rgba(174,145,66,0.15);
+  width: 100%;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--gold);
+  transition: width 0.4s ease;
+}
+
+/* Timer bar */
+.timer-track {
+  height: 5px;
+  background: rgba(174,145,66,0.1);
+  width: 100%;
+}
+.timer-fill {
+  height: 100%;
+  background: var(--gold);
+  transition: width 1s linear;
+}
+.timer-fill.warn { background: var(--semi); }
+.timer-fill.danger { background: var(--formal); }
+
+.game-body {
+  flex: 1;
+  padding: 20px;
+  max-width: 540px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Phase indicator */
+.phase-tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+
+.question-header {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 18px;
+  line-height: 1.25;
+}
+
+/* Email card */
+.email-card {
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(12,35,64,0.1);
+  margin-bottom: 20px;
+  border: 1px solid rgba(174,145,66,0.15);
+}
+.email-meta {
+  background: var(--navy);
+  padding: 14px 16px;
+}
+.email-meta-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 5px;
+  font-size: 12px;
+  line-height: 1.3;
+}
+.email-meta-row:last-child { margin-bottom: 0; }
+.email-meta-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--gold);
+  min-width: 50px;
+  letter-spacing: 0.1em;
+}
+.email-meta-val {
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--warm-white);
+  flex: 1;
+}
+.email-body {
+  padding: 16px;
+  font-family: var(--serif);
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+.email-body p { margin-bottom: 10px; }
+.email-body p:last-child { margin-bottom: 0; }
+
+/* Highlight phrase in email */
+.highlight-phrase {
+  background: rgba(174,145,66,0.25);
+  border-radius: 3px;
+  padding: 1px 3px;
+  font-weight: 600;
+  color: var(--navy);
+  cursor: default;
+}
+.highlight-wrong {
+  background: rgba(192,57,43,0.15);
+  border-radius: 3px;
+  padding: 1px 3px;
+  color: var(--formal);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-style: wavy;
+  text-decoration-color: var(--formal);
+}
+
+/* Answer options */
+.options-grid {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.options-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+.options-grid.two-col { grid-template-columns: 1fr 1fr; }
+.options-grid.one-col { grid-template-columns: 1fr; }
+
+.option-btn {
+  background: white;
+  border: 2px solid rgba(12,35,64,0.12);
+  border-radius: 8px;
+  padding: 14px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+.option-btn.register {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 8px;
+}
+.option-btn:active { transform: scale(0.97); }
+.option-btn:hover:not(:disabled) {
+  border-color: var(--gold);
+  background: var(--paper);
+}
+.option-btn:disabled { cursor: default; }
+
+.option-register-icon { font-size: 24px; }
+.option-register-name {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.option-phrase {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+/* Answer states */
+.option-btn.correct {
+  border-color: var(--correct);
+  background: var(--casual-soft);
+  animation: correctPop 0.3s ease;
+}
+.option-btn.wrong {
+  border-color: var(--wrong);
+  background: var(--formal-soft);
+}
+.option-btn.reveal-correct {
+  border-color: var(--correct);
+  background: var(--casual-soft);
+}
+@keyframes correctPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+/* Register colors on option buttons */
+.option-btn[data-register="Casual"] .option-register-name { color: var(--casual); }
+.option-btn[data-register="Semi-formal"] .option-register-name { color: var(--semi); }
+.option-btn[data-register="Formal"] .option-register-name { color: var(--formal); }
+.option-btn.correct .option-register-name,
+.option-btn.correct .option-phrase { color: var(--correct); }
+.option-btn.wrong .option-register-name,
+.option-btn.wrong .option-phrase { color: var(--wrong); }
+
+/* Feedback box */
+.feedback-box {
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  display: none;
+  animation: feedbackSlide 0.3s ease;
+}
+.feedback-box.visible { display: block; }
+.feedback-box.correct-fb {
+  background: var(--casual-soft);
+  border-left: 4px solid var(--correct);
+}
+.feedback-box.wrong-fb {
+  background: var(--formal-soft);
+  border-left: 4px solid var(--wrong);
+}
+@keyframes feedbackSlide {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.feedback-verdict {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+.feedback-box.correct-fb .feedback-verdict { color: var(--correct); }
+.feedback-box.wrong-fb .feedback-verdict { color: var(--wrong); }
+
+.feedback-text {
+  font-family: var(--serif);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.feedback-text strong { color: var(--navy); }
+
+.points-flash {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--correct);
+  margin-top: 6px;
+}
+
+/* Continue button */
+.continue-btn {
+  width: 100%;
+  background: var(--navy);
+  color: var(--warm-white);
+  border: none;
+  border-radius: 8px;
+  padding: 16px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: none;
+  transition: all 0.2s ease;
+  margin-bottom: 16px;
+}
+.continue-btn.visible { display: block; }
+.continue-btn:active { background: var(--navy-light); }
+
+/* ── RESULTS SCREEN ── */
+#results {
+  background: radial-gradient(ellipse at 70% 80%, var(--navy-light) 0%, var(--navy) 50%, var(--navy-deep) 100%);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.rank-badge {
+  font-size: 72px;
+  margin-bottom: 16px;
+  animation: rankBounce 0.6s ease;
+}
+@keyframes rankBounce {
+  0% { transform: scale(0.5); opacity: 0; }
+  70% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.rank-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+
+.rank-title {
+  font-family: var(--serif);
+  font-size: 48px;
+  font-weight: 500;
+  color: var(--warm-white);
+  margin-bottom: 6px;
+  line-height: 1.1;
+}
+.rank-title em { font-style: italic; color: var(--gold); }
+
+.rank-desc {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 17px;
+  color: var(--warm-white);
+  opacity: 0.8;
+  margin-bottom: 36px;
+  line-height: 1.4;
+  max-width: 320px;
+}
+
+.score-breakdown {
+  background: rgba(174,145,66,0.1);
+  border: 1px solid rgba(174,145,66,0.35);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 36px;
+  width: 100%;
+  max-width: 340px;
+}
+.breakdown-title {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+}
+.breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(174,145,66,0.15);
+}
+.breakdown-row:last-child { border-bottom: none; }
+.breakdown-label {
+  font-family: var(--serif);
+  font-size: 15px;
+  color: var(--warm-white);
+  opacity: 0.85;
+}
+.breakdown-val {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--gold);
+}
+.breakdown-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 14px;
+  margin-top: 4px;
+}
+.breakdown-total-label {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--warm-white);
+}
+.breakdown-total-val {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 32px;
+  color: var(--gold);
+}
+
+.play-again-btn {
+  background: var(--gold);
+  color: var(--navy);
+  border: none;
+  border-radius: 4px;
+  padding: 16px 40px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  cursor: pointer;
+  width: 100%;
+  max-width: 320px;
+  transition: all 0.2s ease;
+  margin-bottom: 16px;
+}
+.play-again-btn:active { transform: scale(0.97); }
+
+.results-credit {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--warm-white);
+  opacity: 0.35;
+  margin-top: 8px;
+}
+
+/* Responsive tweaks */
+@media (min-width: 480px) {
+  .game-body { padding: 24px 28px; }
+  .email-body { font-size: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════ SPLASH ══ -->
+<section id="splash" class="screen active">
+  <div class="badge">🔍</div>
+
+  <div class="splash-eyebrow">Week 07 · Game</div>
+  <h1 class="splash-title">Register <em>Detective</em></h1>
+  <p class="splash-sub">Read the email. Catch the mistake.<br>Score points. Get promoted.</p>
+
+  <div class="how-box">
+    <div class="how-title">How it works</div>
+    <div class="how-row">
+      <div class="how-num">1</div>
+      <div class="how-text">Read a professional email</div>
+    </div>
+    <div class="how-row">
+      <div class="how-num">2</div>
+      <div class="how-text">Identify the register (casual / semi-formal / formal)</div>
+    </div>
+    <div class="how-row">
+      <div class="how-num">3</div>
+      <div class="how-text">Find the phrase that breaks the register</div>
+    </div>
+    <div class="how-row">
+      <div class="how-num">4</div>
+      <div class="how-text">Answer fast — speed earns bonus points</div>
+    </div>
+  </div>
+
+  <button class="start-btn" onclick="startGame()">Begin Investigation →</button>
+  <div class="credit">APPROACH INTERNATIONAL STUDENT CENTER · SPRING 2026</div>
+</section>
+
+<!-- ══════════════════════════════════════════ GAME ══ -->
+<section id="game" class="screen">
+  <div class="game-header">
+    <div class="header-left">
+      <div class="header-icon">🔍</div>
+      <div>
+        <div class="header-title">Register Detective</div>
+        <div class="header-round" id="round-label">Round 1 of 8</div>
+      </div>
+    </div>
+    <div class="score-pill">
+      <div class="score-icon">⭐</div>
+      <div class="score-val" id="score-display">0</div>
+    </div>
+  </div>
+
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+  </div>
+  <div class="timer-track">
+    <div class="timer-fill" id="timer-fill" style="width: 100%"></div>
+  </div>
+
+  <div class="game-body">
+    <!-- Content injected by JS -->
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ RESULTS ══ -->
+<section id="results" class="screen">
+  <div class="rank-badge" id="rank-emoji">🥉</div>
+  <div class="rank-eyebrow">CASE CLOSED</div>
+  <h2 class="rank-title" id="rank-title">Good <em>Detective</em></h2>
+  <p class="rank-desc" id="rank-desc">Your eye for register is developing. Keep reading professionally.</p>
+
+  <div class="score-breakdown">
+    <div class="breakdown-title">YOUR SCORE BREAKDOWN</div>
+    <div class="breakdown-row">
+      <div class="breakdown-label">Register questions</div>
+      <div class="breakdown-val" id="result-register">0 / 8</div>
+    </div>
+    <div class="breakdown-row">
+      <div class="breakdown-label">Phrase catches</div>
+      <div class="breakdown-val" id="result-phrase">0 / 8</div>
+    </div>
+    <div class="breakdown-row">
+      <div class="breakdown-label">Speed bonuses</div>
+      <div class="breakdown-val" id="result-speed">0 pts</div>
+    </div>
+    <div class="breakdown-total">
+      <div class="breakdown-total-label">Total</div>
+      <div class="breakdown-total-val" id="result-total">0</div>
+    </div>
+  </div>
+
+  <button class="play-again-btn" onclick="resetGame()">Play Again</button>
+  <div class="results-credit">APPROACH INTERNATIONAL STUDENT CENTER · SPRING 2026</div>
+</section>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// GAME DATA — 8 rounds
+// Each round: email metadata, body paragraphs, the correct
+// register, 4 phrase options (one is the register-breaking
+// phrase), and explanations for both questions.
+// ══════════════════════════════════════════════════════════
+
+const rounds = [
+  // ─── ROUND 1 — Easy Casual with overformal salutation ─────────────────────
+  {
+    from: "Mariana Torres <mariana.t@bizmatch.com>",
+    to: "julia.costa@bizmatch.com",
+    subject: "Lunch plans for Friday?",
+    body: [
+      "Dear Julia,",
+      "Are you free for lunch on Friday? A bunch of us from the marketing team are heading to that new place near the office — apparently the food is amazing 🍕",
+      "Let me know if you're in! We're thinking around 12:30.",
+      "Cheers,\nMariana"
+    ],
+    register: "Casual",
+    registerQ: "What register is this email?",
+    phraseQ: "Which phrase breaks the register of this email?",
+    breakingPhrase: "Dear Julia,",
+    phraseOptions: [
+      { text: "A bunch of us from the marketing team", correct: false },
+      { text: "Dear Julia,", correct: true },
+      { text: "Let me know if you're in!", correct: false },
+      { text: "apparently the food is amazing 🍕", correct: false }
+    ],
+    registerExplanation: "The emoji, contractions, slang ('A bunch of us', 'You're in!'), and exclamation marks all signal a <strong>casual<\/strong> register between colleagues who know each other well.",
+    phraseExplanation: "<strong>'Dear [first name],'<\/strong> is a formal/semi-formal salutation. Casual emails to close colleagues use 'Hi Julia,' or 'Hey Julia,' — or no salutation at all. 'Dear' creates instant friction in an otherwise relaxed message."
+  },
+
+  // ─── ROUND 2 — Easy Formal with contraction ───────────────────────────────
+  {
+    from: "Ricardo Alves <r.alves@globalpartners.com>",
+    to: "ceo@veritascorp.com",
+    subject: "Request for Partnership Meeting — Q4 2026",
+    body: [
+      "Dear Ms. Whitfield,",
+      "I am writing to respectfully request a meeting at your earliest convenience to discuss a potential strategic partnership between Global Partners and Veritas Corporation.",
+      "We believe there are significant synergies between our organizations that don't warrant further delay in exploring.",
+      "I would be grateful for the opportunity to present our proposal at a time convenient to you. Please do not hesitate to contact me should you require any additional information.",
+      "Yours sincerely,\nRicardo Alves\nDirector of Business Development"
+    ],
+    register: "Formal",
+    registerQ: "What register is this email?",
+    phraseQ: "One phrase breaks the formal register. Which is it?",
+    breakingPhrase: "don't warrant",
+    phraseOptions: [
+      { text: "at your earliest convenience", correct: false },
+      { text: "Please do not hesitate to contact me", correct: false },
+      { text: "don't warrant", correct: true },
+      { text: "Yours sincerely,", correct: false }
+    ],
+    registerExplanation: "The salutation ('Dear Ms. Whitfield'), sign-off ('Yours sincerely'), no contractions, and phrases like 'I would be grateful' and 'do not hesitate' all mark this as <strong>formal<\/strong> — appropriate for a CEO introduction.",
+    phraseExplanation: "<strong>'don't'<\/strong> is a contraction — avoided in formal writing. The sentence should read: 'that <em>do not<\/em> warrant further delay.' Contractions relax the register in ways that can signal carelessness to a formal reader."
+  },
+
+  // ─── ROUND 3 — Easy Semi-formal ───────────────────────────────────────────
+  {
+    from: "Felipe Nunes <f.nunes@techsolutions.com>",
+    to: "sarah.kim@clientcorp.com",
+    subject: "Follow-up: Project Timeline",
+    body: [
+      "Hi Sarah,",
+      "Thanks for our call earlier this week — it was helpful to get aligned on expectations.",
+      "I've put together a revised timeline based on our discussion and I'm attaching it here for your review. If anything looks off, just let me know and we can adjust.",
+      "Looking forward to your feedback.",
+      "Best,\nFelipe"
+    ],
+    register: "Semi-formal",
+    registerQ: "What register is this email?",
+    phraseQ: "This email is well-written. Which phrase is MOST characteristic of semi-formal register?",
+    breakingPhrase: "Looking forward to your feedback.",
+    phraseOptions: [
+      { text: "Thanks for our call earlier this week", correct: false },
+      { text: "just let me know and we can adjust", correct: false },
+      { text: "Looking forward to your feedback.", correct: true },
+      { text: "I've put together a revised timeline", correct: false }
+    ],
+    registerExplanation: "The greeting ('Hi Sarah'), contractions ('I've', 'we can'), friendly but professional tone, and the sign-off ('Best') all mark this as <strong>semi-formal<\/strong> — appropriate for a client relationship that already has some rapport.",
+    phraseExplanation: "<strong>'Looking forward to your feedback'<\/strong> is the hallmark closing of semi-formal email — it's professional and purposeful, but warmer than 'I await your response' (formal) and more intentional than 'Speak soon!' (casual). Good to recognize as a register marker."
+  },
+
+  // ─── ROUND 4 — Medium Casual with one stiff phrase ────────────────────────
+  {
+    from: "Camila Rocha <camila.r@startupxyz.com>",
+    to: "team@startupxyz.com",
+    subject: "Team hangout this Thursday 🎉",
+    body: [
+      "Hey everyone!",
+      "Just wanted to give you all a heads up — we're doing a team hangout this Thursday after work, starting around 6pm at Bar do Zé on Rua Augusta.",
+      "Please do the needful and confirm your attendance by Wednesday so we can book the right table size.",
+      "It's gonna be a great chance to decompress before the product launch next week. Hope to see you all there!",
+      "— Camila 🙌"
+    ],
+    register: "Casual",
+    registerQ: "What register is this email?",
+    phraseQ: "One phrase is completely out of place. Which one?",
+    breakingPhrase: "Please do the needful",
+    phraseOptions: [
+      { text: "Hey everyone!", correct: false },
+      { text: "Just wanted to give you all a heads up", correct: false },
+      { text: "Please do the needful", correct: true },
+      { text: "It's gonna be a great chance to decompress", correct: false }
+    ],
+    registerExplanation: "The emoji, 'Hey everyone!', contractions ('it's gonna'), slang ('heads up', 'decompress'), and the informal sign-off all signal a <strong>casual<\/strong> register — a team message between people who know each other well.",
+    phraseExplanation: "<strong>'Please do the needful'<\/strong> is an overformal, bureaucratic phrase that originated in South Asian English business writing. In a casual team message, it sounds robotic and out of place. Simply say: 'Confirm your attendance by Wednesday' or 'Let me know by Wednesday if you're coming.'"
+  },
+
+  // ─── ROUND 5 — Medium Formal with casual closer ───────────────────────────
+  {
+    from: "Dr. Ana Beatriz Santos <ab.santos@legalfirm.com.br>",
+    to: "compliance@financial-institute.com",
+    subject: "Formal Notice of Contract Discrepancy — Reference #2026-1147",
+    body: [
+      "To Whom It May Concern,",
+      "I am writing on behalf of Global Trade Partners Ltd. to formally bring to your attention a discrepancy in Contract #2026-1147, executed on the 3rd of March 2026.",
+      "The clause pertaining to payment timelines (Section 4.2) does not align with the terms mutually agreed upon during negotiations. We respectfully request a written clarification within ten (10) business days of receipt of this notice.",
+      "All relevant documentation is enclosed for your reference.",
+      "Thanks! Talk soon,\nDr. Ana Beatriz Santos"
+    ],
+    register: "Formal",
+    registerQ: "What register is this email?",
+    phraseQ: "The closing line completely breaks the register. Which is it?",
+    breakingPhrase: "Thanks! Talk soon,",
+    phraseOptions: [
+      { text: "To Whom It May Concern,", correct: false },
+      { text: "We respectfully request a written clarification", correct: false },
+      { text: "All relevant documentation is enclosed", correct: false },
+      { text: "Thanks! Talk soon,", correct: true }
+    ],
+    registerExplanation: "The salutation ('To Whom It May Concern'), legal language ('formally bring to your attention'), passive constructions, and numbered timelines all signal a <strong>formal<\/strong> register — appropriate for a legal/compliance notice.",
+    phraseExplanation: "<strong>'Thanks! Talk soon,'<\/strong> is aggressively casual — it would fit a text to a friend, not a legal notice from a lawyer. The correct closing would be: 'Yours faithfully,' or 'Respectfully yours,' or 'Sincerely,' followed by the full professional signature. The contrast here is almost comedic — that's how jarring register mismatches can be."
+  },
+
+  // ─── ROUND 6 — Medium Semi-formal with Brazilian NNS pattern ──────────────
+  {
+    from: "Gustavo Lima <g.lima@consultorix.com>",
+    to: "paula.mendes@clientagency.com",
+    subject: "Update on the Website Redesign Project",
+    body: [
+      "Hi Paula,",
+      "I hope this email finds you well.",
+      "I wanted to update you on the progress of the website redesign. The development team has completed the homepage and three interior pages. We are currently awaiting the final copy from your content team before we can proceed to the next phase.",
+      "Could you please confirm when we can expect to receive the remaining content? We have doubt about whether the original deadline of June 30 is still feasible given the current delay.",
+      "Thank you for your attention and cooperation.",
+      "Best regards,\nGustavo Lima"
+    ],
+    register: "Semi-formal",
+    registerQ: "What register is this email?",
+    phraseQ: "One phrase marks the writer as a non-native English speaker and weakens professionalism. Which?",
+    breakingPhrase: "We have doubt about",
+    phraseOptions: [
+      { text: "I hope this email finds you well.", correct: false },
+      { text: "We have doubt about", correct: true },
+      { text: "Could you please confirm", correct: false },
+      { text: "Thank you for your attention and cooperation.", correct: false }
+    ],
+    registerExplanation: "The 'Hi [name]' greeting, professional tone, contractions ('we can'), clear purpose and sign-off all mark this as <strong>semi-formal<\/strong> — a professional update to a client with an existing relationship.",
+    phraseExplanation: "<strong>'We have doubt about'<\/strong> is a direct translation from Portuguese ('temos dúvida sobre') — a false cognate pattern common among Brazilian English learners. In English, you have <em>a doubt<\/em> (rare) or more naturally: 'We are <em>not sure<\/em> whether' / 'We are <em>uncertain<\/em> whether' / 'We would like to <em>confirm<\/em> whether.' 'Have doubt' sounds unnatural and can undermine credibility."
+  },
+
+  // ─── ROUND 7 — Hard Formal, one word subtly wrong ────────────────────────
+  {
+    from: "Isabella Ferreira <i.ferreira@executiveboard.com>",
+    to: "board@executiveboard.com",
+    subject: "Q2 Board Report — Action Items and Resolutions",
+    body: [
+      "Dear Members of the Board,",
+      "Please find enclosed the Q2 Board Report, including a summary of resolutions passed at the extraordinary general meeting held on 14 May 2026.",
+      "The report details the financial performance review, the approved budget reallocation for the APAC expansion, and the updated compliance framework to be implemented by Q3.",
+      "I kindly ask that all board members review the enclosed documents prior to our next session. Should any member wish to raise additional matters, they are super welcome to contact the secretariat directly.",
+      "Yours faithfully,\nIsabella Ferreira\nBoard Secretary"
+    ],
+    register: "Formal",
+    registerQ: "What register is this email?",
+    phraseQ: "One phrase subtly breaks the formal register. This one is tricky — read carefully.",
+    breakingPhrase: "they are super welcome",
+    phraseOptions: [
+      { text: "I kindly ask that all board members", correct: false },
+      { text: "prior to our next session", correct: false },
+      { text: "they are super welcome to contact", correct: true },
+      { text: "Please find enclosed the Q2 Board Report", correct: false }
+    ],
+    registerExplanation: "The formal salutation, passive constructions, 'Yours faithfully,' sign-off, and legal/corporate vocabulary ('resolutions', 'extraordinary general meeting', 'compliance framework') all mark this as <strong>formal<\/strong> — appropriate for board-level correspondence.",
+    phraseExplanation: "<strong>'super welcome'<\/strong> — the word 'super' as an intensifier is informal and colloquial. In a board communication, it should read: 'they are <em>most welcome<\/em> to contact' or 'they may <em>freely<\/em> contact the secretariat directly.' Small word, big register shift. This is exactly the kind of thing a professional editor — or a good AI — should catch."
+  },
+
+  // ─── ROUND 8 — Hard Mixed/Ambiguous ──────────────────────────────────────
+  {
+    from: "Thiago Barbosa <t.barbosa@consulting.com>",
+    to: "new.client@prospectco.com",
+    subject: "Following up on our meeting last week",
+    body: [
+      "Dear Mr. Harrison,",
+      "It was great to meet you and your team at the conference last Tuesday.",
+      "As discussed, I'm attaching our service overview document and a preliminary proposal for your review. We're really excited about the potential to work together and I think this could be a brilliant fit for what you're trying to achieve.",
+      "Let me know if you have any questions — happy to jump on a call whenever works for you!",
+      "Warm regards,\nThiago Barbosa"
+    ],
+    register: "Semi-formal",
+    registerQ: "This email mixes registers. What is its OVERALL register?",
+    phraseQ: "Which phrase makes this email feel inconsistent — too casual for the formal opening?",
+    breakingPhrase: "happy to jump on a call",
+    phraseOptions: [
+      { text: "It was great to meet you and your team", correct: false },
+      { text: "I think this could be a brilliant fit", correct: false },
+      { text: "happy to jump on a call whenever works for you!", correct: true },
+      { text: "preliminary proposal for your review", correct: false }
+    ],
+    registerExplanation: "This email genuinely mixes registers — which is realistic. 'Dear Mr. Harrison' is formal; 'It was great to meet you' and 'really excited' are casual/warm; 'preliminary proposal for your review' is semi-formal. The <strong>overall<\/strong> register is <strong>semi-formal<\/strong> — which is appropriate for first-contact follow-up after a conference meeting. The inconsistency is the real issue.",
+    phraseExplanation: "<strong>'happy to jump on a call whenever works for you!'<\/strong> — 'jump on a call' is startup-casual, and the exclamation mark amplifies the informality. This clashes with 'Dear Mr. Harrison' at the top. A semi-formal alternative: 'I would be happy to schedule a call at a time that suits you.' The lesson: register should be consistent across the entire email, not just in the opener."
+  }
+];
+
+// ══════════════════════════════════════════════════════════
+// GAME STATE
+// ══════════════════════════════════════════════════════════
+let currentRound = 0;
+let currentPhase = 1; // 1 = register Q, 2 = phrase Q
+let score = 0;
+let registerCorrect = 0;
+let phraseCorrect = 0;
+let speedBonus = 0;
+let timerInterval = null;
+let timerSeconds = 0;
+let timerMax = 25;
+let answered = false;
+
+// ══════════════════════════════════════════════════════════
+// SCREEN MANAGEMENT
+// ══════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function startGame() {
+  currentRound = 0;
+  currentPhase = 1;
+  score = 0;
+  registerCorrect = 0;
+  phraseCorrect = 0;
+  speedBonus = 0;
+  document.getElementById('score-display').textContent = '0';
+  showScreen('game');
+  renderRound();
+}
+
+function resetGame() { startGame(); showScreen('splash'); }
+
+// ══════════════════════════════════════════════════════════
+// ROUND RENDERING
+// ══════════════════════════════════════════════════════════
+function renderRound() {
+  answered = false;
+  const round = rounds[currentRound];
+  const body = document.querySelector('.game-body');
+
+  // Update header
+  document.getElementById('round-label').textContent =
+    `Round ${currentRound + 1} of ${rounds.length}`;
+
+  // Progress bar
+  document.getElementById('progress-fill').style.width =
+    ((currentRound) / rounds.length * 100) + '%';
+
+  if (currentPhase === 1) {
+    renderRegisterQuestion(round, body);
+  } else {
+    renderPhraseQuestion(round, body);
+  }
+
+  startTimer();
+}
+
+function renderRegisterQuestion(round, body) {
+  const registers = ['Casual', 'Semi-formal', 'Formal'];
+  const icons = { 'Casual': '💬', 'Semi-formal': '💼', 'Formal': '📋' };
+
+  body.innerHTML = `
+    <div class="phase-tag">PHASE 1 · IDENTIFY THE REGISTER</div>
+    <div class="question-header">${round.registerQ}</div>
+
+    <div class="email-card">
+      <div class="email-meta">
+        <div class="email-meta-row">
+          <div class="email-meta-label">FROM</div>
+          <div class="email-meta-val">${round.from}</div>
+        </div>
+        <div class="email-meta-row">
+          <div class="email-meta-label">TO</div>
+          <div class="email-meta-val">${round.to}</div>
+        </div>
+        <div class="email-meta-row">
+          <div class="email-meta-label">SUBJECT</div>
+          <div class="email-meta-val">${round.subject}</div>
+        </div>
+      </div>
+      <div class="email-body">${round.body.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('')}</div>
+    </div>
+
+    <div class="options-grid three">
+      ${registers.map(r => `
+        <button class="option-btn register" data-register="${r}"
+          onclick="answerRegister('${r}')">
+          <div class="option-register-icon">${icons[r]}</div>
+          <div class="option-register-name">${r}</div>
+        </button>
+      `).join('')}
+    </div>
+
+    <div class="feedback-box" id="feedback-box"></div>
+    <button class="continue-btn" id="continue-btn" onclick="nextPhase()">
+      CONTINUE TO PHRASE QUESTION →
+    </button>
+  `;
+}
+
+function renderPhraseQuestion(round, body) {
+  // Build email body with the breaking phrase highlighted in a subtle way
+  // (not yet revealed — just shown as emphasis to draw attention)
+  const emailBodyHTML = round.body.map(p => {
+    let text = p.replace(/\n/g, '<br>');
+    return `<p>${text}</p>`;
+  }).join('');
+
+  const shuffled = [...round.phraseOptions].sort(() => Math.random() - 0.5);
+
+  body.innerHTML = `
+    <div class="phase-tag">PHASE 2 · CATCH THE MISTAKE</div>
+    <div class="question-header">${round.phraseQ}</div>
+
+    <div class="email-card">
+      <div class="email-meta">
+        <div class="email-meta-row">
+          <div class="email-meta-label">FROM</div>
+          <div class="email-meta-val">${round.from}</div>
+        </div>
+        <div class="email-meta-row">
+          <div class="email-meta-label">SUBJECT</div>
+          <div class="email-meta-val">${round.subject}</div>
+        </div>
+      </div>
+      <div class="email-body">${emailBodyHTML}</div>
+    </div>
+
+    <div class="options-grid one-col">
+      ${shuffled.map((opt, i) => `
+        <button class="option-btn" data-correct="${opt.correct}"
+          onclick="answerPhrase(this, ${opt.correct})">
+          <div class="option-phrase">"${opt.text}"</div>
+        </button>
+      `).join('')}
+    </div>
+
+    <div class="feedback-box" id="feedback-box"></div>
+    <button class="continue-btn" id="continue-btn" onclick="nextRound()">
+      ${currentRound < rounds.length - 1 ? 'NEXT EMAIL →' : 'SEE MY RESULTS →'}
+    </button>
+  `;
+}
+
+// ══════════════════════════════════════════════════════════
+// TIMER
+// ══════════════════════════════════════════════════════════
+function startTimer() {
+  clearInterval(timerInterval);
+  timerSeconds = timerMax;
+  updateTimerBar(timerSeconds);
+
+  timerInterval = setInterval(() => {
+    timerSeconds--;
+    updateTimerBar(timerSeconds);
+    if (timerSeconds <= 0) {
+      clearInterval(timerInterval);
+      if (!answered) timeUp();
+    }
+  }, 1000);
+}
+
+function updateTimerBar(secs) {
+  const fill = document.getElementById('timer-fill');
+  if (!fill) return;
+  const pct = (secs / timerMax) * 100;
+  fill.style.width = pct + '%';
+  fill.className = 'timer-fill' +
+    (pct < 33 ? ' danger' : pct < 60 ? ' warn' : '');
+}
+
+function timeUp() {
+  answered = true;
+  if (currentPhase === 1) {
+    // Show correct answer
+    const correct = rounds[currentRound].register;
+    document.querySelectorAll('.option-btn.register').forEach(btn => {
+      if (btn.dataset.register === correct) btn.classList.add('reveal-correct');
+    });
+    showFeedback(false, '⏱ Time\'s up!',
+      `The correct register was <strong>${correct}<\/strong>. ${rounds[currentRound].registerExplanation}`,
+      0);
+    showContinue('continue-btn');
+  } else {
+    // Show correct phrase
+    document.querySelectorAll('.option-btn[data-correct]').forEach(btn => {
+      if (btn.dataset.correct === 'true') btn.classList.add('reveal-correct');
+    });
+    showFeedback(false, '⏱ Time\'s up!',
+      rounds[currentRound].phraseExplanation, 0);
+    showContinue('continue-btn');
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// ANSWERING
+// ══════════════════════════════════════════════════════════
+function answerRegister(chosen) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+
+  const round = rounds[currentRound];
+  const correct = round.register;
+  const isCorrect = chosen === correct;
+  const elapsed = timerMax - timerSeconds;
+  const bonus = isCorrect ? Math.max(0, Math.floor((timerMax - elapsed) / timerMax * 5)) : 0;
+
+  // Mark buttons
+  document.querySelectorAll('.option-btn.register').forEach(btn => {
+    btn.disabled = true;
+    if (btn.dataset.register === chosen) {
+      btn.classList.add(isCorrect ? 'correct' : 'wrong');
+    }
+    if (!isCorrect && btn.dataset.register === correct) {
+      btn.classList.add('reveal-correct');
+    }
+  });
+
+  if (isCorrect) {
+    registerCorrect++;
+    score += 10 + bonus;
+    speedBonus += bonus;
+    document.getElementById('score-display').textContent = score;
+    showFeedback(true,
+      '✓ Correct! +' + (10 + bonus) + ' pts',
+      round.registerExplanation,
+      bonus);
+  } else {
+    showFeedback(false,
+      '✗ Not quite.',
+      `This is <strong>${correct}<\/strong>. ${round.registerExplanation}`,
+      0);
+  }
+
+  showContinue('continue-btn');
+}
+
+function answerPhrase(btn, isCorrect) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+
+  const round = rounds[currentRound];
+  const elapsed = timerMax - timerSeconds;
+  const bonus = isCorrect ? Math.max(0, Math.floor((timerMax - elapsed) / timerMax * 5)) : 0;
+
+  // Mark all buttons
+  document.querySelectorAll('.option-btn[data-correct]').forEach(b => {
+    b.disabled = true;
+    if (b === btn) {
+      b.classList.add(isCorrect ? 'correct' : 'wrong');
+    }
+    if (b.dataset.correct === 'true' && b !== btn) {
+      b.classList.add('reveal-correct');
+    }
+  });
+
+  if (isCorrect) {
+    phraseCorrect++;
+    score += 20 + bonus;
+    speedBonus += bonus;
+    document.getElementById('score-display').textContent = score;
+    showFeedback(true,
+      '🔍 Caught! +' + (20 + bonus) + ' pts',
+      round.phraseExplanation,
+      bonus);
+  } else {
+    showFeedback(false,
+      '✗ That wasn\'t the problem.',
+      round.phraseExplanation,
+      0);
+  }
+
+  showContinue('continue-btn');
+}
+
+function showFeedback(correct, verdict, text, bonus) {
+  const box = document.getElementById('feedback-box');
+  if (!box) return;
+  box.className = 'feedback-box visible ' + (correct ? 'correct-fb' : 'wrong-fb');
+  box.innerHTML = `
+    <div class="feedback-verdict">${verdict}</div>
+    <div class="feedback-text">${text}</div>
+    ${bonus > 0 ? `<div class="points-flash">⚡ Speed bonus: +${bonus} pts</div>` : ''}
+  `;
+  box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function showContinue(id) {
+  const btn = document.getElementById(id);
+  if (btn) btn.classList.add('visible');
+}
+
+function nextPhase() {
+  currentPhase = 2;
+  renderRound();
+}
+
+function nextRound() {
+  currentRound++;
+  currentPhase = 1;
+  if (currentRound >= rounds.length) {
+    showResults();
+  } else {
+    renderRound();
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// RESULTS
+// ══════════════════════════════════════════════════════════
+function showResults() {
+  clearInterval(timerInterval);
+
+  // Progress bar full
+  document.getElementById('progress-fill').style.width = '100%';
+
+  const maxScore = rounds.length * (10 + 20); // 30 per round base, plus up to 5+5 speed
+  const pct = score / (maxScore + rounds.length * 10); // rough scale
+
+  let emoji, title, desc;
+  if (score >= 220) {
+    emoji = '🏆'; title = 'Chief <em>Inspector<\/em>';
+    desc = 'Flawless register instinct. You read professional emails the way editors do.';
+  } else if (score >= 170) {
+    emoji = '🔎'; title = 'Senior <em>Detective<\/em>';
+    desc = 'Strong register awareness with sharp phrase detection. A few cases need review.';
+  } else if (score >= 110) {
+    emoji = '🕵️'; title = 'Field <em>Detective<\/em>';
+    desc = 'Good foundational instincts. The explanations are worth rereading.';
+  } else {
+    emoji = '📋'; title = 'Junior <em>Detective<\/em>';
+    desc = "Register recognition takes practice. Today's class will sharpen your eye.";
+  }
+
+  document.getElementById('rank-emoji').textContent = emoji.split('<')[0]; // just emoji
+  document.getElementById('rank-emoji').innerHTML = emoji;
+  document.getElementById('rank-title').innerHTML = title;
+  document.getElementById('rank-desc').textContent = desc;
+  document.getElementById('result-register').textContent = `${registerCorrect} / ${rounds.length}`;
+  document.getElementById('result-phrase').textContent = `${phraseCorrect} / ${rounds.length}`;
+  document.getElementById('result-speed').textContent = `${speedBonus} pts`;
+  document.getElementById('result-total').textContent = score;
+
+  showScreen('results');
+}
+</script>
+</body>
+</html>

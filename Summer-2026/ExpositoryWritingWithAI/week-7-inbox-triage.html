@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Inbox Triage · ApproachUSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Montserrat:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0c2340;
+  --navy-light: #143865;
+  --navy-deep: #081629;
+  --gold: #ae9142;
+  --gold-bright: #d39f10;
+  --warm-white: #efe9d9;
+  --paper: #faf6ec;
+  --ink: #1a1a1a;
+  --ink-soft: #4a4a4a;
+  --muted: #7a7a7a;
+  --urgent: #c0392b;
+  --urgent-soft: #f8d7da;
+  --wait: #1368ce;
+  --wait-soft: #d4e6ff;
+  --none: #ae9142;
+  --none-soft: #f5eed2;
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'Montserrat', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: var(--sans);
+  background: var(--navy);
+  color: var(--warm-white);
+  position: fixed;
+  inset: 0;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; position: absolute; inset: 0; flex-direction: column; }
+.screen.active { display: flex; }
+
+/* ═══════════════════════════════════════════════
+   SPLASH
+   ═══════════════════════════════════════════════ */
+#splash {
+  background: radial-gradient(ellipse at 30% 20%, var(--navy-light) 0%, var(--navy) 50%, var(--navy-deep) 100%);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 24px;
+  overflow-y: auto;
+}
+.splash-badge { font-size: 60px; margin-bottom: 20px; animation: float 3s ease-in-out infinite; }
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.splash-eyebrow { font-family: var(--mono); font-size: 10px; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+.splash-title { font-family: var(--serif); font-size: 56px; font-weight: 500; line-height: 1.0; letter-spacing: -0.02em; color: var(--warm-white); margin-bottom: 6px; }
+.splash-title em { color: var(--gold); font-style: italic; }
+.splash-sub { font-family: var(--serif); font-style: italic; font-size: 17px; color: var(--warm-white); opacity: 0.75; margin-bottom: 32px; line-height: 1.4; }
+
+.swipe-legend {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 28px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(174,145,66,0.3);
+  border-radius: 30px;
+  padding: 8px 14px;
+}
+.legend-arrow { font-size: 18px; }
+.legend-text { font-family: var(--sans); font-size: 12px; font-weight: 600; }
+.legend-item.urgent .legend-text { color: var(--urgent); }
+.legend-item.wait .legend-text { color: var(--wait); }
+.legend-item.none .legend-text { color: var(--gold); }
+
+.start-btn {
+  background: var(--gold);
+  color: var(--navy);
+  border: none;
+  border-radius: 4px;
+  padding: 18px 48px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  cursor: pointer;
+  width: 100%;
+  max-width: 320px;
+  transition: transform 0.15s;
+}
+.start-btn:active { transform: scale(0.97); }
+.credit { margin-top: 20px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; color: var(--warm-white); opacity: 0.3; }
+
+/* ═══════════════════════════════════════════════
+   GAME SCREEN
+   ═══════════════════════════════════════════════ */
+#game { background: #0f1c30; }
+
+/* Header */
+.game-header {
+  background: var(--navy);
+  padding: 14px 18px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid var(--gold);
+  flex-shrink: 0;
+  z-index: 10;
+}
+.header-info { display: flex; align-items: center; gap: 10px; }
+.header-icon { font-size: 18px; }
+.header-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; color: var(--gold); text-transform: uppercase; }
+.header-sub { font-family: var(--serif); font-style: italic; font-size: 12px; color: var(--warm-white); opacity: 0.6; margin-top: 1px; }
+
+/* Timer */
+.timer-display {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--gold);
+}
+
+/* Progress dots */
+.progress-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 0 6px;
+  flex-shrink: 0;
+}
+.dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(174,145,66,0.2);
+  transition: all 0.3s ease;
+}
+.dot.done { background: var(--gold); }
+.dot.current { background: var(--gold); transform: scale(1.4); }
+
+/* Card arena */
+.card-arena {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px 8px;
+  overflow: hidden;
+}
+
+/* Swipe direction zones — visual hints */
+.zone-hint {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  z-index: 10;
+}
+.zone-hint.right { right: 14px; top: 50%; transform: translateY(-50%); }
+.zone-hint.left  { left: 14px; top: 50%; transform: translateY(-50%); }
+.zone-hint.up    { top: 14px; left: 50%; transform: translateX(-50%); }
+.zone-hint .zone-icon { font-size: 28px; }
+.zone-hint .zone-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 3px;
+}
+.zone-hint.right .zone-label { background: var(--urgent); color: white; }
+.zone-hint.left  .zone-label { background: var(--wait); color: white; }
+.zone-hint.up    .zone-label { background: var(--gold); color: var(--navy); }
+
+/* Email card */
+.email-card {
+  position: absolute;
+  width: calc(100% - 32px);
+  max-width: 480px;
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+  cursor: grab;
+  touch-action: none;
+  will-change: transform;
+  transition: box-shadow 0.15s ease;
+  z-index: 5;
+}
+.email-card:active { cursor: grabbing; }
+.email-card.back-1 { transform: scale(0.96) translateY(12px); z-index: 3; opacity: 0.8; }
+.email-card.back-2 { transform: scale(0.92) translateY(24px); z-index: 2; opacity: 0.6; }
+
+.email-card-meta {
+  background: var(--navy);
+  padding: 14px 16px 12px;
+}
+.card-from {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--warm-white);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-from-email {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--gold);
+  opacity: 0.85;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-subject {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--warm-white);
+  line-height: 1.25;
+}
+
+.email-card-body {
+  padding: 14px 16px 16px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.email-body-text {
+  font-family: var(--serif);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+.email-body-text p { margin-bottom: 8px; }
+.email-body-text p:last-child { margin-bottom: 0; }
+
+/* Swipe label overlay on card */
+.swipe-label {
+  position: absolute;
+  top: 18px;
+  font-family: var(--sans);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 3px solid;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+  pointer-events: none;
+  z-index: 10;
+  transform: rotate(-12deg);
+}
+.swipe-label.urgent-label { left: 18px; color: var(--urgent); border-color: var(--urgent); background: rgba(192,57,43,0.08); transform: rotate(-12deg); }
+.swipe-label.wait-label   { right: 18px;  color: var(--wait);   border-color: var(--wait);   background: rgba(19,104,206,0.08); transform: rotate(12deg); }
+.swipe-label.none-label   { left: 50%; transform: translateX(-50%) rotate(-6deg); color: var(--gold); border-color: var(--gold); background: rgba(174,145,66,0.08); }
+
+/* Bottom swipe hint bar */
+.swipe-hint-bar {
+  flex-shrink: 0;
+  display: flex;
+  padding: 8px 16px 16px;
+  gap: 6px;
+}
+.hint-chip {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.05);
+}
+.hint-chip .chip-arrow { font-size: 18px; }
+.hint-chip .chip-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; }
+.hint-chip.urgent .chip-label { color: var(--urgent); }
+.hint-chip.wait   .chip-label { color: var(--wait); }
+.hint-chip.none   .chip-label { color: var(--gold); }
+
+/* Flash overlay for correct/wrong */
+.arena-flash {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 20;
+  transition: opacity 0.05s;
+}
+
+/* ═══════════════════════════════════════════════
+   BONUS SCREEN
+   ═══════════════════════════════════════════════ */
+#bonus {
+  background: radial-gradient(ellipse at 60% 30%, var(--navy-light) 0%, var(--navy) 60%, var(--navy-deep) 100%);
+  padding: 0;
+  overflow-y: auto;
+}
+.bonus-header {
+  background: var(--navy);
+  border-bottom: 2px solid var(--gold);
+  padding: 18px 20px;
+  text-align: center;
+}
+.bonus-eyebrow { font-family: var(--mono); font-size: 10px; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+.bonus-title { font-family: var(--serif); font-size: 30px; font-weight: 500; color: var(--warm-white); line-height: 1.15; }
+.bonus-title em { font-style: italic; color: var(--gold); }
+
+.bonus-body { padding: 24px 20px; max-width: 560px; margin: 0 auto; }
+
+.bonus-question {
+  font-family: var(--serif);
+  font-size: 20px;
+  color: var(--warm-white);
+  margin-bottom: 20px;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+.urgent-email-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+.urgent-email-option {
+  background: rgba(255,255,255,0.06);
+  border: 2px solid rgba(174,145,66,0.25);
+  border-radius: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+.urgent-email-option:active { transform: scale(0.98); }
+.urgent-email-option.selected {
+  border-color: var(--urgent);
+  background: rgba(192,57,43,0.1);
+}
+.urgent-email-option.correct-pick {
+  border-color: #26890c;
+  background: rgba(38,137,12,0.1);
+}
+.urgent-email-option.wrong-pick {
+  border-color: var(--urgent);
+  background: rgba(192,57,43,0.08);
+}
+.urgent-subject { font-family: var(--serif); font-size: 16px; font-weight: 600; color: var(--warm-white); margin-bottom: 4px; }
+.urgent-from { font-family: var(--mono); font-size: 11px; color: var(--gold); opacity: 0.8; }
+.urgent-reason { font-family: var(--serif); font-size: 14px; color: var(--warm-white); opacity: 0.6; margin-top: 6px; font-style: italic; }
+
+/* Register question (bonus phase 2) */
+.register-question { margin-bottom: 20px; }
+.register-q-label {
+  font-family: var(--serif);
+  font-size: 19px;
+  color: var(--warm-white);
+  margin-bottom: 16px;
+  line-height: 1.35;
+  font-weight: 500;
+}
+.register-opts { display: flex; gap: 10px; }
+.register-opt {
+  flex: 1;
+  background: rgba(255,255,255,0.06);
+  border: 2px solid rgba(174,145,66,0.25);
+  border-radius: 10px;
+  padding: 16px 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+.register-opt:active { transform: scale(0.96); }
+.register-opt .r-icon { font-size: 24px; margin-bottom: 6px; }
+.register-opt .r-name { font-family: var(--sans); font-size: 12px; font-weight: 700; }
+.register-opt[data-r="Casual"]     .r-name { color: #26890c; }
+.register-opt[data-r="Semi-formal"].r-name { color: var(--gold-bright); }
+.register-opt[data-r="Formal"]     .r-name { color: var(--urgent); }
+.register-opt.correct-r { border-color: #26890c; background: rgba(38,137,12,0.1); }
+.register-opt.wrong-r   { border-color: var(--urgent); background: rgba(192,57,43,0.08); }
+.register-opt.reveal-r  { border-color: #26890c; background: rgba(38,137,12,0.1); }
+
+.bonus-feedback {
+  background: rgba(174,145,66,0.1);
+  border-left: 4px solid var(--gold);
+  border-radius: 6px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  display: none;
+}
+.bonus-feedback.visible { display: block; }
+.bonus-feedback-title { font-family: var(--sans); font-size: 13px; font-weight: 700; color: var(--gold); margin-bottom: 6px; }
+.bonus-feedback-text { font-family: var(--serif); font-size: 15px; color: var(--warm-white); opacity: 0.9; line-height: 1.5; }
+
+.next-btn {
+  width: 100%;
+  background: var(--gold);
+  color: var(--navy);
+  border: none;
+  border-radius: 8px;
+  padding: 16px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: none;
+  transition: transform 0.15s;
+  margin-bottom: 16px;
+}
+.next-btn.visible { display: block; }
+.next-btn:active { transform: scale(0.98); }
+
+/* ═══════════════════════════════════════════════
+   RESULTS SCREEN
+   ═══════════════════════════════════════════════ */
+#results {
+  background: radial-gradient(ellipse at 70% 80%, var(--navy-light) 0%, var(--navy) 60%, var(--navy-deep) 100%);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 24px;
+  overflow-y: auto;
+}
+.result-trophy { font-size: 70px; margin-bottom: 14px; animation: trophyBounce 0.6s ease; }
+@keyframes trophyBounce {
+  0% { transform: scale(0.4); opacity: 0; }
+  70% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.result-eyebrow { font-family: var(--mono); font-size: 10px; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+.result-title { font-family: var(--serif); font-size: 46px; font-weight: 500; color: var(--warm-white); margin-bottom: 6px; line-height: 1.1; }
+.result-title em { font-style: italic; color: var(--gold); }
+.result-desc { font-family: var(--serif); font-style: italic; font-size: 17px; color: var(--warm-white); opacity: 0.8; margin-bottom: 32px; line-height: 1.4; max-width: 320px; }
+
+.score-card {
+  background: rgba(174,145,66,0.1);
+  border: 1px solid rgba(174,145,66,0.35);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 28px;
+  width: 100%;
+  max-width: 340px;
+}
+.score-card-title { font-family: var(--mono); font-size: 9px; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
+.score-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(174,145,66,0.15); }
+.score-row:last-of-type { border-bottom: none; }
+.score-row-label { font-family: var(--serif); font-size: 15px; color: var(--warm-white); opacity: 0.85; }
+.score-row-val { font-family: var(--mono); font-size: 15px; font-weight: 600; color: var(--gold); }
+.score-total { display: flex; justify-content: space-between; align-items: baseline; padding-top: 14px; margin-top: 4px; border-top: 1px solid rgba(174,145,66,0.3); }
+.score-total-label { font-family: var(--serif); font-size: 18px; font-weight: 600; color: var(--warm-white); }
+.score-total-val { font-family: var(--serif); font-style: italic; font-size: 34px; color: var(--gold); }
+
+.play-again {
+  background: var(--gold);
+  color: var(--navy);
+  border: none;
+  border-radius: 4px;
+  padding: 16px 40px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  cursor: pointer;
+  width: 100%;
+  max-width: 320px;
+  transition: transform 0.15s;
+  margin-bottom: 12px;
+}
+.play-again:active { transform: scale(0.97); }
+.result-credit { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; color: var(--warm-white); opacity: 0.3; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════ SPLASH ══ -->
+<section id="splash" class="screen active">
+  <div class="splash-badge">📬</div>
+  <div class="splash-eyebrow">Warm-Up Game · Week 07</div>
+  <h1 class="splash-title">Inbox<br><em>Triage</em></h1>
+  <p class="splash-sub">10 emails. Swipe to sort.<br>How fast is your professional instinct?</p>
+
+  <div class="swipe-legend">
+    <div class="legend-item urgent">
+      <div class="legend-arrow">👉</div>
+      <div class="legend-text">URGENT</div>
+    </div>
+    <div class="legend-item wait">
+      <div class="legend-arrow">👈</div>
+      <div class="legend-text">CAN WAIT</div>
+    </div>
+    <div class="legend-item none">
+      <div class="legend-arrow">👆</div>
+      <div class="legend-text">NO ACTION</div>
+    </div>
+  </div>
+
+  <button class="start-btn" onclick="startGame()">Open Inbox →</button>
+  <div class="credit">APPROACH INTERNATIONAL STUDENT CENTER · SPRING 2026</div>
+</section>
+
+<!-- ══════════════════════ GAME ══ -->
+<section id="game" class="screen">
+  <div class="game-header">
+    <div class="header-info">
+      <div class="header-icon">📬</div>
+      <div>
+        <div class="header-title">Inbox Triage</div>
+        <div class="header-sub" id="card-counter">Email 1 of 10</div>
+      </div>
+    </div>
+    <div class="timer-display" id="timer">0:00</div>
+  </div>
+
+  <div class="progress-dots" id="progress-dots"></div>
+
+  <div class="card-arena" id="card-arena">
+    <div class="zone-hint right" id="zone-right">
+      <div class="zone-icon">👉</div>
+      <div class="zone-label">Urgent</div>
+    </div>
+    <div class="zone-hint left" id="zone-left">
+      <div class="zone-icon">👈</div>
+      <div class="zone-label">Can Wait</div>
+    </div>
+    <div class="zone-hint up" id="zone-up">
+      <div class="zone-icon">👆</div>
+      <div class="zone-label">No Action</div>
+    </div>
+  </div>
+
+  <div class="swipe-hint-bar">
+    <div class="hint-chip wait"><div class="chip-arrow">←</div><div class="chip-label">Can Wait</div></div>
+    <div class="hint-chip none"><div class="chip-arrow">↑</div><div class="chip-label">No Action</div></div>
+    <div class="hint-chip urgent"><div class="chip-arrow">→</div><div class="chip-label">Urgent</div></div>
+  </div>
+</section>
+
+<!-- ══════════════════════ BONUS ══ -->
+<section id="bonus" class="screen">
+  <div class="bonus-header">
+    <div class="bonus-eyebrow">BONUS ROUND</div>
+    <div class="bonus-title">One more<br><em>call to make.</em></div>
+  </div>
+  <div class="bonus-body" id="bonus-body"></div>
+</section>
+
+<!-- ══════════════════════ RESULTS ══ -->
+<section id="results" class="screen">
+  <div class="result-trophy" id="result-trophy">📋</div>
+  <div class="result-eyebrow">INBOX CLEARED</div>
+  <h2 class="result-title" id="result-title">Good <em>Instinct</em></h2>
+  <p class="result-desc" id="result-desc">Your professional inbox radar is developing.</p>
+  <div class="score-card">
+    <div class="score-card-title">YOUR PERFORMANCE</div>
+    <div class="score-row"><div class="score-row-label">Correct triages</div><div class="score-row-val" id="r-correct">0 / 10</div></div>
+    <div class="score-row"><div class="score-row-label">Time taken</div><div class="score-row-val" id="r-time">0:00</div></div>
+    <div class="score-row"><div class="score-row-label">Bonus question</div><div class="score-row-val" id="r-bonus">—</div></div>
+    <div class="score-total">
+      <div class="score-total-label">Score</div>
+      <div class="score-total-val" id="r-total">0</div>
+    </div>
+  </div>
+  <button class="play-again" onclick="resetGame()">Play Again</button>
+  <div class="result-credit">APPROACH INTERNATIONAL STUDENT CENTER · SPRING 2026</div>
+</section>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// EMAIL DATA — 10 emails
+// urgency: "urgent" | "wait" | "none"
+// register: "Casual" | "Semi-formal" | "Formal"
+// urgentReason: why it is the MOST urgent (shown in bonus round)
+// ═══════════════════════════════════════════════════════════════
+const emails = [
+  {
+    id: 1,
+    from: "Mateus Carvalho",
+    email: "m.carvalho@legalnotice.com.br",
+    subject: "Notice of Contract Breach — Action Required Within 48 Hours",
+    body: [
+      "Dear Ms. Ferreira,",
+      "Our records indicate that payment for Invoice #4471, due on 1 June 2026, remains outstanding as of today. Under Section 8.3 of your service agreement, failure to remit payment within 48 hours of this notice will result in the suspension of services and referral to our legal department.",
+      "Please arrange payment immediately or contact our accounts team to discuss an approved payment plan.",
+      "Yours sincerely,\nMateus Carvalho\nLegal Affairs, TechServ Brasil"
+    ],
+    urgency: "urgent",
+    register: "Formal",
+    urgentReason: "48-hour legal deadline with threat of service suspension and legal referral"
+  },
+  {
+    id: 2,
+    from: "Ana Paula Oliveira",
+    email: "ana.p@personalmail.com",
+    subject: "Weekend plans? 🌴",
+    body: [
+      "Oi!! Are you free this Saturday? A group of us are thinking about going to the beach — maybe Guarujá if the weather holds 🏖️",
+      "Let me know if you're in! We'd leave around 8am from Paulista.",
+      "Beijos,\nAna 😊"
+    ],
+    urgency: "none",
+    register: "Casual",
+    urgentReason: null
+  },
+  {
+    id: 3,
+    from: "Daniel Rocha — Accounts",
+    email: "d.rocha@globalclient.com",
+    subject: "Invoice for April Services — Please Confirm Receipt",
+    body: [
+      "Hi,",
+      "Just sending over the invoice for April services as attached. Our payment terms are net 30, so this would be due by June 15.",
+      "Could you confirm receipt when you get a chance? No rush — just want to make sure it landed in the right inbox.",
+      "Thanks,\nDaniel"
+    ],
+    urgency: "wait",
+    register: "Semi-formal",
+    urgentReason: null
+  },
+  {
+    id: 4,
+    from: "Slack Notifications",
+    email: "no-reply@slack.com",
+    subject: "You were mentioned in #general",
+    body: [
+      "Beatriz Lima mentioned you in #general:",
+      "\"@team — the server issue from this morning has been resolved. All systems are back online. Thanks everyone for your patience!\"",
+      "Open Slack to reply."
+    ],
+    urgency: "none",
+    register: "Casual",
+    urgentReason: null
+  },
+  {
+    id: 5,
+    from: "Luisa Mendez — Client Services",
+    email: "l.mendez@premierclient.com",
+    subject: "Project Proposal — Feedback Needed Before Friday",
+    body: [
+      "Hi,",
+      "I hope you are well. I am writing to follow up on the proposal we sent last week for the Q3 marketing campaign.",
+      "We have a board presentation on Friday morning and would need your feedback by Thursday EOD at the latest in order to incorporate your input. If there are any sections you would like to discuss before then, I am happy to arrange a quick call.",
+      "Looking forward to hearing from you.",
+      "Best regards,\nLuisa"
+    ],
+    urgency: "urgent",
+    register: "Semi-formal",
+    urgentReason: "Client needs feedback by Thursday EOD for a Friday board presentation — hard deadline"
+  },
+  {
+    id: 6,
+    from: "HR Department",
+    email: "hr@yourcompany.com",
+    subject: "Annual Leave Policy Update — For Your Information",
+    body: [
+      "Dear Team,",
+      "Please be advised that the updated Annual Leave Policy (version 3.2) is now available on the company intranet. The changes come into effect from 1 July 2026.",
+      "No action is required at this time. If you have questions regarding the policy, please direct them to your line manager.",
+      "Kind regards,\nHuman Resources"
+    ],
+    urgency: "none",
+    register: "Formal",
+    urgentReason: null
+  },
+  {
+    id: 7,
+    from: "Roberto Figueiredo",
+    email: "r.figueiredo@partnerco.com",
+    subject: "Quick question about tomorrow's meeting agenda",
+    body: [
+      "Hey,",
+      "Just checking — are we still covering the budget allocation in tomorrow's 10am meeting? I want to make sure I bring the right spreadsheets.",
+      "Let me know!",
+      "Roberto"
+    ],
+    urgency: "urgent",
+    register: "Casual",
+    urgentReason: "Meeting is tomorrow at 10am — he needs a reply today to prepare the right materials"
+  },
+  {
+    id: 8,
+    from: "DocuSign",
+    email: "dse@docusign.net",
+    subject: "ACTION REQUIRED: Partnership Agreement expires in 24 hours",
+    body: [
+      "Hello,",
+      "The document \"Strategic Partnership Agreement — Veritas Corp & Global Partners\" requires your signature.",
+      "IMPORTANT: This signing request expires in 24 hours. After expiry, the document will be voided and will need to be reissued.",
+      "Please sign immediately by clicking the link below.",
+      "[Sign Document Now]"
+    ],
+    urgency: "urgent",
+    register: "Semi-formal",
+    urgentReason: "Contract expires and will be voided in 24 hours if not signed — legally time-critical"
+  },
+  {
+    id: 9,
+    from: "Fernanda Costa",
+    email: "f.costa@internalteam.com",
+    subject: "Draft of the Q2 Report — Would love your thoughts",
+    body: [
+      "Hi!",
+      "I've finished the first draft of the Q2 report and would really appreciate your feedback when you get a chance. There's no hard deadline on this — the final version isn't due until end of month.",
+      "Happy to return the favor on anything you're working on!",
+      "Fê"
+    ],
+    urgency: "wait",
+    register: "Casual",
+    urgentReason: null
+  },
+  {
+    id: 10,
+    from: "Carolina Nunes — Sales",
+    email: "c.nunes@salesteam.com",
+    subject: "Client meeting rescheduled to tomorrow 9am — please confirm",
+    body: [
+      "Hi,",
+      "Just heard from the client — they need to move our meeting from Thursday to TOMORROW at 9am. I know it's short notice but they have a travel conflict later in the week.",
+      "Can you confirm if that works? If not, I need to know in the next hour so I can find an alternative.",
+      "Thanks,\nCarolina"
+    ],
+    urgency: "urgent",
+    register: "Semi-formal",
+    urgentReason: "Meeting moved to tomorrow — confirmation needed within the hour to keep the client relationship"
+  }
+];
+
+// Shuffle helper
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GAME STATE
+// ═══════════════════════════════════════════════════════════════
+let deck = [];
+let currentIdx = 0;
+let timerInterval = null;
+let timerSeconds = 0;
+let correctCount = 0;
+let userDecisions = []; // { email, decision }
+let urgentEmailsSeen = [];
+
+// Bonus state
+let bonusPhase = 1; // 1 = pick most urgent, 2 = identify register
+let bonusPickCorrect = false;
+let bonusRegisterCorrect = false;
+let bonusScore = 0;
+
+// ═══════════════════════════════════════════════════════════════
+// SCREEN
+// ═══════════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+function startGame() {
+  deck = shuffle(emails);
+  currentIdx = 0;
+  timerSeconds = 0;
+  correctCount = 0;
+  userDecisions = [];
+  urgentEmailsSeen = [];
+  bonusPhase = 1;
+  bonusPickCorrect = false;
+  bonusRegisterCorrect = false;
+  bonusScore = 0;
+
+  buildProgressDots();
+  showScreen('game');
+  renderCards();
+  startTimer();
+}
+
+function resetGame() { showScreen('splash'); }
+
+// ═══════════════════════════════════════════════════════════════
+// TIMER
+// ═══════════════════════════════════════════════════════════════
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timerSeconds++;
+    const m = Math.floor(timerSeconds / 60);
+    const s = timerSeconds % 60;
+    document.getElementById('timer').textContent =
+      m + ':' + String(s).padStart(2, '0');
+  }, 1000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PROGRESS DOTS
+// ═══════════════════════════════════════════════════════════════
+function buildProgressDots() {
+  const container = document.getElementById('progress-dots');
+  container.innerHTML = '';
+  deck.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i === 0 ? ' current' : '');
+    dot.id = 'dot-' + i;
+    container.appendChild(dot);
+  });
+}
+
+function updateDots(justCompleted) {
+  const prev = document.getElementById('dot-' + justCompleted);
+  if (prev) prev.className = 'dot done';
+  const next = document.getElementById('dot-' + (justCompleted + 1));
+  if (next) next.className = 'dot current';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CARD RENDERING
+// ═══════════════════════════════════════════════════════════════
+function renderCards() {
+  const arena = document.getElementById('card-arena');
+
+  // Remove old cards (keep zone hints)
+  arena.querySelectorAll('.email-card').forEach(c => c.remove());
+
+  // Render up to 3 cards (top + 2 behind)
+  for (let i = Math.min(currentIdx + 2, deck.length - 1); i >= currentIdx; i--) {
+    const email = deck[i];
+    const card = buildCard(email);
+
+    if (i === currentIdx) {
+      card.className = 'email-card';
+      attachSwipe(card, email);
+    } else if (i === currentIdx + 1) {
+      card.className = 'email-card back-1';
+    } else {
+      card.className = 'email-card back-2';
+    }
+
+    arena.appendChild(card);
+  }
+
+  document.getElementById('card-counter').textContent =
+    'Email ' + (currentIdx + 1) + ' of ' + deck.length;
+}
+
+function buildCard(email) {
+  const card = document.createElement('div');
+  card.innerHTML = `
+    <div class="email-card-meta">
+      <div class="card-from">${email.from}<\/div>
+      <div class="card-from-email">${email.email}<\/div>
+      <div class="card-subject">${email.subject}<\/div>
+    <\/div>
+    <div class="email-card-body">
+      <div class="email-body-text">
+        ${email.body.map(p => '<p>' + p.replace(/\n/g, '<br>') + '<\/p>').join('')}
+      <\/div>
+    <\/div>
+    <div class="swipe-label urgent-label">URGENT<\/div>
+    <div class="swipe-label wait-label">CAN WAIT<\/div>
+    <div class="swipe-label none-label">NO ACTION<\/div>
+  `;
+  return card;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SWIPE MECHANICS
+// ═══════════════════════════════════════════════════════════════
+function attachSwipe(card, email) {
+  let startX = 0, startY = 0;
+  let currentX = 0, currentY = 0;
+  let isDragging = false;
+  const THRESHOLD = 90;
+  const UP_THRESHOLD = 70;
+
+  function getPos(e) {
+    if (e.touches) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    return { x: e.clientX, y: e.clientY };
+  }
+
+  function onStart(e) {
+    e.preventDefault();
+    const pos = getPos(e);
+    startX = pos.x; startY = pos.y;
+    currentX = 0; currentY = 0;
+    isDragging = true;
+    card.style.transition = 'none';
+  }
+
+  function onMove(e) {
+    if (!isDragging) return;
+    e.preventDefault();
+    const pos = getPos(e);
+    currentX = pos.x - startX;
+    currentY = pos.y - startY;
+
+    const rot = currentX * 0.08;
+    card.style.transform = `translate(${currentX}px, ${currentY}px) rotate(${rot}deg)`;
+
+    // Labels
+    const urgentLabel = card.querySelector('.urgent-label');
+    const waitLabel   = card.querySelector('.wait-label');
+    const noneLabel   = card.querySelector('.none-label');
+    urgentLabel.style.opacity = currentX > 40  ? Math.min(1, (currentX - 40) / 60) : 0;
+    waitLabel.style.opacity   = currentX < -40 ? Math.min(1, (-currentX - 40) / 60) : 0;
+    noneLabel.style.opacity   = currentY < -30 && Math.abs(currentX) < 60
+      ? Math.min(1, (-currentY - 30) / 50) : 0;
+
+    // Zone hints
+    const rZ = document.getElementById('zone-right');
+    const lZ = document.getElementById('zone-left');
+    const uZ = document.getElementById('zone-up');
+    rZ.style.opacity = currentX > 40  ? Math.min(0.9, (currentX - 40) / 80) : 0;
+    lZ.style.opacity = currentX < -40 ? Math.min(0.9, (-currentX - 40) / 80) : 0;
+    uZ.style.opacity = currentY < -30 && Math.abs(currentX) < 60
+      ? Math.min(0.9, (-currentY - 30) / 60) : 0;
+
+    // Card shadow tint
+    if (currentX > 40)  card.style.boxShadow = '0 8px 40px rgba(192,57,43,0.35)';
+    else if (currentX < -40) card.style.boxShadow = '0 8px 40px rgba(19,104,206,0.35)';
+    else if (currentY < -30) card.style.boxShadow = '0 8px 40px rgba(174,145,66,0.35)';
+    else card.style.boxShadow = '0 8px 32px rgba(0,0,0,0.35)';
+  }
+
+  function onEnd(e) {
+    if (!isDragging) return;
+    isDragging = false;
+
+    // Clear zone hints
+    ['zone-right','zone-left','zone-up'].forEach(id => {
+      document.getElementById(id).style.opacity = 0;
+    });
+    card.style.boxShadow = '';
+
+    // Determine decision
+    let decision = null;
+    if (currentX > THRESHOLD)  decision = 'urgent';
+    else if (currentX < -THRESHOLD) decision = 'wait';
+    else if (currentY < -UP_THRESHOLD && Math.abs(currentX) < THRESHOLD) decision = 'none';
+
+    if (decision) {
+      flyOut(card, decision, email);
+    } else {
+      // Snap back
+      card.style.transition = 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1)';
+      card.style.transform = 'translate(0,0) rotate(0deg)';
+      card.querySelectorAll('.swipe-label').forEach(l => l.style.opacity = 0);
+    }
+  }
+
+  card.addEventListener('mousedown', onStart);
+  card.addEventListener('touchstart', onStart, { passive: false });
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('touchmove', onMove, { passive: false });
+  document.addEventListener('mouseup', onEnd);
+  document.addEventListener('touchend', onEnd);
+
+  // Store cleanup ref
+  card._cleanup = () => {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('mouseup', onEnd);
+    document.removeEventListener('touchend', onEnd);
+  };
+}
+
+function flyOut(card, decision, email) {
+  card._cleanup && card._cleanup();
+
+  const correct = decision === email.urgency;
+  if (correct) correctCount++;
+
+  userDecisions.push({ email, decision });
+  if (email.urgency === 'urgent') urgentEmailsSeen.push(email);
+
+  // Fly animation
+  let tx = 0, ty = 0, rot = 0;
+  if (decision === 'urgent') { tx = window.innerWidth + 100; rot = 20; }
+  else if (decision === 'wait') { tx = -(window.innerWidth + 100); rot = -20; }
+  else { ty = -(window.innerHeight + 100); }
+
+  card.style.transition = 'transform 0.4s ease-in, opacity 0.35s ease';
+  card.style.transform = `translate(${tx}px, ${ty}px) rotate(${rot}deg)`;
+  card.style.opacity = '0';
+
+  // Brief flash on card (correct = subtle green; wrong = subtle red)
+  const flash = document.createElement('div');
+  flash.className = 'arena-flash';
+  flash.style.background = correct
+    ? 'rgba(38,137,12,0.15)'
+    : 'rgba(192,57,43,0.15)';
+  flash.style.opacity = '1';
+  document.getElementById('card-arena').appendChild(flash);
+  setTimeout(() => { flash.style.opacity = '0'; setTimeout(() => flash.remove(), 300); }, 200);
+
+  setTimeout(() => {
+    card.remove();
+    updateDots(currentIdx);
+    currentIdx++;
+    if (currentIdx >= deck.length) {
+      clearInterval(timerInterval);
+      setTimeout(showBonus, 400);
+    } else {
+      renderCards();
+    }
+  }, 420);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BONUS ROUND
+// ═══════════════════════════════════════════════════════════════
+function showBonus() {
+  showScreen('bonus');
+
+  const correctUrgent = urgentEmailsSeen.filter(e => {
+    const d = userDecisions.find(ud => ud.email.id === e.id);
+    return d && d.decision === 'urgent';
+  });
+
+  // The "most urgent" email — pick the one with the most time-critical reason
+  // We'll define a canonical "most urgent" as the first one in our priority list
+  const urgentPriorityOrder = [1, 8, 5, 10, 7]; // legal > contract expiry > board deadline > meeting > tomorrow meeting
+  let mostUrgent = null;
+  for (const id of urgentPriorityOrder) {
+    const found = correctUrgent.find(e => e.id === id);
+    if (found) { mostUrgent = found; break; }
+  }
+  if (!mostUrgent && correctUrgent.length > 0) mostUrgent = correctUrgent[0];
+
+  const body = document.getElementById('bonus-body');
+
+  if (!mostUrgent || correctUrgent.length === 0) {
+    // They didn't catch any urgent emails — show a teachable moment
+    body.innerHTML = `
+      <div class="bonus-question">You categorized <strong>${correctCount} of ${deck.length}<\/strong> emails correctly.<\/div>
+      <div class="bonus-feedback visible" style="border-color:var(--urgent)">
+        <div class="bonus-feedback-title" style="color:var(--urgent)">⚠ All urgent emails missed<\/div>
+        <div class="bonus-feedback-text">The 4 urgent emails in this inbox were: a 48-hour legal notice, a contract expiring in 24 hours, a client deadline for Thursday EOD, and a meeting being moved to tomorrow. Professional inbox triage means spotting those first — before anything else.<\/div>
+      <\/div>
+      <button class="next-btn visible" onclick="showResults()">See My Results →</button>
+    `;
+    return;
+  }
+
+  renderBonusPhase1(body, correctUrgent, mostUrgent);
+}
+
+function renderBonusPhase1(body, correctUrgent, mostUrgent) {
+  // Shuffle the urgent emails so the answer isn't always first
+  const options = shuffle(correctUrgent);
+
+  body.innerHTML = `
+    <div class="bonus-question">You caught <strong style="color:var(--urgent)">${correctUrgent.length} urgent email${correctUrgent.length > 1 ? 's' : ''}<\/strong>. Which one needs a reply first?<\/div>
+    <div class="urgent-email-list" id="urgent-list">
+      ${options.map(e => `
+        <div class="urgent-email-option" onclick="pickMostUrgent(${e.id}, ${mostUrgent.id})"
+             data-id="${e.id}">
+          <div class="urgent-subject">${e.subject}<\/div>
+          <div class="urgent-from">From: ${e.from}<\/div>
+        <\/div>
+      `).join('')}
+    <\/div>
+    <div class="bonus-feedback" id="bonus-fb-1"><\/div>
+    <button class="next-btn" id="bonus-next-1" onclick="renderBonusPhase2()">
+      ONE MORE QUESTION →
+    </button>
+  `;
+}
+
+function pickMostUrgent(pickedId, correctId) {
+  // Disable all options
+  document.querySelectorAll('.urgent-email-option').forEach(opt => {
+    opt.onclick = null;
+    const id = parseInt(opt.dataset.id);
+    if (id === correctId) opt.classList.add('correct-pick');
+    else if (id === pickedId && pickedId !== correctId) opt.classList.add('wrong-pick');
+  });
+
+  bonusPickCorrect = pickedId === correctId;
+  const correctEmail = emails.find(e => e.id === correctId);
+  const fb = document.getElementById('bonus-fb-1');
+
+  if (bonusPickCorrect) {
+    bonusScore += 15;
+    fb.className = 'bonus-feedback visible';
+    fb.style.borderColor = '#26890c';
+    fb.innerHTML = `
+      <div class="bonus-feedback-title" style="color:#26890c">✓ Correct — that one first. +15 pts<\/div>
+      <div class="bonus-feedback-text">${correctEmail.urgentReason}.<\/div>
+    `;
+  } else {
+    const chosenEmail = emails.find(e => e.id === pickedId);
+    fb.className = 'bonus-feedback visible';
+    fb.style.borderColor = 'var(--urgent)';
+    fb.innerHTML = `
+      <div class="bonus-feedback-title" style="color:var(--urgent)">Not quite.<\/div>
+      <div class="bonus-feedback-text">The most critical is <strong>"${correctEmail.subject}"<\/strong> — ${correctEmail.urgentReason}.<\/div>
+    `;
+  }
+
+  document.getElementById('bonus-next-1').classList.add('visible');
+}
+
+function renderBonusPhase2() {
+  // Find the most urgent email
+  const urgentPriorityOrder = [1, 8, 5, 10, 7];
+  const correctUrgent = urgentEmailsSeen.filter(e => {
+    const d = userDecisions.find(ud => ud.email.id === e.id);
+    return d && d.decision === 'urgent';
+  });
+  let mostUrgent = null;
+  for (const id of urgentPriorityOrder) {
+    const found = correctUrgent.find(e => e.id === id);
+    if (found) { mostUrgent = found; break; }
+  }
+  if (!mostUrgent && correctUrgent.length > 0) mostUrgent = correctUrgent[0];
+  if (!mostUrgent) { showResults(); return; }
+
+  const body = document.getElementById('bonus-body');
+  body.innerHTML = `
+    <div class="register-question">
+      <div class="register-q-label">You need to reply to <strong>"${mostUrgent.subject}"<\/strong>. What register should you use?<\/div>
+      <div class="register-opts">
+        <div class="register-opt" data-r="Casual" onclick="pickRegister(this, '${mostUrgent.register}')">
+          <div class="r-icon">💬<\/div>
+          <div class="r-name">Casual<\/div>
+        <\/div>
+        <div class="register-opt" data-r="Semi-formal" onclick="pickRegister(this, '${mostUrgent.register}')">
+          <div class="r-icon">💼<\/div>
+          <div class="r-name">Semi-formal<\/div>
+        <\/div>
+        <div class="register-opt" data-r="Formal" onclick="pickRegister(this, '${mostUrgent.register}')">
+          <div class="r-icon">📋<\/div>
+          <div class="r-name">Formal<\/div>
+        <\/div>
+      <\/div>
+    <\/div>
+    <div class="bonus-feedback" id="bonus-fb-2"><\/div>
+    <button class="next-btn" id="bonus-next-2" onclick="showResults()">
+      SEE MY RESULTS →
+    </button>
+  `;
+}
+
+function pickRegister(btn, correctRegister) {
+  document.querySelectorAll('.register-opt').forEach(opt => {
+    opt.onclick = null;
+    if (opt.dataset.r === correctRegister) opt.classList.add('reveal-r');
+  });
+
+  const picked = btn.dataset.r;
+  bonusRegisterCorrect = picked === correctRegister;
+
+  if (bonusRegisterCorrect) {
+    btn.classList.add('correct-r');
+    bonusScore += 10;
+  } else {
+    btn.classList.add('wrong-r');
+  }
+
+  const registerExplanations = {
+    'Formal': 'This email came from a legal or official context. Your reply should match that register — formal, no contractions, professional sign-off.',
+    'Semi-formal': 'This is a professional contact with some existing relationship. Semi-formal is right — clear, direct, but human.',
+    'Casual': 'The sender used a casual register in a professional context. Match their level — friendly but still purposeful.'
+  };
+
+  const fb = document.getElementById('bonus-fb-2');
+  fb.className = 'bonus-feedback visible';
+  fb.style.borderColor = bonusRegisterCorrect ? '#26890c' : 'var(--urgent)';
+  fb.innerHTML = `
+    <div class="bonus-feedback-title" style="color:${bonusRegisterCorrect ? '#26890c' : 'var(--urgent)'}">
+      ${bonusRegisterCorrect ? '✓ Correct! +10 pts' : `The right register is ${correctRegister}.`}
+    <\/div>
+    <div class="bonus-feedback-text">${registerExplanations[correctRegister]}<\/div>
+  `;
+
+  document.getElementById('bonus-next-2').classList.add('visible');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RESULTS
+// ═══════════════════════════════════════════════════════════════
+function showResults() {
+  const baseScore = correctCount * 10;
+  const timeBonus = Math.max(0, 100 - timerSeconds); // faster = more bonus, min 0
+  const total = baseScore + bonusScore + Math.max(0, timeBonus);
+
+  const m = Math.floor(timerSeconds / 60);
+  const s = timerSeconds % 60;
+  const timeStr = m + ':' + String(s).padStart(2, '0');
+
+  let trophy, title, desc;
+  if (correctCount === 10 && bonusScore >= 20) {
+    trophy = '🏆'; title = 'Expert <em>Triager<\/em>';
+    desc = 'Perfect instinct — every email in the right place, first time. Your inbox would terrify most people.';
+  } else if (correctCount >= 8) {
+    trophy = '⭐'; title = 'Sharp <em>Professional<\/em>';
+    desc = 'Strong instincts with just a couple of slips. You read professional context quickly.';
+  } else if (correctCount >= 6) {
+    trophy = '📋'; title = 'Good <em>Instinct<\/em>';
+    desc = 'Solid foundation. The tricky ones — the buried deadlines, the resolved threads — are worth reviewing.';
+  } else {
+    trophy = '📬'; title = 'Learning the <em>Signals<\/em>';
+    desc = 'Professional inbox triage takes practice. Today\'s class will sharpen your eye for urgency cues.';
+  }
+
+  document.getElementById('result-trophy').textContent = trophy.replace(/<[^>]+>/g, '');
+  document.getElementById('result-trophy').innerHTML = trophy;
+  document.getElementById('result-title').innerHTML = title;
+  document.getElementById('result-desc').textContent = desc.replace(/<[^>]+>/g, '');
+
+  document.getElementById('r-correct').textContent = correctCount + ' / ' + deck.length;
+  document.getElementById('r-time').textContent = timeStr;
+  document.getElementById('r-bonus').textContent = bonusScore > 0 ? '+' + bonusScore + ' pts' : '0 pts';
+  document.getElementById('r-total').textContent = total;
+
+  showScreen('results');
+}
+</script>
+</body>
+</html>
