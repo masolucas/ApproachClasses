@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stay Strong — Week 7 Vocabulary Game</title>
+<style>
+  :root {
+    --navy: #0C2340;
+    --navy-l: #143865;
+    --gold: #AE9142;
+    --gold-b: #D39F10;
+    --warm-w: #EFE9D9;
+    --paper: #FFFFFF;
+    --ink: #1A1A1A;
+    --ink-s: #3D3D3D;
+    --muted: #7A7A7A;
+    --sky: #EDF2F9;
+    --teal: #0E6B6B;
+    --teal-s: #D0EDED;
+    --green: #26890C;
+    --green-s: #D4EDDA;
+    --red: #C0392B;
+    --red-s: #F8D7DA;
+    --serif: Cambria, Georgia, "Times New Roman", serif;
+    --sans: Calibri, "Segoe UI", Arial, sans-serif;
+    --mono: Consolas, "Courier New", monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--navy);
+    font-family: var(--sans); color: var(--ink);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .wrap { width: 100%; max-width: 760px; }
+
+  .header { text-align: center; margin-bottom: 18px; color: var(--warm-w); }
+  .header .monogram {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid var(--gold);
+    color: var(--gold); font-family: var(--serif); font-style: italic; font-weight: 700; font-size: 20px;
+    margin-bottom: 8px;
+  }
+  .header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; }
+  .header h1 { font-family: var(--serif); font-size: 34px; font-weight: 400; margin: 6px 0 2px; }
+  .header h1 em { color: var(--gold); font-style: italic; }
+  .header .sub { font-family: var(--serif); font-style: italic; font-size: 14px; color: var(--warm-w); opacity: 0.85; }
+
+  .card {
+    background: var(--paper); border-radius: 10px; padding: 28px 30px 24px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+  }
+
+  .statbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .stat { font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
+  .stat b { color: var(--navy); font-size: 14px; }
+  .progress-track { background: var(--sky); border-radius: 999px; height: 8px; width: 100%; overflow: hidden; margin-bottom: 22px; }
+  .progress-fill { background: linear-gradient(90deg, var(--gold), var(--gold-b)); height: 100%; border-radius: 999px; transition: width 0.25s ease; }
+
+  .icon-row { display: flex; justify-content: center; margin-bottom: 14px; }
+  .icon-row svg { width: 64px; height: 64px; }
+
+  .prompt-label { text-align: center; font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--teal); text-transform: uppercase; margin-bottom: 8px; }
+  .prompt { text-align: center; font-family: var(--serif); font-size: 22px; color: var(--navy); margin-bottom: 24px; line-height: 1.4; }
+  .prompt b { color: var(--teal); }
+
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px; }
+  @media (max-width: 520px) { .options { grid-template-columns: 1fr; } }
+
+  .opt {
+    display: block; width: 100%; text-align: left; background: var(--sky); border: 2px solid var(--sky);
+    border-radius: 8px; padding: 14px 16px; font-family: var(--serif); font-size: 17px; color: var(--ink);
+    cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .opt:hover:not([disabled]) { border-color: var(--gold-b); }
+  .opt.correct { background: var(--green-s); border-color: var(--green); color: #1c5c08; font-weight: 700; }
+  .opt.incorrect { background: var(--red-s); border-color: var(--red); color: var(--red); }
+  .opt[disabled] { cursor: default; }
+
+  .feedback { min-height: 26px; text-align: center; font-family: var(--sans); font-size: 14px; font-weight: 700; margin: 14px 0 6px; }
+  .feedback.correct { color: var(--green); }
+  .feedback.incorrect { color: var(--red); }
+
+  .nextBtn {
+    display: block; margin: 10px auto 0; background: var(--navy); color: var(--warm-w); border: none;
+    font-family: var(--sans); font-size: 14px; font-weight: 700; letter-spacing: 0.5px;
+    padding: 12px 28px; border-radius: 6px; cursor: pointer; opacity: 0; pointer-events: none; transition: opacity 0.15s ease;
+  }
+  .nextBtn.show { opacity: 1; pointer-events: auto; }
+  .nextBtn:hover { background: var(--navy-l); }
+
+  .end-screen { text-align: center; padding: 20px 0; }
+  .end-screen .big-score { font-family: var(--serif); font-size: 56px; color: var(--navy); margin: 10px 0; }
+  .end-screen .big-score em { color: var(--gold-b); font-style: italic; }
+  .end-screen p { font-family: var(--sans); font-size: 15px; color: var(--ink-s); margin-bottom: 22px; }
+  .replayBtn {
+    background: var(--gold-b); color: var(--navy); border: none; font-family: var(--sans);
+    font-weight: 700; font-size: 15px; padding: 14px 32px; border-radius: 6px; cursor: pointer;
+  }
+  .replayBtn:hover { background: var(--gold); }
+
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="header">
+    <div class="monogram">A</div>
+    <div class="eyebrow">Current Issues &middot; Week 07</div>
+    <h1>Stay <em>Strong.</em></h1>
+    <div class="sub">A vocabulary review game &middot; Children's fitness in Europe</div>
+  </div>
+
+  <div class="card">
+
+    <div id="quizScreen">
+      <div class="statbar">
+        <span class="stat">Question <b id="qNum">1</b> / <b id="qTotal">8</b></span>
+        <span class="stat">Score <b id="scoreNum">0</b></span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+      <div class="icon-row" id="iconRow"></div>
+      <div class="prompt-label">What does this word mean?</div>
+      <div class="prompt" id="promptText"></div>
+
+      <div class="options" id="optionsWrap"></div>
+
+      <div class="feedback" id="feedback"></div>
+      <button class="nextBtn" id="nextBtn">Next Question →</button>
+    </div>
+
+    <div id="endScreen" class="end-screen hidden">
+      <div class="prompt-label">Game Complete</div>
+      <div class="big-score"><span id="finalScore">0</span> / <span id="finalTotal">8</span></div>
+      <p id="finalMessage">Great job reviewing this week's words!</p>
+      <button class="replayBtn" id="replayBtn">Play Again</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ---------- SVG icons (no emoji, no unicode symbols — Windows-safe) ----------
+  const ICONS = {
+    study: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="14" width="44" height="34" rx="3" fill="#EDF2F9" stroke="#0C2340" stroke-width="2.5"/><line x1="32" y1="14" x2="32" y2="48" stroke="#0C2340" stroke-width="2.5"/><line x1="16" y1="22" x2="27" y2="22" stroke="#AE9142" stroke-width="2.5"/><line x1="16" y1="29" x2="27" y2="29" stroke="#AE9142" stroke-width="2.5"/><line x1="37" y1="22" x2="48" y2="22" stroke="#AE9142" stroke-width="2.5"/><line x1="37" y1="29" x2="48" y2="29" stroke="#AE9142" stroke-width="2.5"/></svg>`,
+    country: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="32" r="22" fill="#D0EDED" stroke="#0E6B6B" stroke-width="2.5"/><ellipse cx="32" cy="32" rx="22" ry="9" stroke="#0E6B6B" stroke-width="2" fill="none"/><line x1="10" y1="32" x2="54" y2="32" stroke="#0E6B6B" stroke-width="2"/><path d="M32 10 C 22 20, 22 44, 32 54" stroke="#0E6B6B" stroke-width="2" fill="none"/><path d="M32 10 C 42 20, 42 44, 32 54" stroke="#0E6B6B" stroke-width="2" fill="none"/></svg>`,
+    strong: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 40 C14 30, 20 24, 26 26 C 24 20, 28 14, 34 16 C 40 12, 48 18, 44 26 C 52 26, 54 36, 46 40 C 50 46, 44 52, 38 48 C 36 54, 26 54, 24 48 C 16 50, 10 44, 14 40 Z" fill="#F5EED2" stroke="#AE9142" stroke-width="2.5"/><circle cx="26" cy="34" r="2.4" fill="#0C2340"/><circle cx="38" cy="34" r="2.4" fill="#0C2340"/></svg>`,
+    flexible: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 46 C 14 46, 20 14, 40 16 C 56 18, 50 40, 34 40 C 22 40, 22 30, 30 26" stroke="#0E6B6B" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="14" cy="46" r="5" fill="#D0EDED" stroke="#0E6B6B" stroke-width="2.5"/><circle cx="30" cy="26" r="5" fill="#D0EDED" stroke="#0E6B6B" stroke-width="2.5"/></svg>`,
+    bodyfat: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="32" cy="34" rx="20" ry="22" fill="#FEF3C7" stroke="#B45309" stroke-width="2.5"/><circle cx="24" cy="30" r="3" fill="#B45309"/><circle cx="40" cy="30" r="3" fill="#B45309"/><path d="M24 42 Q 32 48 40 42" stroke="#B45309" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`,
+    exercise: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="14" r="6" fill="#D0EDED" stroke="#0E6B6B" stroke-width="2.5"/><line x1="32" y1="20" x2="32" y2="36" stroke="#0E6B6B" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="24" x2="18" y2="18" stroke="#0E6B6B" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="24" x2="46" y2="30" stroke="#0E6B6B" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="36" x2="20" y2="52" stroke="#0E6B6B" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="36" x2="44" y2="48" stroke="#0E6B6B" stroke-width="3" stroke-linecap="round"/></svg>`,
+    healthy: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M32 50 C 12 38, 10 22, 22 16 C 28 13, 32 18, 32 18 C 32 18, 36 13, 42 16 C 54 22, 52 38, 32 50 Z" fill="#D4EDDA" stroke="#26890C" stroke-width="2.5"/><path d="M20 32 L27 32 L30 26 L34 38 L37 32 L44 32" stroke="#26890C" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    percent: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="8" width="48" height="48" rx="6" fill="#EDF2F9" stroke="#0C2340" stroke-width="2.5"/><circle cx="22" cy="22" r="5" fill="none" stroke="#AE9142" stroke-width="2.5"/><circle cx="42" cy="42" r="5" fill="none" stroke="#AE9142" stroke-width="2.5"/><line x1="20" y1="44" x2="44" y2="20" stroke="#0C2340" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+  };
+
+  // ---------- Question bank ----------
+  const QUESTIONS = [
+    {
+      icon: "study",
+      prompt: 'Which word means "research that looks at many people to learn something"?',
+      options: ["study", "country", "percent", "healthy"],
+      answer: "study",
+    },
+    {
+      icon: "country",
+      prompt: 'Which word means "a nation, like Brazil or France"?',
+      options: ["exercise", "country", "body fat", "flexible"],
+      answer: "country",
+    },
+    {
+      icon: "strong",
+      prompt: 'Which word means "having a lot of physical power"?',
+      options: ["healthy", "study", "strong", "percent"],
+      answer: "strong",
+    },
+    {
+      icon: "flexible",
+      prompt: 'Which word means "able to bend and move easily"?',
+      options: ["flexible", "country", "strong", "study"],
+      answer: "flexible",
+    },
+    {
+      icon: "bodyfat",
+      prompt: 'Which phrase means "the soft part of the body under the skin"?',
+      options: ["body fat", "healthy", "percent", "exercise"],
+      answer: "body fat",
+    },
+    {
+      icon: "exercise",
+      prompt: 'Which word means "physical activity, like running or playing sports"?',
+      options: ["study", "exercise", "flexible", "country"],
+      answer: "exercise",
+    },
+    {
+      icon: "healthy",
+      prompt: 'Which word means "well; not sick; in good physical condition"?',
+      options: ["percent", "body fat", "healthy", "strong"],
+      answer: "healthy",
+    },
+    {
+      icon: "percent",
+      prompt: 'Which word means "a number out of 100"?',
+      options: ["percent", "exercise", "flexible", "country"],
+      answer: "percent",
+    },
+  ];
+
+  // ---------- Game state ----------
+  let order = [];
+  let current = 0;
+  let score = 0;
+  let answered = false;
+
+  const qNumEl = document.getElementById("qNum");
+  const qTotalEl = document.getElementById("qTotal");
+  const scoreNumEl = document.getElementById("scoreNum");
+  const progressFill = document.getElementById("progressFill");
+  const iconRow = document.getElementById("iconRow");
+  const promptText = document.getElementById("promptText");
+  const optionsWrap = document.getElementById("optionsWrap");
+  const feedback = document.getElementById("feedback");
+  const nextBtn = document.getElementById("nextBtn");
+  const quizScreen = document.getElementById("quizScreen");
+  const endScreen = document.getElementById("endScreen");
+  const finalScore = document.getElementById("finalScore");
+  const finalTotal = document.getElementById("finalTotal");
+  const finalMessage = document.getElementById("finalMessage");
+  const replayBtn = document.getElementById("replayBtn");
+
+  qTotalEl.textContent = QUESTIONS.length;
+  finalTotal.textContent = QUESTIONS.length;
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function startGame() {
+    order = shuffle(QUESTIONS.map((_, i) => i));
+    current = 0;
+    score = 0;
+    scoreNumEl.textContent = score;
+    endScreen.classList.add("hidden");
+    quizScreen.classList.remove("hidden");
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    answered = false;
+    feedback.textContent = "";
+    feedback.className = "feedback";
+    nextBtn.classList.remove("show");
+
+    const q = QUESTIONS[order[current]];
+    qNumEl.textContent = current + 1;
+    progressFill.style.width = ((current) / QUESTIONS.length * 100) + "%";
+
+    iconRow.innerHTML = ICONS[q.icon.replace(" ", "")] || "";
+    promptText.textContent = q.prompt;
+
+    const shuffledOpts = shuffle(q.options);
+    optionsWrap.innerHTML = "";
+    shuffledOpts.forEach((opt) => {
+      const btn = document.createElement("button");
+      btn.className = "opt";
+      btn.textContent = opt;
+      btn.addEventListener("click", () => selectAnswer(btn, opt, q.answer));
+      optionsWrap.appendChild(btn);
+    });
+  }
+
+  function selectAnswer(btn, chosen, correctAnswer) {
+    if (answered) return;
+    answered = true;
+
+    const allBtns = optionsWrap.querySelectorAll(".opt");
+    allBtns.forEach((b) => {
+      b.disabled = true;
+      if (b.textContent === correctAnswer) b.classList.add("correct");
+    });
+
+    if (chosen === correctAnswer) {
+      score += 1;
+      scoreNumEl.textContent = score;
+      feedback.textContent = "Correct!";
+      feedback.classList.add("correct");
+    } else {
+      btn.classList.add("incorrect");
+      feedback.textContent = "Not quite — the correct word is \"" + correctAnswer + "\".";
+      feedback.classList.add("incorrect");
+    }
+
+    progressFill.style.width = ((current + 1) / QUESTIONS.length * 100) + "%";
+    nextBtn.classList.add("show");
+  }
+
+  nextBtn.addEventListener("click", () => {
+    current += 1;
+    if (current >= QUESTIONS.length) {
+      showEndScreen();
+    } else {
+      renderQuestion();
+    }
+  });
+
+  function showEndScreen() {
+    quizScreen.classList.add("hidden");
+    endScreen.classList.remove("hidden");
+    finalScore.textContent = score;
+    const pct = score / QUESTIONS.length;
+    if (pct === 1) finalMessage.textContent = "Perfect score! You know all 8 words.";
+    else if (pct >= 0.75) finalMessage.textContent = "Great job! You know most of this week's words.";
+    else if (pct >= 0.5) finalMessage.textContent = "Good work! Review the words you missed.";
+    else finalMessage.textContent = "Keep practicing — look at Handout A again.";
+  }
+
+  replayBtn.addEventListener("click", startGame);
+
+  startGame();
+</script>
+
+</body>
+</html>
