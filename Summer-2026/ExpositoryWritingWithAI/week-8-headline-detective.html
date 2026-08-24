@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Headline Detective — Week 8</title>
+<style>
+  :root {
+    --navy: #0C2340;
+    --navy-l: #143865;
+    --gold: #AE9142;
+    --gold-b: #D39F10;
+    --warm-w: #EFE9D9;
+    --paper: #FFFFFF;
+    --ink: #1A1A1A;
+    --ink-s: #3D3D3D;
+    --muted: #7A7A7A;
+    --sky: #EDF2F9;
+    --lt-gold: #F5EED2;
+    --teal: #0E6B6B;
+    --teal-s: #D0EDED;
+    --red: #DC3545;
+    --red-s: #F8D7DA;
+    --green: #26890C;
+    --green-s: #D4EDDA;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Cambria, Georgia, serif;
+    background: var(--navy);
+    color: var(--warm-w);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .game {
+    width: 100%;
+    max-width: 640px;
+    background: var(--navy-l);
+    border: 1px solid rgba(174,145,66,0.4);
+    border-radius: 10px;
+    padding: 28px 26px 24px;
+    position: relative;
+  }
+  .corner { position: absolute; width: 22px; height: 22px; }
+  .corner.tl { top: -1px; left: -1px; border-top: 2px solid var(--gold); border-left: 2px solid var(--gold); border-radius: 10px 0 0 0; }
+  .corner.tr { top: -1px; right: -1px; border-top: 2px solid var(--gold); border-right: 2px solid var(--gold); border-radius: 0 10px 0 0; }
+  .corner.bl { bottom: -1px; left: -1px; border-bottom: 2px solid var(--gold); border-left: 2px solid var(--gold); border-radius: 0 0 0 10px; }
+  .corner.br { bottom: -1px; right: -1px; border-bottom: 2px solid var(--gold); border-right: 2px solid var(--gold); border-radius: 0 0 10px 0; }
+
+  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; font-family: Calibri, Arial, sans-serif; }
+  .brand { font-size: 10px; font-weight: bold; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; }
+  .stats { display: flex; gap: 16px; font-size: 12px; }
+  .stat { text-align: right; }
+  .stat .n { font-family: Consolas, monospace; font-size: 16px; font-weight: bold; color: var(--warm-w); }
+  .stat .l { font-size: 8px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; }
+
+  .progress-track { height: 4px; background: rgba(255,255,255,0.15); border-radius: 4px; margin-bottom: 22px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--gold); transition: width 0.3s ease; }
+
+  .eyebrow { font-family: Calibri, Arial, sans-serif; font-size: 10px; font-weight: bold; letter-spacing: 4px; color: var(--gold); text-transform: uppercase; margin-bottom: 10px; }
+  .headline-box {
+    background: var(--navy);
+    border-left: 3px solid var(--gold);
+    padding: 22px 20px;
+    border-radius: 4px;
+    margin-bottom: 22px;
+  }
+  .headline-tag { font-family: Consolas, monospace; font-size: 10px; color: var(--gold); margin-bottom: 8px; letter-spacing: 1px; }
+  .headline-text { font-size: 24px; line-height: 1.35; font-style: italic; color: var(--warm-w); }
+
+  .prompt { font-family: Calibri, Arial, sans-serif; font-size: 13px; color: var(--warm-w); margin-bottom: 14px; opacity: 0.85; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 6px; }
+  .opt {
+    background: var(--paper);
+    color: var(--ink);
+    border: none;
+    border-radius: 6px;
+    padding: 14px 18px;
+    font-family: Cambria, Georgia, serif;
+    font-size: 15px;
+    font-style: italic;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    line-height: 1.4;
+  }
+  .opt:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,0.25); }
+  .opt:disabled { cursor: default; }
+  .opt.correct { background: var(--green-s); border: 2px solid var(--green); font-weight: bold; }
+  .opt.wrong { background: var(--red-s); border: 2px solid var(--red); }
+  .opt.reveal-correct { background: var(--green-s); border: 2px solid var(--green); }
+
+  .feedback {
+    display: none;
+    font-family: Calibri, Arial, sans-serif;
+    font-size: 14px;
+    color: var(--warm-w);
+    background: rgba(255,255,255,0.08);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-top: 14px;
+    line-height: 1.5;
+  }
+  .feedback.show { display: block; }
+  .feedback b { color: var(--gold); }
+
+  .next-btn {
+    display: none;
+    margin-top: 16px;
+    width: 100%;
+    background: var(--gold);
+    color: var(--navy);
+    border: none;
+    border-radius: 6px;
+    padding: 13px;
+    font-family: Calibri, Arial, sans-serif;
+    font-weight: bold;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .next-btn.show { display: block; }
+  .next-btn:hover { background: var(--gold-b); }
+
+  .end-screen { display: none; text-align: center; padding: 10px 0; }
+  .end-screen.show { display: block; }
+  .end-rank { font-size: 42px; font-style: italic; color: var(--gold); margin: 14px 0 6px; }
+  .end-sub { font-family: Calibri, Arial, sans-serif; font-size: 14px; color: var(--warm-w); opacity: 0.85; margin-bottom: 22px; }
+  .end-score-row { display: flex; justify-content: center; gap: 30px; margin-bottom: 26px; }
+  .end-score { text-align: center; }
+  .end-score .n { font-family: Consolas, monospace; font-size: 28px; color: var(--warm-w); font-weight: bold; }
+  .end-score .l { font-family: Calibri, Arial, sans-serif; font-size: 9px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; margin-top: 4px; }
+  .restart-btn {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-family: Calibri, Arial, sans-serif;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .restart-btn:hover { background: var(--gold); color: var(--navy); }
+
+  .streak-badge {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--navy);
+    font-family: Consolas, monospace;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .streak-badge.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="game">
+  <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+
+  <div id="playScreen">
+    <div class="topbar">
+      <div class="brand">Headline Detective</div>
+      <div class="stats">
+        <div class="stat"><div class="n" id="scoreN">0</div><div class="l">Score</div></div>
+        <div class="stat"><div class="n" id="streakN">0</div><div class="l">Streak</div></div>
+        <div class="stat"><div class="n" id="roundN">1/8</div><div class="l">Round</div></div>
+      </div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:12.5%"></div></div>
+
+    <div class="eyebrow">Predict the Thesis</div>
+    <div class="headline-box">
+      <div class="headline-tag">OPINION · HEADLINE</div>
+      <div class="headline-text" id="headlineText">Loading...</div>
+    </div>
+
+    <div class="prompt">Which thesis is this writer most likely arguing? <span class="streak-badge" id="streakBadge">🔥 STREAK BONUS</span></div>
+
+    <div class="options" id="optionsBox"></div>
+
+    <div class="feedback" id="feedbackBox"></div>
+    <button class="next-btn" id="nextBtn" onclick="nextRound()">Next Headline →</button>
+  </div>
+
+  <div class="end-screen" id="endScreen">
+    <div class="eyebrow" style="text-align:center;">Case Closed</div>
+    <div class="end-rank" id="endRank">Thesis Sleuth</div>
+    <div class="end-sub" id="endSub">You read between the lines.</div>
+    <div class="end-score-row">
+      <div class="end-score"><div class="n" id="finalScore">0</div><div class="l">Final Score</div></div>
+      <div class="end-score"><div class="n" id="finalStreak">0</div><div class="l">Best Streak</div></div>
+      <div class="end-score"><div class="n" id="finalCorrect">0/8</div><div class="l">Correct</div></div>
+    </div>
+    <button class="restart-btn" onclick="restart()">Play Again</button>
+  </div>
+</div>
+
+<script>
+const ROUNDS = [
+  {
+    headline: "Why Four-Day Workweeks Are a Trap, Not a Perk",
+    options: [
+      "Companies use shorter weeks to quietly demand the same output in less time.",
+      "Four-day workweeks are a proven way to increase employee happiness.",
+      "Most employees prefer traditional five-day schedules over compressed ones."
+    ],
+    correct: 0,
+    explain: "\u201CTrap, not a perk\u201D is a contrast structure — it tells you the writer thinks something marketed as a benefit is secretly a cost. That points straight to a critique of hidden intensification, not a celebration of the policy."
+  },
+  {
+    headline: "Cities Don't Need More Cars. They Need Fewer Roads.",
+    options: [
+      "Building more roads is the most effective way to reduce traffic congestion.",
+      "Reducing road capacity, not adding more of it, is the real fix for car-dependent cities.",
+      "Cars will remain the dominant form of urban transportation for decades."
+    ],
+    correct: 1,
+    explain: "The headline's structure — \u201CNot X. Y instead.\u201D — directly states the writer's counterintuitive claim: the solution isn't more infrastructure for cars, it's less."
+  },
+  {
+    headline: "The Real Reason Gen Z Won't Answer Phone Calls",
+    options: [
+      "Phone calls are becoming obsolete due to declining phone network reliability.",
+      "Gen Z avoids phone calls simply because they dislike talking to people.",
+      "There's a specific, less obvious cause behind the phone-call avoidance beyond \u201Claziness.\u201D"
+    ],
+    correct: 2,
+    explain: "\u201CThe real reason\u201D signals the writer is rejecting a common surface explanation in favor of a deeper one — the thesis will surprise you, not confirm the obvious stereotype."
+  },
+  {
+    headline: "Universities Are Failing Students by Teaching Them to Fear AI",
+    options: [
+      "Universities should ban AI tools entirely to protect academic integrity.",
+      "Teaching students to avoid AI, rather than use it critically, is a disservice to their education.",
+      "AI has no meaningful role to play in higher education."
+    ],
+    correct: 1,
+    explain: "\u201CFailing students by teaching them to fear\u201D frames fear itself as the mistake — the writer is arguing for engagement over avoidance, not for banning AI outright."
+  },
+  {
+    headline: "Fast Fashion Isn't the Problem. Slow Consumers Are.",
+    options: [
+      "Fashion brands bear sole responsibility for environmental damage.",
+      "Consumer behavior, more than brands themselves, needs to change to fix the industry's harm.",
+      "Fast fashion has minimal environmental impact compared to other industries."
+    ],
+    correct: 1,
+    explain: "The \u201CX isn't the problem — Y is\u201D structure redirects blame. The writer is shifting responsibility from brands to consumer habits — that's the argument, however debatable."
+  },
+  {
+    headline: "Remote Work Didn't Kill the Office. Bad Managers Did.",
+    options: [
+      "Poor management practices, not remote work itself, are responsible for workplace dysfunction.",
+      "Remote work is the single biggest cause of declining office culture.",
+      "Offices are no longer necessary for any type of business."
+    ],
+    correct: 0,
+    explain: "Again, the contrast structure reassigns blame — away from the policy (remote work) and onto a specific group (managers). That reassignment IS the thesis."
+  },
+  {
+    headline: "Your Inbox Isn't Broken. Your Expectations Are.",
+    options: [
+      "Email software needs a complete technological redesign.",
+      "The problem with email overload is more about unrealistic response-time expectations than the tool itself.",
+      "Most professionals receive too many emails to ever manage effectively."
+    ],
+    correct: 1,
+    explain: "Same pattern as before — the headline locates the problem in expectations, not the tool. Watch for this move: writers often use it to argue a cultural or behavioral cause instead of a technical one."
+  },
+  {
+    headline: "Is Networking Actually Worth Your Time?",
+    options: [
+      "Networking is universally beneficial and should be everyone's top career priority.",
+      "The value of networking depends heavily on how — not whether — it's done.",
+      "Career success is entirely determined by who you know, not what you can do."
+    ],
+    correct: 1,
+    explain: "A rhetorical question headline usually signals a nuanced answer, not a flat yes or no. The writer is set up to complicate the assumption, most likely arguing it depends on approach."
+  }
+];
+
+let order = [];
+let current = 0;
+let score = 0;
+let streak = 0;
+let bestStreak = 0;
+let correctCount = 0;
+let answered = false;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function init() {
+  order = shuffle(ROUNDS.map((_, i) => i));
+  current = 0; score = 0; streak = 0; bestStreak = 0; correctCount = 0;
+  document.getElementById('endScreen').classList.remove('show');
+  document.getElementById('playScreen').style.display = 'block';
+  updateStats();
+  loadRound();
+}
+
+function updateStats() {
+  document.getElementById('scoreN').textContent = score;
+  document.getElementById('streakN').textContent = streak;
+  document.getElementById('roundN').textContent = (current + 1) + "/" + ROUNDS.length;
+  document.getElementById('progressFill').style.width = ((current) / ROUNDS.length * 100) + "%";
+}
+
+function loadRound() {
+  answered = false;
+  const idx = order[current];
+  const round = ROUNDS[idx];
+  document.getElementById('headlineText').textContent = round.headline;
+  document.getElementById('feedbackBox').classList.remove('show');
+  document.getElementById('nextBtn').classList.remove('show');
+  document.getElementById('streakBadge').classList.remove('show');
+  updateStats();
+
+  const optOrder = shuffle(round.options.map((_, i) => i));
+  const box = document.getElementById('optionsBox');
+  box.innerHTML = '';
+  optOrder.forEach(optIdx => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = round.options[optIdx];
+    btn.onclick = () => selectOption(optIdx, round, btn);
+    box.appendChild(btn);
+  });
+}
+
+function selectOption(optIdx, round, btnEl) {
+  if (answered) return;
+  answered = true;
+  const isCorrect = optIdx === round.correct;
+  const allBtns = document.querySelectorAll('.opt');
+  allBtns.forEach(b => b.disabled = true);
+
+  allBtns.forEach(b => {
+    if (b.textContent === round.options[round.correct]) b.classList.add('correct');
+  });
+
+  if (isCorrect) {
+    streak++;
+    bestStreak = Math.max(bestStreak, streak);
+    correctCount++;
+    let pts = 10;
+    if (streak >= 3) { pts += 5; document.getElementById('streakBadge').classList.add('show'); }
+    score += pts;
+    document.getElementById('feedbackBox').innerHTML = "<b>Correct.</b> " + round.explain;
+  } else {
+    streak = 0;
+    btnEl.classList.add('wrong');
+    document.getElementById('feedbackBox').innerHTML = "<b>Not quite.</b> " + round.explain;
+  }
+  document.getElementById('feedbackBox').classList.add('show');
+  document.getElementById('nextBtn').classList.add('show');
+  document.getElementById('nextBtn').textContent = (current + 1 < ROUNDS.length) ? "Next Headline →" : "See Results →";
+  updateStats();
+}
+
+function nextRound() {
+  current++;
+  if (current >= ROUNDS.length) {
+    showEnd();
+  } else {
+    loadRound();
+  }
+}
+
+function showEnd() {
+  document.getElementById('playScreen').style.display = 'none';
+  document.getElementById('endScreen').classList.add('show');
+  document.getElementById('finalScore').textContent = score;
+  document.getElementById('finalStreak').textContent = bestStreak;
+  document.getElementById('finalCorrect').textContent = correctCount + "/" + ROUNDS.length;
+
+  let rank, sub;
+  if (correctCount === ROUNDS.length) { rank = "Master Detective"; sub = "Every thesis, spotted before the first paragraph."; }
+  else if (correctCount >= 6) { rank = "Thesis Sleuth"; sub = "You read between the lines better than most."; }
+  else if (correctCount >= 4) { rank = "Sharp Reader"; sub = "You caught the big clues — the subtle ones take practice."; }
+  else { rank = "Headline Rookie"; sub = "Watch for contrast structures and loaded words next time."; }
+
+  document.getElementById('endRank').textContent = rank;
+  document.getElementById('endSub').textContent = sub;
+}
+
+function restart() { init(); }
+
+init();
+</script>
+
+</body>
+</html>
