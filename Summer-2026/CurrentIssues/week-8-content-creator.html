@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content Creator Challenge — Week 8 Vocabulary Game</title>
+<style>
+  :root {
+    --navy: #0C2340;
+    --navy-l: #143865;
+    --gold: #AE9142;
+    --gold-b: #D39F10;
+    --warm-w: #EFE9D9;
+    --paper: #FFFFFF;
+    --ink: #1A1A1A;
+    --ink-s: #3D3D3D;
+    --muted: #7A7A7A;
+    --sky: #EDF2F9;
+    --teal: #0E6B6B;
+    --teal-s: #D0EDED;
+    --green: #26890C;
+    --green-s: #D4EDDA;
+    --red: #C0392B;
+    --red-s: #F8D7DA;
+    --serif: Cambria, Georgia, "Times New Roman", serif;
+    --sans: Calibri, "Segoe UI", Arial, sans-serif;
+    --mono: Consolas, "Courier New", monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--navy);
+    font-family: var(--sans); color: var(--ink);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .wrap { width: 100%; max-width: 760px; }
+
+  .header { text-align: center; margin-bottom: 18px; color: var(--warm-w); }
+  .header .monogram {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--gold);
+    color: var(--gold); font-family: var(--serif); font-style: italic; font-weight: 700; font-size: 21px;
+    margin-bottom: 10px;
+  }
+  .header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; }
+  .header h1 { font-family: var(--serif); font-size: 34px; font-weight: 400; margin: 8px 0 2px; }
+  .header h1 em { color: var(--gold); font-style: italic; }
+  .header .sub { font-family: var(--serif); font-style: italic; font-size: 14px; color: var(--warm-w); opacity: 0.85; }
+
+  .card {
+    background: var(--paper); border-radius: 12px; padding: 30px 32px 28px;
+    box-shadow: 0 18px 45px rgba(0,0,0,0.35); position: relative; overflow: hidden;
+  }
+  .card::before, .card::after {
+    content: ""; position: absolute; width: 20px; height: 20px; border-color: var(--gold);
+  }
+  .card::before { top: 10px; left: 10px; border-top: 2px solid var(--gold); border-left: 2px solid var(--gold); }
+  .card::after { bottom: 10px; right: 10px; border-bottom: 2px solid var(--gold); border-right: 2px solid var(--gold); }
+
+  /* ---------- top bar ---------- */
+  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .progress-label { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+  .score-pill {
+    display: inline-flex; align-items: center; gap: 6px; background: var(--sky); border-radius: 999px;
+    padding: 5px 14px; font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--navy);
+  }
+  .progress-track { background: var(--sky); border-radius: 999px; height: 8px; width: 100%; overflow: hidden; margin-bottom: 22px; }
+  .progress-fill { background: linear-gradient(90deg, var(--gold), var(--gold-b)); height: 100%; border-radius: 999px; transition: width 0.25s ease; }
+
+  /* ---------- question ---------- */
+  .q-icon { display: flex; justify-content: center; margin-bottom: 14px; }
+  .q-icon svg { width: 56px; height: 56px; }
+  .q-eyebrow { text-align: center; font-family: var(--sans); font-size: 10px; font-weight: 700; letter-spacing: 3px; color: var(--teal); text-transform: uppercase; margin-bottom: 8px; }
+  .q-text {
+    font-family: var(--serif); font-size: 22px; color: var(--navy); text-align: center;
+    line-height: 1.4; margin-bottom: 24px; padding: 0 6px;
+  }
+  .q-text .word-bank { color: var(--gold-b); font-style: italic; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+  .opt {
+    display: flex; align-items: center; gap: 12px; background: var(--sky); border: 1.5px solid transparent;
+    border-radius: 8px; padding: 13px 16px; cursor: pointer; font-family: var(--serif); font-size: 16px;
+    color: var(--ink); text-align: left; transition: border-color 0.12s ease, background 0.12s ease;
+  }
+  .opt:hover:not(.locked) { border-color: var(--gold-b); }
+  .opt .letter {
+    flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--paper); border: 1.5px solid var(--navy);
+    display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--navy);
+  }
+  .opt.correct { background: var(--green-s); border-color: var(--green); }
+  .opt.correct .letter { background: var(--green); border-color: var(--green); color: #fff; }
+  .opt.incorrect { background: var(--red-s); border-color: var(--red); }
+  .opt.incorrect .letter { background: var(--red); border-color: var(--red); color: #fff; }
+  .opt.dim { opacity: 0.5; }
+
+  .feedback { min-height: 26px; text-align: center; font-family: var(--serif); font-size: 15px; font-style: italic; margin: 6px 0 14px; }
+  .feedback.correct { color: var(--green); }
+  .feedback.incorrect { color: var(--red); }
+
+  .actions { display: flex; justify-content: center; }
+  .btn {
+    font-family: var(--sans); font-size: 14px; font-weight: 700; letter-spacing: 0.4px;
+    padding: 12px 30px; border-radius: 6px; border: none; cursor: pointer; background: var(--navy); color: var(--warm-w);
+  }
+  .btn:hover { background: var(--navy-l); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ---------- results ---------- */
+  .results { text-align: center; }
+  .results .big-score { font-family: var(--serif); font-size: 56px; color: var(--navy); margin: 6px 0 4px; }
+  .results .big-score em { color: var(--gold-b); font-style: italic; }
+  .results .msg { font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--ink-s); margin-bottom: 22px; }
+  .results .icon-row { display: flex; justify-content: center; margin-bottom: 10px; }
+  .results .icon-row svg { width: 64px; height: 64px; }
+
+  .footer-note { text-align: center; margin-top: 16px; color: var(--warm-w); opacity: 0.55; font-size: 11px; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="header">
+    <div class="monogram">A</div>
+    <div class="eyebrow">Approach International Student Center &middot; Current Issues &middot; Week 8</div>
+    <h1>Content Creator <em>Challenge.</em></h1>
+    <div class="sub">A vocabulary review game &middot; University Degree in Content Creation</div>
+  </div>
+
+  <div class="card">
+    <div id="game"></div>
+  </div>
+
+  <div class="footer-note">OFFLINE GAME &middot; WORKS WITHOUT INTERNET &middot; NO DATA SAVED</div>
+</div>
+
+<script>
+// ============================================================
+// SVG ICONS (no emoji — Windows classroom safe)
+// ============================================================
+const ICONS = {
+  cap: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M32 14L58 25L32 36L6 25L32 14Z" fill="#AE9142"/>
+    <path d="M18 30V44C18 44 24 50 32 50C40 50 46 44 46 44V30" stroke="#0C2340" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M54 27V40" stroke="#0C2340" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="54" cy="43" r="2.5" fill="#0C2340"/>
+  </svg>`,
+  book: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M32 18C28 15 20 14 14 15V44C20 43 28 44 32 47C36 44 44 43 50 44V15C44 14 36 15 32 18Z" fill="#D0EDED" stroke="#0E6B6B" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M32 18V47" stroke="#0E6B6B" stroke-width="2.5"/>
+  </svg>`,
+  play: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="8" y="12" width="48" height="36" rx="4" fill="#0C2340"/>
+    <rect x="8" y="12" width="48" height="36" rx="4" stroke="#AE9142" stroke-width="2"/>
+    <path d="M27 22L40 30L27 38V22Z" fill="#EFE9D9"/>
+  </svg>`,
+  phone: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="20" y="8" width="24" height="48" rx="4" fill="#D0EDED" stroke="#0E6B6B" stroke-width="2.5"/>
+    <circle cx="32" cy="49" r="2.5" fill="#0E6B6B"/>
+    <path d="M26 16H38" stroke="#0E6B6B" stroke-width="2.5" stroke-linecap="round"/>
+  </svg>`,
+  briefcase: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="10" y="24" width="44" height="28" rx="3" fill="#AE9142"/>
+    <rect x="10" y="24" width="44" height="28" rx="3" stroke="#0C2340" stroke-width="2"/>
+    <path d="M24 24V18C24 15.8 25.8 14 28 14H36C38.2 14 40 15.8 40 18V24" stroke="#0C2340" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M10 36H54" stroke="#0C2340" stroke-width="2"/>
+  </svg>`,
+  gear: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="32" r="10" fill="#D0EDED" stroke="#0E6B6B" stroke-width="2.5"/>
+    <path d="M32 12V18M32 46V52M52 32H46M18 32H12M45.3 18.7L41 23M23 41L18.7 45.3M45.3 45.3L41 41M23 23L18.7 18.7" stroke="#0E6B6B" stroke-width="3" stroke-linecap="round"/>
+  </svg>`,
+  building: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="14" y="12" width="36" height="42" fill="#AE9142"/>
+    <rect x="14" y="12" width="36" height="42" stroke="#0C2340" stroke-width="2"/>
+    <rect x="20" y="18" width="6" height="6" fill="#0C2340"/>
+    <rect x="30" y="18" width="6" height="6" fill="#0C2340"/>
+    <rect x="40" y="18" width="6" height="6" fill="#0C2340"/>
+    <rect x="20" y="28" width="6" height="6" fill="#0C2340"/>
+    <rect x="30" y="28" width="6" height="6" fill="#0C2340"/>
+    <rect x="40" y="28" width="6" height="6" fill="#0C2340"/>
+    <rect x="27" y="42" width="10" height="12" fill="#0C2340"/>
+  </svg>`,
+  coin: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="32" r="20" fill="#F5EED2" stroke="#D39F10" stroke-width="3"/>
+    <text x="32" y="39" font-family="Georgia, serif" font-size="20" fill="#AE9142" text-anchor="middle">$</text>
+  </svg>`,
+  trophy: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 14H44V28C44 35.7 38 42 30 42H34C26 42 20 35.7 20 28V14Z" fill="#D39F10"/>
+    <path d="M20 16H12V22C12 26 16 29 20 29" stroke="#AE9142" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M44 16H52V22C52 26 48 29 44 29" stroke="#AE9142" stroke-width="2.5" stroke-linecap="round"/>
+    <rect x="28" y="42" width="8" height="8" fill="#AE9142"/>
+    <rect x="20" y="50" width="24" height="6" rx="1" fill="#0C2340"/>
+  </svg>`,
+  star: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M32 10L38.5 25L54 27L42.5 38L45.5 54L32 46L18.5 54L21.5 38L10 27L25.5 25L32 10Z" fill="#D39F10"/>
+  </svg>`
+};
+
+// ============================================================
+// QUESTIONS — 8 target vocabulary words
+// ============================================================
+const QUESTIONS = [
+  { word:"degree", clue:"a certificate you get after studying at university", icon:"cap",
+    options:["degree","program","job"] },
+  { word:"program", clue:"a course of study at a university", icon:"book",
+    options:["program","company","skills"] },
+  { word:"video", clue:"a short film you watch, often online", icon:"play",
+    options:["video","job","earn"] },
+  { word:"social media", clue:"websites and apps where people share posts and videos", icon:"phone",
+    options:["social media","company","program"] },
+  { word:"job", clue:"the work a person does to earn money", icon:"briefcase",
+    options:["job","degree","video"] },
+  { word:"skills", clue:"abilities you learn to do something well", icon:"gear",
+    options:["skills","earn","social media"] },
+  { word:"company", clue:"a business that sells things or services", icon:"building",
+    options:["company","degree","job"] },
+  { word:"earn", clue:"to get money for work you do", icon:"coin",
+    options:["earn","program","video"] },
+];
+
+// ============================================================
+// GAME STATE
+// ============================================================
+let order = [];
+let current = 0;
+let score = 0;
+let answered = false;
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startGame() {
+  order = shuffle(QUESTIONS.map((_, i) => i));
+  current = 0;
+  score = 0;
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answered = false;
+  const qIndex = order[current];
+  const q = QUESTIONS[qIndex];
+  const opts = shuffle(q.options);
+  const total = QUESTIONS.length;
+
+  const game = document.getElementById("game");
+  game.innerHTML = `
+    <div class="topbar">
+      <span class="progress-label">Question ${current + 1} of ${total}</span>
+      <span class="score-pill">SCORE &middot; ${score}</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" style="width:${(current / total) * 100}%"></div></div>
+
+    <div class="q-icon">${ICONS[q.icon]}</div>
+    <div class="q-eyebrow">Which word matches this meaning?</div>
+    <div class="q-text">&ldquo;${q.clue}&rdquo;</div>
+
+    <div class="options" id="options">
+      ${opts.map((opt, i) => `
+        <button class="opt" data-word="${opt}" data-idx="${i}">
+          <span class="letter">${String.fromCharCode(65 + i)}</span>
+          <span>${opt}</span>
+        </button>
+      `).join("")}
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <div class="actions"><button class="btn" id="nextBtn" disabled>Next Question</button></div>
+  `;
+
+  document.querySelectorAll(".opt").forEach(btn => {
+    btn.addEventListener("click", () => selectOption(btn, q.word));
+  });
+  document.getElementById("nextBtn").addEventListener("click", nextQuestion);
+}
+
+function selectOption(btn, correctWord) {
+  if (answered) return;
+  answered = true;
+  const chosen = btn.getAttribute("data-word");
+  const isCorrect = chosen === correctWord;
+  const feedback = document.getElementById("feedback");
+
+  document.querySelectorAll(".opt").forEach(o => {
+    o.classList.add("locked");
+    if (o.getAttribute("data-word") === correctWord) {
+      o.classList.add("correct");
+    } else if (o === btn && !isCorrect) {
+      o.classList.add("incorrect");
+    } else {
+      o.classList.add("dim");
+    }
+  });
+
+  if (isCorrect) {
+    score++;
+    feedback.textContent = "Correct! Well done.";
+    feedback.className = "feedback correct";
+  } else {
+    feedback.textContent = `Not quite. The correct word is "${correctWord}."`;
+    feedback.className = "feedback incorrect";
+  }
+
+  document.getElementById("nextBtn").disabled = false;
+}
+
+function nextQuestion() {
+  if (current < order.length - 1) {
+    current++;
+    renderQuestion();
+  } else {
+    renderResults();
+  }
+}
+
+function renderResults() {
+  const total = QUESTIONS.length;
+  const pct = Math.round((score / total) * 100);
+  let icon = "star", msg = "Good try! Review the words and play again.";
+  if (pct >= 90) { icon = "trophy"; msg = "Amazing! You know these words very well."; }
+  else if (pct >= 70) { icon = "star"; msg = "Great work! You know most of these words."; }
+
+  const game = document.getElementById("game");
+  game.innerHTML = `
+    <div class="results">
+      <div class="icon-row">${ICONS[icon]}</div>
+      <div class="q-eyebrow">Final Score</div>
+      <div class="big-score">${score} <em>/ ${total}</em></div>
+      <div class="msg">${msg}</div>
+      <div class="actions"><button class="btn" id="replayBtn">Play Again</button></div>
+    </div>
+  `;
+  document.getElementById("replayBtn").addEventListener("click", startGame);
+}
+
+startGame();
+</script>
+
+</body>
+</html>
