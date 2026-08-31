@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pitch or Skip — Week 9</title>
+<style>
+  :root {
+    --navy: #0C2340;
+    --navy-d: #081629;
+    --gold: #AE9142;
+    --gold-b: #D39F10;
+    --warm-w: #EFE9D9;
+    --paper: #FFFFFF;
+    --ink: #1A1A1A;
+    --ink-s: #3D3D3D;
+    --muted: #7A7A7A;
+    --sky: #EDF2F9;
+    --lt-gold: #F5EED2;
+    --amber: #B45309;
+    --amber-s: #FEF3C7;
+    --green: #26890C;
+    --green-s: #D4EDDA;
+    --red: #C0392B;
+    --red-s: #F8D7DA;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    font-family: Georgia, 'Cambria', serif;
+    background: var(--navy);
+    color: var(--warm-w);
+  }
+  body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+  }
+  #app {
+    width: 100%;
+    max-width: 480px;
+    background: var(--navy);
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+    align-self: flex-start;
+    margin-top: max(4vh, 16px);
+  }
+  .screen { display: none; padding: 28px 22px; }
+  .screen.active { display: block; }
+
+  /* ---- Chrome ---- */
+  .eyebrow {
+    font-family: 'Segoe UI', Calibri, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  h1 {
+    font-family: Georgia, Cambria, serif;
+    font-style: italic;
+    color: var(--warm-w);
+    text-align: center;
+    font-size: 32px;
+    margin: 0 0 10px;
+  }
+  h1 span { color: var(--gold); }
+  .sub {
+    text-align: center;
+    font-size: 14px;
+    font-style: italic;
+    color: var(--warm-w);
+    opacity: 0.85;
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    font-family: 'Segoe UI', Calibri, sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 14px;
+    transition: transform 0.1s ease;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--gold); color: var(--navy-d); }
+  .btn-outline { background: transparent; color: var(--warm-w); border: 1.5px solid var(--gold); }
+
+  /* ---- Game HUD ---- */
+  .hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Segoe UI', Calibri, sans-serif;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--gold);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+  .hud .streak { color: var(--gold-b); font-weight: 700; }
+  .progress-bar {
+    height: 4px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 2px;
+    margin-bottom: 22px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--gold);
+    transition: width 0.3s ease;
+  }
+
+  .card {
+    background: var(--paper);
+    color: var(--ink-s);
+    border-radius: 14px;
+    padding: 26px 20px;
+    min-height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 19px;
+    font-style: italic;
+    line-height: 1.5;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    margin-bottom: 22px;
+  }
+  .card-label {
+    font-family: 'Segoe UI', Calibri, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--amber);
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .choice-row {
+    display: flex;
+    gap: 12px;
+  }
+  .choice-btn {
+    flex: 1;
+    padding: 18px 8px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    font-family: 'Segoe UI', Calibri, sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+  }
+  .choice-btn:active { transform: scale(0.96); }
+  .choice-convincing { background: var(--green-s); color: #145A00; }
+  .choice-vague { background: var(--red-s); color: #7A1F14; }
+
+  /* ---- Feedback ---- */
+  .feedback-card {
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 18px;
+    text-align: left;
+  }
+  .feedback-correct { background: var(--green-s); color: #145A00; }
+  .feedback-wrong { background: var(--red-s); color: #7A1F14; }
+  .feedback-verdict {
+    font-family: 'Segoe UI', Calibri, sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .feedback-explain {
+    font-size: 15px;
+    line-height: 1.5;
+    font-style: italic;
+  }
+  .bonus-tag {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--navy-d);
+    font-family: 'Segoe UI', Calibri, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-left: 8px;
+  }
+
+  /* ---- Results ---- */
+  .rank-badge {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .rank-title {
+    font-family: Georgia, Cambria, serif;
+    font-style: italic;
+    color: var(--gold);
+    font-size: 28px;
+    margin: 10px 0 6px;
+  }
+  .rank-desc {
+    font-size: 14px;
+    color: var(--warm-w);
+    opacity: 0.85;
+    font-style: italic;
+    margin-bottom: 10px;
+  }
+  .score-big {
+    font-family: Georgia, Cambria, serif;
+    font-size: 56px;
+    color: var(--warm-w);
+    text-align: center;
+    margin: 8px 0;
+  }
+  .score-sub {
+    text-align: center;
+    font-family: 'Segoe UI', Calibri, sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .stat-row {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 24px;
+  }
+  .stat {
+    text-align: center;
+  }
+  .stat-num {
+    font-family: Georgia, Cambria, serif;
+    font-size: 24px;
+    color: var(--gold-b);
+  }
+  .stat-label {
+    font-family: 'Segoe UI', Calibri, sans-serif;
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: var(--warm-w);
+    opacity: 0.7;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- START SCREEN -->
+  <div class="screen active" id="screen-start">
+    <div class="eyebrow">Week 9 · Warm-Up</div>
+    <h1>Pitch <span>or</span> Skip.</h1>
+    <p class="sub">Eight opening lines and calls to action. Some would convince a decision-maker. Some wouldn't get past the first sentence. Can you tell which is which — fast?</p>
+    <button class="btn btn-primary" onclick="startGame()">Start the Round</button>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div class="screen" id="screen-game">
+    <div class="hud">
+      <span>Round <span id="round-num">1</span>/8</span>
+      <span class="streak" id="streak-display">Streak: 0</span>
+      <span id="score-display">Score: 0</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:12.5%"></div></div>
+
+    <div class="card-label" id="card-label">PROPOSAL LINE</div>
+    <div class="card" id="card-text">Loading...</div>
+
+    <div class="choice-row" id="choice-row">
+      <button class="choice-btn choice-convincing" onclick="answer('convincing')">✓ Convincing</button>
+      <button class="choice-btn choice-vague" onclick="answer('vague')">✗ Vague</button>
+    </div>
+  </div>
+
+  <!-- FEEDBACK SCREEN -->
+  <div class="screen" id="screen-feedback">
+    <div class="hud">
+      <span>Round <span id="fb-round-num">1</span>/8</span>
+      <span class="streak" id="fb-streak-display">Streak: 0</span>
+      <span id="fb-score-display">Score: 0</span>
+    </div>
+    <div class="feedback-card" id="feedback-card">
+      <div class="feedback-verdict" id="feedback-verdict">Correct!</div>
+      <div class="feedback-explain" id="feedback-explain">Explanation goes here.</div>
+    </div>
+    <button class="btn btn-primary" onclick="nextRound()" id="next-btn">Next Round</button>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div class="screen" id="screen-results">
+    <div class="eyebrow">Final Results</div>
+    <div class="rank-badge">
+      <div class="rank-title" id="rank-title">Executive Pitch Master</div>
+      <div class="rank-desc" id="rank-desc">You know a vague ask when you hear one.</div>
+    </div>
+    <div class="score-big" id="final-score">80</div>
+    <div class="score-sub">Total Points</div>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-num" id="stat-correct">7</div><div class="stat-label">Correct</div></div>
+      <div class="stat"><div class="stat-num" id="stat-best-streak">4</div><div class="stat-label">Best Streak</div></div>
+      <div class="stat"><div class="stat-num" id="stat-bonus">2</div><div class="stat-label">Bonus Rounds</div></div>
+    </div>
+    <button class="btn btn-primary" onclick="restartGame()">Play Again</button>
+    <button class="btn btn-outline" onclick="goToDiscussion()">Move to Genre Focus →</button>
+  </div>
+
+</div>
+
+<script>
+const ROUNDS = [
+  {
+    label: "PROPOSAL OPENING",
+    text: "\u201cI think we should maybe consider looking into a new system at some point.\u201d",
+    answer: "vague",
+    explain: "No number, no timeline, no clear ask. \u201cMaybe consider\u201d and \u201cat some point\u201d let the reader off the hook entirely."
+  },
+  {
+    label: "PROPOSAL OPENING",
+    text: "\u201cOur team loses roughly 6 hours a week to manual scheduling \u2014 a shared calendar tool would recover that time immediately.\u201d",
+    answer: "convincing",
+    explain: "A specific number (6 hours), a clear problem, and an immediate, concrete benefit. This is an opening a busy reader keeps reading."
+  },
+  {
+    label: "CALL TO ACTION",
+    text: "\u201cIt would be great if we could maybe talk about this sometime.\u201d",
+    answer: "vague",
+    explain: "No date, no format, no next step. A real call to action tells the reader exactly what to do and by when."
+  },
+  {
+    label: "CALL TO ACTION",
+    text: "\u201cI'd like to pilot this format for two weeks starting next Monday, and review results at our next 1:1.\u201d",
+    answer: "convincing",
+    explain: "A specific timeline, a defined trial period, and a built-in check-in. The reader knows exactly what saying \u2018yes\u2019 commits them to."
+  },
+  {
+    label: "PROBLEM STATEMENT",
+    text: "\u201cScheduling has been a bit of an issue lately and it would be nice to fix it.\u201d",
+    answer: "vague",
+    explain: "\u201cA bit of an issue\u201d and \u201cnice to fix\u201d minimize the problem. Nothing here would make a manager stop and prioritize this."
+  },
+  {
+    label: "PROBLEM STATEMENT",
+    text: "\u201cNew hires currently take 6\u20138 weeks to reach full productivity, compared to 3 weeks at our top competitor.\u201d",
+    answer: "convincing",
+    explain: "Two concrete numbers and a comparison point. This problem statement makes the gap impossible to ignore."
+  },
+  {
+    label: "BENEFIT STATEMENT",
+    text: "\u201cThis would probably help things run a little more smoothly overall, I think.\u201d",
+    answer: "vague",
+    explain: "\u201cProbably,\u201d \u201ca little,\u201d and \u201cI think\u201d hedge every word. A benefit statement should sound confident, not uncertain."
+  },
+  {
+    label: "BENEFIT STATEMENT",
+    text: "\u201cThis would return roughly 30 minutes per week to each of the 12 team members \u2014 six hours of team time recovered weekly.\u201d",
+    answer: "convincing",
+    explain: "It translates an abstract benefit into a real, countable number the reader can picture immediately."
+  }
+];
+
+let currentRound = 0;
+let score = 0;
+let streak = 0;
+let bestStreak = 0;
+let correctCount = 0;
+let bonusCount = 0;
+let answered = false;
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startGame() {
+  currentRound = 0;
+  score = 0;
+  streak = 0;
+  bestStreak = 0;
+  correctCount = 0;
+  bonusCount = 0;
+  showScreen('screen-game');
+  loadRound();
+}
+
+function loadRound() {
+  answered = false;
+  const r = ROUNDS[currentRound];
+  document.getElementById('card-label').textContent = r.label;
+  document.getElementById('card-text').textContent = r.text;
+  document.getElementById('round-num').textContent = currentRound + 1;
+  document.getElementById('streak-display').textContent = "Streak: " + streak;
+  document.getElementById('score-display').textContent = "Score: " + score;
+  document.getElementById('progress-fill').style.width = (((currentRound) / ROUNDS.length) * 100) + '%';
+}
+
+function answer(choice) {
+  if (answered) return;
+  answered = true;
+  const r = ROUNDS[currentRound];
+  const isCorrect = choice === r.answer;
+  let pointsEarned = 0;
+  let bonusApplied = false;
+
+  if (isCorrect) {
+    correctCount++;
+    streak++;
+    if (streak > bestStreak) bestStreak = streak;
+    pointsEarned = 10;
+    if (streak >= 3) {
+      pointsEarned += 5;
+      bonusApplied = true;
+      bonusCount++;
+    }
+    score += pointsEarned;
+  } else {
+    streak = 0;
+  }
+
+  const fbCard = document.getElementById('feedback-card');
+  const fbVerdict = document.getElementById('feedback-verdict');
+  const fbExplain = document.getElementById('feedback-explain');
+
+  fbCard.className = 'feedback-card ' + (isCorrect ? 'feedback-correct' : 'feedback-wrong');
+  fbVerdict.innerHTML = (isCorrect ? '\u2713 Correct \u2014 +' + pointsEarned + ' pts' : '\u2717 Not quite') + (bonusApplied ? '<span class="bonus-tag">STREAK BONUS</span>' : '');
+  fbExplain.textContent = r.explain;
+
+  document.getElementById('fb-round-num').textContent = currentRound + 1;
+  document.getElementById('fb-streak-display').textContent = "Streak: " + streak;
+  document.getElementById('fb-score-display').textContent = "Score: " + score;
+
+  document.getElementById('next-btn').textContent = (currentRound === ROUNDS.length - 1) ? 'See Results' : 'Next Round';
+
+  showScreen('screen-feedback');
+}
+
+function nextRound() {
+  currentRound++;
+  if (currentRound >= ROUNDS.length) {
+    showResults();
+  } else {
+    showScreen('screen-game');
+    loadRound();
+  }
+}
+
+function showResults() {
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('stat-correct').textContent = correctCount + "/" + ROUNDS.length;
+  document.getElementById('stat-best-streak').textContent = bestStreak;
+  document.getElementById('stat-bonus').textContent = bonusCount;
+
+  let rankTitle, rankDesc;
+  if (correctCount >= 7) {
+    rankTitle = "Executive Pitch Master";
+    rankDesc = "You know a vague ask when you hear one \u2014 and you can spell out exactly why.";
+  } else if (correctCount >= 5) {
+    rankTitle = "Confident Proposer";
+    rankDesc = "You catch most weak spots. A few vague lines still slip past you.";
+  } else if (correctCount >= 3) {
+    rankTitle = "Junior Analyst";
+    rankDesc = "You're building the instinct \u2014 today's genre focus will sharpen it fast.";
+  } else {
+    rankTitle = "Still Warming Up";
+    rankDesc = "Vague and convincing can sound similar at first. Let's fix that in Block 1.";
+  }
+  document.getElementById('rank-title').textContent = rankTitle;
+  document.getElementById('rank-desc').textContent = rankDesc;
+
+  showScreen('screen-results');
+}
+
+function restartGame() { startGame(); }
+function goToDiscussion() {
+  document.getElementById('app').innerHTML = '<div style="padding:60px 24px;text-align:center;"><div class="eyebrow">Nice work</div><h1>On to <span>Genre Focus.</span></h1><p class="sub">Bring what you just noticed into the next activity \u2014 what made the convincing lines convincing?</p></div>';
+}
+</script>
+</body>
+</html>
