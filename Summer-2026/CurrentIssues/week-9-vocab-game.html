@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Match — Week 9 Vocabulary Game</title>
+<style>
+  :root {
+    --navy: #0C2340;
+    --navy-l: #143865;
+    --gold: #AE9142;
+    --gold-b: #D39F10;
+    --warm-w: #EFE9D9;
+    --paper: #FFFFFF;
+    --ink: #1A1A1A;
+    --ink-s: #3D3D3D;
+    --muted: #7A7A7A;
+    --sky: #EDF2F9;
+    --teal: #0E6B6B;
+    --teal-s: #D0EDED;
+    --green: #26890C;
+    --green-s: #D4EDDA;
+    --red: #C0392B;
+    --red-s: #F8D7DA;
+    --serif: Cambria, Georgia, "Times New Roman", serif;
+    --sans: Calibri, "Segoe UI", Arial, sans-serif;
+    --mono: Consolas, "Courier New", monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: var(--navy);
+    font-family: var(--sans);
+  }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 24px;
+  }
+  .game-shell {
+    position: relative;
+    width: 100%; max-width: 640px;
+    background: var(--paper);
+    border-radius: 10px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    overflow: hidden;
+  }
+  .corner { position: absolute; width: 22px; height: 22px; border-color: var(--gold); z-index: 5; }
+  .corner.tl { top: 10px; left: 10px; border-top: 2.5px solid var(--gold); border-left: 2.5px solid var(--gold); }
+  .corner.br { bottom: 10px; right: 10px; border-bottom: 2.5px solid var(--gold); border-right: 2.5px solid var(--gold); }
+
+  .header {
+    background: var(--navy);
+    color: var(--warm-w);
+    padding: 28px 32px 22px;
+    text-align: center;
+  }
+  .header .monogram {
+    width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 10px; color: var(--gold); font-family: var(--serif);
+    font-style: italic; font-weight: 700; font-size: 18px;
+  }
+  .header .eyebrow {
+    font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: 3px;
+    color: var(--gold); text-transform: uppercase; margin-bottom: 6px;
+  }
+  .header h1 {
+    font-family: var(--serif); font-size: 30px; font-weight: 400; margin: 0;
+    color: var(--warm-w);
+  }
+  .header h1 em { color: var(--gold); font-style: italic; }
+  .header .sub {
+    font-family: var(--serif); font-size: 14px; font-style: italic; color: var(--warm-w);
+    opacity: 0.85; margin-top: 6px;
+  }
+
+  .progress-wrap { padding: 18px 32px 0; }
+  .progress-track { background: var(--sky); border-radius: 999px; height: 8px; overflow: hidden; }
+  .progress-fill { background: linear-gradient(90deg, var(--gold), var(--gold-b)); height: 100%; border-radius: 999px; transition: width 0.3s ease; }
+  .progress-label {
+    font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 8px;
+    display: flex; justify-content: space-between;
+  }
+
+  .game-body { padding: 22px 32px 32px; }
+
+  .q-icon-row { display: flex; justify-content: center; margin-bottom: 14px; }
+  .q-icon-row svg { width: 52px; height: 52px; }
+
+  .question-text {
+    font-family: var(--serif); font-size: 21px; color: var(--navy); text-align: center;
+    line-height: 1.4; margin-bottom: 22px;
+  }
+  .question-text .target-word { color: var(--teal); font-style: italic; font-weight: 700; }
+
+  .options { display: flex; flex-direction: column; gap: 12px; }
+  .option-btn {
+    font-family: var(--sans); font-size: 16px; text-align: left;
+    background: var(--sky); border: 2px solid var(--sky); border-radius: 8px;
+    padding: 14px 18px; cursor: pointer; color: var(--ink-s);
+    transition: border-color 0.15s ease, background 0.15s ease;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .option-btn .opt-letter {
+    font-family: var(--mono); font-weight: 700; font-size: 13px; color: var(--navy);
+    background: var(--paper); border-radius: 50%; width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center; flex: none;
+  }
+  .option-btn:hover:not(:disabled) { border-color: var(--gold-b); }
+  .option-btn:disabled { cursor: default; }
+  .option-btn.correct { background: var(--green-s); border-color: var(--green); color: #1c5c08; }
+  .option-btn.correct .opt-letter { background: var(--green); color: #fff; }
+  .option-btn.incorrect { background: var(--red-s); border-color: var(--red); color: var(--red); }
+  .option-btn.incorrect .opt-letter { background: var(--red); color: #fff; }
+
+  .feedback {
+    margin-top: 18px; padding: 14px 18px; border-radius: 8px; border-left: 4px solid;
+    font-family: var(--sans); font-size: 14px; line-height: 1.5; display: none;
+  }
+  .feedback.show { display: block; }
+  .feedback.correct { background: var(--green-s); border-color: var(--green); color: #1c5c08; }
+  .feedback.incorrect { background: var(--red-s); border-color: var(--red); color: var(--red); }
+  .feedback b { display: block; margin-bottom: 2px; }
+
+  .next-btn {
+    margin-top: 20px; width: 100%; padding: 14px; border: none; border-radius: 8px;
+    background: var(--navy); color: var(--warm-w); font-family: var(--sans); font-weight: 700;
+    font-size: 15px; letter-spacing: 0.5px; cursor: pointer; display: none;
+  }
+  .next-btn.show { display: block; }
+  .next-btn:hover { background: var(--navy-l); }
+
+  /* Results screen */
+  .results { text-align: center; padding: 10px 10px 6px; }
+  .results .trophy { margin: 0 auto 12px; width: 74px; height: 74px; }
+  .results h2 { font-family: var(--serif); font-size: 28px; color: var(--navy); margin: 0 0 6px; }
+  .results .score-big {
+    font-family: var(--serif); font-size: 52px; font-style: italic; color: var(--gold-b); margin: 8px 0;
+  }
+  .results .score-msg { font-family: var(--serif); font-size: 16px; font-style: italic; color: var(--ink-s); margin-bottom: 24px; }
+  .replay-btn {
+    padding: 14px 30px; border: none; border-radius: 8px; background: var(--gold);
+    color: var(--navy); font-family: var(--sans); font-weight: 700; font-size: 15px;
+    cursor: pointer; letter-spacing: 0.5px;
+  }
+  .replay-btn:hover { background: var(--gold-b); }
+
+  .footer-tag {
+    text-align: center; font-family: var(--sans); font-size: 10px; letter-spacing: 2px;
+    color: var(--muted); text-transform: uppercase; padding: 14px; border-top: 1px solid #eee;
+  }
+
+  @media (max-width: 480px) {
+    .header { padding: 22px 20px 18px; }
+    .game-body { padding: 18px 20px 26px; }
+    .header h1 { font-size: 24px; }
+    .question-text { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="game-shell">
+  <span class="corner tl"></span><span class="corner br"></span>
+
+  <div class="header">
+    <div class="monogram">A</div>
+    <div class="eyebrow">Current Issues · Week 9</div>
+    <h1>Memory <em>Match.</em></h1>
+    <div class="sub">Why You Forget English Words — Vocabulary Game</div>
+  </div>
+
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-label">
+      <span id="progressText">Question 1 of 8</span>
+      <span id="scoreText">Score: 0</span>
+    </div>
+  </div>
+
+  <div class="game-body" id="gameBody">
+    <!-- populated by JS -->
+  </div>
+
+  <div class="footer-tag">Approach International Student Center · Summer 2026</div>
+</div>
+
+<script>
+// ============== ICONS (hand-coded SVG, no emoji) ==============
+const ICONS = {
+  brain: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M24 10c-6 0-10 4-10 9 0 2 .5 3.5 1.5 5C12 26 10 30 10 34c0 5 3 8 7 9-.5 1.5-.5 3 0 4.5 1.5 4 5.5 6.5 10 6h2V16c0-3.3-2.2-6-5-6z" stroke="#0C2340" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M40 10c6 0 10 4 10 9 0 2-.5 3.5-1.5 5C52 26 54 30 54 34c0 5-3 8-7 9 .5 1.5.5 3 0 4.5-1.5 4-5.5 6.5-10 6h-2V16c0-3.3 2.2-6 5-6z" stroke="#AE9142" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M32 16v37" stroke="#0C2340" stroke-width="2"/>
+    <path d="M18 27c2 1.2 4 1.2 6 0M46 27c-2 1.2-4 1.2-6 0M17 37c2.3 1.4 4.6 1.4 7 0M47 37c-2.3 1.4-4.6 1.4-7 0" stroke="#0C2340" stroke-width="1.6" stroke-linecap="round"/>
+  </svg>`,
+  trophy: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 12h24v14c0 6.6-5.4 12-12 12s-12-5.4-12-12V12z" stroke="#AE9142" stroke-width="2.4" stroke-linejoin="round"/>
+    <path d="M20 16h-6c-2 0-3 1.2-3 3 0 5 3.5 8.5 8 9" stroke="#AE9142" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M44 16h6c2 0 3 1.2 3 3 0 5-3.5 8.5-8 9" stroke="#AE9142" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M32 38v8" stroke="#0C2340" stroke-width="2.4"/>
+    <path d="M22 54c0-3.3 4.5-6 10-6s10 2.7 10 6" stroke="#0C2340" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M22 54h20" stroke="#0C2340" stroke-width="2.4" stroke-linecap="round"/>
+  </svg>`,
+  check: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 12.5l5.5 5.5L20 6" stroke="#26890C" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  cross: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 5l14 14M19 5L5 19" stroke="#C0392B" stroke-width="2.4" stroke-linecap="round"/></svg>`
+};
+
+// ============== QUESTION DATA ==============
+// 8 questions, each: target word + correct meaning + 2 distractor meanings.
+// Options are shuffled at render time; correctness tracked by value, not position.
+const RAW_QUESTIONS = [
+  { word: "remember", correct: "to keep something in your mind; to not forget",
+    distractors: ["to not remember something", "a description of events, real or not real"] },
+  { word: "forget", correct: "to not remember something",
+    distractors: ["to get new knowledge or a new skill", "a link between two things or ideas"] },
+  { word: "memory", correct: "the ability to remember things",
+    distractors: ["a unit of language with a meaning", "to know the meaning of something"] },
+  { word: "word", correct: "a unit of language with a meaning",
+    distractors: ["a description of events, real or not real", "a link between two things or ideas"] },
+  { word: "learn", correct: "to get new knowledge or a new skill",
+    distractors: ["to know the meaning of something", "to not remember something"] },
+  { word: "story", correct: "a description of events, real or not real",
+    distractors: ["the ability to remember things", "to keep something in your mind; to not forget"] },
+  { word: "understand", correct: "to know the meaning of something",
+    distractors: ["to get new knowledge or a new skill", "a unit of language with a meaning"] },
+  { word: "connection", correct: "a link between two things or ideas",
+    distractors: ["the ability to remember things", "a description of events, real or not real"] },
+];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ============== VALIDATION (run once at load, logs to console) ==============
+function validateQuestions(questions) {
+  let ok = true;
+  questions.forEach((q, i) => {
+    const allOpts = [q.correct, ...q.distractors];
+    const uniqueOpts = new Set(allOpts);
+    if (uniqueOpts.size !== allOpts.length) {
+      console.error(`Q${i+1} (${q.word}): duplicate options detected`, allOpts);
+      ok = false;
+    }
+    if (allOpts.length !== 3) {
+      console.error(`Q${i+1} (${q.word}): expected 3 options, got ${allOpts.length}`);
+      ok = false;
+    }
+    if (!q.correct || !q.word) {
+      console.error(`Q${i+1}: missing word or correct answer`);
+      ok = false;
+    }
+  });
+  console.log(ok ? "Vocabulary game: all questions validated OK." : "Vocabulary game: VALIDATION ERRORS found.");
+  return ok;
+}
+validateQuestions(RAW_QUESTIONS);
+
+// ============== GAME STATE ==============
+let gameQuestions = [];
+let currentIndex = 0;
+let score = 0;
+let answered = false;
+
+function buildGameQuestions() {
+  return shuffle(RAW_QUESTIONS).map(q => {
+    const options = shuffle([q.correct, ...q.distractors]);
+    return { word: q.word, correct: q.correct, options };
+  });
+}
+
+function startGame() {
+  gameQuestions = buildGameQuestions();
+  currentIndex = 0;
+  score = 0;
+  answered = false;
+  document.getElementById("progressWrap").style.display = "block";
+  renderQuestion();
+}
+
+function updateProgress() {
+  const total = gameQuestions.length;
+  const pct = Math.round((currentIndex / total) * 100);
+  document.getElementById("progressFill").style.width = pct + "%";
+  document.getElementById("progressText").textContent = `Question ${currentIndex + 1} of ${total}`;
+  document.getElementById("scoreText").textContent = `Score: ${score}`;
+}
+
+function renderQuestion() {
+  answered = false;
+  updateProgress();
+  const q = gameQuestions[currentIndex];
+  const letters = ["A", "B", "C"];
+
+  const body = document.getElementById("gameBody");
+  body.innerHTML = `
+    <div class="q-icon-row">${ICONS.brain}</div>
+    <div class="question-text">What does <span class="target-word">${q.word}</span> mean?</div>
+    <div class="options" id="optionsWrap">
+      ${q.options.map((opt, i) => `
+        <button class="option-btn" data-value="${encodeURIComponent(opt)}">
+          <span class="opt-letter">${letters[i]}</span><span>${opt}</span>
+        </button>
+      `).join("")}
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="nextBtn">Next Question</button>
+  `;
+
+  document.querySelectorAll(".option-btn").forEach(btn => {
+    btn.addEventListener("click", () => handleAnswer(btn, q));
+  });
+  document.getElementById("nextBtn").addEventListener("click", nextQuestion);
+}
+
+function handleAnswer(btn, q) {
+  if (answered) return;
+  answered = true;
+  const chosen = decodeURIComponent(btn.getAttribute("data-value"));
+  const isCorrect = chosen === q.correct;
+  if (isCorrect) score++;
+
+  document.querySelectorAll(".option-btn").forEach(b => {
+    b.disabled = true;
+    const val = decodeURIComponent(b.getAttribute("data-value"));
+    if (val === q.correct) b.classList.add("correct");
+    else if (b === btn) b.classList.add("incorrect");
+  });
+
+  const fb = document.getElementById("feedback");
+  fb.classList.add("show");
+  if (isCorrect) {
+    fb.classList.add("correct");
+    fb.innerHTML = `<b>Correct!</b> "${q.word}" means "${q.correct}."`;
+  } else {
+    fb.classList.add("incorrect");
+    fb.innerHTML = `<b>Not quite.</b> "${q.word}" means "${q.correct}."`;
+  }
+
+  document.getElementById("nextBtn").classList.add("show");
+  document.getElementById("scoreText").textContent = `Score: ${score}`;
+}
+
+function nextQuestion() {
+  currentIndex++;
+  if (currentIndex >= gameQuestions.length) {
+    showResults();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResults() {
+  document.getElementById("progressFill").style.width = "100%";
+  document.getElementById("progressText").textContent = `Question ${gameQuestions.length} of ${gameQuestions.length}`;
+  document.getElementById("scoreText").textContent = `Score: ${score}`;
+
+  const total = gameQuestions.length;
+  let msg;
+  if (score === total) msg = "Perfect! You remembered every word.";
+  else if (score >= total * 0.75) msg = "Great job! Your memory is strong.";
+  else if (score >= total * 0.5) msg = "Good try! Review the words and play again.";
+  else msg = "Keep practicing — try connecting each word to a story.";
+
+  const body = document.getElementById("gameBody");
+  body.innerHTML = `
+    <div class="results">
+      <div class="trophy">${ICONS.trophy}</div>
+      <h2>Game Complete!</h2>
+      <div class="score-big">${score} / ${total}</div>
+      <div class="score-msg">${msg}</div>
+      <button class="replay-btn" id="replayBtn">Play Again</button>
+    </div>
+  `;
+  document.getElementById("replayBtn").addEventListener("click", startGame);
+}
+
+// ============== INIT ==============
+startGame();
+</script>
+
+</body>
+</html>
