@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Real or Invented? — Warm-Up Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --navy:#0C2340;
+    --navy-d:#081629;
+    --gold:#AE9142;
+    --gold-b:#D39F10;
+    --warm-w:#EFE9D9;
+    --paper:#FFFFFF;
+    --ink:#1A1A1A;
+    --ink-s:#3D3D3D;
+    --muted:#7A7A7A;
+    --sky:#EDF2F9;
+    --green:#26890C;
+    --green-s:#D4EDDA;
+    --red:#C0392B;
+    --red-s:#F8D7DA;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{ background:var(--paper); font-family:'Calibri','Segoe UI',sans-serif; color:var(--ink); }
+
+  .chrome-header{
+    display:flex; align-items:center; gap:12px;
+    max-width:1100px; margin:0 auto; padding:32px 24px 0 24px;
+  }
+  .back-btn{
+    width:34px; height:34px; border-radius:50%;
+    border:1.5px solid var(--gold); background:var(--paper);
+    color:var(--gold); display:flex; align-items:center; justify-content:center;
+    font-size:16px; cursor:pointer; flex:none;
+  }
+  .monogram{
+    width:36px; height:36px; border-radius:50%;
+    border:1.5px solid var(--gold); background:var(--paper);
+    display:flex; align-items:center; justify-content:center;
+    font-family:Cambria,Georgia,serif; font-style:italic; font-weight:bold;
+    color:var(--gold); font-size:16px; flex:none;
+  }
+  .chrome-text{ line-height:1.3; }
+  .eyebrow{ font-family:Calibri,sans-serif; font-size:11px; font-weight:bold; letter-spacing:2.5px; color:var(--gold); text-transform:uppercase; }
+  .subline{ font-family:Calibri,sans-serif; font-size:12px; color:var(--muted); }
+
+  .titleblock{ max-width:1100px; margin:0 auto; padding:22px 24px 0 24px; }
+  .titleblock h1{ font-family:Cambria,Georgia,serif; font-size:38px; color:var(--navy); margin:0 0 6px 0; font-weight:normal; }
+  .titleblock h1 em{ color:var(--gold); font-style:italic; }
+  .titleblock p{ font-family:Calibri,sans-serif; font-size:14px; color:var(--muted); margin:0; }
+
+  .howto{
+    max-width:1100px; margin:22px auto 0 auto; padding:14px 20px;
+    background:var(--sky); border-radius:8px;
+    font-family:Calibri,sans-serif; font-size:13.5px; color:var(--ink-s); line-height:1.5;
+  }
+  .howto b{ color:var(--navy); }
+
+  .controls{
+    max-width:1100px; margin:20px auto 0 auto; padding:0 24px;
+    display:flex; gap:12px; flex-wrap:wrap; align-items:center;
+  }
+  .controls button{
+    font-family:Calibri,sans-serif; font-size:12.5px; font-weight:bold; letter-spacing:1px;
+    padding:10px 18px; border-radius:22px; cursor:pointer;
+    border:1.5px solid var(--gold); background:var(--paper); color:var(--navy);
+    transition:background .12s ease, color .12s ease;
+  }
+  .controls button:hover{ background:var(--navy); color:var(--warm-w); }
+  .controls .score{ font-family:Consolas,monospace; font-size:12px; color:var(--muted); margin-left:auto; }
+
+  .game-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));
+    gap:20px; max-width:1100px; margin:26px auto 0 auto; padding:0 24px 80px 24px;
+  }
+
+  .card{ perspective:1200px; height:250px; cursor:pointer; }
+  .card-inner{
+    position:relative; width:100%; height:100%;
+    transition:transform .55s cubic-bezier(.4,.2,.2,1); transform-style:preserve-3d;
+  }
+  .card.flipped .card-inner{ transform:rotateY(180deg); }
+
+  .card-face{
+    position:absolute; inset:0; backface-visibility:hidden;
+    border-radius:12px; padding:20px 22px; display:flex; flex-direction:column;
+    box-shadow:0 6px 18px rgba(12,35,64,0.10);
+  }
+  .card-front{ background:var(--sky); }
+  .card-back{ background:var(--navy); transform:rotateY(180deg); overflow:hidden; }
+
+  .card-num{
+    font-family:Consolas,monospace; font-size:11px; font-weight:bold; letter-spacing:2px;
+    color:var(--gold); margin-bottom:10px;
+  }
+  .card-statement{
+    font-family:Cambria,Georgia,serif; font-size:16px; line-height:1.45; color:var(--ink); flex:1;
+  }
+  .card-hint{
+    font-family:Calibri,sans-serif; font-size:10.5px; letter-spacing:1.5px; color:var(--muted);
+    text-transform:uppercase; text-align:right;
+  }
+
+  .badge{
+    display:inline-block; font-family:Calibri,sans-serif; font-size:11px; font-weight:bold;
+    letter-spacing:2px; border-radius:5px; padding:4px 10px; margin-bottom:10px; width:fit-content;
+  }
+  .badge.real{ background:var(--green-s); color:var(--green); }
+  .badge.invented{ background:var(--red-s); color:var(--red); }
+
+  .card-holder{ font-family:Cambria,Georgia,serif; font-style:italic; font-size:16px; color:var(--warm-w); margin:0 0 3px 0; }
+  .card-date{ font-family:Consolas,monospace; font-size:11px; color:var(--gold); margin:0 0 10px 0; }
+  .card-fact{ font-family:Calibri,sans-serif; font-size:12.5px; line-height:1.5; color:var(--warm-w); opacity:0.9; }
+
+  .footnote{
+    max-width:1100px; margin:0 auto 50px auto; padding:0 24px;
+    font-family:Calibri,sans-serif; font-size:11px; color:var(--muted); line-height:1.6; font-style:italic;
+  }
+
+  @media (max-width:600px){
+    .titleblock h1{ font-size:28px; }
+    .card{ height:270px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="chrome-header">
+    <div class="back-btn">&#8592;</div>
+    <div class="monogram">A</div>
+    <div class="chrome-text">
+      <div class="eyebrow">Reading &amp; Critical Thinking</div>
+      <div class="subline">Bonus Session &nbsp;&middot;&nbsp; Warm-Up Game</div>
+    </div>
+  </div>
+
+  <div class="titleblock">
+    <h1>Real or <em>Invented?</em></h1>
+    <p>Warm-Up Game &nbsp;&middot;&nbsp; The Book That Started with an Argument</p>
+  </div>
+
+  <div class="howto">
+    <b>How to play:</b> with a partner, read each card and guess whether it's a REAL Guinness World Record or one we INVENTED. Tap or click a card to flip it and see the answer &mdash; including who holds the real records and when.
+  </div>
+
+  <div class="controls">
+    <button id="reveal-all">Reveal All</button>
+    <button id="reset-all">Reset All</button>
+    <span class="score" id="score">0 / 12 revealed</span>
+  </div>
+
+  <div class="game-grid" id="grid"></div>
+
+  <p class="footnote">
+    Note for the teacher: figures and record holders above reflect well-documented, long-standing records to the best of available knowledge. Guinness World Records updates many categories yearly and this page was built without live web access, so please double-check any detail you plan to state as current fact before class.
+  </p>
+
+<script>
+  var ITEMS = [
+    { statement:"There is an official record for the loudest human burp.", real:true, holder:"Paul Hunn", place:"United Kingdom", date:"recorded in the 2000s", fact:"Measured around 109 decibels \u2014 louder than a lawnmower." },
+    { statement:"The record for most cups of coffee balanced on one person's head is over 500.", real:false, fact:"No such category exists \u2014 we invented this one!" },
+    { statement:"The tallest man ever reliably measured was over 8 feet 11 inches tall.", real:true, holder:"Robert Wadlow", place:"United States", date:"measured in 1940", fact:"He is still recognized as the tallest person in recorded history." },
+    { statement:"Someone holds the record for longest time hopping on one foot while singing the national anthem backwards.", real:false, fact:"Delightfully specific, and completely made up." },
+    { statement:"The fastest recorded human sprint speed was set at the 2009 World Championships.", real:true, holder:"Usain Bolt", place:"Jamaica", date:"Berlin, 2009", fact:"He ran the 100m in 9.58 seconds \u2014 still the record today." },
+    { statement:"One woman grew the longest fingernails ever recorded on a single hand.", real:true, holder:"Lee Redmond", place:"United States", date:"grown over ~30 years, ended 2009", fact:"Her nails were lost in a car accident after decades of growth." },
+    { statement:"There is a record for the slowest average speed maintained while driving a car for one full year without stopping.", real:false, fact:"Also \u2014 you'd need to stop for gas. Invented." },
+    { statement:"The oldest person ever verified lived to over 122 years old.", real:true, holder:"Jeanne Calment", place:"France", date:"confirmed in the 1990s", fact:"She lived to 122 years, 164 days \u2014 still the record today." },
+    { statement:"The record for most times saying \u201cGuinness\u201d in one breath underwater is 42.", real:false, fact:"No record book has ever needed this. Invented." },
+    { statement:"One man holds the record for most Big Macs eaten in a lifetime.", real:true, holder:"Donald Gorske", place:"United States", date:"ongoing record since the 1970s", fact:"He has eaten multiple Big Macs almost every day for decades." },
+    { statement:"There is a record for the fastest talker, measured in words per minute.", real:true, holder:"Steve Woodmore", place:"United Kingdom", date:"recorded in 1990", fact:"Clocked at roughly 637 words per minute." },
+    { statement:"There is a record for most pairs of socks put on in one minute while riding a unicycle.", real:false, fact:"An impressive image, but not a real record." }
+  ];
+
+  var grid = document.getElementById("grid");
+  var revealedCount = 0;
+
+  ITEMS.forEach(function(item, i){
+    var card = document.createElement("div");
+    card.className = "card";
+
+    var inner = document.createElement("div");
+    inner.className = "card-inner";
+
+    var front = document.createElement("div");
+    front.className = "card-face card-front";
+    front.innerHTML =
+      '<div class="card-num">#' + (i+1) + '</div>' +
+      '<div class="card-statement">' + item.statement + '</div>' +
+      '<div class="card-hint">Tap to reveal</div>';
+
+    var back = document.createElement("div");
+    back.className = "card-face card-back";
+    if(item.real){
+      back.innerHTML =
+        '<div class="badge real">REAL</div>' +
+        '<div class="card-holder">' + item.holder + '</div>' +
+        '<div class="card-date">' + item.place + ' &middot; ' + item.date + '</div>' +
+        '<div class="card-fact">' + item.fact + '</div>';
+    } else {
+      back.innerHTML =
+        '<div class="badge invented">INVENTED</div>' +
+        '<div class="card-fact">' + item.fact + '</div>';
+    }
+
+    inner.appendChild(front);
+    inner.appendChild(back);
+    card.appendChild(inner);
+    grid.appendChild(card);
+
+    card.addEventListener("click", function(){
+      toggleCard(card);
+    });
+  });
+
+  function updateScore(){
+    var flipped = document.querySelectorAll(".card.flipped").length;
+    document.getElementById("score").textContent = flipped + " / " + ITEMS.length + " revealed";
+  }
+
+  function toggleCard(card){
+    card.classList.toggle("flipped");
+    updateScore();
+  }
+
+  document.getElementById("reveal-all").addEventListener("click", function(){
+    document.querySelectorAll(".card").forEach(function(c){ c.classList.add("flipped"); });
+    updateScore();
+  });
+  document.getElementById("reset-all").addEventListener("click", function(){
+    document.querySelectorAll(".card").forEach(function(c){ c.classList.remove("flipped"); });
+    updateScore();
+  });
+</script>
+
+</body>
+</html>

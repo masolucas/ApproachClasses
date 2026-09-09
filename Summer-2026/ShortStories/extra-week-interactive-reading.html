@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Book That Started with an Argument — Interactive Reading</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --navy:#0C2340;
+    --navy-d:#081629;
+    --gold:#AE9142;
+    --gold-b:#D39F10;
+    --warm-w:#EFE9D9;
+    --paper:#FFFFFF;
+    --ink:#1A1A1A;
+    --ink-s:#3D3D3D;
+    --muted:#7A7A7A;
+    --sky:#EDF2F9;
+    --story-size:19px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    font-family:'Calibri','Segoe UI',sans-serif;
+    color:var(--ink);
+  }
+
+  /* ---------- Header ---------- */
+  .chrome-header{
+    display:flex; align-items:center; gap:12px;
+    max-width:760px; margin:0 auto; padding:32px 24px 0 24px;
+  }
+  .back-btn{
+    width:34px; height:34px; border-radius:50%;
+    border:1.5px solid var(--gold); background:var(--paper);
+    color:var(--gold); display:flex; align-items:center; justify-content:center;
+    font-size:16px; cursor:pointer; flex:none;
+  }
+  .monogram{
+    width:36px; height:36px; border-radius:50%;
+    border:1.5px solid var(--gold); background:var(--paper);
+    display:flex; align-items:center; justify-content:center;
+    font-family:Cambria,Georgia,serif; font-style:italic; font-weight:bold;
+    color:var(--gold); font-size:16px; flex:none;
+  }
+  .chrome-text{ line-height:1.3; }
+  .eyebrow{
+    font-family:Calibri,sans-serif; font-size:11px; font-weight:bold;
+    letter-spacing:2.5px; color:var(--gold); text-transform:uppercase;
+  }
+  .subline{
+    font-family:Calibri,sans-serif; font-size:12px; color:var(--muted);
+  }
+
+  /* ---------- Title block ---------- */
+  .titleblock{
+    max-width:760px; margin:0 auto; padding:22px 24px 0 24px;
+  }
+  .titleblock h1{
+    font-family:Cambria,Georgia,serif; font-size:38px; color:var(--navy);
+    margin:0 0 6px 0; font-weight:normal;
+  }
+  .titleblock h1 em{ color:var(--gold); font-style:italic; }
+  .titleblock p{
+    font-family:Calibri,sans-serif; font-size:14px; color:var(--muted); margin:0;
+  }
+
+  /* ---------- How-to banner ---------- */
+  .howto{
+    max-width:760px; margin:22px auto 0 auto; padding:14px 20px;
+    background:var(--sky); border-radius:8px;
+    font-family:Calibri,sans-serif; font-size:13.5px; color:var(--ink-s); line-height:1.5;
+  }
+  .howto b{ color:var(--navy); }
+
+  /* ---------- Story ---------- */
+  .story{
+    max-width:760px; margin:0 auto; padding:26px 24px 130px 24px;
+    font-family:Cambria,Georgia,serif; font-size:var(--story-size); line-height:1.75; color:var(--ink);
+  }
+  .story p{ margin:0 0 20px 0; }
+  .story .byline{ font-style:italic; color:var(--muted); font-size:0.85em; margin-bottom:26px; }
+
+  .voc{
+    border-bottom:2px dotted var(--gold); cursor:pointer; color:var(--navy);
+    transition:background .12s ease;
+  }
+  .voc:hover{ background:rgba(174,145,66,0.12); }
+  .voc.active{ background:rgba(174,145,66,0.25); }
+
+  /* ---------- Backdrop + popover ---------- */
+  .backdrop{
+    position:fixed; inset:0; background:rgba(8,22,41,0.55);
+    opacity:0; pointer-events:none; transition:opacity .15s ease; z-index:1000;
+  }
+  .backdrop.show{ opacity:1; pointer-events:auto; }
+
+  .popover{
+    position:absolute; z-index:1002; width:320px; max-width:88vw;
+    background:var(--navy); border-radius:10px; padding:18px 20px;
+    box-shadow:0 12px 32px rgba(0,0,0,0.35);
+    opacity:0; transform:translateY(6px); pointer-events:none;
+    transition:opacity .15s ease, transform .15s ease;
+  }
+  .popover.show{ opacity:1; transform:translateY(0); pointer-events:auto; }
+  .popover .pop-term{
+    font-family:Cambria,Georgia,serif; font-style:italic; font-size:19px; color:var(--warm-w);
+    margin:0 0 4px 0;
+  }
+  .popover .pop-badge{
+    display:inline-block; font-family:Consolas,monospace; font-size:9px; font-weight:bold;
+    letter-spacing:1.5px; color:var(--navy); background:var(--gold);
+    border-radius:4px; padding:2px 7px; margin-bottom:10px;
+  }
+  .popover .pop-def{
+    font-family:Calibri,sans-serif; color:var(--warm-w); font-size:14px; line-height:1.5; margin:0 0 10px 0;
+  }
+  .popover .pop-ex-label{
+    font-family:Calibri,sans-serif; font-size:9px; font-weight:bold;
+    letter-spacing:2px; color:var(--gold); text-transform:uppercase;
+    border-top:1px solid rgba(239,233,217,0.2); padding-top:10px; margin-bottom:6px;
+  }
+  .popover .pop-ex{
+    font-family:Cambria,Georgia,serif; color:var(--warm-w); font-size:14px;
+    line-height:1.5; margin:0;
+  }
+  .popover .pop-arrow{
+    position:absolute; width:14px; height:14px; background:var(--navy);
+    transform:rotate(45deg);
+  }
+
+  /* ---------- Floating font-size menu ---------- */
+  .font-menu{
+    position:fixed; bottom:24px; right:24px; z-index:1003;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .font-menu button{
+    width:44px; height:44px; border-radius:50%;
+    background:var(--navy); border:1.5px solid var(--gold);
+    color:var(--gold); font-family:Calibri,sans-serif; font-weight:bold;
+    font-size:15px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.25);
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .12s ease, background .12s ease;
+  }
+  .font-menu button:hover{ background:var(--navy-d); transform:scale(1.06); }
+  .font-menu button:active{ transform:scale(0.96); }
+  .font-menu .reset-btn{ font-size:12px; }
+
+  @media (max-width:600px){
+    .titleblock h1{ font-size:30px; }
+    .story{ padding:22px 18px 130px 18px; }
+    .popover{ width:270px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="chrome-header">
+    <div class="back-btn">&#8592;</div>
+    <div class="monogram">A</div>
+    <div class="chrome-text">
+      <div class="eyebrow">Reading &amp; Critical Thinking</div>
+      <div class="subline">Bonus Session &nbsp;&middot;&nbsp; Interactive Reading</div>
+    </div>
+  </div>
+
+  <div class="titleblock">
+    <h1>The Book That Started with an <em>Argument.</em></h1>
+    <p>Sir Hugh Beaver &nbsp;&middot;&nbsp; Adapted Nonfiction Narrative &nbsp;&middot;&nbsp; Bonus Session</p>
+  </div>
+
+  <div class="howto">
+    <b>How to use this page:</b> words and phrases with a dotted gold underline are clickable. Tap or click one to see its meaning and an example sentence. Use the buttons in the bottom-right corner to change the text size.
+  </div>
+
+  <div class="story" id="story">
+
+    <p>In November 1951, a man named Sir Hugh Beaver went shooting with friends in the countryside of Ireland. It was a cold, quiet evening, and the group was walking near a river when a bird flew past them, very fast.</p>
+
+    <p>&ldquo;What kind of bird was that?&rdquo; someone asked.</p>
+
+    <p>&ldquo;A golden plover,&rdquo; Beaver said. &ldquo;And it&rsquo;s the fastest game bird in Europe.&rdquo;</p>
+
+    <p>Another man in the group disagreed. &ldquo;No,&rdquo; he said. &ldquo;The grouse is faster.&rdquo;</p>
+
+    <p>The two men <span class="voc" data-term="argued">argued</span> about it for the rest of the evening. Neither one could prove he was right. There was no book, no encyclopedia, nothing anywhere that could answer a simple question like: which bird is faster?</p>
+
+    <p>This <span class="voc" data-term="bothered">bothered</span> Beaver. He was the <span class="voc" data-term="managing-director">managing director</span> of the Guinness Brewery, a large and successful company, and he was used to solving problems. That night, he had an idea. He thought: people everywhere must have arguments like this one &mdash; in pubs, at dinner tables, after football matches. Someone should write a book that <span class="voc" data-term="settle">settles</span> these arguments with facts.</p>
+
+    <p>For a few years, the idea stayed just an idea. But Beaver didn&rsquo;t forget it. In 1954, he decided to act. He knew two young men in London, twin brothers named Norris and Ross McWhirter, who ran a small company that answered strange and difficult questions for newspapers and radio programs. If anyone could find facts about the fastest bird, the tallest man, or the longest river, it was the McWhirter twins.</p>
+
+    <p>Beaver hired them to create a book of world records. The brothers worked quickly. They wrote to scientists, athletes, explorers, and experts all over the world, asking for facts and numbers. They checked every detail carefully, because they knew that once something was printed in a book, people would believe it.</p>
+
+    <p>The first <span class="voc" data-term="edition">edition</span> of <em>The Guinness Book of Records</em> was published in August 1955. It was small, only 198 pages, and at first it wasn&rsquo;t for sale &mdash; Guinness gave it away free to pubs across Britain and Ireland. The idea was simple: give pub owners a way to end arguments, and remind customers of the Guinness name at the same time. It was, in a way, just <span class="voc" data-term="clever">clever</span> advertising.</p>
+
+    <p>But something <span class="voc" data-term="unexpected">unexpected</span> happened. The book became far more popular than anyone imagined. People loved reading about the world&rsquo;s tallest man, the coldest temperature ever measured, the largest cake ever baked. Some facts were serious science; others were strange and funny. Readers couldn&rsquo;t stop turning the pages. By Christmas of that year, the book was the best-selling non-fiction title in Britain.</p>
+
+    <p>Guinness quickly stopped giving the book away for free. Instead, they began selling it &mdash; and it kept selling, year after year. New editions came out every year, with new records added and old ones broken. People began sending letters to the McWhirter brothers, <span class="voc" data-term="claiming">claiming</span> their own records: the most pancakes eaten in one minute, the longest fingernails, the highest number of push-ups in an hour. Ordinary people started trying to get into the book, not just read it.</p>
+
+    <p>By the 1970s, <em>The Guinness Book of Records</em> was famous around the world, <span class="voc" data-term="translated">translated</span> into dozens of languages. It later became known simply as <em>Guinness World Records</em>. Today, millions of copies are sold every year, and the book holds a record of its own &mdash; it is one of the best-selling books in history, alongside the Bible and the works of Shakespeare.</p>
+
+    <p>What began as a disagreement about a bird, on one cold evening in Ireland, grew into something Hugh Beaver could never have predicted: a book that would <span class="voc" data-term="outlive">outlive</span> him, entertain generations of readers, and give ordinary people around the world a strange but wonderful reason to attempt the impossible.</p>
+
+  </div>
+
+  <div class="backdrop" id="backdrop"></div>
+  <div class="popover" id="popover">
+    <div class="pop-arrow" id="pop-arrow"></div>
+    <div class="pop-term" id="pop-term"></div>
+    <div class="pop-badge" id="pop-badge"></div>
+    <div class="pop-def" id="pop-def"></div>
+    <div class="pop-ex-label">Example</div>
+    <p class="pop-ex" id="pop-ex"></p>
+  </div>
+
+  <div class="font-menu">
+    <button id="font-inc" title="Increase text size">A+</button>
+    <button id="font-reset" class="reset-btn" title="Reset text size">&#8635;</button>
+    <button id="font-dec" title="Decrease text size">A&minus;</button>
+  </div>
+
+<script>
+  var GLOSSARY = {
+    "argued": { level:"A2+", def:"disagreed with someone, often with strong feelings", ex:"My brother and I argued about whose turn it was to cook." },
+    "bothered": { level:"B1", def:"annoyed or worried about something", ex:"The noise from the street bothered her all night." },
+    "managing-director": { level:"B1+", def:"the person in charge of running a company", ex:"She was promoted to managing director after ten years at the company." },
+    "settle": { level:"B1", def:"to end a disagreement by finding an answer (settle an argument)", ex:"They settled the dispute by asking a lawyer for advice." },
+    "edition": { level:"B1", def:"one version of a book, printed at a particular time", ex:"The teacher gave us the newest edition of the textbook." },
+    "clever": { level:"A2+", def:"intelligent; good at solving problems", ex:"It was a clever way to save money on rent." },
+    "unexpected": { level:"B1", def:"surprising; not planned or predicted", ex:"We had an unexpected visitor at dinner last night." },
+    "claiming": { level:"B1+", def:"saying something is true, without proof yet", ex:"He kept claiming he was the fastest runner in school." },
+    "translated": { level:"A2+", def:"changed from one language into another", ex:"The novel was translated into twelve languages." },
+    "outlive": { level:"B1+", def:"to live or last longer than someone/something else", ex:"Many old traditions outlive the people who started them." }
+  };
+
+  var activeSpan = null;
+  var backdrop = document.getElementById("backdrop");
+  var popover = document.getElementById("popover");
+
+  function positionPopover(span, pop){
+    var rect = span.getBoundingClientRect();
+    var scrollY = window.scrollY || document.documentElement.scrollTop;
+    var scrollX = window.scrollX || document.documentElement.scrollLeft;
+    var popWidth = pop.offsetWidth || 320;
+    var left = rect.left + scrollX + (rect.width/2) - (popWidth/2);
+    left = Math.max(12, Math.min(left, document.documentElement.clientWidth - popWidth - 12 + scrollX));
+    var top = rect.bottom + scrollY + 14;
+    var arrow = document.getElementById("pop-arrow");
+    var arrowLeft = (rect.left + scrollX + rect.width/2) - left - 7;
+    arrow.style.left = arrowLeft + "px";
+    arrow.style.top = "-7px";
+    pop.style.left = left + "px";
+    pop.style.top = top + "px";
+  }
+
+  function openPopover(span){
+    var term = span.getAttribute("data-term");
+    var data = GLOSSARY[term];
+    if(!data) return;
+    document.getElementById("pop-term").textContent = span.textContent;
+    document.getElementById("pop-badge").textContent = data.level;
+    document.getElementById("pop-def").textContent = data.def;
+    document.getElementById("pop-ex").textContent = data.ex;
+    if(activeSpan) activeSpan.classList.remove("active");
+    activeSpan = span;
+    span.classList.add("active");
+    backdrop.classList.add("show");
+    popover.classList.add("show");
+    positionPopover(span, popover);
+  }
+
+  function closePopover(){
+    if(activeSpan) activeSpan.classList.remove("active");
+    activeSpan = null;
+    backdrop.classList.remove("show");
+    popover.classList.remove("show");
+  }
+
+  document.querySelectorAll(".voc").forEach(function(span){
+    span.addEventListener("click", function(e){
+      e.stopPropagation();
+      if(activeSpan === span){ closePopover(); } else { openPopover(span); }
+    });
+  });
+  backdrop.addEventListener("click", closePopover);
+  popover.addEventListener("click", function(e){ e.stopPropagation(); });
+  window.addEventListener("resize", function(){ if(activeSpan) positionPopover(activeSpan, popover); });
+  window.addEventListener("scroll", function(){ if(activeSpan) positionPopover(activeSpan, popover); }, true);
+
+  /* ---------- Font size controls ---------- */
+  var BASE_SIZE = 19, MIN_SIZE = 14, MAX_SIZE = 30, STEP = 2;
+  var currentSize = BASE_SIZE;
+
+  function applySize(){
+    document.documentElement.style.setProperty("--story-size", currentSize + "px");
+    if(activeSpan) positionPopover(activeSpan, popover);
+  }
+  document.getElementById("font-inc").addEventListener("click", function(){
+    currentSize = Math.min(MAX_SIZE, currentSize + STEP);
+    applySize();
+  });
+  document.getElementById("font-dec").addEventListener("click", function(){
+    currentSize = Math.max(MIN_SIZE, currentSize - STEP);
+    applySize();
+  });
+  document.getElementById("font-reset").addEventListener("click", function(){
+    currentSize = BASE_SIZE;
+    applySize();
+  });
+</script>
+
+</body>
+</html>
