@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Fluency Jeopardy — Review Game</title>
+<style>
+  :root{
+    --navy:#0C2340;
+    --navy-l:#143865;
+    --navy-d:#081629;
+    --gold:#AE9142;
+    --gold-b:#D39F10;
+    --warm:#EFE9D9;
+    --paper:#FFFFFF;
+    --ink:#1A1A1A;
+    --ink-s:#3D3D3D;
+    --muted:#7A7A7A;
+    --green:#26890C;
+    --green-s:#D4EDDA;
+    --red:#C0392B;
+    --red-s:#F8D7DA;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--navy-d);
+    font-family:"Calibri","Segoe UI",sans-serif;
+    color:var(--warm);
+    min-height:100vh;
+  }
+  .wrap{max-width:1400px;margin:0 auto;padding:22px 22px 60px;}
+
+  /* ---- Header ---- */
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    border-bottom:2px solid var(--gold);
+    padding-bottom:14px;margin-bottom:18px;
+    flex-wrap:wrap;gap:10px;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .mono{
+    width:38px;height:38px;border-radius:50%;
+    border:1.5px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    font-family:Cambria,serif;font-style:italic;font-weight:bold;color:var(--gold);
+  }
+  .titleblock h1{
+    font-family:Cambria,serif;font-size:26px;margin:0;color:var(--warm);
+    letter-spacing:-0.5px;
+  }
+  .titleblock h1 em{color:var(--gold);font-style:italic;}
+  .titleblock p{margin:2px 0 0;font-size:11px;letter-spacing:2px;color:var(--gold);font-weight:bold;text-transform:uppercase;}
+  .headerbtns button{
+    background:none;border:1px solid var(--gold);color:var(--gold);
+    padding:7px 14px;border-radius:3px;cursor:pointer;font-size:12px;font-weight:bold;
+    letter-spacing:1px;margin-left:8px;font-family:inherit;
+  }
+  .headerbtns button:hover{background:var(--gold);color:var(--navy-d);}
+
+  /* ---- Scoreboard ---- */
+  #scoreboard{
+    display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;
+  }
+  .team-card{
+    background:var(--navy-l);border:1px solid var(--navy-l);
+    border-top:3px solid var(--gold);
+    border-radius:2px;padding:10px 14px;min-width:150px;flex:1;
+  }
+  .team-card input.tname{
+    background:none;border:none;color:var(--warm);font-family:Cambria,serif;
+    font-size:15px;font-style:italic;width:100%;padding:0;margin-bottom:4px;
+  }
+  .team-card .score{
+    font-family:Consolas,monospace;font-size:26px;color:var(--gold-b);font-weight:bold;
+  }
+  .team-card .teambtns{margin-top:6px;display:flex;gap:4px;}
+  .team-card .teambtns button{
+    flex:1;background:var(--navy-d);color:var(--warm);border:1px solid var(--gold);
+    font-size:11px;padding:3px 0;cursor:pointer;border-radius:2px;font-family:inherit;
+  }
+  .addteam{
+    display:flex;align-items:center;justify-content:center;
+    border:1px dashed var(--gold);border-radius:2px;min-width:60px;
+    color:var(--gold);cursor:pointer;font-size:22px;
+  }
+
+  /* ---- Board ---- */
+  #board{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:6px;
+  }
+  .cat-header{
+    background:var(--navy);
+    border-bottom:3px solid var(--gold);
+    color:var(--warm);
+    font-family:Calibri,sans-serif;
+    font-weight:bold;
+    font-size:13px;
+    letter-spacing:0.5px;
+    text-align:center;
+    padding:12px 6px;
+    min-height:52px;
+    display:flex;align-items:center;justify-content:center;
+    line-height:1.25;
+  }
+  .clue-cell{
+    background:var(--navy);
+    border:1px solid var(--navy-l);
+    color:var(--gold-b);
+    font-family:Consolas,monospace;
+    font-size:26px;font-weight:bold;
+    text-align:center;
+    padding:22px 4px;
+    cursor:pointer;
+    transition:background 0.15s;
+  }
+  .clue-cell:hover{background:var(--navy-l);}
+  .clue-cell.done{
+    background:var(--navy-d);
+    color:var(--navy-l);
+    cursor:default;
+  }
+  .clue-cell.done:hover{background:var(--navy-d);}
+
+  /* ---- Final Jeopardy button ---- */
+  #finalRow{margin-top:22px;text-align:center;}
+  #finalRow button{
+    background:var(--gold);color:var(--navy-d);border:none;
+    font-family:Cambria,serif;font-style:italic;font-size:18px;
+    padding:12px 32px;border-radius:3px;cursor:pointer;font-weight:bold;
+  }
+  #finalRow button:disabled{opacity:0.35;cursor:default;}
+
+  /* ---- Modal ---- */
+  .overlay{
+    position:fixed;inset:0;background:rgba(8,22,41,0.92);
+    display:none;align-items:center;justify-content:center;z-index:50;
+    padding:20px;
+  }
+  .overlay.show{display:flex;}
+  .clue-modal{
+    background:var(--navy);
+    border:1.5px solid var(--gold);
+    max-width:820px;width:100%;
+    padding:40px 46px;
+    text-align:center;
+    position:relative;
+  }
+  .clue-modal .eyebrow{
+    font-size:11px;letter-spacing:3px;color:var(--gold);font-weight:bold;margin-bottom:18px;
+  }
+  .clue-modal .cluetext{
+    font-family:Cambria,serif;font-size:30px;color:var(--warm);line-height:1.35;margin-bottom:26px;
+  }
+  .clue-modal .answertext{
+    font-family:Cambria,serif;font-style:italic;font-size:26px;color:var(--gold-b);
+    margin-bottom:26px;display:none;line-height:1.35;
+  }
+  .clue-modal .revealbtn{
+    background:var(--gold);color:var(--navy-d);border:none;font-weight:bold;
+    padding:10px 26px;border-radius:3px;cursor:pointer;font-size:14px;letter-spacing:1px;
+    font-family:Calibri,sans-serif;
+  }
+  .award-row{display:none;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:6px;}
+  .award-row button{
+    font-family:Calibri,sans-serif;font-size:13px;font-weight:bold;
+    padding:8px 14px;border-radius:3px;cursor:pointer;border:1px solid var(--warm);
+    background:var(--navy-l);color:var(--warm);
+  }
+  .award-row button.correct{border-color:var(--green);color:var(--green-s);}
+  .award-row button.wrong{border-color:var(--red);color:var(--red-s);}
+  .closebtn{
+    position:absolute;top:10px;right:14px;background:none;border:none;
+    color:var(--muted);font-size:22px;cursor:pointer;
+  }
+  .noaward{
+    margin-top:14px;font-size:12px;color:var(--muted);text-decoration:underline;cursor:pointer;
+    background:none;border:none;font-family:Calibri,sans-serif;display:none;
+  }
+
+  /* Final jeopardy modal specifics */
+  .final-wager{font-size:14px;color:var(--muted);margin-bottom:10px;}
+
+  footer{
+    text-align:center;margin-top:30px;font-size:10px;letter-spacing:2px;color:var(--muted);
+    text-transform:uppercase;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="mono">A</div>
+      <div class="titleblock">
+        <p>Approach International Student Center · Ai Fluency</p>
+        <h1>AI Fluency <em>Jeopardy.</em></h1>
+      </div>
+    </div>
+    <div class="headerbtns">
+      <button id="resetBtn">Reset Game</button>
+    </div>
+  </header>
+
+  <div id="scoreboard"></div>
+
+  <div id="board"></div>
+
+  <div id="finalRow">
+    <button id="finalBtn">Play Final Jeopardy</button>
+  </div>
+
+  <footer>Covers Weeks 1–7 &amp; 9 · Delegation · Description · Discernment · Diligence · Entrepreneurship · Organizational Change</footer>
+</div>
+
+<!-- Clue modal -->
+<div class="overlay" id="overlay">
+  <div class="clue-modal">
+    <button class="closebtn" id="closeModal">&times;</button>
+    <div class="eyebrow" id="modalCat">CATEGORY · $VALUE</div>
+    <div class="cluetext" id="modalClue">Clue text</div>
+    <div class="answertext" id="modalAnswer">Answer text</div>
+    <button class="revealbtn" id="revealBtn">Reveal Answer</button>
+    <div class="award-row" id="awardRow"></div>
+    <button class="noaward" id="noAwardBtn">No one scored — close without awarding points</button>
+  </div>
+</div>
+
+<!-- Final Jeopardy modal -->
+<div class="overlay" id="finalOverlay">
+  <div class="clue-modal">
+    <button class="closebtn" id="closeFinal">&times;</button>
+    <div class="eyebrow">FINAL JEOPARDY</div>
+    <div class="final-wager">Teams wager silently on paper before the clue is shown, then write their answer.</div>
+    <div class="cluetext" id="finalClue"></div>
+    <div class="answertext" id="finalAnswer"></div>
+    <button class="revealbtn" id="finalRevealBtn">Reveal Answer</button>
+    <div class="award-row" id="finalAwardRow" style="display:flex;"></div>
+  </div>
+</div>
+
+<script>
+// ---------- CONTENT ----------
+const categories = [
+  {
+    name: "AI Foundations",
+    clues: [
+      { value:100, clue:"This term describes the small chunks of text — words or pieces of words — that a language model processes one at a time.", answer:"What is a token?" },
+      { value:200, clue:"This word describes strategically deciding when and how AI should be part of your professional life — more than just knowing facts about AI.", answer:"What is AI fluency?" },
+      { value:300, clue:"LLMs learn their patterns from enormous collections of text called this.", answer:"What is training data?" },
+      { value:400, clue:"This category of AI can plan and carry out multi-step tasks with little human input along the way.", answer:"What is agentic AI?" },
+      { value:500, clue:"Developed by Dakan and Feller at Anthropic Academy, this four-part model structures the entire course.", answer:"What is the 4D Framework (Delegation, Description, Discernment, Diligence)?" }
+    ]
+  },
+  {
+    name: "Delegation",
+    clues: [
+      { value:100, clue:"This is the first D in the framework — deciding what tasks are appropriate to assign to AI.", answer:"What is Delegation?" },
+      { value:200, clue:"This word describes AI assisting a human who stays in control, rather than AI fully replacing the task.", answer:"What is augmentation?" },
+      { value:300, clue:"This safeguard requires a human to review or approve an AI decision before it takes effect.", answer:"What is human-in-the-loop?" },
+      { value:400, clue:"In healthcare, this application area uses AI to analyze medical images and flag potential issues for a radiologist.", answer:"What is AI-assisted diagnostics (clinical decision support)?" },
+      { value:500, clue:"This is the central accountability question raised by delegation: if AI makes the call, who bears this?", answer:"What is responsibility?" }
+    ]
+  },
+  {
+    name: "Description",
+    clues: [
+      { value:100, clue:"This is the second D — the art and science of communicating with AI precisely.", answer:"What is Description?" },
+      { value:200, clue:"A strong prompt typically includes role, context, task, and format, plus this final element that limits scope, length, or style.", answer:"What are constraints?" },
+      { value:300, clue:"This prompting technique gives the model a few worked examples before asking it to perform the real task.", answer:"What is few-shot prompting?" },
+      { value:400, clue:"In legal AI use, this dangerous failure happens when a model invents a case or citation that does not exist.", answer:"What is a (legal) hallucination?" },
+      { value:500, clue:"This ongoing cycle — write a prompt, evaluate the output, refine — links Description directly to the next D.", answer:"What is the Description–Discernment loop?" }
+    ]
+  },
+  {
+    name: "Discernment",
+    clues: [
+      { value:100, clue:"This is the third D — critically evaluating AI output instead of accepting it at face value.", answer:"What is Discernment?" },
+      { value:200, clue:"This term describes an AI confidently stating false information as if it were fact.", answer:"What is a hallucination?" },
+      { value:300, clue:"This type of error happens when the reasoning steps don't logically connect, even if each individual fact looks correct.", answer:"What is a logical error?" },
+      { value:400, clue:"In marketing, this problem occurs when AI-generated content gradually stops sounding like a brand's authentic voice.", answer:"What is brand voice drift?" },
+      { value:500, clue:"This is the systematic tool taught in class for checking AI output for factual errors, bias, tone, and omissions.", answer:"What is the discernment checklist?" }
+    ]
+  },
+  {
+    name: "Diligence",
+    clues: [
+      { value:100, clue:"This is the fourth D — using AI ethically and responsibly.", answer:"What is Diligence?" },
+      { value:200, clue:"This legal and ethical question asks who owns the content an AI system generates.", answer:"What is intellectual property (ownership)?" },
+      { value:300, clue:"This practice means telling your professor, employer, or reader which AI tools you used to produce a piece of work.", answer:"What is disclosure / attribution?" },
+      { value:400, clue:"This well-known case study showed a hiring algorithm that learned to discriminate against women applicants.", answer:"What is the Amazon AI hiring bias case?" },
+      { value:500, clue:"Every organization should have one of these documents, which sets the rules for responsible employee AI use.", answer:"What is an AI use policy?" }
+    ]
+  },
+  {
+    name: "Entrepreneurship & Change",
+    clues: [
+      { value:100, clue:"Entrepreneurs use AI to compete at scale despite having this kind of small team.", answer:"What is a lean team?" },
+      { value:200, clue:"This risk means a startup becomes overly dependent on a single AI vendor's platform, pricing, or roadmap.", answer:"What is vendor lock-in?" },
+      { value:300, clue:"This term describes a company's proprietary, hard-to-copy advantage built from its own unique data.", answer:"What is a data moat?" },
+      { value:400, clue:"According to class discussion, this — more than the technology itself — is the biggest reason organizational AI adoption efforts fail.", answer:"What is the human change-management problem (resistance, fear, the skills gap)?" },
+      { value:500, clue:"Named after a well-known change-management scholar, this model outlines the phased steps for leading organizational change.", answer:"What is Kotter's 8-Step Change Model?" }
+    ]
+  }
+];
+
+const finalClue = {
+  clue:"Put these four in the correct order, from the very first decision a professional makes about a task to the last safeguard applied before trusting the result: Description, Diligence, Delegation, Discernment.",
+  answer:"What is Delegation → Description → Discernment → Diligence?"
+};
+
+// ---------- STATE ----------
+let teams = [
+  { name:"Team 1", score:0 },
+  { name:"Team 2", score:0 },
+  { name:"Team 3", score:0 },
+  { name:"Team 4", score:0 },
+  { name:"Team 5", score:0 }
+];
+
+let currentClueEl = null;
+let currentValue = 0;
+
+// ---------- RENDER SCOREBOARD ----------
+function renderScoreboard(){
+  const sb = document.getElementById('scoreboard');
+  sb.innerHTML = "";
+  teams.forEach((team, i) => {
+    const card = document.createElement('div');
+    card.className = 'team-card';
+    card.innerHTML = `
+      <input class="tname" value="${team.name}" data-i="${i}">
+      <div class="score">${team.score}</div>
+      <div class="teambtns">
+        <button data-i="${i}" data-op="reset">reset</button>
+        <button data-i="${i}" data-op="remove">remove</button>
+      </div>
+    `;
+    sb.appendChild(card);
+  });
+  const add = document.createElement('div');
+  add.className = 'addteam';
+  add.textContent = '+';
+  add.title = 'Add team';
+  add.onclick = () => { teams.push({name:"Team "+(teams.length+1), score:0}); renderScoreboard(); };
+  sb.appendChild(add);
+
+  sb.querySelectorAll('.tname').forEach(inp => {
+    inp.addEventListener('change', e => {
+      teams[e.target.dataset.i].name = e.target.value;
+    });
+  });
+  sb.querySelectorAll('button[data-op]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const i = e.target.dataset.i, op = e.target.dataset.op;
+      if(op === 'reset') teams[i].score = 0;
+      if(op === 'remove') teams.splice(i,1);
+      renderScoreboard();
+    });
+  });
+}
+
+// ---------- RENDER BOARD ----------
+function renderBoard(){
+  const board = document.getElementById('board');
+  board.innerHTML = "";
+  categories.forEach(cat => {
+    const h = document.createElement('div');
+    h.className = 'cat-header';
+    h.textContent = cat.name;
+    board.appendChild(h);
+  });
+  for(let r=0; r<5; r++){
+    categories.forEach((cat, ci) => {
+      const clueObj = cat.clues[r];
+      const cell = document.createElement('div');
+      cell.className = 'clue-cell';
+      cell.textContent = '$' + clueObj.value;
+      cell.dataset.done = "0";
+      cell.addEventListener('click', () => {
+        if(cell.dataset.done === "1") return;
+        openClue(cat.name, clueObj, cell);
+      });
+      board.appendChild(cell);
+    });
+  }
+}
+
+// ---------- CLUE MODAL ----------
+function openClue(catName, clueObj, cellEl){
+  currentClueEl = cellEl;
+  currentValue = clueObj.value;
+  document.getElementById('modalCat').textContent = catName.toUpperCase() + " · $" + clueObj.value;
+  document.getElementById('modalClue').textContent = clueObj.clue;
+  document.getElementById('modalAnswer').textContent = clueObj.answer;
+  document.getElementById('modalAnswer').style.display = 'none';
+  document.getElementById('revealBtn').style.display = 'inline-block';
+  document.getElementById('awardRow').style.display = 'none';
+  document.getElementById('noAwardBtn').style.display = 'none';
+  buildAwardRow('awardRow', clueObj.value, () => closeOverlay());
+  document.getElementById('overlay').classList.add('show');
+}
+
+function buildAwardRow(rowId, value, onDone){
+  const row = document.getElementById(rowId);
+  row.innerHTML = "";
+  teams.forEach((team, i) => {
+    const b = document.createElement('button');
+    b.className = 'correct';
+    b.textContent = team.name + " +$" + value;
+    b.onclick = () => { team.score += value; renderScoreboard(); onDone(); };
+    row.appendChild(b);
+  });
+  teams.forEach((team, i) => {
+    const b = document.createElement('button');
+    b.className = 'wrong';
+    b.textContent = team.name + " -$" + value;
+    b.onclick = () => { team.score -= value; renderScoreboard(); onDone(); };
+    row.appendChild(b);
+  });
+}
+
+document.getElementById('revealBtn').addEventListener('click', () => {
+  document.getElementById('modalAnswer').style.display = 'block';
+  document.getElementById('revealBtn').style.display = 'none';
+  document.getElementById('awardRow').style.display = 'flex';
+  document.getElementById('noAwardBtn').style.display = 'inline-block';
+});
+
+document.getElementById('noAwardBtn').addEventListener('click', closeOverlay);
+document.getElementById('closeModal').addEventListener('click', closeOverlay);
+
+function closeOverlay(){
+  document.getElementById('overlay').classList.remove('show');
+  if(currentClueEl){
+    currentClueEl.dataset.done = "1";
+    currentClueEl.classList.add('done');
+    currentClueEl.textContent = "—";
+  }
+  checkBoardComplete();
+}
+
+function checkBoardComplete(){
+  const cells = document.querySelectorAll('.clue-cell');
+  const allDone = [...cells].every(c => c.dataset.done === "1");
+  document.getElementById('finalBtn').disabled = !allDone;
+}
+
+// ---------- FINAL JEOPARDY ----------
+document.getElementById('finalBtn').addEventListener('click', () => {
+  document.getElementById('finalClue').textContent = finalClue.clue;
+  document.getElementById('finalAnswer').textContent = finalClue.answer;
+  document.getElementById('finalAnswer').style.display = 'none';
+  document.getElementById('finalRevealBtn').style.display = 'inline-block';
+  buildAwardRow('finalAwardRow', 0, () => {});
+  // Final jeopardy uses custom wager amounts, so just toggle scores manually via prompt
+  const row = document.getElementById('finalAwardRow');
+  row.innerHTML = "";
+  teams.forEach(team => {
+    const wrap = document.createElement('div');
+    wrap.style.display='flex'; wrap.style.gap='4px';
+    const plus = document.createElement('button');
+    plus.className='correct'; plus.textContent = team.name + " won: add wager";
+    plus.onclick = () => {
+      const w = prompt(team.name + "'s wager amount?", "500");
+      if(w !== null && !isNaN(w)){ team.score += Number(w); renderScoreboard(); }
+    };
+    const minus = document.createElement('button');
+    minus.className='wrong'; minus.textContent = team.name + " lost: subtract wager";
+    minus.onclick = () => {
+      const w = prompt(team.name + "'s wager amount?", "500");
+      if(w !== null && !isNaN(w)){ team.score -= Number(w); renderScoreboard(); }
+    };
+    row.appendChild(plus); row.appendChild(minus);
+  });
+  document.getElementById('finalOverlay').classList.add('show');
+});
+
+document.getElementById('finalRevealBtn').addEventListener('click', () => {
+  document.getElementById('finalAnswer').style.display = 'block';
+  document.getElementById('finalRevealBtn').style.display = 'none';
+});
+document.getElementById('closeFinal').addEventListener('click', () => {
+  document.getElementById('finalOverlay').classList.remove('show');
+});
+
+// ---------- RESET ----------
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if(!confirm("Reset the whole board and all scores?")) return;
+  teams = [
+    { name:"Team 1", score:0 }, { name:"Team 2", score:0 },
+    { name:"Team 3", score:0 }, { name:"Team 4", score:0 }, { name:"Team 5", score:0 }
+  ];
+  renderScoreboard();
+  renderBoard();
+  document.getElementById('finalBtn').disabled = true;
+});
+
+// ---------- INIT ----------
+renderScoreboard();
+renderBoard();
+document.getElementById('finalBtn').disabled = true;
+</script>
+</body>
+</html>
