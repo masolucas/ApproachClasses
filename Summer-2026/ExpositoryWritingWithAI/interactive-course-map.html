@@ -311,12 +311,12 @@
    ================================================================ */
 
 // Which week number should show the gold "Current Week" badge.
-const CURRENT_WEEK = 9;
+const CURRENT_WEEK = 11;
 
 // Which weeks are unlocked (materials visible + downloadable).
 // Add/remove numbers freely — they don't need to be in order,
 // so you can unlock a week early for a student who'll miss class.
-const UNLOCKED_WEEKS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+const UNLOCKED_WEEKS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11];
 
 // Materials per week. Add as many cards as you want per week.
 // type must be one of: "pptx", "docx", "pdf", "html"
@@ -369,7 +369,10 @@ const MATERIALS = {
         /*{ name: "Handout: Peer Feedback Revision Guide", type: "docx", url: "https://docs.google.com/document/d/1Zr6i0QeAz3bZV60cea7ztWHqn7tiSMOyehcGciwKwKA/copy" },*/
   ],
   10: [],
-  11: [],
+  11: [
+        { name: "Final Exam", type: "docx", url: "https://docs.google.com/document/d/14919N_GCPTeiqpM46hnofWTTu792uaKLfM97a01l4TQ/copy" },
+        { name: "Final Exam Rubric", type: "docx", url: "https://docs.google.com/document/d/1gkaJD9ldCxUYUAnMOIhR19KWpoFwBsg6ZCEpnPAUa2E/copy" }
+  ],
 };
 
 /* ================================================================
