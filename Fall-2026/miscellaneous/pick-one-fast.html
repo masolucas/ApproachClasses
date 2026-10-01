@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pick one, fast</title>
+<style>
+  /* ---------- Tokens ---------- */
+  :root {
+    --navy: #0f2340;
+    --gold: #c9a24b;
+    --gold-soft: #f1e6c8;
+    --cream: #faf6ee;
+    --bg: var(--cream);
+    --surface: #ffffff;
+    --ink: var(--navy);
+    --muted: #5a6578;
+    --line: #e4dccb;
+    --warn: #b4533a;
+    --btn-bg: var(--navy);
+    --btn-ink: #ffffff;
+    --display: Cambria, "Cambria Math", Georgia, "Times New Roman", serif;
+    --body: Calibri, Carlito, "Segoe UI", system-ui, sans-serif;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0b1a30; --surface: #13294a; --ink: #f3ecdc; --muted: #a9b3c4;
+      --line: #24406a; --gold-soft: #2c3a44; --btn-bg: var(--gold); --btn-ink: #0b1a30;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b1a30; --surface: #13294a; --ink: #f3ecdc; --muted: #a9b3c4;
+    --line: #24406a; --gold-soft: #2c3a44; --btn-bg: var(--gold); --btn-ink: #0b1a30;
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 1.125rem;
+    line-height: 1.5;
+  }
+
+  /* ---------- Layout ---------- */
+  .page { max-width: 1180px; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
+  .screen[hidden] { display: none; }
+
+  .frame {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: clamp(1.5rem, 4vw, 3rem);
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  .frame::before, .frame::after,
+  .frame > .corners::before, .frame > .corners::after {
+    content: "";
+    position: absolute;
+    width: 28px; height: 28px;
+    border: 0 solid var(--gold);
+    pointer-events: none;
+  }
+  .frame::before { top: -6px; left: -6px; border-top-width: 3px; border-left-width: 3px; }
+  .frame::after { bottom: -6px; right: -6px; border-bottom-width: 3px; border-right-width: 3px; }
+  .frame > .corners::before { top: -6px; right: -6px; border-top-width: 3px; border-right-width: 3px; }
+  .frame > .corners::after { bottom: -6px; left: -6px; border-bottom-width: 3px; border-left-width: 3px; }
+
+  /* ---------- Type ---------- */
+  h1, h2, h3 { font-family: var(--display); font-weight: 700; line-height: 1.15; margin: 0; }
+  .title { font-size: clamp(2.75rem, 8vw, 4.75rem); letter-spacing: -0.01em; }
+  .subtitle { font-family: var(--display); font-style: italic; color: var(--muted); font-size: 1.25rem; margin: 0.5rem 0 1.75rem; }
+  .round-count { color: var(--muted); font-size: 1rem; margin: 0 0 0.5rem; }
+  .round-title { font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 0.5rem; }
+  .task { font-size: 1.35rem; margin: 0 0 2rem; }
+  p { margin: 0 0 1rem; }
+  .steps { padding-left: 1.25rem; margin: 0 0 2rem; }
+  .steps li { margin-bottom: 0.4rem; }
+  .hint { color: var(--muted); font-size: 1rem; margin: 0.6rem 0 0; }
+
+  /* ---------- Controls ---------- */
+  .btn {
+    font: 700 1.125rem/1 var(--body);
+    background: var(--btn-bg);
+    color: var(--btn-ink);
+    border: 2px solid var(--btn-bg);
+    padding: 0.9rem 1.75rem;
+    cursor: pointer;
+    min-height: 48px;
+  }
+  .btn:hover { filter: brightness(1.12); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; filter: none; }
+  :focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+  .setting { margin: 0 0 1.75rem; }
+  .setting-label { display: block; font-weight: 700; margin-bottom: 0.5rem; }
+  .segmented { display: inline-flex; flex-wrap: wrap; border: 2px solid var(--btn-bg); }
+  .seg {
+    font: 600 1rem/1 var(--body);
+    background: transparent;
+    color: var(--ink);
+    border: 0;
+    padding: 0.7rem 1.1rem;
+    cursor: pointer;
+    min-height: 44px;
+  }
+  .seg + .seg { border-left: 2px solid var(--line); }
+  .seg[aria-pressed="true"] { background: var(--gold); color: var(--navy); }
+
+  /* ---------- Play screen ---------- */
+  .play-head {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 2;
+    background: var(--bg);
+    padding: 0.75rem 0 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .play-row { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+  .play-task { font-family: var(--display); font-size: clamp(1.2rem, 3vw, 1.7rem); font-weight: 700; margin: 0; }
+  .seconds {
+    font-family: var(--display);
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    min-width: 3ch;
+    text-align: right;
+  }
+  .seconds.low { color: var(--warn); }
+  .timer-track { height: 8px; background: var(--line); margin-top: 0.5rem; overflow: hidden; }
+  .timer-fill { height: 100%; background: var(--gold); transform-origin: left center; }
+  .timer-fill.low { background: var(--warn); }
+
+  .grid { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+  .grid.medium { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+  .grid.dense { grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 0.5rem; }
+
+  .option {
+    text-align: left;
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--gold);
+    padding: 1rem 1rem 1.1rem;
+    cursor: pointer;
+    font-family: var(--body);
+    min-height: 48px;
+  }
+  .option:hover { border-color: var(--gold); background: var(--gold-soft); }
+  .option:disabled { cursor: default; }
+  .option-name { display: block; font-family: var(--display); font-weight: 700; font-size: 1.3rem; line-height: 1.2; margin-bottom: 0.3rem; }
+  .option-fact { display: block; color: var(--muted); font-size: 0.98rem; line-height: 1.35; }
+  .option-fact + .option-fact { margin-top: 0.1rem; }
+  .grid.medium .option-name { font-size: 1.12rem; }
+  .grid.medium .option-fact { font-size: 0.92rem; }
+  .grid.dense .option { padding: 0.6rem 0.7rem; }
+  .grid.dense .option-name { font-size: 0.98rem; }
+  .grid.dense .option-fact { font-size: 0.82rem; }
+  .option.picked { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+  .option.picked .option-fact { color: var(--navy); }
+
+  /* ---------- Rating ---------- */
+  .outcome { font-size: 1.35rem; margin-bottom: 2rem; }
+  .outcome strong { font-family: var(--display); }
+  .question { margin: 0 0 1.75rem; border: 0; padding: 0; }
+  .question legend { font-weight: 700; margin-bottom: 0.6rem; padding: 0; }
+  .scale { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .choice {
+    font: 600 1rem/1.2 var(--body);
+    background: transparent;
+    color: var(--ink);
+    border: 2px solid var(--line);
+    padding: 0.65rem 1rem;
+    cursor: pointer;
+    min-height: 44px;
+    min-width: 48px;
+  }
+  .choice:hover { border-color: var(--gold); }
+  .choice[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+  .scale-ends { display: flex; justify-content: space-between; color: var(--muted); font-size: 0.9rem; max-width: 300px; margin-top: 0.35rem; }
+
+  /* ---------- Results ---------- */
+  .result-block { margin-top: 2rem; }
+  .result-block h3 { font-size: 1.5rem; padding-bottom: 0.4rem; border-bottom: 3px solid var(--gold); display: inline-block; }
+  .table-wrap { overflow-x: auto; margin: 0.75rem 0 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; }
+  th, td { text-align: left; padding: 0.7rem 0.75rem; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  th { font-size: 0.95rem; color: var(--muted); font-weight: 600; }
+  td.big { font-family: var(--display); font-size: 1.6rem; font-weight: 700; width: 5.5rem; }
+  .dots { display: inline-flex; gap: 4px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--gold); }
+  .dot.on { background: var(--gold); }
+  .none { color: var(--muted); font-style: italic; }
+
+  .discuss { margin-top: 2.5rem; border-top: 1px solid var(--line); padding-top: 1.75rem; }
+  .discuss h3 { font-size: 1.6rem; margin-bottom: 1rem; }
+  .discuss ol { padding-left: 1.4rem; margin: 0 0 2rem; }
+  .discuss li { margin-bottom: 0.6rem; font-size: 1.2rem; }
+
+  @media (max-width: 520px) {
+    .page { padding: 1.25rem 0.9rem 2rem; }
+    .grid, .grid.medium, .grid.dense { grid-template-columns: 1fr 1fr; }
+    .option-name { font-size: 1.05rem; }
+    .seg + .seg { border-left: 0; }
+  }
+</style>
+</head>
+<body>
+<main class="page">
+
+  <!-- Start -->
+  <section class="screen" id="screen-start">
+    <div class="frame"><span class="corners"></span>
+      <h1 class="title">Pick one, fast</h1>
+      <p class="subtitle">Food, travel, and work. Small menus and big ones.</p>
+      <ol class="steps">
+        <li>Each round shows you a set of options.</li>
+        <li>Choose one before the timer runs out.</li>
+        <li>Then say how you feel about your choice.</li>
+      </ol>
+      <div class="setting">
+        <span class="setting-label" id="cat-label">Categories</span>
+        <div class="segmented" role="group" aria-labelledby="cat-label" id="cat-group">
+          <button class="seg" type="button" data-cat="food" aria-pressed="true">Food</button>
+          <button class="seg" type="button" data-cat="travel" aria-pressed="true">Travel</button>
+          <button class="seg" type="button" data-cat="jobs" aria-pressed="true">Job offers</button>
+        </div>
+        <p class="hint" id="cat-hint"></p>
+      </div>
+      <div class="setting">
+        <span class="setting-label" id="pace-label">Pace</span>
+        <div class="segmented" role="group" aria-labelledby="pace-label" id="pace-group">
+          <button class="seg" type="button" data-pace="0" aria-pressed="true">Fast</button>
+          <button class="seg" type="button" data-pace="1" aria-pressed="false">Standard</button>
+          <button class="seg" type="button" data-pace="2" aria-pressed="false">Relaxed</button>
+        </div>
+        <p class="hint" id="pace-hint"></p>
+      </div>
+      <button class="btn" type="button" id="btn-begin">Begin</button>
+    </div>
+  </section>
+
+  <!-- Round intro -->
+  <section class="screen" id="screen-intro" hidden>
+    <div class="frame"><span class="corners"></span>
+      <p class="round-count" id="intro-count"></p>
+      <h2 class="round-title" id="intro-title"></h2>
+      <p class="task" id="intro-task"></p>
+      <button class="btn" type="button" id="btn-start-round">Start the timer</button>
+    </div>
+  </section>
+
+  <!-- Play -->
+  <section class="screen" id="screen-play" hidden>
+    <div class="play-head">
+      <div class="play-row">
+        <p class="play-task" id="play-task"></p>
+        <span class="seconds" id="seconds" aria-live="off"></span>
+      </div>
+      <div class="timer-track" aria-hidden="true"><div class="timer-fill" id="timer-fill"></div></div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <!-- Rate -->
+  <section class="screen" id="screen-rate" hidden>
+    <div class="frame"><span class="corners"></span>
+      <p class="outcome" id="outcome" aria-live="polite"></p>
+      <div id="rate-questions">
+        <fieldset class="question">
+          <legend>How sure are you that you made a good choice?</legend>
+          <div class="scale" id="q-sure">
+            <button class="choice" type="button" data-value="1" aria-pressed="false">1</button>
+            <button class="choice" type="button" data-value="2" aria-pressed="false">2</button>
+            <button class="choice" type="button" data-value="3" aria-pressed="false">3</button>
+            <button class="choice" type="button" data-value="4" aria-pressed="false">4</button>
+            <button class="choice" type="button" data-value="5" aria-pressed="false">5</button>
+          </div>
+          <div class="scale-ends"><span>Not sure at all</span><span>Completely sure</span></div>
+        </fieldset>
+        <fieldset class="question">
+          <legend>If you could choose again, would you change your choice?</legend>
+          <div class="scale" id="q-change">
+            <button class="choice" type="button" data-value="Yes" aria-pressed="false">Yes</button>
+            <button class="choice" type="button" data-value="Maybe" aria-pressed="false">Maybe</button>
+            <button class="choice" type="button" data-value="No" aria-pressed="false">No</button>
+          </div>
+        </fieldset>
+      </div>
+      <button class="btn" type="button" id="btn-next" disabled>Next round</button>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section class="screen" id="screen-results" hidden>
+    <div class="frame"><span class="corners"></span>
+      <h2 class="round-title">Your decisions</h2>
+      <div id="results-body"></div>
+      <div class="discuss">
+        <h3>Talk with a partner</h3>
+        <ol>
+          <li>In which category did more options make choosing hardest? Why?</li>
+          <li>Did you feel more sure or less sure when there were more options?</li>
+          <li>Was choosing a job harder than choosing food? Was it only because of the number of options?</li>
+          <li>When do you face too many options in real life?</li>
+          <li>Is having more choice always a good thing?</li>
+        </ol>
+      </div>
+      <button class="btn" type="button" id="btn-restart">Play again</button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  /* Each option: "Name|fact|fact|fact" */
+  const CATEGORIES = [
+    {
+      id: "food",
+      label: "Food",
+      times: [10, 15, 20],
+      rounds: [
+        { title: "At the café", task: "Choose a drink.", options: [
+          "Espresso|Short, strong, and black",
+          "Latte|Espresso with lots of steamed milk",
+          "Iced tea|Cold, lightly sweet, with lemon"
+        ]},
+        { title: "Dinner tonight", task: "Choose one pizza to order.", options: [
+          "Margherita|Tomato, mozzarella, fresh basil",
+          "Pepperoni|Spicy, crispy pepperoni",
+          "Four cheese|Mozzarella, gorgonzola, parmesan, fontina",
+          "Hawaiian|Ham and pineapple",
+          "Veggie supreme|Peppers, onions, olives, mushrooms",
+          "BBQ chicken|Smoky sauce, chicken, red onion",
+          "Mushroom truffle|Wild mushrooms, truffle oil",
+          "Buffalo chicken|Hot sauce, chicken, ranch drizzle",
+          "Meat lovers|Sausage, bacon, ham, pepperoni",
+          "Pesto and tomato|Basil pesto, cherry tomatoes",
+          "Spinach and feta|Garlic, spinach, salty feta",
+          "Sausage and peppers|Italian sausage, roasted peppers"
+        ]},
+        { title: "The ice cream shop", task: "Choose one flavor.", options: [
+          "Vanilla bean|Classic and creamy", "Chocolate fudge|Rich, dark, thick",
+          "Strawberry|Fresh fruit pieces", "Mint chip|Cool mint, dark chocolate",
+          "Cookies and cream|Crushed chocolate cookies", "Salted caramel|Sweet and a little salty",
+          "Pistachio|Nutty and smooth", "Coffee|Bold espresso flavor",
+          "Rocky road|Marshmallows and almonds", "Butter pecan|Toasted pecans",
+          "Mango sorbet|Tropical, dairy-free", "Lemon sorbet|Sharp and refreshing",
+          "Raspberry ripple|Vanilla with berry swirls", "Coconut|Light and tropical",
+          "Black sesame|Toasty and earthy", "Matcha|Japanese green tea",
+          "Dulce de leche|Slow-cooked caramel milk", "Cookie dough|Chunks of raw dough",
+          "Peanut butter cup|Peanut butter and chocolate", "Birthday cake|Cake bits and sprinkles",
+          "Black cherry|Deep, sweet cherries", "Banana split|Banana, fudge, nuts",
+          "Honey lavender|Floral and sweet", "Rum raisin|Soaked raisins",
+          "Brownie batter|Fudgy brownie pieces", "Toasted marshmallow|Smoky and sweet",
+          "Cinnamon|Warm spice", "Blueberry cheesecake|Berries and cheesecake",
+          "Hazelnut|Roasted Italian hazelnuts", "Chocolate chili|Dark chocolate with heat"
+        ]}
+      ]
+    },
+    {
+      id: "travel",
+      label: "Travel",
+      times: [20, 30, 40],
+      rounds: [
+        { title: "A long weekend", task: "Choose a getaway.", options: [
+          "Mountain cabin|$350 total|3-hour drive|Quiet hiking, no Wi-Fi",
+          "Beach resort|$600 total|90-minute flight|Pools, crowds, all-inclusive",
+          "City break|$450 total|4-hour train|Museums, nightlife, tiny room"
+        ]},
+        { title: "A new city", task: "Choose a hotel for three nights.", options: [
+          "Grand Plaza|$320 a night|City center|Rooftop pool, very busy",
+          "Budget Inn|$89 a night|40 minutes by bus|Clean, no breakfast",
+          "Harbor Boutique|$210 a night|Waterfront|Great reviews, small rooms",
+          "Airport Suites|$130 a night|5 minutes to airport|Free shuttle, nothing nearby",
+          "Old Town B&B|$160 a night|Historic area|Breakfast included, no elevator",
+          "Hostel Central|$45 a night|City center|Shared room, social events",
+          "Riverside Apartment|$180 a night|15-minute walk|Kitchen, self check-in",
+          "Garden Hotel|$140 a night|Quiet suburb|Free parking, 30 minutes to center",
+          "Skyline Tower|$270 a night|Business district|Amazing views, empty at night",
+          "Artist Loft|$150 a night|Arts district|Unique design, noisy street",
+          "Family Resort|$230 a night|20-minute drive|Pools and kids' club, far from sights",
+          "Station Hotel|$110 a night|Next to main station|Convenient, small and dated"
+        ]},
+        { title: "Summer vacation", task: "Choose a destination for one week.", options: [
+          "Lisbon, Portugal|About $1,400|7-hour flight|Sunny, hilly, great food",
+          "Tokyo, Japan|About $2,600|14-hour flight|Exciting but expensive",
+          "Cancún, Mexico|About $1,200|4-hour flight|Beaches, very touristy",
+          "Reykjavík, Iceland|About $2,200|6-hour flight|Amazing nature, cool weather",
+          "Rome, Italy|About $1,800|9-hour flight|History, hot, crowded",
+          "Bangkok, Thailand|About $1,500|18-hour flight|Cheap once there, very hot",
+          "Vancouver, Canada|About $1,300|6-hour flight|Mountains and ocean",
+          "Cape Town, South Africa|About $2,100|20-hour flight|Stunning views, winter there",
+          "Barcelona, Spain|About $1,700|8-hour flight|Beach and city, crowded",
+          "Marrakech, Morocco|About $1,400|10-hour flight|Markets, culture shock, heat",
+          "Sydney, Australia|About $2,900|21-hour flight|Harbor city, winter there",
+          "Prague, Czechia|About $1,500|10-hour flight|Old town, busy streets",
+          "Cusco, Peru|About $1,600|9-hour flight|Machu Picchu, high altitude",
+          "Seoul, South Korea|About $2,300|15-hour flight|Food, shopping, fast pace",
+          "Dubrovnik, Croatia|About $1,900|11-hour flight|Sea views, cruise crowds",
+          "New Orleans, USA|About $900|3-hour flight|Music and food, humid",
+          "Banff, Canada|About $1,600|5-hour flight|Lakes and hiking, need a car",
+          "Istanbul, Türkiye|About $1,500|11-hour flight|Two continents, busy",
+          "Bali, Indonesia|About $1,900|22-hour flight|Beaches, temples, traffic",
+          "Amsterdam, Netherlands|About $1,900|8-hour flight|Canals, pricey hotels",
+          "Buenos Aires, Argentina|About $1,500|11-hour flight|Tango, steak, winter there",
+          "Santorini, Greece|About $2,400|13-hour flight|Famous sunsets, very pricey",
+          "Hanoi, Vietnam|About $1,600|20-hour flight|Street food, cheap, chaotic",
+          "Costa Rica|About $1,400|5-hour flight|Wildlife, rainy season",
+          "Edinburgh, Scotland|About $1,600|8-hour flight|Castles, festivals, cool weather",
+          "Honolulu, USA|About $2,000|11-hour flight|Beaches and surfing, pricey",
+          "Mexico City, Mexico|About $1,000|5-hour flight|Museums, food, huge city",
+          "Copenhagen, Denmark|About $2,300|9-hour flight|Design and bikes, costly",
+          "Queenstown, New Zealand|About $3,100|24-hour flight|Adventure sports, winter",
+          "Montreal, Canada|About $1,000|2-hour flight|French culture, festivals"
+        ]}
+      ]
+    },
+    {
+      id: "jobs",
+      label: "Job offers",
+      times: [25, 35, 45],
+      rounds: [
+        { title: "A summer job", task: "Choose one job for the summer.", options: [
+          "Lifeguard|$16 an hour|30 hours a week|Outdoors, early mornings",
+          "Café barista|$14 an hour plus tips|25 hours a week|Free coffee, weekend shifts",
+          "Office assistant|$18 an hour|20 hours a week|Quiet, good for your résumé"
+        ]},
+        { title: "While you study", task: "Choose a part-time job.", options: [
+          "Library assistant|$15 an hour|15 hours a week|On campus, quiet",
+          "Food delivery driver|$12 to $25 an hour|Your own hours|Flexible, need a car",
+          "Tutor|$25 an hour|6 hours a week|Few hours, uses your skills",
+          "Retail sales|$15 an hour|20 hours a week|Staff discount, busy weekends",
+          "Restaurant server|$8 an hour plus tips|20 hours a week|Tips vary, late nights",
+          "Research assistant|$17 an hour|10 hours a week|Great for grad school",
+          "Dog walker|$20 an hour|8 hours a week|Outdoors in any weather",
+          "Hotel front desk|$16 an hour|24 hours a week|Night shifts, time to study",
+          "Social media helper|$18 an hour|10 hours a week|Remote, may end any time",
+          "Gym receptionist|$14 an hour|15 hours a week|Free membership, early starts",
+          "Warehouse packer|$19 an hour|25 hours a week|Good pay, physically tiring",
+          "Event staff|$20 an hour|Weekends only|Fun, hours not steady"
+        ]},
+        { title: "After graduation", task: "Choose a full-time job offer.", options: [
+          "Marketing coordinator|$52,000|Downtown office|Friendly team, slow promotions",
+          "Software tester|$68,000|Fully remote|Good pay, repetitive work",
+          "Bank analyst|$75,000|City office|55-hour weeks",
+          "Teacher|$48,000|Local school|Summers off, big classes",
+          "Startup sales rep|$45,000 plus commission|Hybrid|Could earn a lot, or very little",
+          "Hotel manager trainee|$50,000|New city every year|Travel, unstable life",
+          "Government clerk|$47,000|Office|Very secure, slow pace",
+          "UX designer|$70,000|Hybrid|Creative, tight deadlines",
+          "Nursing assistant|$40,000|Hospital|Meaningful, night shifts",
+          "Data analyst|$72,000|Fully remote|Good growth, works alone",
+          "Flight attendant|$42,000|Airport base|Free flights, irregular schedule",
+          "Journalist|$44,000|Newsroom|Exciting, job insecurity",
+          "Accountant|$62,000|Suburban office|Stable, busy tax season",
+          "Translator|About $50,000|Freelance|Choose your hours, no benefits",
+          "Event planner|$49,000|City center|Creative, evenings and weekends",
+          "Field engineer|$85,000|Remote work site|High pay, weeks away from home",
+          "NGO program officer|$46,000|Abroad|Meaningful, low pay",
+          "Real estate agent|Commission only|Local|No limit on income, no salary",
+          "HR assistant|$48,000|Office|Good benefits, lots of paperwork",
+          "Chef|$45,000|Restaurant|Creative, long hot hours",
+          "Customer success rep|$55,000|Fully remote|Friendly, many calls",
+          "Consultant|$90,000|Travels every week|Top salary, little free time",
+          "Museum educator|$41,000|Museum|Inspiring, few promotions",
+          "Pharmacy technician|$43,000|Store|Stable, standing all day",
+          "Social media manager|$56,000|Hybrid|Fun, always online",
+          "Logistics planner|$58,000|Port office|Problem-solving, early starts",
+          "Family business|$60,000|Your hometown|Trust, family pressure",
+          "Pilot trainee|$30,000 first year|Training center|Big future salary, training debt",
+          "Graphic designer|$50,000|Agency|Creative, demanding clients",
+          "Personal trainer|About $38,000|Gym|Active, income goes up and down"
+        ]}
+      ]
+    }
+  ];
+
+  const $ = (id) => document.getElementById(id);
+  const screens = ["start", "intro", "play", "rate", "results"];
+
+  let selectedCats = new Set(["food", "travel", "jobs"]);
+  let pace = 0;
+  let queue = [];      // [{cat, round, roundNo}]
+  let qIndex = 0;
+  let results = [];
+  let current = null;
+  let startTime = 0;
+  let rafId = null;
+  let locked = false;
+  let seconds = 10;
+
+  function show(name) {
+    screens.forEach((s) => { $("screen-" + s).hidden = s !== name; });
+    window.scrollTo(0, 0);
+    const target = $("screen-" + name).querySelector("h1, h2, .play-task, .outcome");
+    if (target) { target.setAttribute("tabindex", "-1"); target.focus({ preventScroll: true }); }
+  }
+
+  /* ---------- Settings ---------- */
+  function refreshSettings() {
+    const active = CATEGORIES.filter((c) => selectedCats.has(c.id));
+    const rounds = active.length * 3;
+    $("cat-hint").textContent = rounds
+      ? rounds + " rounds, about " + Math.max(3, Math.round(rounds * 0.9)) + " minutes."
+      : "Choose at least one category.";
+    $("pace-hint").textContent = active.length
+      ? "Time per round: " + active.map((c) => c.label + " " + c.times[pace] + " s").join(", ") + "."
+      : "";
+    $("btn-begin").disabled = rounds === 0;
+  }
+
+  document.querySelectorAll("#cat-group .seg").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.cat;
+      if (selectedCats.has(id)) selectedCats.delete(id); else selectedCats.add(id);
+      btn.setAttribute("aria-pressed", String(selectedCats.has(id)));
+      refreshSettings();
+    });
+  });
+  document.querySelectorAll("#pace-group .seg").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      pace = Number(btn.dataset.pace);
+      document.querySelectorAll("#pace-group .seg").forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+      refreshSettings();
+    });
+  });
+
+  /* ---------- Flow ---------- */
+  function begin() {
+    queue = [];
+    CATEGORIES.forEach((cat) => {
+      if (!selectedCats.has(cat.id)) return;
+      cat.rounds.forEach((round, i) => queue.push({ cat, round, roundNo: i + 1 }));
+    });
+    qIndex = 0;
+    results = [];
+    showIntro();
+  }
+
+  function showIntro() {
+    const { cat, round, roundNo } = queue[qIndex];
+    seconds = cat.times[pace];
+    $("intro-count").textContent = cat.label + ": round " + roundNo + " of 3 (" + (qIndex + 1) + " of " + queue.length + " overall)";
+    $("intro-title").textContent = round.title;
+    $("intro-task").textContent = round.task + " You have " + seconds + " seconds.";
+    show("intro");
+  }
+
+  function startRound() {
+    const { round } = queue[qIndex];
+    const n = round.options.length;
+    const grid = $("grid");
+    grid.className = "grid" + (n > 20 ? " dense" : n > 6 ? " medium" : "");
+    grid.innerHTML = "";
+    round.options.forEach((raw) => {
+      const [name, ...facts] = raw.split("|");
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "option";
+      const nm = document.createElement("span");
+      nm.className = "option-name";
+      nm.textContent = name;
+      b.appendChild(nm);
+      facts.forEach((f) => {
+        const s = document.createElement("span");
+        s.className = "option-fact";
+        s.textContent = f;
+        b.appendChild(s);
+      });
+      b.addEventListener("click", () => finish(name, b));
+      grid.appendChild(b);
+    });
+    $("play-task").textContent = round.task;
+    locked = false;
+    show("play");
+    startTime = performance.now();
+    tick();
+  }
+
+  function tick() {
+    const elapsed = (performance.now() - startTime) / 1000;
+    const remaining = Math.max(0, seconds - elapsed);
+    const low = remaining <= Math.max(3, seconds * 0.2);
+    $("seconds").textContent = Math.ceil(remaining);
+    $("seconds").classList.toggle("low", low);
+    $("timer-fill").style.transform = "scaleX(" + (remaining / seconds) + ")";
+    $("timer-fill").classList.toggle("low", low);
+    if (remaining <= 0) { finish(null, null); return; }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function finish(choice, btn) {
+    if (locked) return;
+    locked = true;
+    cancelAnimationFrame(rafId);
+    const elapsed = (performance.now() - startTime) / 1000;
+    document.querySelectorAll("#grid .option").forEach((b) => { b.disabled = true; });
+    const { cat, round } = queue[qIndex];
+    current = {
+      catId: cat.id,
+      count: round.options.length,
+      title: round.title,
+      choice: choice,
+      time: choice ? Math.min(elapsed, seconds) : null,
+      sure: null,
+      change: null
+    };
+    if (btn) { btn.classList.add("picked"); setTimeout(showRate, 450); }
+    else showRate();
+  }
+
+  function showRate() {
+    const outcome = $("outcome");
+    outcome.innerHTML = "";
+    if (current.choice) {
+      outcome.append("You chose ");
+      const s = document.createElement("strong");
+      s.textContent = current.choice;
+      outcome.append(s, " in " + current.time.toFixed(1) + " seconds.");
+      $("rate-questions").hidden = false;
+    } else {
+      outcome.textContent = "Time's up. You didn't choose anything.";
+      $("rate-questions").hidden = true;
+    }
+    document.querySelectorAll("#q-sure .choice, #q-change .choice").forEach((b) => b.setAttribute("aria-pressed", "false"));
+    $("btn-next").textContent = qIndex < queue.length - 1 ? "Next round" : "See my results";
+    updateNext();
+    show("rate");
+  }
+
+  function bindScale(groupId, key) {
+    document.querySelectorAll("#" + groupId + " .choice").forEach((b) => {
+      b.addEventListener("click", () => {
+        current[key] = b.dataset.value;
+        document.querySelectorAll("#" + groupId + " .choice").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+        updateNext();
+      });
+    });
+  }
+  bindScale("q-sure", "sure");
+  bindScale("q-change", "change");
+
+  function updateNext() {
+    $("btn-next").disabled = Boolean(current.choice) && (!current.sure || !current.change);
+  }
+
+  function next() {
+    results.push(current);
+    qIndex++;
+    if (qIndex < queue.length) showIntro();
+    else showResults();
+  }
+
+  function cell(text, cls) {
+    const td = document.createElement("td");
+    td.textContent = text;
+    if (cls) td.className = cls;
+    return td;
+  }
+
+  function showResults() {
+    const wrap = $("results-body");
+    wrap.innerHTML = "";
+    CATEGORIES.forEach((cat) => {
+      const rows = results.filter((r) => r.catId === cat.id);
+      if (!rows.length) return;
+      const block = document.createElement("div");
+      block.className = "result-block";
+      const h = document.createElement("h3");
+      h.textContent = cat.label;
+      block.appendChild(h);
+
+      const tw = document.createElement("div");
+      tw.className = "table-wrap";
+      const table = document.createElement("table");
+      table.innerHTML = '<thead><tr><th scope="col">Options</th><th scope="col">Your choice</th><th scope="col">Time</th><th scope="col">How sure</th><th scope="col">Change it?</th></tr></thead>';
+      const tbody = document.createElement("tbody");
+
+      rows.forEach((r) => {
+        const tr = document.createElement("tr");
+        tr.appendChild(cell(String(r.count), "big"));
+        tr.appendChild(r.choice ? cell(r.choice) : cell("No choice", "none"));
+        tr.appendChild(cell(r.time !== null ? r.time.toFixed(1) + " s" : "Ran out"));
+        const tdSure = document.createElement("td");
+        if (r.sure) {
+          const dots = document.createElement("span");
+          dots.className = "dots";
+          dots.setAttribute("role", "img");
+          dots.setAttribute("aria-label", r.sure + " out of 5");
+          for (let i = 1; i <= 5; i++) {
+            const d = document.createElement("span");
+            d.className = "dot" + (i <= Number(r.sure) ? " on" : "");
+            dots.appendChild(d);
+          }
+          tdSure.appendChild(dots);
+        } else { tdSure.textContent = "None"; tdSure.className = "none"; }
+        tr.appendChild(tdSure);
+        tr.appendChild(r.change ? cell(r.change) : cell("None", "none"));
+        tbody.appendChild(tr);
+      });
+
+      table.appendChild(tbody);
+      tw.appendChild(table);
+      block.appendChild(tw);
+      wrap.appendChild(block);
+    });
+    show("results");
+  }
+
+  $("btn-begin").addEventListener("click", begin);
+  $("btn-start-round").addEventListener("click", startRound);
+  $("btn-next").addEventListener("click", next);
+  $("btn-restart").addEventListener("click", () => show("start"));
+
+  refreshSettings();
+})();
+</script>
+</body>
+</html>
