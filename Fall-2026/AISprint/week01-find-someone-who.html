@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI Sprint · Week 1 · Find someone who…</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0C2340; --navy2:#143865; --gold:#AE9142; --goldb:#D39F10; --warm:#EFE9D9;
+  --bg:#F8F4EC; --paper:#FFFFFF; --ink:#1A1A1A; --inks:#3D3D3D; --muted:#6B6B6B; --line:#D9D2C0;
+  --z-ai:#0E6B6B; --z-ai-s:#D0EDED; --z-check:#8C6A12; --z-check-s:#F5EED2; --z-human:#0C2340; --z-human-s:#E1E8F2;
+  --flag:#C0392B; --ok:#26890C;
+  --serif:Cambria,Caladea,Georgia,"Times New Roman",serif; --sans:"Montserrat",Calibri,Arial,sans-serif;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#081629; --paper:#0F2647; --ink:#F3EEE2; --inks:#D9D2C0; --muted:#A9A397; --line:#29426A;
+  --z-ai:#5EC4C4; --z-ai-s:#0E3B3F; --z-check:#E2C46A; --z-check-s:#3A3217; --z-human:#B7C9E6; --z-human-s:#1B3358; --flag:#F07467; --ok:#7BD36A;}}
+:root[data-theme="dark"]{
+  --bg:#081629; --paper:#0F2647; --ink:#F3EEE2; --inks:#D9D2C0; --muted:#A9A397; --line:#29426A;
+  --z-ai:#5EC4C4; --z-ai-s:#0E3B3F; --z-check:#E2C46A; --z-check-s:#3A3217; --z-human:#B7C9E6; --z-human-s:#1B3358; --flag:#F07467; --ok:#7BD36A;}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5}
+svg{width:1em;height:1em;vertical-align:-0.125em;fill:currentColor}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--goldb);outline-offset:2px}
+header.top{background:#0C2340;color:#EFE9D9;padding:18px clamp(16px,4vw,40px) 0}
+.brandrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.mono{width:38px;height:38px;border:1.5px solid #AE9142;border-radius:50%;display:grid;place-items:center;font-family:var(--serif);font-style:italic;font-weight:700;color:#AE9142;font-size:20px;flex:none}
+.brandtxt b{display:block;font-size:13px;letter-spacing:.06em;color:#D9C38A;font-weight:600}
+.brandtxt span{font-size:13px;color:#EFE9D9;opacity:.85}
+nav.tabs{display:flex;gap:4px;margin-top:16px;overflow-x:auto}
+nav.tabs button{background:transparent;border:0;border-bottom:3px solid transparent;color:#EFE9D9;padding:10px 14px 12px;cursor:pointer;font-weight:600;font-size:15px;white-space:nowrap;opacity:.8;display:flex;gap:8px;align-items:center}
+nav.tabs button[aria-selected="true"]{border-bottom-color:#AE9142;opacity:1;color:#fff}
+main{max-width:1100px;margin:0 auto;padding:24px clamp(16px,4vw,40px) 60px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.1;margin:0 0 6px;letter-spacing:-0.01em}
+h1 em{color:var(--gold);font-style:italic}
+:root[data-theme="dark"] h1 em{color:#D9C38A}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) h1 em{color:#D9C38A}}
+.lead{font-family:var(--serif);font-style:italic;color:var(--inks);font-size:18px;margin:0 0 20px;max-width:70ch}
+.status{font-size:14px;color:var(--muted);margin:0 0 18px;padding:10px 14px;border:1px dashed var(--line);border-radius:6px;background:var(--paper)}
+.status.live{border-style:solid;border-color:var(--ok);color:var(--inks)}
+.btn{background:#0C2340;color:#fff;border:0;border-radius:6px;padding:11px 18px;font-weight:600;cursor:pointer}
+.btn.gold{background:#AE9142;color:#0C2340}
+.btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:18px}
+.hidden{display:none !important}
+/* mingle */
+.frames{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px}
+.frames span{font-family:var(--serif);font-style:italic;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:15px}
+.mlist{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.mitem{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;grid-template-columns:1fr;gap:8px}
+.mitem.done{border-color:var(--gold)}
+.mitem p{margin:0;font-family:var(--serif);font-size:18px}
+.mitem p small{font-family:var(--sans);font-size:12px;color:var(--muted);display:block}
+.mfields{display:grid;grid-template-columns:minmax(120px,200px) 1fr;gap:8px}
+@media (max-width:560px){.mfields{grid-template-columns:1fr}}
+input[type=text]{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.warn{color:var(--flag);font-size:13px;margin:0}
+.report{margin-top:22px}
+.report .say{font-family:var(--serif);font-size:22px;margin:10px 0 0}
+/* sort */
+.groups{display:flex;gap:8px;flex-wrap:wrap}
+.groups button{width:56px;height:56px;border-radius:8px;border:1.5px solid var(--line);background:var(--paper);font-family:var(--serif);font-size:24px;cursor:pointer}
+.groups button[aria-pressed="true"]{background:#0C2340;color:#fff;border-color:#0C2340}
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 18px}
+.zchip{display:inline-flex;gap:7px;align-items:center;font-weight:600;font-size:14px;padding:5px 11px;border-radius:999px;border:1.5px solid currentColor}
+.z-ai{color:var(--z-ai)} .z-check{color:var(--z-check)} .z-human{color:var(--z-human)}
+.sticky{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line);margin-bottom:14px}
+.prog{font-size:14px;color:var(--inks)}
+.prog b{color:var(--ink)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.card[data-z="ai"]{border-color:var(--z-ai);box-shadow:inset 4px 0 0 var(--z-ai)}
+.card[data-z="check"]{border-color:var(--z-check);box-shadow:inset 4px 0 0 var(--z-check)}
+.card[data-z="human"]{border-color:var(--z-human);box-shadow:inset 4px 0 0 var(--z-human)}
+.card .t{font-family:var(--serif);font-size:18px;line-height:1.3;margin:0}
+.zbtns{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.zbtns button{border:1.5px solid var(--line);background:transparent;border-radius:6px;padding:7px 4px;font-size:12px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;line-height:1.2}
+.zbtns button svg{font-size:16px}
+.zbtns button[aria-pressed="true"].z-ai{background:var(--z-ai-s);border-color:var(--z-ai)}
+.zbtns button[aria-pressed="true"].z-check{background:var(--z-check-s);border-color:var(--z-check)}
+.zbtns button[aria-pressed="true"].z-human{background:var(--z-human-s);border-color:var(--z-human)}
+.card input{font-size:14px}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:820px){.cols{grid-template-columns:1fr}}
+.col h3{margin:0 0 10px;font-size:15px;display:flex;gap:8px;align-items:center}
+.ritem{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:8px}
+.ritem p{margin:0;font-family:var(--serif);font-size:16px}
+.ritem .why{font-family:var(--serif);font-style:italic;color:var(--inks);font-size:14px;margin-top:4px}
+.flagbtn{margin-top:8px;border:1.5px solid var(--line);background:transparent;border-radius:6px;padding:5px 10px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.flagbtn[aria-pressed="true"]{border-color:var(--flag);color:var(--flag)}
+.flagcount{color:var(--flag);font-size:13px;font-weight:600;margin-top:6px;display:flex;gap:6px;align-items:center}
+/* board */
+.bitem{display:grid;grid-template-columns:44px 1fr;gap:12px;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:10px}
+.bitem.top3{border-color:var(--gold);border-width:2px}
+.rank{font-family:var(--serif);font-style:italic;font-size:30px;color:var(--gold);line-height:1}
+.bitem .t{font-family:var(--serif);font-size:19px;margin:0 0 8px}
+.bar{display:flex;height:22px;border-radius:4px;overflow:hidden;background:var(--bg);border:1px solid var(--line)}
+.bar div{height:100%}
+.bar .ai{background:var(--z-ai)} .bar .check{background:var(--z-check)} .bar .human{background:var(--z-human)}
+.bmeta{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--inks);margin-top:6px}
+.tag{display:inline-block;font-size:12px;font-weight:700;color:var(--gold);border:1.5px solid var(--gold);border-radius:999px;padding:1px 9px;margin-left:8px;vertical-align:middle;font-family:var(--sans)}
+.sugg{margin-top:8px;font-size:14px;border-top:1px dashed var(--line);padding-top:8px}
+.sugg b{font-weight:700}
+footer.small{margin-top:40px;font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.card,.zbtns button{transition:border-color .15s,background .15s}}
+header.top{padding-bottom:18px}
+textarea.auto{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:6px;background:var(--bg);font:inherit;color:inherit;resize:none;overflow:hidden;min-height:42px;line-height:1.45;display:block}
+.card textarea.auto{font-size:14px}
+.field{display:grid;gap:4px;margin:0 0 18px;max-width:520px}
+.field label{font-weight:600;font-size:14px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px;align-items:center}
+.saved{font-size:13px;color:var(--muted)}
+.mfields{align-items:start}
+.visit{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+#print{display:none}
+@media print{
+  @page{size:letter;margin:0.6in}
+  body{background:#fff;color:#000;font-size:11pt}
+  header.top,main{display:none !important}
+  #print{display:block}
+  #print h1{font-family:Cambria,Georgia,serif;font-size:22pt;color:#0C2340;margin:0 0 4pt}
+  #print .meta{font-family:Calibri,Arial,sans-serif;font-size:10pt;color:#333;margin:0 0 14pt;border-bottom:1.5pt solid #AE9142;padding-bottom:6pt}
+  #print .brand{font-family:Calibri,Arial,sans-serif;font-size:8pt;letter-spacing:.12em;font-weight:700;color:#0C2340;margin:0 0 8pt}
+  #print table{width:100%;border-collapse:collapse;font-family:Cambria,Georgia,serif;font-size:10.5pt}
+  #print th{text-align:left;font-family:Calibri,Arial,sans-serif;font-size:8.5pt;letter-spacing:.08em;text-transform:uppercase;color:#0C2340;border-bottom:1.2pt solid #0C2340;padding:4pt 6pt}
+  #print td{border-bottom:.6pt solid #BFB7A3;padding:6pt;vertical-align:top;white-space:pre-wrap;word-wrap:break-word}
+  #print tr{break-inside:avoid}
+  #print h2{font-family:Cambria,Georgia,serif;font-size:13pt;color:#0C2340;margin:16pt 0 6pt}
+  #print .foot{margin-top:18pt;font-family:Calibri,Arial,sans-serif;font-size:8pt;color:#666}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brandrow">
+    <div class="mono" aria-hidden="true">A</div>
+    <div class="brandtxt"><b>AI SPRINT</b><span>Week 1 · Find someone who…</span></div>
+  </div>
+</header>
+<main>
+  <h1>Find someone <em>who…</em></h1>
+  <p class="lead">Walk around and talk to classmates. Write one first name in each box, plus one detail you learned. Use a different person for each box.</p>
+  <div class="field"><label for="m-me">Your name</label><input type="text" id="m-me" maxlength="60" autocomplete="name"></div>
+  <div class="frames" aria-label="Useful questions">
+    <span>Have you ever…?</span><span>Do you…?</span><span>What happened?</span><span>Tell me more about that.</span>
+  </div>
+  <p class="prog" id="m-prog"></p>
+  <ul class="mlist" id="m-list"></ul>
+  <div class="panel report">
+    <strong>Report back</strong>
+    <p class="prog" style="margin:4px 0 10px">Choose one classmate to tell the class about.</p>
+    <div class="row" id="m-pick"></div>
+    <p class="say" id="m-say"></p>
+  </div>
+  <div class="actions">
+    <button class="btn gold" id="m-pdf">Save as PDF</button>
+    <button class="btn ghost" id="m-reset">Start over</button>
+    <span class="saved" id="m-saved" aria-live="polite"></span>
+  </div>
+  <footer class="small">Your answers are saved only in this browser on this laptop. First names only, please.</footer>
+</main>
+<section id="print" aria-hidden="true"></section>
+
+<script>
+const $ = s => document.querySelector(s);
+const el = (tag, attrs={}, kids=[]) => { const e=document.createElement(tag); for(const [k,v] of Object.entries(attrs)){ if(k==='text') e.textContent=v; else if(k==='html') e.innerHTML=v; else if(k.startsWith('on')) e.addEventListener(k.slice(2),v); else e.setAttribute(k,v);} for(const c of [].concat(kids)) if(c!=null && c!==false) e.append(c); return e; };
+const store = {
+  get(k, d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+function autosize(t){ t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'px'; }
+function autoTextarea(attrs, value, onInput){
+  const t=el('textarea',Object.assign({class:'auto',rows:'1'},attrs)); t.value=value||'';
+  t.addEventListener('input',()=>{ autosize(t); onInput(t.value); });
+  requestAnimationFrame(()=>autosize(t));
+  return t;
+}
+window.addEventListener('resize',()=>document.querySelectorAll('textarea.auto').forEach(autosize));
+function savedNote(id, ok){ const n=$(id); if(!n) return; n.textContent = ok ? 'Saved on this laptop · '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}) : 'This browser is not saving: use “Save as PDF” before you close the page.'; }
+const today = () => new Date().toLocaleDateString([], {year:'numeric',month:'long',day:'numeric'});
+
+const MINGLE = ["has used AI to translate something","has asked AI for a recipe or a travel tip","has never used an AI chatbot","thinks AI will change their job or field of study","has seen AI make a mistake","uses an AI tool almost every day","speaks three or more languages","has a rule about what they will never ask AI"];
+const KEY = 'aisprint-w1-mingle';
+const st = store.get(KEY, null);
+const S = { me: st&&st.me || '', rows: MINGLE.map((_,i)=> (st&&st.rows&&st.rows[i]) || {name:'',detail:''}), pick: st ? st.pick : null };
+function save(){ savedNote('#m-saved', store.set(KEY, S)); }
+
+const me=$('#m-me'); me.value=S.me; me.addEventListener('input',()=>{ S.me=me.value; save(); });
+
+function renderList(){
+  const list=$('#m-list'); list.innerHTML='';
+  MINGLE.forEach((q,i)=>{
+    const r=S.rows[i];
+    const name=el('input',{type:'text','aria-label':'Classmate name for: '+q,placeholder:'First name',maxlength:'30'}); name.value=r.name;
+    const warn=el('p',{class:'warn hidden',text:'You already used this name. Find someone new for this box.'});
+    const det=autoTextarea({'aria-label':'Detail for: '+q,placeholder:'One detail you learned'}, r.detail, v=>{ S.rows[i].detail=v; save(); renderSay(); });
+    const li=el('li',{class:'mitem'+(r.name.trim()?' done':'')},[ el('p',{},[el('small',{text:'Find someone who…'}), document.createTextNode(q)]), el('div',{class:'mfields'},[name,det]), warn ]);
+    li.dataset.i=i;
+    name.addEventListener('input',()=>{ S.rows[i].name=name.value; li.classList.toggle('done', !!name.value.trim()); save(); checkDup(); renderProg(); renderPick(); });
+    list.append(li);
+  });
+  checkDup(); renderProg(); renderPick();
+}
+function checkDup(){
+  const names=S.rows.map(r=>r.name.trim().toLowerCase());
+  document.querySelectorAll('#m-list li').forEach((li,i)=>{ const n=names[i]; li.querySelector('.warn').classList.toggle('hidden', !(n && names.filter(x=>x===n).length>1)); });
+}
+function renderProg(){ const p=$('#m-prog'); p.innerHTML=''; p.append('Boxes completed: ', el('b',{text:S.rows.filter(r=>r.name.trim()).length+' of '+S.rows.length})); }
+function renderPick(){
+  const p=$('#m-pick'); p.innerHTML='';
+  S.rows.forEach((r,i)=>{ if(!r.name.trim()) return; p.append(el('button',{class:'btn ghost','aria-pressed':String(S.pick===i),text:r.name.trim(),onclick:()=>{ S.pick=i; save(); renderPick(); }})); });
+  if(!p.children.length) p.append(el('span',{class:'prog',text:'Fill in a box first.'}));
+  renderSay();
+}
+function sentence(i){ const r=S.rows[i]; if(!r||!r.name.trim()) return ''; const n=r.name.trim(); let d=r.detail.trim().replace(/\.$/,''); if(/^(She|He|They|It|We|Her|His|Their)\b/.test(d)) d=d[0].toLowerCase()+d.slice(1); return n+' '+MINGLE[i]+'. '+(d? n+' told me that '+d+'.' : 'Add a detail so you can say more.'); }
+function renderSay(){ $('#m-say').textContent = S.pick!==null ? sentence(S.pick) : ''; }
+
+function buildPrint(){
+  const p=$('#print'); p.innerHTML='';
+  p.append(el('p',{class:'brand',text:'APPROACH INTERNATIONAL STUDENT CENTER  ·  AI SPRINT  ·  WEEK 1'}), el('h1',{text:'Find someone who…'}),
+    el('p',{class:'meta',text:'Name: '+(S.me.trim()||'__________________')+'     ·     Date: '+today()+'     ·     Boxes completed: '+S.rows.filter(r=>r.name.trim()).length+' of '+S.rows.length}));
+  const tb=el('tbody'); MINGLE.forEach((q,i)=> tb.append(el('tr',{},[ el('td',{text:(i+1)+'. '+q}), el('td',{text:S.rows[i].name.trim()||'—'}), el('td',{text:S.rows[i].detail.trim()||'—'}) ])));
+  p.append(el('table',{},[ el('thead',{},[el('tr',{},[el('th',{text:'Find someone who…',style:'width:40%'}),el('th',{text:'Classmate',style:'width:18%'}),el('th',{text:'Detail'})])]), tb ]));
+  if(S.pick!==null && sentence(S.pick)) p.append(el('h2',{text:'My report'}), el('p',{text:sentence(S.pick)}));
+  p.append(el('p',{class:'foot',text:'Copyright © 2026 Approach International Student Center, Inc.'}));
+}
+window.addEventListener('beforeprint', buildPrint);
+$('#m-pdf').addEventListener('click',()=>{ buildPrint(); const t=document.title; document.title='Week1_Find_Someone_Who_'+(S.me.trim()||'Student').replace(/\s+/g,'_'); window.print(); document.title=t; });
+$('#m-reset').addEventListener('click',()=>{ if(!confirm('Start over? This deletes all your answers on this laptop.')) return; store.del(KEY); S.me=''; me.value=''; S.rows=MINGLE.map(()=>({name:'',detail:''})); S.pick=null; renderList(); $('#m-saved').textContent=''; });
+renderList();
+
+</script>
+</body>
+</html>

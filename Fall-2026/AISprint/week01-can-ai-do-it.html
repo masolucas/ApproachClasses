@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI Sprint · Week 1 · Can AI do it?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0C2340; --navy2:#143865; --gold:#AE9142; --goldb:#D39F10; --warm:#EFE9D9;
+  --bg:#F8F4EC; --paper:#FFFFFF; --ink:#1A1A1A; --inks:#3D3D3D; --muted:#6B6B6B; --line:#D9D2C0;
+  --z-ai:#0E6B6B; --z-ai-s:#D0EDED; --z-check:#8C6A12; --z-check-s:#F5EED2; --z-human:#0C2340; --z-human-s:#E1E8F2;
+  --flag:#C0392B; --ok:#26890C;
+  --serif:Cambria,Caladea,Georgia,"Times New Roman",serif; --sans:"Montserrat",Calibri,Arial,sans-serif;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#081629; --paper:#0F2647; --ink:#F3EEE2; --inks:#D9D2C0; --muted:#A9A397; --line:#29426A;
+  --z-ai:#5EC4C4; --z-ai-s:#0E3B3F; --z-check:#E2C46A; --z-check-s:#3A3217; --z-human:#B7C9E6; --z-human-s:#1B3358; --flag:#F07467; --ok:#7BD36A;}}
+:root[data-theme="dark"]{
+  --bg:#081629; --paper:#0F2647; --ink:#F3EEE2; --inks:#D9D2C0; --muted:#A9A397; --line:#29426A;
+  --z-ai:#5EC4C4; --z-ai-s:#0E3B3F; --z-check:#E2C46A; --z-check-s:#3A3217; --z-human:#B7C9E6; --z-human-s:#1B3358; --flag:#F07467; --ok:#7BD36A;}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5}
+svg{width:1em;height:1em;vertical-align:-0.125em;fill:currentColor}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--goldb);outline-offset:2px}
+header.top{background:#0C2340;color:#EFE9D9;padding:18px clamp(16px,4vw,40px) 0}
+.brandrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.mono{width:38px;height:38px;border:1.5px solid #AE9142;border-radius:50%;display:grid;place-items:center;font-family:var(--serif);font-style:italic;font-weight:700;color:#AE9142;font-size:20px;flex:none}
+.brandtxt b{display:block;font-size:13px;letter-spacing:.06em;color:#D9C38A;font-weight:600}
+.brandtxt span{font-size:13px;color:#EFE9D9;opacity:.85}
+nav.tabs{display:flex;gap:4px;margin-top:16px;overflow-x:auto}
+nav.tabs button{background:transparent;border:0;border-bottom:3px solid transparent;color:#EFE9D9;padding:10px 14px 12px;cursor:pointer;font-weight:600;font-size:15px;white-space:nowrap;opacity:.8;display:flex;gap:8px;align-items:center}
+nav.tabs button[aria-selected="true"]{border-bottom-color:#AE9142;opacity:1;color:#fff}
+main{max-width:1100px;margin:0 auto;padding:24px clamp(16px,4vw,40px) 60px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.1;margin:0 0 6px;letter-spacing:-0.01em}
+h1 em{color:var(--gold);font-style:italic}
+:root[data-theme="dark"] h1 em{color:#D9C38A}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) h1 em{color:#D9C38A}}
+.lead{font-family:var(--serif);font-style:italic;color:var(--inks);font-size:18px;margin:0 0 20px;max-width:70ch}
+.status{font-size:14px;color:var(--muted);margin:0 0 18px;padding:10px 14px;border:1px dashed var(--line);border-radius:6px;background:var(--paper)}
+.status.live{border-style:solid;border-color:var(--ok);color:var(--inks)}
+.btn{background:#0C2340;color:#fff;border:0;border-radius:6px;padding:11px 18px;font-weight:600;cursor:pointer}
+.btn.gold{background:#AE9142;color:#0C2340}
+.btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:18px}
+.hidden{display:none !important}
+/* mingle */
+.frames{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px}
+.frames span{font-family:var(--serif);font-style:italic;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:15px}
+.mlist{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.mitem{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;grid-template-columns:1fr;gap:8px}
+.mitem.done{border-color:var(--gold)}
+.mitem p{margin:0;font-family:var(--serif);font-size:18px}
+.mitem p small{font-family:var(--sans);font-size:12px;color:var(--muted);display:block}
+.mfields{display:grid;grid-template-columns:minmax(120px,200px) 1fr;gap:8px}
+@media (max-width:560px){.mfields{grid-template-columns:1fr}}
+input[type=text]{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.warn{color:var(--flag);font-size:13px;margin:0}
+.report{margin-top:22px}
+.report .say{font-family:var(--serif);font-size:22px;margin:10px 0 0}
+/* sort */
+.groups{display:flex;gap:8px;flex-wrap:wrap}
+.groups button{width:56px;height:56px;border-radius:8px;border:1.5px solid var(--line);background:var(--paper);font-family:var(--serif);font-size:24px;cursor:pointer}
+.groups button[aria-pressed="true"]{background:#0C2340;color:#fff;border-color:#0C2340}
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 18px}
+.zchip{display:inline-flex;gap:7px;align-items:center;font-weight:600;font-size:14px;padding:5px 11px;border-radius:999px;border:1.5px solid currentColor}
+.z-ai{color:var(--z-ai)} .z-check{color:var(--z-check)} .z-human{color:var(--z-human)}
+.sticky{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line);margin-bottom:14px}
+.prog{font-size:14px;color:var(--inks)}
+.prog b{color:var(--ink)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.card[data-z="ai"]{border-color:var(--z-ai);box-shadow:inset 4px 0 0 var(--z-ai)}
+.card[data-z="check"]{border-color:var(--z-check);box-shadow:inset 4px 0 0 var(--z-check)}
+.card[data-z="human"]{border-color:var(--z-human);box-shadow:inset 4px 0 0 var(--z-human)}
+.card .t{font-family:var(--serif);font-size:18px;line-height:1.3;margin:0}
+.zbtns{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.zbtns button{border:1.5px solid var(--line);background:transparent;border-radius:6px;padding:7px 4px;font-size:12px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;line-height:1.2}
+.zbtns button svg{font-size:16px}
+.zbtns button[aria-pressed="true"].z-ai{background:var(--z-ai-s);border-color:var(--z-ai)}
+.zbtns button[aria-pressed="true"].z-check{background:var(--z-check-s);border-color:var(--z-check)}
+.zbtns button[aria-pressed="true"].z-human{background:var(--z-human-s);border-color:var(--z-human)}
+.card input{font-size:14px}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:820px){.cols{grid-template-columns:1fr}}
+.col h3{margin:0 0 10px;font-size:15px;display:flex;gap:8px;align-items:center}
+.ritem{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:8px}
+.ritem p{margin:0;font-family:var(--serif);font-size:16px}
+.ritem .why{font-family:var(--serif);font-style:italic;color:var(--inks);font-size:14px;margin-top:4px}
+.flagbtn{margin-top:8px;border:1.5px solid var(--line);background:transparent;border-radius:6px;padding:5px 10px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.flagbtn[aria-pressed="true"]{border-color:var(--flag);color:var(--flag)}
+.flagcount{color:var(--flag);font-size:13px;font-weight:600;margin-top:6px;display:flex;gap:6px;align-items:center}
+/* board */
+.bitem{display:grid;grid-template-columns:44px 1fr;gap:12px;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:10px}
+.bitem.top3{border-color:var(--gold);border-width:2px}
+.rank{font-family:var(--serif);font-style:italic;font-size:30px;color:var(--gold);line-height:1}
+.bitem .t{font-family:var(--serif);font-size:19px;margin:0 0 8px}
+.bar{display:flex;height:22px;border-radius:4px;overflow:hidden;background:var(--bg);border:1px solid var(--line)}
+.bar div{height:100%}
+.bar .ai{background:var(--z-ai)} .bar .check{background:var(--z-check)} .bar .human{background:var(--z-human)}
+.bmeta{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--inks);margin-top:6px}
+.tag{display:inline-block;font-size:12px;font-weight:700;color:var(--gold);border:1.5px solid var(--gold);border-radius:999px;padding:1px 9px;margin-left:8px;vertical-align:middle;font-family:var(--sans)}
+.sugg{margin-top:8px;font-size:14px;border-top:1px dashed var(--line);padding-top:8px}
+.sugg b{font-weight:700}
+footer.small{margin-top:40px;font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.card,.zbtns button{transition:border-color .15s,background .15s}}
+header.top{padding-bottom:18px}
+textarea.auto{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:6px;background:var(--bg);font:inherit;color:inherit;resize:none;overflow:hidden;min-height:42px;line-height:1.45;display:block}
+.card textarea.auto{font-size:14px}
+.field{display:grid;gap:4px;margin:0 0 18px;max-width:520px}
+.field label{font-weight:600;font-size:14px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px;align-items:center}
+.saved{font-size:13px;color:var(--muted)}
+.mfields{align-items:start}
+.visit{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+#print{display:none}
+@media print{
+  @page{size:letter;margin:0.6in}
+  body{background:#fff;color:#000;font-size:11pt}
+  header.top,main{display:none !important}
+  #print{display:block}
+  #print h1{font-family:Cambria,Georgia,serif;font-size:22pt;color:#0C2340;margin:0 0 4pt}
+  #print .meta{font-family:Calibri,Arial,sans-serif;font-size:10pt;color:#333;margin:0 0 14pt;border-bottom:1.5pt solid #AE9142;padding-bottom:6pt}
+  #print .brand{font-family:Calibri,Arial,sans-serif;font-size:8pt;letter-spacing:.12em;font-weight:700;color:#0C2340;margin:0 0 8pt}
+  #print table{width:100%;border-collapse:collapse;font-family:Cambria,Georgia,serif;font-size:10.5pt}
+  #print th{text-align:left;font-family:Calibri,Arial,sans-serif;font-size:8.5pt;letter-spacing:.08em;text-transform:uppercase;color:#0C2340;border-bottom:1.2pt solid #0C2340;padding:4pt 6pt}
+  #print td{border-bottom:.6pt solid #BFB7A3;padding:6pt;vertical-align:top;white-space:pre-wrap;word-wrap:break-word}
+  #print tr{break-inside:avoid}
+  #print h2{font-family:Cambria,Georgia,serif;font-size:13pt;color:#0C2340;margin:16pt 0 6pt}
+  #print .foot{margin-top:18pt;font-family:Calibri,Arial,sans-serif;font-size:8pt;color:#666}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brandrow">
+    <div class="mono" aria-hidden="true">A</div>
+    <div class="brandtxt"><b>AI SPRINT</b><span>Week 1 · Can AI do it?</span></div>
+  </div>
+</header>
+<main>
+  <h1>Can AI <em>do it?</em></h1>
+  <p class="lead">As a group, put each task in one zone. Explain your choice for at least 6 tasks using the sentence frame.</p>
+  <div class="field"><label for="s-members">Group members</label><input type="text" id="s-members" maxlength="160" placeholder="First names, separated by commas"></div>
+  <div class="legend" id="s-legend"></div>
+  <div id="s-work">
+    <div class="sticky row" style="justify-content:space-between">
+      <span class="prog" id="s-prog"></span>
+      <button class="btn" id="s-submit" disabled>Submit our sort</button>
+    </div>
+    <div class="cards" id="s-cards"></div>
+  </div>
+  <div id="s-review" class="hidden">
+    <div class="panel" style="margin-bottom:16px">
+      <strong id="s-rev-title"></strong>
+      <p class="prog" style="margin:4px 0 12px" id="s-rev-help"></p>
+      <div class="visit"><button class="btn" id="s-visit"></button><span class="prog" id="s-visits"></span></div>
+    </div>
+    <div class="panel hidden" id="s-summary" style="margin-bottom:16px;border-color:var(--flag)"></div>
+    <div class="cols" id="s-cols"></div>
+  </div>
+  <div class="actions">
+    <button class="btn gold" id="s-pdf">Save as PDF</button>
+    <button class="btn ghost hidden" id="s-edit">Edit our sort</button>
+    <button class="btn ghost" id="s-reset">Start over</button>
+    <span class="saved" id="s-saved" aria-live="polite"></span>
+  </div>
+  <footer class="small">Your sort is saved only in this browser on this laptop.</footer>
+</main>
+<section id="print" aria-hidden="true"></section>
+
+<script>
+const $ = s => document.querySelector(s);
+const el = (tag, attrs={}, kids=[]) => { const e=document.createElement(tag); for(const [k,v] of Object.entries(attrs)){ if(k==='text') e.textContent=v; else if(k==='html') e.innerHTML=v; else if(k.startsWith('on')) e.addEventListener(k.slice(2),v); else e.setAttribute(k,v);} for(const c of [].concat(kids)) if(c!=null && c!==false) e.append(c); return e; };
+const store = {
+  get(k, d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+function autosize(t){ t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'px'; }
+function autoTextarea(attrs, value, onInput){
+  const t=el('textarea',Object.assign({class:'auto',rows:'1'},attrs)); t.value=value||'';
+  t.addEventListener('input',()=>{ autosize(t); onInput(t.value); });
+  requestAnimationFrame(()=>autosize(t));
+  return t;
+}
+window.addEventListener('resize',()=>document.querySelectorAll('textarea.auto').forEach(autosize));
+function savedNote(id, ok){ const n=$(id); if(!n) return; n.textContent = ok ? 'Saved on this laptop · '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}) : 'This browser is not saving: use “Save as PDF” before you close the page.'; }
+const today = () => new Date().toLocaleDateString([], {year:'numeric',month:'long',day:'numeric'});
+
+const DATA = {"zones":[{"id":"ai","label":"AI does it well","frame":"AI can do this well because…"},{"id":"check","label":"AI + human check","frame":"AI can help, but a human needs to check … because…"},{"id":"human","label":"Human only","frame":"Only a human should do this because…"}],"cards":[{"id":"c01","t":"Write a first draft of a thank-you email to a client"},{"id":"c02","t":"Summarize a 10-page article for your notes"},{"id":"c03","t":"Brainstorm 10 names for a new coffee shop"},{"id":"c04","t":"Translate a restaurant menu from English to Spanish"},{"id":"c05","t":"Decide whether to hire a job candidate"},{"id":"c06","t":"Fix grammar mistakes in a paragraph you wrote"},{"id":"c07","t":"Decide the right dose of a medicine"},{"id":"c08","t":"Add up the totals in a 50-row sales spreadsheet"},{"id":"c09","t":"Find today's exchange rate"},{"id":"c10","t":"Write a personal apology to a close friend"},{"id":"c11","t":"Explain a difficult idea, like inflation, in simple English"},{"id":"c12","t":"Create a study schedule for the week"},{"id":"c13","t":"Write your final class essay and submit it as your own"},{"id":"c14","t":"Find three reliable sources for a research paper"},{"id":"c15","t":"Answer customer questions on a company website chat, 24/7"},{"id":"c16","t":"Decide if a business contract is fair to sign"},{"id":"c17","t":"Turn meeting notes into a to-do list"},{"id":"c18","t":"Write practice questions for a job interview"}]};
+const ICON = {"FaRobot":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 640 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M32,224H64V416H32A31.96166,31.96166,0,0,1,0,384V256A31.96166,31.96166,0,0,1,32,224Zm512-48V448a64.06328,64.06328,0,0,1-64,64H160a64.06328,64.06328,0,0,1-64-64V176a79.974,79.974,0,0,1,80-80H288V32a32,32,0,0,1,64,0V96H464A79.974,79.974,0,0,1,544,176ZM264,256a40,40,0,1,0-40,40A39.997,39.997,0,0,0,264,256Zm-8,128H192v32h64Zm96,0H288v32h64ZM456,256a40,40,0,1,0-40,40A39.997,39.997,0,0,0,456,256Zm-8,128H384v32h64ZM640,256V384a31.96166,31.96166,0,0,1-32,32H576V224h32A31.96166,31.96166,0,0,1,640,256Z\"></path></svg>","FaUserCheck":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 640 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4zm323-128.4l-27.8-28.1c-4.6-4.7-12.1-4.7-16.8-.1l-104.8 104-45.5-45.8c-4.6-4.7-12.1-4.7-16.8-.1l-28.1 27.9c-4.7 4.6-4.7 12.1-.1 16.8l81.7 82.3c4.6 4.7 12.1 4.7 16.8.1l141.3-140.2c4.6-4.7 4.7-12.2.1-16.8z\"></path></svg>","FaUser":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 448 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z\"></path></svg>","FaFlag":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M349.565 98.783C295.978 98.783 251.721 64 184.348 64c-24.955 0-47.309 4.384-68.045 12.013a55.947 55.947 0 0 0 3.586-23.562C118.117 24.015 94.806 1.206 66.338.048 34.345-1.254 8 24.296 8 56c0 19.026 9.497 35.825 24 45.945V488c0 13.255 10.745 24 24 24h16c13.255 0 24-10.745 24-24v-94.4c28.311-12.064 63.582-22.122 114.435-22.122 53.588 0 97.844 34.783 165.217 34.783 48.169 0 86.667-16.294 122.505-40.858C506.84 359.452 512 349.571 512 339.045v-243.1c0-23.393-24.269-38.87-45.485-29.016-34.338 15.948-76.454 31.854-116.95 31.854z\"></path></svg>","FaUsers":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 640 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M96 224c35.3 0 64-28.7 64-64s-28.7-64-64-64-64 28.7-64 64 28.7 64 64 64zm448 0c35.3 0 64-28.7 64-64s-28.7-64-64-64-64 28.7-64 64 28.7 64 64 64zm32 32h-64c-17.6 0-33.5 7.1-45.1 18.6 40.3 22.1 68.9 62 75.1 109.4h66c17.7 0 32-14.3 32-32v-32c0-35.3-28.7-64-64-64zm-256 0c61.9 0 112-50.1 112-112S381.9 32 320 32 208 82.1 208 144s50.1 112 112 112zm76.8 32h-8.3c-20.8 10-43.9 16-68.5 16s-47.6-6-68.5-16h-8.3C179.6 288 128 339.6 128 403.2V432c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48v-28.8c0-63.6-51.6-115.2-115.2-115.2zm-223.7-13.4C161.5 263.1 145.6 256 128 256H64c-35.3 0-64 28.7-64 64v32c0 17.7 14.3 32 32 32h65.9c6.3-47.4 34.9-87.3 75.2-109.4z\"></path></svg>","FaThLarge":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M296 32h192c13.255 0 24 10.745 24 24v160c0 13.255-10.745 24-24 24H296c-13.255 0-24-10.745-24-24V56c0-13.255 10.745-24 24-24zm-80 0H24C10.745 32 0 42.745 0 56v160c0 13.255 10.745 24 24 24h192c13.255 0 24-10.745 24-24V56c0-13.255-10.745-24-24-24zM0 296v160c0 13.255 10.745 24 24 24h192c13.255 0 24-10.745 24-24V296c0-13.255-10.745-24-24-24H24c-13.255 0-24 10.745-24 24zm296 184h192c13.255 0 24-10.745 24-24V296c0-13.255-10.745-24-24-24H296c-13.255 0-24 10.745-24 24v160c0 13.255 10.745 24 24 24z\"></path></svg>","FaChartBar":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M332.8 320h38.4c6.4 0 12.8-6.4 12.8-12.8V172.8c0-6.4-6.4-12.8-12.8-12.8h-38.4c-6.4 0-12.8 6.4-12.8 12.8v134.4c0 6.4 6.4 12.8 12.8 12.8zm96 0h38.4c6.4 0 12.8-6.4 12.8-12.8V76.8c0-6.4-6.4-12.8-12.8-12.8h-38.4c-6.4 0-12.8 6.4-12.8 12.8v230.4c0 6.4 6.4 12.8 12.8 12.8zm-288 0h38.4c6.4 0 12.8-6.4 12.8-12.8v-70.4c0-6.4-6.4-12.8-12.8-12.8h-38.4c-6.4 0-12.8 6.4-12.8 12.8v70.4c0 6.4 6.4 12.8 12.8 12.8zm96 0h38.4c6.4 0 12.8-6.4 12.8-12.8V108.8c0-6.4-6.4-12.8-12.8-12.8h-38.4c-6.4 0-12.8 6.4-12.8 12.8v198.4c0 6.4 6.4 12.8 12.8 12.8zM496 384H64V80c0-8.84-7.16-16-16-16H16C7.16 64 0 71.16 0 80v336c0 17.67 14.33 32 32 32h464c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16z\"></path></svg>","FaCheck":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z\"></path></svg>"};
+const ZI = {ai:ICON.FaRobot, check:ICON.FaUserCheck, human:ICON.FaUser};
+const KEY = 'aisprint-w1-cardsort';
+const fresh = () => ({ members:'', placements:{}, reasons:{}, submitted:false, visits:[] });
+let S = Object.assign(fresh(), store.get(KEY, {}));
+let reviewing = null; // index into S.visits while a visiting group reviews
+function save(){ savedNote('#s-saved', store.set(KEY, S)); }
+const zone = id => DATA.zones.find(z=>z.id===id);
+
+const mem=$('#s-members'); mem.value=S.members; mem.addEventListener('input',()=>{ S.members=mem.value; save(); });
+(function legend(){ const l=$('#s-legend'); DATA.zones.forEach(z=> l.append(el('span',{class:'zchip z-'+z.id,html:ZI[z.id]+' '},[document.createTextNode(z.label)]))); })();
+
+function render(){
+  $('#s-work').classList.toggle('hidden', S.submitted);
+  $('#s-review').classList.toggle('hidden', !S.submitted);
+  $('#s-edit').classList.toggle('hidden', !S.submitted || reviewing!==null);
+  S.submitted ? renderReview() : renderCards();
+}
+function renderCards(){
+  const wrap=$('#s-cards'); wrap.innerHTML='';
+  DATA.cards.forEach(c=>{
+    const z=S.placements[c.id]||'';
+    const btns=el('div',{class:'zbtns',role:'group','aria-label':'Zone for: '+c.t});
+    DATA.zones.forEach(zz=> btns.append(el('button',{class:'z-'+zz.id,'aria-pressed':String(z===zz.id),html:ZI[zz.id],onclick:()=>{ S.placements[c.id]=zz.id; save(); renderCards(); }},[el('span',{text:zz.label})])));
+    const card=el('article',{class:'card','data-z':z},[ el('p',{class:'t',text:c.t}), btns ]);
+    if(z) card.append(autoTextarea({placeholder:zone(z).frame,'aria-label':'Reason for: '+c.t}, S.reasons[c.id], v=>{ S.reasons[c.id]=v; save(); updateProg(); }));
+    wrap.append(card);
+  });
+  updateProg();
+}
+const reasonCount = () => Object.entries(S.reasons).filter(([k,v])=>v && v.trim() && S.placements[k]).length;
+function updateProg(){
+  const placed=Object.keys(S.placements).length, reasons=reasonCount();
+  const p=$('#s-prog'); p.innerHTML='';
+  p.append('Placed ', el('b',{text:placed+' of '+DATA.cards.length}), ' · Reasons ', el('b',{text:Math.min(reasons,6)+' of 6'}));
+  $('#s-submit').disabled = !(placed===DATA.cards.length && reasons>=6);
+}
+$('#s-submit').addEventListener('click',()=>{ S.submitted=true; save(); render(); window.scrollTo(0,0); });
+$('#s-edit').addEventListener('click',()=>{ S.submitted=false; save(); render(); });
+$('#s-reset').addEventListener('click',()=>{ if(!confirm('Start over? This deletes the whole sort, the reasons, and all flags on this laptop.')) return; store.del(KEY); S=fresh(); reviewing=null; mem.value=''; $('#s-saved').textContent=''; render(); });
+
+function flagCounts(){ const out={}; S.visits.forEach(v=>v.forEach(id=> out[id]=(out[id]||0)+1)); return out; }
+$('#s-visit').addEventListener('click',()=>{
+  if(reviewing===null){ S.visits.push([]); reviewing=S.visits.length-1; }
+  else { if(!S.visits[reviewing].length) S.visits.splice(reviewing,1); reviewing=null; }
+  save(); render();
+});
+function renderReview(){
+  const on = reviewing!==null;
+  $('#s-rev-title').textContent = on ? 'A visiting group is reviewing this sort' : 'Your sort is finished.';
+  $('#s-rev-help').textContent = on ? 'Tap “We disagree?” on any placement your group would change. Be ready to explain why. Tap “Finish review” before you leave.' : 'Gallery walk: leave this page open on your table. When another group arrives, they tap “Start review”.';
+  $('#s-visit').textContent = on ? 'Finish review' : 'Start review';
+  $('#s-visits').textContent = S.visits.length ? S.visits.length+' visiting group'+(S.visits.length>1?'s have':' has')+' reviewed this sort.' : '';
+  const fl=flagCounts();
+  const sum=$('#s-summary'); sum.innerHTML=''; sum.classList.toggle('hidden', on);
+  const top=Object.entries(fl).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  if(!top.length) sum.append(el('p',{style:'margin:0',text:'No flags yet. After the gallery walk, the tasks other groups disagree with appear here.'}));
+  else { sum.append(el('strong',{text:'Report these to the class: the tasks other groups disagree with most'}));
+    const ol=el('ol',{style:'margin:8px 0 0;padding-left:22px;font-family:var(--serif);font-size:17px'});
+    top.forEach(([id,n])=>{ const c=DATA.cards.find(x=>x.id===id); ol.append(el('li',{text:c.t+' ('+n+(n>1?' groups':' group')+', now in “'+zone(S.placements[id]).label+'”)'})); });
+    sum.append(ol); }
+  const cols=$('#s-cols'); cols.innerHTML='';
+  DATA.zones.forEach(z=>{
+    const col=el('div',{class:'col'},[ el('h3',{class:'z-'+z.id,html:ZI[z.id]+' '},[document.createTextNode(z.label)]) ]);
+    DATA.cards.filter(c=>S.placements[c.id]===z.id).forEach(c=>{
+      const it=el('div',{class:'ritem'},[ el('p',{text:c.t}) ]);
+      if(S.reasons[c.id] && S.reasons[c.id].trim()) it.append(el('p',{class:'why',text:S.reasons[c.id]}));
+      if(on){ const f=S.visits[reviewing].includes(c.id); it.append(el('button',{class:'flagbtn','aria-pressed':String(f),html:ICON.FaFlag+' ',onclick:()=>toggleFlag(c.id)},[document.createTextNode(f?'We disagree':'We disagree?')])); }
+      else if(fl[c.id]) it.append(el('div',{class:'flagcount',html:ICON.FaFlag+' '},[document.createTextNode(fl[c.id]+(fl[c.id]>1?' groups disagree':' group disagrees'))]));
+      col.append(it);
+    });
+    cols.append(col);
+  });
+  $('#s-edit').classList.toggle('hidden', on);
+}
+function toggleFlag(id){ const v=S.visits[reviewing]; const i=v.indexOf(id); i<0?v.push(id):v.splice(i,1); save(); renderReview(); }
+
+function buildPrint(){
+  const p=$('#print'); p.innerHTML='';
+  const fl=flagCounts();
+  p.append(el('p',{class:'brand',text:'APPROACH INTERNATIONAL STUDENT CENTER  ·  AI SPRINT  ·  WEEK 1'}), el('h1',{text:'Can AI do it?'}),
+    el('p',{class:'meta',text:'Group members: '+(S.members.trim()||'__________________')+'     ·     Date: '+today()+'     ·     Placed '+Object.keys(S.placements).length+' of '+DATA.cards.length+' · Reasons '+reasonCount()}));
+  const tb=el('tbody');
+  DATA.cards.forEach((c,i)=> tb.append(el('tr',{},[ el('td',{text:(i+1)+'. '+c.t}), el('td',{text:S.placements[c.id]?zone(S.placements[c.id]).label:'—'}), el('td',{text:(S.reasons[c.id]||'').trim()||'—'}), el('td',{text:fl[c.id]?String(fl[c.id]):''}) ])));
+  p.append(el('table',{},[ el('thead',{},[el('tr',{},[el('th',{text:'Task',style:'width:34%'}),el('th',{text:'Our zone',style:'width:16%'}),el('th',{text:'Our reason'}),el('th',{text:'Flags',style:'width:7%'})])]), tb ]));
+  p.append(el('p',{class:'foot',text:'Copyright © 2026 Approach International Student Center, Inc.'}));
+}
+window.addEventListener('beforeprint', buildPrint);
+$('#s-pdf').addEventListener('click',()=>{ buildPrint(); const t=document.title; document.title='Week1_Can_AI_Do_It_'+((S.members.split(',')[0]||'Group').trim().replace(/\s+/g,'_')||'Group'); window.print(); document.title=t; });
+render();
+
+</script>
+</body>
+</html>
