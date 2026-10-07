@@ -146,6 +146,25 @@
   .card .stamp.correct { color: var(--green); border-color: var(--green); left: 26px; }
   .card .stamp.wrong { color: var(--red); border-color: var(--red); right: 26px; }
 
+  /* ---------- result overlay ---------- */
+  .result-overlay {
+    position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center;
+    background: rgba(10,20,40,0.55); opacity: 0; pointer-events: none; transition: opacity .2s ease;
+  }
+  .result-overlay.show { opacity: 1; pointer-events: auto; }
+  .result-box .btn { margin-top: 22px; background: var(--navy); color: var(--warm-w); }
+  .result-box .btn:hover { background: var(--gold); color: var(--navy); }
+  .result-box {
+    font-family: Calibri, sans-serif; font-weight: bold; text-align: center;
+    background: var(--warm-w); border: 6px solid; border-radius: 18px; padding: 34px 60px;
+    transform: scale(0.8) rotate(-4deg); transition: transform .25s cubic-bezier(.2,1.4,.4,1);
+  }
+  .result-overlay.show .result-box { transform: scale(1) rotate(-4deg); }
+  .result-box .big { font-size: 64px; letter-spacing: 6px; }
+  .result-box .answer { font-family: Cambria, serif; font-size: 22px; color: var(--navy); margin-top: 10px; font-weight: normal; }
+  .result-box.correct { border-color: var(--green); color: var(--green); }
+  .result-box.wrong { border-color: var(--red); color: var(--red); }
+
   /* ---------- footer controls ---------- */
   .controls {
     position: fixed; bottom: 24px; left: 0; right: 0; z-index: 30;
@@ -242,6 +261,14 @@
     <button class="btn ghost" id="restartBtn">RESTART GAME</button>
   </div>
 
+  <div class="result-overlay" id="resultOverlay">
+    <div class="result-box" id="resultBox">
+      <div class="big" id="resultText"></div>
+      <div class="answer" id="resultAnswer"></div>
+      <button class="btn" id="nextBtn">NEXT →</button>
+    </div>
+  </div>
+
   <div class="end-screen" id="endScreen">
     <div class="eyebrow">GAME COMPLETE</div>
     <h2>Nice <em>reading.</em></h2>
@@ -315,6 +342,12 @@
   const streakNum = document.getElementById('streakNum');
   const progressFill = document.getElementById('progressFill');
   const endScreen = document.getElementById('endScreen');
+  const resultOverlay = document.getElementById('resultOverlay');
+  const resultBox = document.getElementById('resultBox');
+  const resultText = document.getElementById('resultText');
+  const resultAnswer = document.getElementById('resultAnswer');
+  const RESULT_MS = 5000;
+  let resultTimer = null;
 
   function shuffle(arr) {
     const a = arr.slice();
@@ -329,6 +362,8 @@
     const shuffled = shuffle(HEADLINES);
     deck = shuffled.slice(0, TOTAL_ROUNDS);
     roundIndex = 0; score = 0; streak = 0;
+    clearTimeout(resultTimer);
+    resultOverlay.classList.remove('show');
     updateHUD();
     endScreen.classList.remove('show');
     renderRound();
@@ -464,11 +499,24 @@
     else { streak = 0; }
     updateHUD();
 
-    setTimeout(function() {
-      roundIndex += 1;
-      renderRound();
-    }, 480);
+    resultBox.className = 'result-box ' + (isCorrect ? 'correct' : 'wrong');
+    resultText.textContent = isCorrect ? '✓ CORRECT' : '✗ NOT QUITE';
+    resultAnswer.textContent = isCorrect ? correctType : 'It was: ' + correctType;
+    resultOverlay.classList.add('show');
+
+    clearTimeout(resultTimer);
+    resultTimer = setTimeout(nextRound, RESULT_MS);
   }
+
+  function nextRound() {
+    if (!resultOverlay.classList.contains('show')) return;
+    clearTimeout(resultTimer);
+    resultOverlay.classList.remove('show');
+    roundIndex += 1;
+    renderRound();
+  }
+
+  document.getElementById('nextBtn').addEventListener('click', nextRound);
 
   function showEnd() {
     document.getElementById('finalScore').textContent = score;
@@ -488,6 +536,7 @@
 
   // keyboard support for presenter (arrow keys = drop in that direction)
   window.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && resultOverlay.classList.contains('show')) { e.preventDefault(); nextRound(); return; }
     if (locked || !cardEl) return;
     const item = deck[roundIndex];
     if (e.key === 'ArrowUp') resolveDrop('top', item.type, cardEl);
