@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Crazy Paella — Interactive Reading</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --navy: #0C2340;
+    --navy-l: #143865;
+    --navy-d: #081629;
+    --navy-s: #D9E2F1;
+    --gold: #AE9142;
+    --gold-b: #D39F10;
+    --warm-w: #EFE9D9;
+    --paper: #FFFFFF;
+    --ink: #1A1A1A;
+    --ink-s: #3D3D3D;
+    --muted: #7A7A7A;
+    --sky: #EDF2F9;
+    --lt-gold: #F5EED2;
+    --red: #C0392B;
+    --red-s: #F8D7DA;
+    --teal: #0E6B6B;
+    --teal-s: #D0EDED;
+    --amber: #B45309;
+    --amber-s: #FEF3C7;
+    --story-size:19px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    font-family:'Calibri','Segoe UI',sans-serif;
+    color:var(--ink);
+  }
+
+  /* ---------- Header ---------- */
+  .chrome-header{
+    display:flex; align-items:center; gap:12px;
+    max-width:760px; margin:0 auto; padding:32px 24px 0 24px;
+  }
+  .monogram{
+    width:36px; height:36px; border-radius:50%;
+    border:1.5px solid var(--gold); background:var(--paper);
+    display:flex; align-items:center; justify-content:center;
+    font-family:Cambria,Georgia,serif; font-style:italic; font-weight:bold;
+    color:var(--gold); font-size:17px; flex-shrink:0;
+  }
+  .chrome-text .eyebrow{
+    font-family:Calibri,sans-serif; font-size:10px; font-weight:bold;
+    letter-spacing:3px; color:var(--navy); text-transform:uppercase;
+  }
+  .chrome-text .subline{
+    font-family:Calibri,sans-serif; font-size:10px; letter-spacing:1px;
+    color:var(--muted);
+  }
+
+  .titleblock{ max-width:760px; margin:0 auto; padding:22px 24px 18px 24px; border-bottom:2px solid var(--navy); }
+  .titleblock h1{
+    font-family:Cambria,Georgia,serif; color:var(--navy);
+    font-size:40px; margin:0 0 4px 0; font-weight:bold;
+  }
+  .titleblock h1 em{ color:var(--gold); font-style:italic; }
+  .titleblock p{
+    font-family:Cambria,Georgia,serif; font-style:italic; color:var(--ink-s);
+    font-size:16px; margin:0;
+  }
+
+  .howto{
+    max-width:760px; margin:16px auto 0 auto; padding:12px 18px;
+    background:var(--sky); border-left:4px solid var(--gold);
+    font-size:14px; color:var(--ink-s); font-family:Calibri,sans-serif;
+  }
+  .howto b{ color:var(--navy); }
+
+  /* ============================================================
+     BUTTONS
+     ============================================================ */
+  .btn {
+    font-family: Calibri,sans-serif; font-size: 0.86rem; font-weight: 700; letter-spacing: 0.02em;
+    padding: 0.65rem 1.3rem; border-radius: 5px; border: 1.5px solid transparent; cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease; display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn--primary { background: var(--navy); color: var(--warm-w); }
+  .btn--primary:hover { background: var(--navy-l); }
+  a.btn { text-decoration: none; }
+
+  /* ---------- Part label ---------- */
+  .part-label{
+    max-width:760px; margin:22px auto 0 auto; padding:0 24px;
+    display:flex; align-items:baseline; gap:10px;
+  }
+  .part-label .part-num{
+    font-family:Cambria,Georgia,serif; font-style:italic; font-weight:bold;
+    color:var(--gold); font-size:15px; letter-spacing:1px; text-transform:uppercase;
+  }
+  .part-label .part-title{
+    font-family:Cambria,Georgia,serif; font-style:italic; color:var(--navy); font-size:19px;
+  }
+
+  /* ---------- Story ---------- */
+  .story{
+    max-width:760px; margin:0 auto; padding:18px 24px 130px 24px;
+    font-family:Cambria,Georgia,serif;
+    font-size:var(--story-size);
+    line-height:1.75;
+    color:var(--ink);
+  }
+  .story p{ margin:0 0 1.2em 0; }
+  .story .signature{ text-align:right; font-style:italic; color:var(--ink-s); margin-top:2em; }
+  .story.hidden{ display:none; }
+
+  /* ---------- Clickable vocabulary ---------- */
+  .voc{
+    position:relative;
+    z-index:1000;
+    cursor:pointer;
+    border-bottom:2px dotted var(--gold);
+    padding-bottom:1px;
+    transition:background .15s ease;
+  }
+  .voc:hover{ background:rgba(174,145,66,0.12); }
+  .voc.active{
+    position:relative;
+    z-index:1001;
+    background:var(--paper);
+    border-radius:3px;
+    box-shadow:0 0 0 6px var(--paper), 0 0 0 9999px rgba(8,22,41,0.72);
+    border-bottom:2px solid var(--gold-b);
+  }
+
+  /* ---------- Backdrop (click to close) ---------- */
+  .backdrop{
+    display:none;
+    position:fixed; inset:0;
+    z-index:999;
+  }
+  .backdrop.show{ display:block; }
+
+  /* ---------- Popover ---------- */
+  .popover{
+    display:none;
+    position:absolute;
+    z-index:1002;
+    width:320px;
+    max-width:88vw;
+    background:var(--navy);
+    border-radius:4px;
+    box-shadow:0 12px 32px rgba(0,0,0,0.35);
+    padding:18px 20px 16px 20px;
+    font-family:Calibri,sans-serif;
+  }
+  .popover.show{ display:block; }
+  .popover .pop-top{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:8px;
+    margin-bottom:8px;
+  }
+  .popover .pop-label{
+    font-family:Consolas,monospace; font-size:9px; font-weight:bold;
+    letter-spacing:2px; color:var(--gold); text-transform:uppercase;
+  }
+  .popover .pop-level{
+    font-family:Calibri,sans-serif; font-size:9px; font-weight:bold;
+    letter-spacing:1px; color:var(--navy); background:var(--gold);
+    border-radius:20px; padding:2px 9px; white-space:nowrap;
+  }
+  .popover .pop-close{
+    background:none; border:none; color:var(--warm-w); opacity:.6;
+    font-size:16px; cursor:pointer; line-height:1; padding:0 0 0 8px;
+  }
+  .popover .pop-close:hover{ opacity:1; }
+  .popover .pop-word{
+    font-family:Cambria,Georgia,serif; font-style:italic; font-weight:bold;
+    color:var(--gold-b); font-size:22px; margin:0 0 8px 0;
+  }
+  .popover .pop-def{
+    font-family:Cambria,Georgia,serif; font-style:italic;
+    color:var(--warm-w); font-size:15px; line-height:1.5; margin:0 0 12px 0;
+  }
+  .popover .pop-ex-label{
+    font-family:Calibri,sans-serif; font-size:9px; font-weight:bold;
+    letter-spacing:2px; color:var(--gold); text-transform:uppercase;
+    border-top:1px solid rgba(239,233,217,0.2); padding-top:10px; margin-bottom:6px;
+  }
+  .popover .pop-ex{
+    font-family:Cambria,Georgia,serif; color:var(--warm-w); font-size:14px;
+    line-height:1.5; margin:0;
+  }
+
+  /* ---------- Floating font-size menu ---------- */
+  .font-menu{
+    position:fixed; bottom:96px; right:24px; z-index:1003;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .font-menu button{
+    width:44px; height:44px; border-radius:50%;
+    background:var(--navy); border:1.5px solid var(--gold);
+    color:var(--gold); font-family:Calibri,sans-serif; font-weight:bold;
+    font-size:15px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.25);
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .12s ease, background .12s ease;
+  }
+  .font-menu button:hover{ background:var(--navy-d); transform:scale(1.06); }
+  .font-menu button:active{ transform:scale(0.96); }
+  .font-menu .reset-btn{ font-size:12px; }
+
+  /* ---------- Fixed bottom part-navigation ---------- */
+  .part-nav{
+    position:fixed; left:0; right:0; bottom:0; z-index:1003;
+    background:var(--navy);
+    border-top:2px solid var(--gold);
+    display:flex; overflow-x:auto;
+    box-shadow:0 -6px 18px rgba(0,0,0,0.2);
+    -webkit-overflow-scrolling:touch;
+  }
+  .part-nav::-webkit-scrollbar{ height:4px; }
+  .part-btn{
+    flex:1 0 auto;
+    min-width:88px;
+    background:none; border:none; cursor:pointer;
+    font-family:Calibri,sans-serif; font-size:11px; font-weight:bold; letter-spacing:1px;
+    color:var(--warm-w); opacity:0.55;
+    padding:12px 10px 10px 10px;
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    border-top:3px solid transparent;
+    transition:opacity .15s ease, border-color .15s ease, background .15s ease;
+    text-transform:uppercase;
+  }
+  .part-btn .p-roman{
+    font-family:Cambria,Georgia,serif; font-style:italic; font-weight:bold;
+    font-size:16px; color:var(--gold);
+  }
+  .part-btn:hover{ opacity:0.85; background:rgba(255,255,255,0.05); }
+  .part-btn.active{
+    opacity:1; border-top-color:var(--gold);
+    background:rgba(174,145,66,0.12);
+  }
+  .part-btn.active .p-roman{ color:var(--gold-b); }
+
+  @media (max-width:600px){
+    .titleblock h1{ font-size:30px; }
+    .story{ padding:14px 18px 140px 18px; }
+    .popover{ width:270px; }
+    .part-btn{ min-width:70px; font-size:9px; padding:10px 6px 8px 6px; }
+    .part-btn .p-roman{ font-size:14px; }
+    .font-menu{ bottom:96px; right:14px; }
+  }
+
+  /* ---------- Week 1 additions ---------- */
+  .part-btn .p-title{ font-size:9px; letter-spacing:.5px; text-transform:none; font-weight:normal; opacity:.9; }
+  .pic-slot{
+    border:2px dashed var(--gold); border-radius:4px; background:transparent;
+    padding:22px 18px; margin:6px 0 24px 0; text-align:center;
+    font-family:Calibri,sans-serif; font-size:14px; color:var(--ink-s); line-height:1.45;
+  }
+  .pic-slot b{ display:block; font-size:10px; letter-spacing:2px; color:var(--gold); text-transform:uppercase; margin-bottom:6px; }
+  .chapter-pic img{ width:100%; max-width:100%; height:auto; border-radius:4px; display:block; margin:6px 0 24px 0; }
+  .popover .pop-head{ display:flex; align-items:center; gap:10px; margin:0 0 8px 0; }
+  .popover .pop-head .pop-word{ margin:0; }
+  .pop-say{
+    flex-shrink:0; width:32px; height:32px; border-radius:50%;
+    background:transparent; border:1.5px solid var(--gold); color:var(--gold);
+    cursor:pointer; font-size:14px; line-height:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pop-say:hover{ background:rgba(174,145,66,0.2); }
+  .pop-say:focus-visible, .part-btn:focus-visible, .font-menu button:focus-visible, .next-btn:focus-visible{ outline:2px solid var(--gold-b); outline-offset:2px; }
+  .popover .pop-note{
+    font-family:Calibri,sans-serif; font-size:13px; color:var(--warm-w);
+    background:rgba(174,145,66,0.18); border-left:3px solid var(--gold);
+    padding:6px 10px; margin:0 0 12px 0; border-radius:2px;
+  }
+  .popover .pop-pic{
+    border:1.5px dashed var(--gold); border-radius:3px; padding:10px 12px; margin:12px 0 0 0;
+    font-family:Calibri,sans-serif; font-size:12px; line-height:1.4; color:var(--warm-w); opacity:.85;
+  }
+  .popover .pop-pic b{ color:var(--gold); letter-spacing:1.5px; font-size:9px; text-transform:uppercase; display:block; margin-bottom:3px; }
+  .popover img.pop-img{ width:100%; height:auto; border-radius:3px; margin:12px 0 0 0; display:block; }
+  .chapter-end{ display:flex; justify-content:flex-end; margin-top:1.5em; }
+  .next-btn{ font-size:0.95rem; }
+  .theend{ text-align:center; font-style:italic; color:var(--gold); font-size:1.1em; margin-top:2em; }
+</style>
+</head>
+<body>
+  <div class="chrome-header">
+    <a href="#" onclick="history.back(); return false;" class="btn btn--primary" style="padding: 5px 10px;" aria-label="Go back">&#x2B05;</a>
+    <div class="monogram">A</div>
+    <div class="chrome-text">
+      <div class="eyebrow">Short Stories &mdash; Basic</div>
+      <div class="subline">Week 01 &nbsp;·&nbsp; Interactive Reading</div>
+    </div>
+  </div>
+  <div class="titleblock">
+    <h1>Crazy <em>Paella.</em></h1>
+    <p>Olly Richards &nbsp;·&nbsp; <i>Short Stories in English for Beginners</i> &nbsp;·&nbsp; Story 1</p>
+  </div>
+  <div class="howto">
+    <b>How to use this page:</b> the story has 4 chapters. Use the buttons at the bottom of the screen to change chapters. Words with a dotted gold line are new vocabulary. Tap or click a word to see the meaning and an example. Tap &#128264; to hear the word. Use <b>A+</b> and <b>A&minus;</b> to change the text size.
+  </div>
+
+  <!-- ============================================================
+       CHAPTER 1
+  ============================================================ -->
+  <div class="story" id="story-1">
+    <div class="part-label"><span class="part-num">Chapter 1</span><span class="part-title">— Getting ready.</span></div>
+    <div class="chapter-pic"><img src="./img/crazy-paella-chapter-1.jpg" alt="Daniel and Julia at home in London, packing suitcases for their trip. Dad stands in the doorway holding money."></div>
+    <!--<div class="pic-slot"><b>Picture</b>Daniel and Julia at home in London, packing suitcases for their trip. Dad stands in the doorway holding money.</div>-->
+    <p>‘Daniel, I’m here!’ Julia calls. She is at the front door of the house.</p>
+    <p>‘What is it, Julia?’ I reply.</p>
+    <p>‘We’re going to Spain today! You remembered, right?’</p>
+    <p>‘Of course I did. I’m packing!’ I call.</p>
+    <p>My name is Daniel. I’m 24 years old. Julia is my sister. She is 23. We’re both in college. We share a house in London. Our parents are Arthur and Sarah Bell.</p>
+    <p>Julia and I are getting ready for a trip. We’re going to Barcelona, Spain. We’re both earning degrees in Spanish. We already know a lot of the language, but we want to learn more. We’re going to be <span class="voc" data-term="exchange-student">exchange students</span> this term.</p>
+    <p>I’m tall, about six feet. I have longish brown hair. My eyes are green and I have a wide mouth. I have a strong build. My legs are strong due to hours on the tennis courts. I’m a very good basketball player as well.</p>
+    <p>My sister Julia also has brown hair. Her hair is longer than mine. She doesn’t have green eyes. She has brown eyes like my dad. I have the same color eyes as my mom.</p>
+    <p>My parents both work. My dad is an <span class="voc" data-term="electrician">electrician</span>. He works for a major electric company. My mom is a writer. She also owns a company. It sells <span class="voc" data-term="science-fiction">science fiction</span> books.</p>
+    <p>My parents are really great. They always help us to reach our goals. They both speak Spanish well. They often speak to us in Spanish. It helps Julia and I practice. They really encouraged us to become exchange students. We are leaving for Spain today.</p>
+    <p>My dad comes in my room. He looks at me in surprise. Why? Because I’m not dressed. ‘Daniel! Why aren’t you dressed?’ Dad asks.</p>
+    <p>‘Dressed? I just got up. I had a <span class="voc" data-term="shower">shower</span> five minutes ago. I’m not even dry yet!’</p>
+    <p>‘Come on! We don’t have much time. I want to take you to the <span class="voc" data-term="airport">airport</span>. But I have to go to work, too.’</p>
+    <p>‘Don’t worry, Dad. I’m getting dressed now.’</p>
+    <p>‘Where’s your sister?’</p>
+    <p>‘She’s in her room.’</p>
+    <p>My dad goes into my sister’s room. He wants to talk to her. He enters and Julia looks at him. ‘Oh, hi, Dad. Do you need something?’ asks Julia.</p>
+    <p>‘Yes. Your brother’s getting dressed. Here.’ My dad gives Julia a <span class="voc" data-term="wad-of-cash">wad of cash</span>. ‘I want you to both have this.’</p>
+    <p>Julia is surprised. ‘Dad! There’s a lot of money here!’ she says.</p>
+    <p>‘Your mother and I have saved this money. We want to pay for part of your trip to Spain.’</p>
+    <p>‘Thanks, Dad!’ says my sister. ‘It will be very useful. I’m going to tell Daniel!’</p>
+    <p>Julia turns to leave. She almost runs into me. She and Dad didn’t notice that I was coming in. My dad sees me. ‘Oh, Daniel, you’re here!’ he says. ‘And you’re dressed! Great!’</p>
+    <p>My dad points to the money. ‘That money is for the two of you. It’s to help with the trip.’</p>
+    <p>‘Thanks, Dad. It’ll be really helpful,’ I reply.</p>
+    <p>Julia smiles.</p>
+    <p>‘Now we must get ready,’ Dad says. ‘We have to leave for the airport! Come on!’</p>
+    <p>Shortly after we eat, we leave the house. We <span class="voc" data-term="head-for">head for</span> the airport in Mom’s car. Julia is very <span class="voc" data-term="nervous">nervous</span>.</p>
+    <p>‘Julia,’ Mom says, ‘are you all right?’</p>
+    <p>‘I’m really nervous,’ Julia answers.</p>
+    <p>‘Why?’</p>
+    <p>‘I don’t know anybody in Spain. I’ll only know Daniel.’</p>
+    <p>‘Don’t worry,’ Mom replies. ‘There are a lot of very nice people in Barcelona. Especially Daniel’s friend Armando.’</p>
+    <p>‘Yes, Mom. I’m sure you’re right. But I still feel nervous. What if something happens?’</p>
+    <p>‘It will be all right,’ says Dad.</p>
+    <p>At the airport there are lots of people <span class="voc" data-term="check-in">checking in</span>. Many of them are traveling for work. Some are traveling for fun. I go over to Julia. Then I ask, ‘Are you more <span class="voc" data-term="relaxed">relaxed</span> now?’</p>
+    <p>‘Yes, Daniel. I was really nervous in the car.’</p>
+    <p>‘Yes, I know. But everything’s going to be fine. My friend Armando is really nice. He often helps exchange students like us.’</p>
+    <p>Our parents <span class="voc" data-term="hug">hug</span> us warmly. We all wave goodbye as Julia and I leave.</p>
+    <p>‘We love you both!’ they call. That’s the final thing we hear. An hour later, our plane <span class="voc" data-term="take-off">takes off</span>. We are headed for Barcelona!</p>
+    <div class="chapter-end"><button class="btn btn--primary next-btn" data-goto="2">Next: Chapter 2</button></div>
+  </div>
+  <!-- ============================================================
+       CHAPTER 2
+  ============================================================ -->
+  <div class="story hidden" id="story-2">
+    <div class="part-label"><span class="part-num">Chapter 2</span><span class="part-title">— Spain.</span></div>
+    <div class="chapter-pic"><img src="./img/crazy-paella-chapter-2.jpg" alt="Daniel asleep on a city bus seat, with the window showing a highway and a sign that says “Valencia.”"></div>
+    <!--<div class="pic-slot"><b>Picture</b>Daniel asleep on a city bus seat, with the window showing a highway and a sign that says “Valencia.”</div>-->
+    <p>Our plane lands in Barcelona. My friend Armando is waiting at the airport.</p>
+    <p>‘Hi, Daniel!’ he says. He gives me a big hug. ‘I’m so happy you’re here!’</p>
+    <p>‘Hi, Armando! It’s great to see you!’ I reply.</p>
+    <p>Armando looks at my sister Julia. I introduce them. ‘Armando, my friend, this is my sister Julia.’</p>
+    <p>Armando turns to Julia. He <span class="voc" data-term="kiss">kisses</span> her on each cheek. ‘Hi, Julia. Pleased to meet you!’</p>
+    <p>My sister is very <span class="voc" data-term="shy">shy</span>. She’s especially shy when she meets new people. ‘Hello ... Armando,’ she says. Her face turns red. Then she becomes <span class="voc" data-term="quiet">quiet</span>.</p>
+    <p>‘Your sister is really shy, isn’t she?’ Armando says to me, smiling.</p>
+    <p>‘Yes she is, but she’s lovely,’ I say.</p>
+    <p>A short while later we head for Armando’s <span class="voc" data-term="apartment">apartment</span>. We are staying there for the term. We get a <span class="voc" data-term="taxi">taxi</span>. After 30 minutes, we arrive in Barcelona center. The taxi costs 41 euros and 50 cents. Armando says it’s the usual rate to this section of the city. We pay for the taxi and get out.</p>
+    <p>It’s a short walk to Armando’s apartment. It’s June and it’s really hot. But there is a nice wind to cool us.</p>
+    <p>We arrive at the apartment at lunchtime. My sister and I are really hungry.</p>
+    <p>‘Armando,’ I say, ‘where can we eat?’</p>
+    <p>‘There are a couple of good <span class="voc" data-term="restaurant">restaurants</span> in the area.’</p>
+    <p>‘What types of food do they have?’</p>
+    <p>‘One of the restaurants, La Paella Loca, has a great <span class="voc" data-term="paella">paella</span>. I really recommend it. You can take the bus there. The other one has lovely fish. It’s just next door.’</p>
+    <p>‘Julia, do you want to have paella?’ I ask my sister.</p>
+    <p>‘Yes! I’m so hungry!’ she replies.</p>
+    <p>Armando can’t come with us. He is a teacher and he has a class. So Julia and I head for the paella restaurant. It’s a short walk to the bus <span class="voc" data-term="station">station</span>.</p>
+    <p>‘Hmm... Now, which bus goes to the paella restaurant?’ I ask Julia.</p>
+    <p>‘I don’t know ...’ she replies. ‘Let’s ask.’ She points to a man in a white shirt.</p>
+    <p>We walk over to the man. He smiles. ‘Hello! Can I help you?’</p>
+    <p>‘Hi. How do we get to La Paella Loca restaurant?’ I ask.</p>
+    <p>‘It’s easy! The number 35 bus goes in that direction. It goes right to La Paella Loca. However, there’s a small problem.’</p>
+    <p>‘What’s that?’ I ask.</p>
+    <p>‘That bus is normally <span class="voc" data-term="packed">packed</span> at this time.’</p>
+    <p>‘OK. Thank you!’ we say.</p>
+    <p>As we walk to the nearest bus stop, Julia and I talk. She is not <span class="voc" data-term="comfortable">comfortable</span> with taking the bus. ‘Daniel,’ she says, ‘Let’s just eat at the fish restaurant. It’s easier. I don’t want to take a packed bus.’</p>
+    <p>‘I know...’ I begin. Then I have an idea. ‘Wait! I’ll take the bus to La Paella Loca. You go to the fish restaurant.’</p>
+    <p>‘Why?’</p>
+    <p>‘Because that way we can compare the two restaurants.’</p>
+    <p>‘Oh. Good idea. OK. Enjoy! I’ll call your <span class="voc" data-term="cell-phone">phone</span> later,’ she calls and walks off.</p>
+    <p>I get on the next bus and sit down. I’m very <span class="voc" data-term="tired">tired</span>. I quickly go to sleep. The bus system in Barcelona is very good. I know there is nothing to worry about.</p>
+    <p>I <span class="voc" data-term="wake-up">wake up</span> a while later. The bus has stopped. There’s no one else on it except for the driver. ‘Excuse me,’ I say. ‘Where are we?’</p>
+    <p>‘We’ve arrived in Valencia,’ he replies.</p>
+    <p>‘What? Valencia? We’re in Valencia? How can that be?’ I say.</p>
+    <p>‘Well this is the <span class="voc" data-term="express-bus">express bus</span>. It goes directly from Barcelona to Valencia,’ he tells me.</p>
+    <p>I can’t believe it. I took the wrong bus. But what can I do?</p>
+    <p>I thank the driver and get off the bus. Then I take out my phone. I want to call my sister, but I can’t turn it on. My <span class="voc" data-term="battery-died">battery has died</span>! I check my watch. It’s just after five o’clock in the afternoon. My sister doesn’t know where I am. She must be really worried. I have to contact her. I need a <span class="voc" data-term="phone-box">phone box</span>!</p>
+    <p>I ask a woman on the street for a phone box. ‘There’s one,’ she says, pointing. ‘It’s just over there.’</p>
+    <p>I thank her and head for the phone box. But when I get there, I realize something. Julia’s phone number is in my phone’s memory. I can’t turn my phone on. I finally have a phone, but I don’t have a number! Now what?</p>
+    <p>I think for a while. Then I realize something. I’m really hungry. I haven’t eaten since breakfast! I decide to find a restaurant. I can think about my problems later.</p>
+    <p>I find a restaurant up the street. The waiter comes to my table. ‘Good evening!’ he says happily.</p>
+    <p>‘Good evening,’ I reply.</p>
+    <p>‘What would you like?’ he asks slowly in Spanish.</p>
+    <p>I look quickly at the <span class="voc" data-term="menu">menu</span>. ‘I’d like paella?’ I say in Spanish.</p>
+    <p>‘Sorry? I didn’t understand you,’ he answers in Spanish.</p>
+    <p>I try again. My Spanish can’t be that bad. ‘Um... I’d like paella?’ I point <span class="voc" data-term="madly">madly</span> at the word paella on the menu. Then I say it again in English.</p>
+    <p>Finally, the waiter then smiles and says in English, ‘Thanks. I’m not from here. I’m new and my Spanish isn’t that great.’</p>
+    <p>I start to laugh very loudly. A lot of people in the restaurant turn and look. At this point, I’m <span class="voc" data-term="embarrassed">embarrassed</span>. I didn’t need to laugh so loudly. But I don’t care. <span class="voc" data-term="all-too-much">It’s all too much</span>. This whole situation is just so strange! My sister and I wanted to have paella together. And now here I am, eating paella - but alone in Valencia! And my sister doesn’t know where I am. It’s so <span class="voc" data-term="ironic">ironic</span>!</p>
+    <p>I finish dinner and pay the bill. Then <span class="voc" data-term="reality-sinks-in">reality sinks in</span>. What do I do now? My phone doesn’t work. There is a phone box, but I don’t have my sister’s number. What can I do? Then I remember. I can call London! I know the number to my mom and dad’s house.</p>
+    <p>I go back to the phone box. I call my parents’ number. It rings four times. Finally my mom says ‘Hello?’</p>
+    <p>‘Hi, Mom. It’s Daniel.’</p>
+    <p>‘Daniel?’ she says. ‘How are you? How’s Barcelona?’</p>
+    <p>‘It’s good. Um ... Mom. I have a problem.’</p>
+    <p>‘What’s wrong? Has something bad happened?’</p>
+    <p>‘No, nothing bad, Mom. Can you call Julia, please? Tell her that I’m in Valencia. And tell her that my phone battery has died.’</p>
+    <p>‘In Valencia? What are you doing in Valencia?!’</p>
+    <p>‘It’s a long story, Mom. I’ll tell you the details later.’</p>
+    <p>We say goodbye.</p>
+    <p>I decide to get a hotel room. There is one available up the street. I can go back to Barcelona tomorrow. Right now, I need sleep.</p>
+    <p>I pay for a night’s stay in cash. I use the money from my dad. I have no credit cards with me. I go to my room. I take off my clothes and get into bed. I turn off the light and go to sleep. I’m really tired. What a <span class="voc" data-term="crazy">crazy</span> day!</p>
+    <div class="chapter-end"><button class="btn btn--primary next-btn" data-goto="3">Next: Chapter 3</button></div>
+  </div>
+  <!-- ============================================================
+       CHAPTER 3
+  ============================================================ -->
+  <div class="story hidden" id="story-3">
+    <div class="part-label"><span class="part-num">Chapter 3</span><span class="part-title">— The motorway.</span></div>
+    <div class="chapter-pic"><img src="./img/crazy-paella-chapter-3.jpg" alt="The dark back of a delivery truck full of rice boxes. A young man and an old man sit between the boxes, talking."></div>
+    <!--<div class="pic-slot"><b>Picture</b>The dark back of a delivery truck full of rice boxes. A young man and an old man sit between the boxes, talking.</div>-->
+    <p>I wake up early at the hotel and have a shower. I order some food to my room. I have little money at this point. But I’m hungry again so I take my time and enjoy.</p>
+    <p>After that, I get dressed and leave. I notice the time on a clock in the hall. It’s ten o’clock in the morning. I wonder if Mom has talked to Julia yet. My sister is a nervous person. I hope she’s all right.</p>
+    <p>I get to the hotel <span class="voc" data-term="entrance">entrance</span>. As I leave, I stop to think. ‘How am I going to get back to Barcelona? I spent most of my money on the hotel. I don’t know where a bank is. I can’t get money from my account. And Julia is probably waiting for me. I need a <span class="voc" data-term="solution">solution</span> - fast!’</p>
+    <p>Then I notice two workers. They are carrying boxes towards a <span class="voc" data-term="lorry">lorry</span>. On the lorry, there’s a picture with the name of the company. I look more closely. Then I start laughing very loudly. I stop myself quickly. I don’t want to be embarrassed again! I can’t believe it. The picture on the lorry is of paella. It’s a lorry from La Paella Loca restaurant!</p>
+    <p>I go over to one of the workers. ‘Hello,’ I say.</p>
+    <p>‘Good morning,’ he answers. ‘How can I help you?’</p>
+    <p>‘Do you work for this restaurant in Barcelona?’ I ask and point to the picture on the lorry.</p>
+    <p>‘No, I’m just a lorry driver,’ the man says.</p>
+    <p>‘Do you know the restaurant La Paella Loca?’</p>
+    <p>‘Yes, we bring rice there every week. It’s for their paella, but I don’t work there.’</p>
+    <p>The driver gets into the lorry. Suddenly, I have an idea! ‘Excuse me?’ I say.</p>
+    <p>‘Yes?’ the driver answers.</p>
+    <p>‘Could you take me back to Barcelona?’ I ask.</p>
+    <p>‘Now?’ he says.</p>
+    <p>‘Yes,’ I reply. ‘I have little money. I must get back to my sister!’</p>
+    <p>The driver stops to think. Then he replies. ‘OK, I guess so. Get into the lorry. Sit between the rice boxes. And don’t tell anybody!’</p>
+    <p>‘I won’t. Thank you,’ I say.</p>
+    <p>‘No problem,’ he says. Then he adds, ‘Quickly, please. I have to leave now. I can’t be late!’</p>
+    <p>I get into the back of the lorry. I sit down between a couple of boxes of rice. The driver starts the lorry. We head for Barcelona. I think it’s a great idea. A lorry is faster than a bus. I can gain some time that way. And, it costs me no money. I sit back happily to enjoy the ride.</p>
+    <p>It’s very dark in the back of the lorry. I can’t see anything. I can just hear the lorry’s <span class="voc" data-term="engine">engine</span> and the cars on the <span class="voc" data-term="motorway">motorway</span>. Then, suddenly, something in the lorry moves. There’s another person among the rice boxes!</p>
+    <p>‘Hello?’ I say.</p>
+    <p><span class="voc" data-term="silence">Silence</span>.</p>
+    <p>‘Who’s there?’ I ask in English.</p>
+    <p>More silence. I know someone is there. He or she is between the boxes.</p>
+    <p>Finally, I get up and walk over. What a surprise! It’s an old man. He’s hidden between the boxes.</p>
+    <p>‘Excuse me,’ I say, ‘But who are you?’</p>
+    <p>‘Leave me alone, please,’ the man answers. He speaks perfect English!</p>
+    <p>‘What are you doing here?’ I ask.</p>
+    <p>‘I’m traveling to Barcelona.’</p>
+    <p>‘Does the driver know you’re here?’</p>
+    <p>‘No, he doesn’t. I got into the lorry while you were talking to him.’</p>
+    <p>‘I see ...’ I say.</p>
+    <p>Suddenly, the driver stops. He gets out and heads towards the back. The old man looks at me <span class="voc" data-term="with-concern">with concern</span>. ‘Why did he stop?’</p>
+    <p>‘I don’t know.’</p>
+    <p>There’s a sound at the back door.</p>
+    <p>‘I have to <span class="voc" data-term="hide">hide</span>!’ says the man.</p>
+    <p>The driver comes into the lorry. He only sees me. The old man is hiding behind the boxes.</p>
+    <p>‘What’s going on in here?’ he asks me.</p>
+    <p>‘Nothing.’</p>
+    <p>‘Who were you talking to?’</p>
+    <p>‘Me? Nobody. There’s no one else here. Can’t you see?’</p>
+    <p>‘Listen. We’re not in Barcelona yet. Be quiet. I don’t want any trouble. Understand?’</p>
+    <p>‘I understand,’ I reply.</p>
+    <p>The driver closes the door. He goes back to the driver’s seat. At that same moment, the old man comes out from between the boxes. He looks at me with a smile. ‘I’m <span class="voc" data-term="lucky">lucky</span> that he didn’t see me!’ he says.</p>
+    <p>‘Yes, you are,’ I say. ‘So, tell me. Why are you traveling from Valencia to Barcelona in a lorry?’</p>
+    <p>‘Do you really want to know?’</p>
+    <p>‘Yes, of course!’</p>
+    <p>‘Allow me to tell you a little story.’</p>
+    <p>‘Please! It’s a long ride.’</p>
+    <p>The old man tells me his story. ‘I have a son, but I have never met him. His mother and I were together many years ago. We weren’t really a perfect match. But I loved her. Then I went to the United States. It was for a job opportunity. The job didn’t go well. I couldn’t get back.’ He paused. Then he continued, ‘She moved away. And I never saw her - or my son - again. Recently, I found out where they are.’</p>
+    <p>‘In Barcelona?’</p>
+    <p>‘Exactly.’</p>
+    <p>‘How old is your son?’</p>
+    <p>‘He’s 24.’</p>
+    <p>‘That’s the same age as me!’</p>
+    <p>The old man laughs. ‘What a <span class="voc" data-term="coincidence">coincidence</span>!’</p>
+    <p>‘Yes, it is.’</p>
+    <p>After a few minutes of silence, I get up to <span class="voc" data-term="stretch-legs">stretch my legs</span>. I ask the man, ‘What’s your son’s name?’</p>
+    <p>‘His name is Armando. He has an apartment in Barcelona. It’s in an area near the restaurant The Crazy Paella. That’s why I’m in this lorry.’</p>
+    <p>The Crazy Paella. Also known as La Paella Loca in Spanish. The man in the lorry is my friend Armando’s father. I can’t believe it!</p>
+    <div class="chapter-end"><button class="btn btn--primary next-btn" data-goto="4">Next: Chapter 4</button></div>
+  </div>
+  <!-- ============================================================
+       CHAPTER 4
+  ============================================================ -->
+  <div class="story hidden" id="story-4">
+    <div class="part-label"><span class="part-num">Chapter 4</span><span class="part-title">— The return.</span></div>
+    <div class="chapter-pic"><img src="./img/crazy-paella-chapter-4.jpg" alt="In an apartment doorway, a young man and an old man hug awkwardly while a brother and sister watch and smile."></div>
+    <!-- <div class="pic-slot"><b>Picture</b>In an apartment doorway, a young man and an old man hug awkwardly while a brother and sister watch and smile.</div>-->
+    <p>The man and I talk little on the ride to Barcelona. I don’t mention that I may know his son. At last, the Paella Loca lorry arrives. The driver turns off the engine. The old man and I get out the back door. The old man hides among the people on the street. I thank the driver.</p>
+    <p>‘You’re welcome,’ he says. ‘Have a good day!’</p>
+    <p>I turn around. The old man is looking at the restaurant. It’s La Paella Loca at last! We both go in. No one is there. It’s three o’clock in the afternoon. It’s still too early for <span class="voc" data-term="dinner">dinner</span>.</p>
+    <p>‘What do you want to do?’ I ask the man.</p>
+    <p>‘I’m not hungry,’ he replies. ‘I want to go to my son’s apartment. Do you want to come with me?’</p>
+    <p>‘Sure,’ I reply.</p>
+    <p>The old man has Armando’s address. We take the number 35 bus in silence. Then we walk towards Armando’s apartment. He still doesn’t know that Armando is my friend. Armando doesn’t speak about his father very often. I know Armando and the man have never met.</p>
+    <p>At this point, I just can’t decide. Should I tell the man that I know Armando? Should I keep it to myself? Finally, I come to a conclusion. I will keep quiet. I want the meeting to be a great surprise.</p>
+    <p>We arrive at the apartment and walk through the front entrance. ‘Good afternoon!’ says the <span class="voc" data-term="receptionist">receptionist</span>.</p>
+    <p>‘Hello,’ we reply.</p>
+    <p>The old man moves towards the receptionist. He wants to ask for Armando’s apartment number.</p>
+    <p>‘Leave it to me,’ I say.</p>
+    <p>We take the <span class="voc" data-term="lift">lift</span> up to the third floor. We get out. We walk towards the door of the apartment.</p>
+    <p>‘It’s here,’ I say to the old man.</p>
+    <p>‘How do you know?’ he asks.</p>
+    <p>Finally, I explain. I tell him that I have known Armando for years. It was just luck or <span class="voc" data-term="fate">fate</span> that he and I were in the same lorry. At first, he can’t believe it. Then he accepts his fate. He can’t wait to meet his son.</p>
+    <p>We ring at the door but there is no answer.</p>
+    <p>‘Julia? Armando?’ I call. ‘Is anyone there?’ Again, nobody answers. I explain that my sister and I are staying in the apartment. Then I take out my key and open the door.</p>
+    <p>‘Where are they?’ the man asks.</p>
+    <p>‘I don’t know. But they should be here soon.’</p>
+    <p>We go into the apartment. I find my phone charger. For the next 15 minutes, I charge my phone. After, I call my sister. Julia’s phone rings once. She answers quickly.</p>
+    <p>‘Daniel! Finally! Mom called, but I was so worried!’</p>
+    <p>‘Hello, Julia. Don’t worry. I’m fine. I’m at Armando’s apartment. I’m with someone.’</p>
+    <p>‘Who is it?’</p>
+    <p>‘Well, it’s a long story. Come back to the apartment. Where are you?’</p>
+    <p>‘I talked to Mom this morning. She told me about Valencia. Armando and I waited for you all night! We just went out for lunch. We’re on our way back now.’</p>
+    <p>‘OK. We’ll wait for you here.’</p>
+    <p>Half an hour later, Armando and Julia arrive at the apartment. ‘Hello, Daniel! We’re so happy to see you!’ says Armando. He turns to the old man. ‘And who are you?’ he asks.</p>
+    <p>Before the man can reply, I say, ‘Um... Armando, I have something important to tell you.’</p>
+    <p>‘What’s going on?’ he asks.</p>
+    <p>‘Armando, this is your father,’ I say.</p>
+    <p>At first, Armando is <span class="voc" data-term="taken-aback">taken aback</span>. ‘My father? That’s <span class="voc" data-term="impossible">impossible</span>!’</p>
+    <p>The old man looks at him. ‘Are you Armando?’ he says.</p>
+    <p>‘Yes, I am. You can’t possibly be my father!’ Armando replies.</p>
+    <p>‘My name is Antonio Sotomonte. Yes, I’m your father.’</p>
+    <p>The man explains everything to Armando. Armando soon <span class="voc" data-term="realize">realizes</span> that it really is his father. He hugs the old man <span class="voc" data-term="awkwardly">awkwardly</span>. After so many years, they have finally met. Both men are not sure what to do.</p>
+    <p>Finally, Armando smiles and says, ‘Well ... I guess this calls for a <span class="voc" data-term="celebration">celebration</span>!’</p>
+    <p>‘I agree!’ says his father, Antonio.</p>
+    <p>‘Shall we go to La Paella Loca?’ says Julia.</p>
+    <p>I look at Julia. I’m surprised. ‘No! I don’t want paella! I never want to eat it again!’ She looks at me and laughs. ‘I don’t want to go near that restaurant!’ I continue. ‘And I don’t want to get on a bus for a long time either! I want a pizza!’</p>
+    <p>They all <span class="voc" data-term="burst-out-laughing">burst out laughing</span>. After a moment, I laugh too.</p>
+    <p>‘What a crazy day!’ I say.</p>
+    <p>‘Yes,’ replies Antonio. ‘<span class="voc" data-term="dia-loco">Un día loco</span>; a crazy day indeed!’</p>
+    <p class="theend">The End</p>
+  </div>
+
+  <!-- Backdrop that closes popover on outside click -->
+  <div class="backdrop" id="backdrop"></div>
+
+  <!-- Popover -->
+  <div class="popover" id="popover" role="dialog" aria-live="polite">
+    <div class="pop-top">
+      <div><div class="pop-label" id="pop-label">WORD / PHRASE</div></div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="pop-level" id="pop-level">noun</span>
+        <button class="pop-close" id="pop-close" aria-label="Close">&#10005;</button>
+      </div>
+    </div>
+    <div class="pop-head">
+      <p class="pop-word" id="pop-word">word</p>
+      <button class="pop-say" id="pop-say" aria-label="Listen to the word">&#128264;</button>
+    </div>
+    <p class="pop-def" id="pop-def">definition</p>
+    <p class="pop-note" id="pop-note"></p>
+    <div class="pop-ex-label">Example</div>
+    <p class="pop-ex" id="pop-ex">example</p>
+    <div id="pop-media"></div>
+  </div>
+
+  <!-- Floating font-size controls -->
+  <div class="font-menu">
+    <button id="font-inc" aria-label="Increase text size">A+</button>
+    <button id="font-reset" class="reset-btn" aria-label="Reset text size">&#8635;</button>
+    <button id="font-dec" aria-label="Decrease text size">A&minus;</button>
+  </div>
+
+  <!-- Fixed bottom chapter navigation -->
+  <div class="part-nav" id="partNav">
+    <button class="part-btn active" data-part="1"><span class="p-roman">1</span><span>Chapter 1</span><span class="p-title">Getting ready</span></button>
+    <button class="part-btn" data-part="2"><span class="p-roman">2</span><span>Chapter 2</span><span class="p-title">Spain</span></button>
+    <button class="part-btn" data-part="3"><span class="p-roman">3</span><span>Chapter 3</span><span class="p-title">The motorway</span></button>
+    <button class="part-btn" data-part="4"><span class="p-roman">4</span><span>Chapter 4</span><span class="p-title">The return</span></button>
+  </div>
+
+<script>
+  /* ============================================================
+     GLOSSARY — one entry per vocabulary word (Week 01 list).
+     type  = shown in the gold badge
+     note  = U.S. / U.K. note (empty = hidden)
+     pic   = picture description (shows a placeholder until img is set)
+     img   = paste an image URL here to show the picture instead
+  ============================================================ */
+  var GLOSSARY = {
+ "exchange-student": {
+  "word": "exchange student",
+  "type": "noun",
+  "def": "a student who studies in another country for a short time",
+  "example": "Maria is an exchange student from Brazil. She is studying in Boston for one year.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "electrician": {
+  "word": "electrician",
+  "type": "noun",
+  "def": "a person whose job is to put in or fix electrical things",
+  "example": "The lights in my kitchen don't work. I need to call an electrician.",
+  "note": "",
+  "pic": "An electrician in work clothes fixing wires in a wall outlet, with tools in his hand.",
+  "img": ""
+ },
+ "science-fiction": {
+  "word": "science fiction",
+  "type": "noun",
+  "def": "stories about the future, space, or other worlds",
+  "example": "My brother loves science fiction movies about space and robots.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "shower": {
+  "word": "shower",
+  "type": "noun",
+  "def": "water that comes down from above you; you stand under it to wash",
+  "example": "I take a shower every morning before work.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "airport": {
+  "word": "airport",
+  "type": "noun",
+  "def": "a place where planes arrive and leave",
+  "example": "My flight leaves at 8 a.m., so I have to be at the airport at 6.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "wad-of-cash": {
+  "word": "wad of cash",
+  "type": "noun phrase",
+  "def": "a thick pile of paper money",
+  "example": "He paid for the old car with a wad of cash.",
+  "note": "",
+  "pic": "A hand holding a thick folded pile of paper money (bills).",
+  "img": ""
+ },
+ "head-for": {
+  "word": "head for / head to",
+  "type": "phrasal verb",
+  "def": "go to (informal)",
+  "example": "After class, we head for the bus stop.",
+  "note": "In the U.S., people often say head to: “Let’s head to the store.”",
+  "pic": "",
+  "img": ""
+ },
+ "nervous": {
+  "word": "nervous",
+  "type": "adjective",
+  "def": "worried or a little afraid",
+  "example": "I always feel nervous before a job interview.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "check-in": {
+  "word": "check in (for a flight)",
+  "type": "phrasal verb",
+  "def": "tell the airline you are at the airport and give them your bags",
+  "example": "You can check in for your flight online or at the airport.",
+  "note": "",
+  "pic": "Travelers standing at an airport check-in counter, giving a suitcase to an airline worker.",
+  "img": ""
+ },
+ "relaxed": {
+  "word": "relaxed",
+  "type": "adjective",
+  "def": "calm and not worried",
+  "example": "On Sundays I feel relaxed because I don't have class.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "hug": {
+  "word": "hug",
+  "type": "verb",
+  "def": "put your arms around someone and hold them",
+  "example": "My mom always hugs me when I come home.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "take-off": {
+  "word": "take off",
+  "type": "phrasal verb",
+  "def": "when a plane leaves the ground and goes up",
+  "example": "The plane takes off at 9:15.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "kiss": {
+  "word": "kiss",
+  "type": "verb",
+  "def": "touch someone with your lips (in Spain, friends often kiss on each cheek to say hello)",
+  "example": "In the U.S., friends usually hug or shake hands. They don't often kiss on the cheek.",
+  "note": "",
+  "pic": "Two friends greeting each other with a kiss on the cheek, smiling.",
+  "img": ""
+ },
+ "shy": {
+  "word": "shy",
+  "type": "adjective",
+  "def": "not comfortable meeting and talking to new people",
+  "example": "My son is shy on the first day of school.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "quiet": {
+  "word": "quiet",
+  "type": "adjective",
+  "def": "making little or no noise; not talking",
+  "example": "Please be quiet in the library.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "apartment": {
+  "word": "apartment",
+  "type": "noun",
+  "def": "a home with rooms in a bigger building",
+  "example": "I live in a small apartment with two roommates.",
+  "note": "In the U.K., people say flat.",
+  "pic": "",
+  "img": ""
+ },
+ "taxi": {
+  "word": "taxi",
+  "type": "noun",
+  "def": "a car with a driver that you pay to take you somewhere",
+  "example": "It was raining, so we took a taxi home.",
+  "note": "In the U.S., people also say cab.",
+  "pic": "",
+  "img": ""
+ },
+ "restaurant": {
+  "word": "restaurant",
+  "type": "noun",
+  "def": "a place where you buy and eat a meal",
+  "example": "There is a good Mexican restaurant near my school.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "paella": {
+  "word": "paella",
+  "type": "noun",
+  "def": "a Spanish rice dish, often with seafood, chicken, and vegetables",
+  "example": "Paella is a famous dish from Valencia, Spain.",
+  "note": "",
+  "pic": "A large, flat pan of yellow paella rice with shrimp, mussels, chicken, peas, and lemon slices.",
+  "img": ""
+ },
+ "station": {
+  "word": "station",
+  "type": "noun",
+  "def": "a building where buses or trains stop for people to get on and off",
+  "example": "Meet me at the train station at 5 o'clock.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "packed": {
+  "word": "packed",
+  "type": "adjective",
+  "def": "very, very full",
+  "example": "The bus is always packed at 5 p.m.",
+  "note": "",
+  "pic": "A very crowded city bus, full of standing passengers holding the handrails.",
+  "img": ""
+ },
+ "comfortable": {
+  "word": "comfortable",
+  "type": "adjective",
+  "def": "happy and relaxed (about doing something)",
+  "example": "I'm not comfortable speaking English on the phone yet.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "cell-phone": {
+  "word": "phone (cell phone)",
+  "type": "noun",
+  "def": "a phone you carry with you",
+  "example": "I can't find my cell phone! Can you call it?",
+  "note": "In the U.S., people say cell phone. In the U.K., people say mobile.",
+  "pic": "",
+  "img": ""
+ },
+ "tired": {
+  "word": "tired",
+  "type": "adjective",
+  "def": "needing rest or sleep",
+  "example": "After eight hours of class, I'm really tired.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "wake-up": {
+  "word": "wake up",
+  "type": "phrasal verb",
+  "def": "stop sleeping",
+  "example": "I wake up at 7 o'clock on weekdays.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "express-bus": {
+  "word": "express bus",
+  "type": "noun",
+  "def": "a fast bus between big cities that does not stop",
+  "example": "The express bus goes from the city to the airport with no stops.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "battery-died": {
+  "word": "my battery died",
+  "type": "expression",
+  "def": "my phone (or device) has no power now",
+  "example": "Can I borrow your charger? My battery died.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "phone-box": {
+  "word": "phone box",
+  "type": "noun",
+  "def": "a small box on the street with a phone you pay to use",
+  "example": "Today, it's very hard to find a phone booth in the U.S.",
+  "note": "In the U.S., people say phone booth.",
+  "pic": "A public phone booth on a city street, with a coin phone inside.",
+  "img": ""
+ },
+ "menu": {
+  "word": "menu",
+  "type": "noun",
+  "def": "a list of the food you can order in a restaurant",
+  "example": "Excuse me, can we see the menu, please?",
+  "note": "",
+  "pic": "An open restaurant menu on a table, with food names and prices.",
+  "img": ""
+ },
+ "madly": {
+  "word": "madly",
+  "type": "adverb",
+  "def": "in a very excited way",
+  "example": "The kids waved madly when they saw their dad.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "embarrassed": {
+  "word": "embarrassed",
+  "type": "adjective",
+  "def": "feeling bad or silly because of something you did",
+  "example": "I called my teacher “Mom” in class. I was so embarrassed!",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "all-too-much": {
+  "word": "It’s all too much.",
+  "type": "expression",
+  "def": "This is more than I can handle.",
+  "example": "Work, school, and two kids … sometimes it's all too much.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "ironic": {
+  "word": "ironic",
+  "type": "adjective",
+  "def": "surprising and funny because it is the opposite of what you expect",
+  "example": "It's ironic: the fire station caught on fire!",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "reality-sinks-in": {
+  "word": "reality sinks in",
+  "type": "expression",
+  "def": "you start to understand what is really happening",
+  "example": "I passed my driving test! Then reality sinks in: now I have to buy a car.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "crazy": {
+  "word": "crazy",
+  "type": "adjective",
+  "def": "wild, unexpected, out of control",
+  "example": "It was a crazy week. My car broke down and I lost my keys.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "entrance": {
+  "word": "entrance",
+  "type": "noun",
+  "def": "the door or place where you go into a building",
+  "example": "The entrance to the school is on Main Street.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "solution": {
+  "word": "solution",
+  "type": "noun",
+  "def": "the answer to a problem",
+  "example": "I always forget my keys. The solution? I keep a second key at work.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "lorry": {
+  "word": "lorry",
+  "type": "noun",
+  "def": "a big vehicle that carries heavy things on the road",
+  "example": "A big truck brings food to the supermarket every morning.",
+  "note": "In the U.S., people say truck.",
+  "pic": "A large delivery truck parked on a street, with workers carrying boxes into the back.",
+  "img": ""
+ },
+ "engine": {
+  "word": "engine",
+  "type": "noun",
+  "def": "the part of a car or truck that makes it move",
+  "example": "My car makes a strange noise. Maybe there's a problem with the engine.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "motorway": {
+  "word": "motorway",
+  "type": "noun",
+  "def": "a big, fast road between cities",
+  "example": "There is always traffic on the highway at 5 p.m.",
+  "note": "In the U.S., people say highway.",
+  "pic": "A wide highway with many lanes and cars and trucks driving between cities.",
+  "img": ""
+ },
+ "silence": {
+  "word": "silence",
+  "type": "noun",
+  "def": "when there is no sound at all",
+  "example": "When the teacher asked the question, there was silence.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "with-concern": {
+  "word": "with concern",
+  "type": "expression",
+  "def": "in a worried way",
+  "example": "The doctor looked at my X-ray with concern.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "hide": {
+  "word": "hide",
+  "type": "verb",
+  "def": "go to a place where people can't see you",
+  "example": "My cat likes to hide under the bed.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "lucky": {
+  "word": "lucky",
+  "type": "adjective",
+  "def": "when something good happens to you by chance",
+  "example": "I found $20 on the street. I'm so lucky!",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "coincidence": {
+  "word": "coincidence",
+  "type": "noun",
+  "def": "when two things happen together by chance",
+  "example": "My new neighbor is from my hometown. What a coincidence!",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "stretch-legs": {
+  "word": "stretch your legs",
+  "type": "expression",
+  "def": "stand up and move after sitting for a long time",
+  "example": "After three hours in the car, we stopped to stretch our legs.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "dinner": {
+  "word": "dinner",
+  "type": "noun",
+  "def": "the main meal of the day, usually in the evening",
+  "example": "We usually have dinner at 7 p.m.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "receptionist": {
+  "word": "receptionist",
+  "type": "noun",
+  "def": "a person at the front desk who helps visitors",
+  "example": "The receptionist at the doctor's office asked for my name.",
+  "note": "",
+  "pic": "A smiling receptionist sitting at the front desk of a building lobby.",
+  "img": ""
+ },
+ "lift": {
+  "word": "lift",
+  "type": "noun",
+  "def": "a small room that takes people up and down in a building",
+  "example": "Take the elevator to the fifth floor.",
+  "note": "In the U.S., people say elevator.",
+  "pic": "People standing inside an elevator with open doors and floor buttons.",
+  "img": ""
+ },
+ "fate": {
+  "word": "fate",
+  "type": "noun",
+  "def": "a power that seems to make things happen; we can't control it",
+  "example": "We met on the bus. Maybe it was fate!",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "taken-aback": {
+  "word": "be taken aback",
+  "type": "expression",
+  "def": "be very surprised, often not in a happy way",
+  "example": "She was taken aback when she saw the price of the bill.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "impossible": {
+  "word": "impossible",
+  "type": "adjective",
+  "def": "it can't happen or can't be true",
+  "example": "It's impossible to finish this homework in five minutes!",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "realize": {
+  "word": "realize",
+  "type": "verb",
+  "def": "suddenly understand or know something",
+  "example": "At the store, I realized I left my wallet at home.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "awkwardly": {
+  "word": "awkwardly",
+  "type": "adverb",
+  "def": "in an uncomfortable way",
+  "example": "He smiled awkwardly at the people in the elevator.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "celebration": {
+  "word": "celebration",
+  "type": "noun",
+  "def": "a happy party for something special",
+  "example": "We had a big celebration for my mom's 60th birthday.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "burst-out-laughing": {
+  "word": "burst out laughing",
+  "type": "expression",
+  "def": "suddenly start to laugh a lot",
+  "example": "My friend told a funny joke, and we all burst out laughing.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "dia-loco": {
+  "word": "un día loco",
+  "type": "Spanish expression",
+  "def": "“a crazy day”",
+  "example": "Antonio speaks Spanish. He says “un día loco” — a crazy day!",
+  "note": "",
+  "pic": "",
+  "img": ""
+ }
+};
+
+  var activeSpan = null;
+
+  function positionPopover(span, pop){
+    var rect = span.getBoundingClientRect();
+    var scrollY = window.scrollY || document.documentElement.scrollTop;
+    var scrollX = window.scrollX || document.documentElement.scrollLeft;
+    var popWidth = pop.offsetWidth, popHeight = pop.offsetHeight;
+    var top = rect.bottom + scrollY + 14;
+    var left = rect.left + scrollX + (rect.width/2) - (popWidth/2);
+    var maxLeft = document.documentElement.clientWidth - popWidth - 12;
+    if(left > maxLeft) left = maxLeft;
+    if(left < 12) left = 12;
+    var viewportBottom = scrollY + window.innerHeight;
+    if(top + popHeight > viewportBottom - 96){
+      top = rect.top + scrollY - popHeight - 14;
+      if(top < scrollY + 8) top = scrollY + 8;
+    }
+    pop.style.top = top + "px";
+    pop.style.left = left + "px";
+  }
+
+  function openPopover(span){
+    var data = GLOSSARY[span.getAttribute("data-term")];
+    if(!data) return;
+    if(activeSpan) activeSpan.classList.remove("active");
+    activeSpan = span;
+    span.classList.add("active");
+
+    document.getElementById("pop-word").textContent = data.word;
+    document.getElementById("pop-def").textContent = data.def;
+    document.getElementById("pop-ex").textContent = data.example;
+    document.getElementById("pop-level").textContent = data.type;
+    var note = document.getElementById("pop-note");
+    note.textContent = data.note ? "\uD83C\uDDFA\uD83C\uDDF8 " + data.note : "";
+    note.style.display = data.note ? "block" : "none";
+
+    var media = document.getElementById("pop-media");
+    media.innerHTML = "";
+    if(data.img){
+      var im = document.createElement("img");
+      im.className = "pop-img"; im.src = data.img; im.alt = data.pic || data.word;
+      im.onload = function(){ positionPopover(span, document.getElementById("popover")); };
+      media.appendChild(im);
+    } else if(data.pic){
+      var box = document.createElement("div");
+      box.className = "pop-pic";
+      var b = document.createElement("b"); b.textContent = "Picture";
+      box.appendChild(b); box.appendChild(document.createTextNode(data.pic));
+      media.appendChild(box);
+    }
+
+    var pop = document.getElementById("popover");
+    pop.classList.add("show");
+    document.getElementById("backdrop").classList.add("show");
+    positionPopover(span, pop);
+  }
+
+  function closePopover(){
+    if(activeSpan) activeSpan.classList.remove("active");
+    activeSpan = null;
+    document.getElementById("popover").classList.remove("show");
+    document.getElementById("backdrop").classList.remove("show");
+    if(window.speechSynthesis) window.speechSynthesis.cancel();
+  }
+
+  function bindVocab(){
+    document.querySelectorAll(".voc").forEach(function(span){
+      if(span.dataset.bound) return;
+      span.dataset.bound = "1";
+      span.setAttribute("tabindex","0");
+      span.setAttribute("role","button");
+      span.addEventListener("click", function(e){
+        e.stopPropagation();
+        if(activeSpan === span){ closePopover(); return; }
+        openPopover(span);
+      });
+      span.addEventListener("keydown", function(e){
+        if(e.key === "Enter" || e.key === " "){ e.preventDefault(); span.click(); }
+      });
+    });
+  }
+  bindVocab();
+
+  /* ---------- Listen (browser text-to-speech) ---------- */
+  document.getElementById("pop-say").addEventListener("click", function(e){
+    e.stopPropagation();
+    if(!activeSpan || !window.speechSynthesis) return;
+    var data = GLOSSARY[activeSpan.getAttribute("data-term")];
+    var text = data.word.replace(/\(.*?\)/g, "").replace("/", " or ");
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = (data.type.indexOf("Spanish") > -1) ? "es-ES" : "en-US";
+    u.rate = 0.85;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+  });
+
+  document.getElementById("backdrop").addEventListener("click", closePopover);
+  document.getElementById("pop-close").addEventListener("click", closePopover);
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") closePopover(); });
+  window.addEventListener("resize", function(){ if(activeSpan) positionPopover(activeSpan, document.getElementById("popover")); });
+  window.addEventListener("scroll", function(){ if(activeSpan) positionPopover(activeSpan, document.getElementById("popover")); }, true);
+
+  /* ---------- Font size controls ---------- */
+  var BASE_SIZE = 19, MIN_SIZE = 14, MAX_SIZE = 30, STEP = 2;
+  var currentSize = BASE_SIZE;
+  function applySize(){
+    document.documentElement.style.setProperty("--story-size", currentSize + "px");
+    if(activeSpan) positionPopover(activeSpan, document.getElementById("popover"));
+  }
+  document.getElementById("font-inc").addEventListener("click", function(){ currentSize = Math.min(MAX_SIZE, currentSize + STEP); applySize(); });
+  document.getElementById("font-dec").addEventListener("click", function(){ currentSize = Math.max(MIN_SIZE, currentSize - STEP); applySize(); });
+  document.getElementById("font-reset").addEventListener("click", function(){ currentSize = BASE_SIZE; applySize(); });
+
+  /* ---------- Chapter navigation ---------- */
+  var TOTAL = 4;
+  function showPart(n){
+    for(var i=1;i<=TOTAL;i++){
+      var el = document.getElementById("story-"+i);
+      if(el) el.classList.toggle("hidden", i !== n);
+    }
+    document.querySelectorAll(".part-btn").forEach(function(btn){
+      btn.classList.toggle("active", parseInt(btn.getAttribute("data-part"),10) === n);
+    });
+    closePopover();
+    window.scrollTo({top:0, behavior:"instant"});
+    bindVocab();
+  }
+  document.querySelectorAll(".part-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){ showPart(parseInt(btn.getAttribute("data-part"),10)); });
+  });
+  document.querySelectorAll(".next-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){ showPart(parseInt(btn.getAttribute("data-goto"),10)); });
+  });
+</script>
+
+</body>
+</html>
