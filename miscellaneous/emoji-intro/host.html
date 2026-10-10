@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Emoji introductions (screen)</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="config.js"></script>
+</head>
+<body class="host">
+
+  <!-- Setup -->
+  <main id="setup" class="setup">
+    <div class="brackets setup-frame">
+      <div class="setup-card">
+        <h1>Emoji introductions</h1>
+        <p class="lede">Students choose emojis that describe them. Their emojis float up here as clouds, and you reveal who is behind each one.</p>
+        <fieldset class="count-picker">
+          <legend>Emojis per student</legend>
+          <div class="segmented">
+            <button type="button" data-count="2" aria-pressed="false">2</button>
+            <button type="button" data-count="3" aria-pressed="true">3</button>
+            <button type="button" data-count="4" aria-pressed="false">4</button>
+            <button type="button" data-count="5" aria-pressed="false">5</button>
+          </div>
+        </fieldset>
+        <div class="setup-actions">
+          <button id="startBtn" class="btn btn-gold btn-lg" type="button">Start a new game</button>
+          <button id="resumeBtn" class="btn btn-line" type="button" hidden></button>
+        </div>
+        <p id="setupError" class="error" role="alert"></p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Game stage -->
+  <div id="stage" class="stage" hidden>
+    <div id="sky" class="sky">
+      <p id="emptyMsg" class="empty-msg">Scan the code to send your emojis.</p>
+    </div>
+
+    <header class="toolbar">
+      <div class="toolbar-info">
+        <span id="status" class="status" data-state="connecting">Connecting…</span>
+        <span id="joinedCount" class="joined">0 joined</span>
+      </div>
+      <div class="toolbar-actions">
+        <button id="toggleQrBtn" class="btn btn-line btn-sm" type="button">Hide QR code</button>
+        <button id="clearBtn" class="btn btn-line btn-sm" type="button">Clear clouds</button>
+        <button id="endBtn" class="btn btn-line btn-sm" type="button">End game</button>
+      </div>
+    </header>
+
+    <aside id="qrPanel" class="qr-panel brackets">
+      <div class="qr-card">
+        <h2>Scan to join</h2>
+        <div id="qr" class="qr"></div>
+        <p class="room">Room <strong id="roomCode"></strong></p>
+        <a id="joinUrl" class="join-url" target="_blank" rel="noopener"></a>
+      </div>
+    </aside>
+
+    <div id="spotlight" class="spotlight" role="dialog" aria-modal="true" aria-label="Student in the spotlight" hidden>
+      <div class="spot-frame brackets">
+        <div class="spot-card cloud-body">
+          <div id="spotEmojis" class="spot-emojis"></div>
+          <div id="spotName" class="spot-name" aria-hidden="true"></div>
+        </div>
+      </div>
+      <div class="spot-actions">
+        <button id="revealBtn" class="btn btn-gold btn-lg" type="button">Reveal name</button>
+        <button id="backBtn" class="btn btn-line btn-lg" type="button">Send back</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  const CFG = window.EMOJI_INTRO_CONFIG || {};
+  const STORE_KEY = 'emojiIntro.session';
+  const $ = (s) => document.querySelector(s);
+
+  const els = {
+    setup: $('#setup'), stage: $('#stage'),
+    countBtns: document.querySelectorAll('[data-count]'),
+    startBtn: $('#startBtn'), resumeBtn: $('#resumeBtn'), setupError: $('#setupError'),
+    sky: $('#sky'), empty: $('#emptyMsg'),
+    status: $('#status'), joined: $('#joinedCount'),
+    toggleQr: $('#toggleQrBtn'), clear: $('#clearBtn'), end: $('#endBtn'),
+    qrPanel: $('#qrPanel'), qr: $('#qr'), roomCode: $('#roomCode'), joinUrl: $('#joinUrl'),
+    spot: $('#spotlight'), spotEmojis: $('#spotEmojis'), spotName: $('#spotName'),
+    revealBtn: $('#revealBtn'), backBtn: $('#backBtn')
+  };
+
+  const state = { room: null, n: 3, people: new Map(), channel: null, focusedId: null, ticking: false };
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let sb = null;
+
+  // ---------- Setup ----------
+  const keyMissing = !CFG.supabaseAnonKey || CFG.supabaseAnonKey.startsWith('PASTE');
+  if (keyMissing) {
+    els.setupError.textContent = 'Add your Supabase anon key to config.js, then reload this page.';
+    els.startBtn.disabled = true;
+  } else {
+    sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey);
+  }
+
+  els.countBtns.forEach((btn) => btn.addEventListener('click', () => {
+    state.n = Number(btn.dataset.count);
+    els.countBtns.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+  }));
+
+  const saved = loadSaved();
+  if (saved && saved.room && !keyMissing) {
+    const c = saved.people.length;
+    els.resumeBtn.textContent = `Resume room ${saved.room} (${c} ${c === 1 ? 'student' : 'students'})`;
+    els.resumeBtn.hidden = false;
+    els.resumeBtn.addEventListener('click', () => startGame(saved.room, saved.n, saved.people));
+  }
+  els.startBtn.addEventListener('click', () => startGame(makeRoom(), state.n, []));
+
+  function makeRoom() { return String(Math.floor(1000 + Math.random() * 9000)); }
+  function rand(a, b) { return a + Math.random() * (b - a); }
+
+  function save() {
+    try {
+      const people = [...state.people.values()].map((p) => ({ id: p.id, name: p.name, emojis: p.emojis, revealed: p.revealed }));
+      localStorage.setItem(STORE_KEY, JSON.stringify({ room: state.room, n: state.n, people }));
+    } catch (e) { /* storage unavailable: game still works, just won't survive a reload */ }
+  }
+  function loadSaved() {
+    try {
+      const s = JSON.parse(localStorage.getItem(STORE_KEY));
+      return s && Array.isArray(s.people) ? s : null;
+    } catch (e) { return null; }
+  }
+
+  // ---------- Game ----------
+  function startGame(room, n, people) {
+    state.room = room;
+    state.n = n;
+    els.setup.hidden = true;
+    els.stage.hidden = false;
+
+    const url = new URL('join.html', location.href);
+    url.searchParams.set('room', room);
+    url.searchParams.set('n', n);
+    els.qr.innerHTML = '';
+    new QRCode(els.qr, {
+      text: url.href, width: 240, height: 240,
+      colorDark: '#0f2340', colorLight: '#faf6ee',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+    els.roomCode.textContent = room;
+    els.joinUrl.textContent = url.href;
+    els.joinUrl.href = url.href;
+
+    people.forEach((p) => upsert(p, false));
+    updateCount();
+    save();
+    connect();
+    if (!state.ticking) { state.ticking = true; requestAnimationFrame(tick); }
+  }
+
+  function connect() {
+    setStatus('connecting');
+    const ch = sb.channel(CFG.channelPrefix + state.room, { config: { broadcast: { self: false } } });
+    ch.on('broadcast', { event: 'intro' }, ({ payload }) => onIntro(payload));
+    ch.subscribe((status) => {
+      if (status === 'SUBSCRIBED') setStatus('live');
+      else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') setStatus('error');
+    });
+    state.channel = ch;
+  }
+
+  function setStatus(s) {
+    els.status.dataset.state = s;
+    els.status.textContent = s === 'live' ? 'Live'
+      : s === 'error' ? 'Not connected. Check config.js and the internet connection.'
+      : 'Connecting…';
+  }
+
+  function onIntro(d) {
+    if (!d || typeof d.id !== 'string' || d.id.length > 64) return;
+    const name = String(d.name || '').trim().slice(0, 30);
+    if (!name || !Array.isArray(d.emojis) || d.emojis.length !== state.n) return;
+    const emojis = d.emojis.map((e) => String(e).slice(0, 16));
+
+    upsert({ id: d.id, name, emojis }, true);
+    updateCount();
+    save();
+    state.channel.send({ type: 'broadcast', event: 'ack', payload: { id: d.id } });
+    if (state.focusedId === d.id) fillSpot(state.people.get(d.id));
+  }
+
+  function upsert(data, animate) {
+    let p = state.people.get(data.id);
+    if (!p) {
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'cloud' + (animate ? '' : ' no-arrive');
+      el.innerHTML = '<span class="cloud-body"><span class="cloud-emojis"></span><span class="cloud-name"></span></span>';
+      el.addEventListener('click', () => openSpot(data.id));
+      els.sky.appendChild(el);
+
+      const W = els.sky.clientWidth, H = els.sky.clientHeight;
+      p = {
+        id: data.id, el, revealed: false,
+        x: rand(20, Math.max(40, W - 280)),
+        y: rand(80, Math.max(100, H - 160)),
+        vx: rand(10, 24) * (Math.random() < 0.5 ? -1 : 1),
+        vy: rand(5, 13) * (Math.random() < 0.5 ? -1 : 1),
+        phase: Math.random() * Math.PI * 2
+      };
+      state.people.set(data.id, p);
+    }
+    p.name = data.name;
+    p.emojis = data.emojis;
+    if (data.revealed) p.revealed = true;
+    render(p);
+  }
+
+  function render(p) {
+    p.el.querySelector('.cloud-emojis').textContent = p.emojis.join('');
+    p.el.querySelector('.cloud-name').textContent = p.name;
+    p.el.classList.toggle('revealed', p.revealed);
+    p.el.setAttribute('aria-label', p.revealed
+      ? `${p.name}: ${p.emojis.join(' ')}`
+      : `Mystery student: ${p.emojis.join(' ')}`);
+  }
+
+  function updateCount() {
+    const c = state.people.size;
+    els.joined.textContent = `${c} joined`;
+    els.empty.hidden = c > 0;
+  }
+
+  // ---------- Drifting motion ----------
+  let last = performance.now();
+  function tick(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    const W = els.sky.clientWidth, H = els.sky.clientHeight;
+    const scale = Math.max(0.55, 1 - Math.max(0, state.people.size - 10) * 0.02);
+    els.sky.style.setProperty('--cloud-scale', scale);
+
+    state.people.forEach((p) => {
+      const w = p.el.offsetWidth, h = p.el.offsetHeight;
+      if (!reduceMotion) { p.x += p.vx * dt; p.y += p.vy * dt; }
+      const minX = 10, maxX = Math.max(minX, W - w - 10);
+      const minY = 70, maxY = Math.max(minY, H - h - 14);
+      if (p.x < minX) { p.x = minX; p.vx = Math.abs(p.vx); }
+      if (p.x > maxX) { p.x = maxX; p.vx = -Math.abs(p.vx); }
+      if (p.y < minY) { p.y = minY; p.vy = Math.abs(p.vy); }
+      if (p.y > maxY) { p.y = maxY; p.vy = -Math.abs(p.vy); }
+      const bob = reduceMotion ? 0 : Math.sin(now / 1000 * 0.8 + p.phase) * 6;
+      p.el.style.transform = `translate(${p.x}px, ${p.y + bob}px)`;
+    });
+    requestAnimationFrame(tick);
+  }
+
+  // ---------- Spotlight ----------
+  function fillSpot(p) {
+    els.spotEmojis.textContent = p.emojis.join('');
+    els.spotName.textContent = p.name;
+    els.spotName.classList.toggle('shown', p.revealed);
+    els.spotName.setAttribute('aria-hidden', String(!p.revealed));
+    els.revealBtn.hidden = p.revealed;
+  }
+
+  function openSpot(id) {
+    const p = state.people.get(id);
+    if (!p) return;
+    state.focusedId = id;
+    p.el.classList.add('is-hidden');
+    fillSpot(p);
+    els.spot.hidden = false;
+    (p.revealed ? els.backBtn : els.revealBtn).focus();
+  }
+
+  function reveal() {
+    const p = state.people.get(state.focusedId);
+    if (!p) return;
+    p.revealed = true;
+    render(p);
+    save();
+    els.spotName.classList.add('shown');
+    els.spotName.setAttribute('aria-hidden', 'false');
+    els.revealBtn.hidden = true;
+    els.backBtn.focus();
+  }
+
+  function closeSpot() {
+    const p = state.people.get(state.focusedId);
+    state.focusedId = null;
+    els.spot.hidden = true;
+    if (p) { p.el.classList.remove('is-hidden'); p.el.focus({ preventScroll: true }); }
+  }
+
+  els.revealBtn.addEventListener('click', reveal);
+  els.backBtn.addEventListener('click', closeSpot);
+  document.addEventListener('keydown', (e) => {
+    if (!els.spot.hidden && e.key === 'Escape') closeSpot();
+  });
+
+  // ---------- Toolbar ----------
+  els.toggleQr.addEventListener('click', () => {
+    els.qrPanel.hidden = !els.qrPanel.hidden;
+    els.toggleQr.textContent = els.qrPanel.hidden ? 'Show QR code' : 'Hide QR code';
+  });
+  els.clear.addEventListener('click', () => {
+    if (!confirm('Remove every cloud from the screen? Students can send again.')) return;
+    state.people.forEach((p) => p.el.remove());
+    state.people.clear();
+    updateCount();
+    save();
+  });
+  els.end.addEventListener('click', () => {
+    if (!confirm('End this game? You can resume it from the start screen.')) return;
+    location.reload();
+  });
+})();
+</script>
+</body>
+</html>

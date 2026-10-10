@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Introduce yourself</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
+</head>
+<body class="join">
+  <main class="join-main">
+
+    <section id="formView">
+      <header class="join-head brackets">
+        <div>
+          <h1>Introduce yourself</h1>
+          <p id="introText"></p>
+        </div>
+      </header>
+
+      <label class="field">
+        <span>Your name</span>
+        <input id="nameInput" type="text" maxlength="30" autocomplete="given-name" placeholder="First name">
+      </label>
+
+      <div class="tray-wrap">
+        <div id="tray" class="tray" aria-label="Your emojis"></div>
+        <p id="countText" class="count-text" aria-live="polite"></p>
+      </div>
+
+      <div id="groups"></div>
+    </section>
+
+    <section id="doneView" class="done" hidden>
+      <div class="done-cloud cloud-body"><span id="doneEmojis"></span></div>
+      <h1>You're on the screen</h1>
+      <p>Find your cloud. Your teacher will reveal who is behind it.</p>
+      <button id="editBtn" class="btn btn-outline" type="button">Change my answer</button>
+    </section>
+
+    <section id="errorView" class="done" hidden>
+      <h1>This link doesn't work</h1>
+      <p id="errorText"></p>
+    </section>
+
+  </main>
+
+  <div id="sendBar" class="send-bar">
+    <p id="hint" class="hint" aria-live="polite"></p>
+    <button id="sendBtn" class="btn btn-navy btn-block btn-lg" type="button" disabled>Send to the screen</button>
+  </div>
+
+<script>
+(function () {
+  const CFG = window.EMOJI_INTRO_CONFIG || {};
+  const GROUPS = [
+    { label: 'Feelings and personality', items: ['😄','😂','😎','🤓','🤔','😴','🥳','😇','🤪','😌','🤗','😅','🙃','🤩','😤','🫶','💪','🧠','❤️','🔥','✨','⚡','🌟','🦄'] },
+    { label: 'Hobbies', items: ['⚽','🏀','🎾','🏐','🏊','🚴','🧘','🏋️','🎮','🎧','🎸','🎹','🥁','🎤','🎨','📸','📚','✍️','🎬','🧩','♟️','💃','🕺','🏕️','🛹','🏄','🎣','🧶'] },
+    { label: 'Food and drink', items: ['☕','🍵','🧋','🍕','🍔','🌮','🍣','🍜','🍝','🍫','🍩','🍓','🥑','🍎','🍦','🧁','🌶️','🍿'] },
+    { label: 'Places and travel', items: ['✈️','🌍','🗺️','🏖️','🏔️','🏙️','🚗','🚆','🏠','⛺'] },
+    { label: 'Animals and nature', items: ['🐶','🐱','🐼','🦁','🐢','🦋','🐝','🐧','🦊','🌸','🌻','🌵','🌊','🌙','☀️','🌈','❄️','🍂'] },
+    { label: 'Work and study', items: ['💻','📱','🔬','💼','🎓','📖','💡','🛠️','🌱','🚀','🏆','⏰','🎁','🎉','🛋️','🎭'] }
+  ];
+
+  const $ = (s) => document.querySelector(s);
+  const els = {
+    formView: $('#formView'), doneView: $('#doneView'), errorView: $('#errorView'), errorText: $('#errorText'),
+    introText: $('#introText'), name: $('#nameInput'), tray: $('#tray'), countText: $('#countText'),
+    groups: $('#groups'), sendBar: $('#sendBar'), hint: $('#hint'), sendBtn: $('#sendBtn'),
+    doneEmojis: $('#doneEmojis'), editBtn: $('#editBtn')
+  };
+
+  const params = new URLSearchParams(location.search);
+  const room = (params.get('room') || '').replace(/[^0-9]/g, '').slice(0, 8);
+  const n = Math.min(6, Math.max(1, parseInt(params.get('n'), 10) || 3));
+
+  function showError(msg) {
+    els.formView.hidden = true;
+    els.sendBar.hidden = true;
+    els.errorView.hidden = false;
+    els.errorText.textContent = msg;
+  }
+  if (!room) { showError('The room code is missing. Scan the QR code on the big screen again.'); return; }
+  if (!CFG.supabaseAnonKey || CFG.supabaseAnonKey.startsWith('PASTE')) { showError('The game is not set up yet. Ask your teacher to check config.js.'); return; }
+
+  // A stable id per phone and room, so resending replaces the old cloud instead of adding a new one
+  const ID_KEY = 'emojiIntro.id.' + room;
+  let id = null;
+  try { id = localStorage.getItem(ID_KEY); } catch (e) {}
+  if (!id) {
+    id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
+    try { localStorage.setItem(ID_KEY, id); } catch (e) {}
+  }
+  try { els.name.value = localStorage.getItem('emojiIntro.name') || ''; } catch (e) {}
+
+  els.introText.textContent = `Pick ${n} ${n === 1 ? 'emoji' : 'emojis'} that describe you. They'll float on the big screen, and the class will guess who you are.`;
+
+  // ---------- Picker ----------
+  const chosen = [];
+  const gridButtons = [];
+
+  GROUPS.forEach((g) => {
+    const wrap = document.createElement('section');
+    wrap.className = 'group';
+    const h = document.createElement('h2');
+    h.textContent = g.label;
+    const grid = document.createElement('div');
+    grid.className = 'emoji-grid';
+    g.items.forEach((emoji) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = emoji;
+      b.dataset.emoji = emoji;
+      b.setAttribute('aria-pressed', 'false');
+      b.addEventListener('click', () => toggle(emoji));
+      grid.appendChild(b);
+      gridButtons.push(b);
+    });
+    wrap.append(h, grid);
+    els.groups.appendChild(wrap);
+  });
+
+  function toggle(emoji) {
+    const i = chosen.indexOf(emoji);
+    if (i >= 0) chosen.splice(i, 1);
+    else if (chosen.length < n) chosen.push(emoji);
+    update();
+  }
+
+  function update() {
+    els.tray.innerHTML = '';
+    for (let i = 0; i < n; i++) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      if (chosen[i]) {
+        b.className = 'filled';
+        b.textContent = chosen[i];
+        b.setAttribute('aria-label', `Remove ${chosen[i]}`);
+        b.addEventListener('click', () => toggle(chosen[i]));
+      } else {
+        b.setAttribute('aria-label', 'Empty slot');
+        b.disabled = true;
+      }
+      els.tray.appendChild(b);
+    }
+    const full = chosen.length >= n;
+    gridButtons.forEach((b) => {
+      const on = chosen.includes(b.dataset.emoji);
+      b.setAttribute('aria-pressed', String(on));
+      b.disabled = full && !on;
+    });
+    els.countText.textContent = `${chosen.length} of ${n} chosen${chosen.length ? '. Tap one above to remove it.' : ''}`;
+
+    const name = els.name.value.trim();
+    els.hint.classList.remove('is-error');
+    if (!name) els.hint.textContent = 'Type your name to send.';
+    else if (!full) els.hint.textContent = `Pick ${n - chosen.length} more.`;
+    else els.hint.textContent = 'Ready to send.';
+    els.sendBtn.disabled = !(name && full) || sending;
+  }
+
+  els.name.addEventListener('input', update);
+
+  // ---------- Realtime ----------
+  const sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey);
+  const ch = sb.channel(CFG.channelPrefix + room, { config: { broadcast: { self: false } } });
+  let ready = false, sending = false, pending = null, timer = null;
+
+  ch.on('broadcast', { event: 'ack' }, ({ payload }) => {
+    if (payload && payload.id === id && sending) onAck();
+  });
+  ch.subscribe((status) => {
+    ready = status === 'SUBSCRIBED';
+    if (ready && pending) ch.send({ type: 'broadcast', event: 'intro', payload: pending });
+  });
+
+  els.sendBtn.addEventListener('click', () => {
+    const name = els.name.value.trim().slice(0, 30);
+    if (!name || chosen.length !== n) return;
+    try { localStorage.setItem('emojiIntro.name', name); } catch (e) {}
+
+    sending = true;
+    els.sendBtn.disabled = true;
+    els.sendBtn.textContent = 'Sending…';
+    pending = { id, name, emojis: chosen.slice() };
+    if (ready) ch.send({ type: 'broadcast', event: 'intro', payload: pending });
+
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      sending = false;
+      pending = null;
+      els.sendBtn.textContent = 'Send to the screen';
+      update();
+      els.hint.textContent = "The big screen didn't answer. Check that it's open, then try again.";
+      els.hint.classList.add('is-error');
+    }, 8000);
+  });
+
+  function onAck() {
+    clearTimeout(timer);
+    sending = false;
+    pending = null;
+    els.sendBtn.textContent = 'Send to the screen';
+    els.doneEmojis.textContent = chosen.join('');
+    els.formView.hidden = true;
+    els.sendBar.hidden = true;
+    els.doneView.hidden = false;
+    window.scrollTo(0, 0);
+  }
+
+  els.editBtn.addEventListener('click', () => {
+    els.doneView.hidden = true;
+    els.formView.hidden = false;
+    els.sendBar.hidden = false;
+    update();
+  });
+
+  update();
+})();
+</script>
+</body>
+</html>
