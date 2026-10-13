@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prompt Gallery · Host</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+.wrap{position:relative;z-index:1;min-height:100%;padding:34px 46px 30px;display:flex;flex-direction:column}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.top h1{font-size:44px;margin-top:4px}
+.roominfo{display:flex;align-items:center;gap:16px}
+.code{font-family:var(--mono);font-size:30px;letter-spacing:.2em;color:var(--gold);line-height:1}
+.stats{font-size:15px;color:var(--cream-d)}
+.miniqr{background:#fff;padding:5px;border-radius:4px;width:74px;height:74px;cursor:pointer;border:0}
+.miniqr svg,.bigqr svg{width:100%;height:100%;display:block}
+
+/* start */
+.start{margin:auto;max-width:620px;text-align:center}
+.start h1{font-size:64px;margin:10px 0 12px}
+.start p{font-family:var(--head);font-style:italic;font-size:20px;color:var(--cream-d);margin:0 0 26px}
+.start .row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.err-box{margin-top:22px;border:1px solid var(--err);color:#ffb4ab;padding:12px 16px;border-radius:6px;text-align:left}
+
+/* join overlay */
+.overlay{position:fixed;inset:0;z-index:5;background:var(--navy);display:flex;align-items:center;justify-content:center;padding:40px}
+.join{display:grid;grid-template-columns:auto 1fr;gap:56px;align-items:center;max-width:1100px}
+.bigqr{background:#fff;padding:16px;border-radius:8px;width:min(46vh,400px);height:min(46vh,400px)}
+.join h2{font-size:52px;line-height:1.1}
+.join .url{font-family:var(--mono);font-size:18px;color:var(--cream-d);word-break:break-all;margin:16px 0}
+.join .code{font-size:64px;margin:6px 0 4px}
+.join .count{font-family:var(--head);font-style:italic;font-size:22px;margin:14px 0 24px}
+
+/* boards */
+.grid{flex:1;display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:20px;margin-top:22px}
+.board{background:var(--cream);color:var(--ink);border-radius:6px;padding:16px 18px 14px;display:flex;flex-direction:column;cursor:pointer;
+  border:0;text-align:left;font:inherit;position:relative;box-shadow:0 6px 16px rgba(0,0,0,.25);transition:transform .15s}
+.board:hover{transform:translateY(-3px)}
+.board .num{font-family:var(--head);font-style:italic;font-size:26px;color:var(--gold);line-height:1}
+.board .prompt{font-size:18px;margin:6px 0 10px}
+.board .pad{flex:1;display:flex;flex-wrap:wrap;align-content:flex-start;gap:7px;padding-top:10px;border-top:1px dashed var(--cream-d);min-height:60px}
+.board .pad .sticky{width:30px;height:30px}
+.board .n{position:absolute;right:14px;top:14px;font-family:var(--mono);font-size:15px;color:var(--ink-s)}
+.pop{animation:pop .45s ease-out}
+@keyframes pop{0%{transform:scale(0) rotate(-20deg)}70%{transform:scale(1.25)}100%{transform:scale(1)}}
+
+/* spotlight */
+.spot{position:fixed;inset:0;z-index:6;background:var(--navy-d);display:grid;grid-template-columns:minmax(320px,34%) 1fr;gap:34px;padding:44px 50px}
+.spot .left .num{font-family:var(--head);font-style:italic;font-size:36px;color:var(--gold)}
+.spot .left .prompt{font-size:28px;color:#ffb4a8;margin:10px 0 18px}
+.spot .left .answer{color:var(--cream-d);font-size:20px;border-left:3px solid var(--gold);padding-left:14px}
+.spot .nav{display:flex;gap:10px;margin-top:26px;flex-wrap:wrap}
+.notes{overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;align-content:start;padding:6px}
+.note{padding:14px 14px 10px;min-height:130px;display:flex;flex-direction:column;position:relative}
+.note .t{flex:1;font-size:18px;line-height:1.35;white-space:pre-wrap;word-wrap:break-word}
+.note .who{font-weight:700;font-size:14px;color:var(--ink-s);margin-top:10px}
+.note .hide{position:absolute;top:4px;right:6px;background:transparent;border:0;font-size:13px;color:var(--ink-s);cursor:pointer;padding:4px}
+.note.off{opacity:.35}
+.note.off .t{filter:blur(5px)}
+.empty{font-family:var(--head);font-style:italic;color:var(--cream-d);font-size:22px}
+.foot{display:flex;justify-content:space-between;margin-top:16px;font-size:13px;color:var(--muted)}
+.linkbtn{background:none;border:0;color:var(--cream-d);font:inherit;font-size:13px;cursor:pointer;text-decoration:underline}
+.conn{font-size:13px}
+.conn.ok{color:#8fd19a}.conn.bad{color:#ffb4ab}
+@media (max-width:1000px){.grid{grid-template-columns:repeat(2,1fr)}.join{grid-template-columns:1fr;text-align:center}.bigqr{margin:auto}.spot{grid-template-columns:1fr;overflow:auto}}
+</style>
+</head>
+<body>
+<div class="brackets" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+<div class="wrap">
+  <!-- START -->
+  <section id="start" class="start">
+    <div class="eyebrow">AI Sprint · Week 02 · Warm-up</div>
+    <h1>Prompt <em>Gallery</em></h1>
+    <p>Six prompts went wrong. Students leave a sticky note on each one: what went wrong?</p>
+    <div class="row">
+      <button class="btn" id="newBtn">New room</button>
+      <button class="btn ghost hidden" id="resumeBtn"></button>
+    </div>
+    <div class="err-box hidden" id="cfgErr" role="alert"></div>
+  </section>
+
+  <!-- BOARDS -->
+  <section id="main" class="hidden" style="display:flex;flex-direction:column;flex:1">
+    <div class="top">
+      <div><div class="eyebrow">AI Sprint · Week 02 · Warm-up</div><h1>Prompt <em>Gallery</em></h1></div>
+      <div class="roominfo">
+        <div><div class="stats" id="stats"></div><div class="conn" id="conn"></div></div>
+        <div class="code" id="codeTop"></div>
+        <button class="miniqr" id="miniQr" title="Show the join screen" aria-label="Show the join screen"></button>
+      </div>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="foot"><span>Click a board to read its notes. Keys: 1–6 open a board, ← → move, Esc closes.</span>
+      <button class="linkbtn" id="endBtn">End room</button></div>
+  </section>
+</div>
+
+<!-- JOIN OVERLAY -->
+<div class="overlay hidden" id="joinOv">
+  <div class="join">
+    <div class="bigqr" id="bigQr"></div>
+    <div>
+      <div class="eyebrow">Join on your phone or laptop</div>
+      <h2>Scan to <em>join.</em></h2>
+      <div class="url" id="joinUrl"></div>
+      <div class="eyebrow">Room code</div>
+      <div class="code" id="codeBig"></div>
+      <div class="count" id="joinCount">Waiting for students…</div>
+      <button class="btn" id="showBoards">Show the boards</button>
+    </div>
+  </div>
+</div>
+
+<!-- SPOTLIGHT -->
+<div class="spot hidden" id="spot" role="dialog" aria-modal="true" aria-labelledby="spNum">
+  <div class="left">
+    <div class="num" id="spNum"></div>
+    <div class="prompt" id="spPrompt"></div>
+    <div class="eyebrow" style="margin-bottom:6px">What the AI gave back</div>
+    <div class="answer" id="spAnswer"></div>
+    <div class="nav">
+      <button class="btn ghost" id="spPrev">← Previous</button>
+      <button class="btn ghost" id="spNext">Next →</button>
+      <button class="btn" id="spClose">Back to boards</button>
+    </div>
+  </div>
+  <div class="notes" id="spNotes"></div>
+</div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script>
+"use strict";
+const PROMPTS = [
+  { p: "write email to landlord", a: "Dear Landlord, I hope this email finds you well. I am writing to discuss a matter regarding the property. Please let me know at your earliest convenience. Best regards, [Your Name]" },
+  { p: "summarize this", a: "I'd be happy to help! However, I don't see any text attached. Could you please share the article or document you'd like me to summarize?" },
+  { p: "help me with my resume", a: "Here are 15 tips for a great resume: 1. Use a clean font. 2. Keep it to one page. 3. Use action verbs. 4. Proofread carefully. 5. Tailor it to the job…" },
+  { p: "Tell me about Thanksgiving.", a: "Thanksgiving is a national holiday in the United States, celebrated on the fourth Thursday of November. Its origins date back to 1621, when the Pilgrims… [650 more words of history]" },
+  { p: "make it better", a: "Certainly! Here's an enhanced version: 'In today's fast-paced, ever-evolving landscape, I am thrilled to leverage my synergistic skill set…'" },
+  { p: "Write a LinkedIn post about my new job. Make it short but very detailed, casual but formal.", a: "🎉 Exciting news!!! 🎉 I'm humbled and honored to announce… [a long, mixed-tone post with eight hashtags]" }
+];
+const CFG = window.APP_CONFIG || {};
+const ACT = CFG.ACTIVITY || "prompt-gallery";
+const KEY = "pg-host-state";
+const MAX_LEN = 280, MAX_NAME = 40;
+const $ = id => document.getElementById(id);
+
+let S = null;          // { room, created, joined:{id:name}, notes:{ "0":{ id:{name,text,at,hidden} } }, spot:null }
+let ch = null, client = null, connected = false;
+const lastAt = {};     // rate limit per id+board
+
+/* ---------- persistence ---------- */
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function loadSaved(){ try{ return JSON.parse(localStorage.getItem(KEY) || "null"); }catch(e){ return null; } }
+function newCode(){ const A="ABCDEFGHJKLMNPQRSTUVWXYZ"; let c=""; const r=new Uint32Array(4); crypto.getRandomValues(r); r.forEach(n=>c+=A[n%A.length]); return c; }
+function countNotes(){ return Object.values(S.notes).reduce((t,b)=>t+Object.keys(b).length,0); }
+function senders(){ const s=new Set(); Object.values(S.notes).forEach(b=>Object.keys(b).forEach(id=>s.add(id))); return s.size; }
+function shade(id){ let h=0; for(const ch of id) h=(h*31+ch.charCodeAt(0))>>>0; return h; }
+
+/* ---------- config check ---------- */
+function cfgProblem(){
+  if(!window.supabase || !window.supabase.createClient) return "The Supabase library didn't load. Check the internet connection and reload.";
+  if(!CFG.SUPABASE_URL || /YOUR-PROJECT/.test(CFG.SUPABASE_URL) || !CFG.SUPABASE_ANON_KEY || /YOUR-ANON/.test(CFG.SUPABASE_ANON_KEY))
+    return "Add your Supabase URL and anon key to config.js, then reload.";
+  return "";
+}
+
+/* ---------- realtime ---------- */
+function connect(){
+  if(ch){ try{ client.removeChannel(ch); }catch(e){} }
+  client = client || window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
+  ch = client.channel(ACT + "-" + S.room, { config: { broadcast: { self: false } } });
+  ch.on("broadcast", { event: "hello" }, ({ payload }) => onHello(payload || {}));
+  ch.on("broadcast", { event: "note" }, ({ payload }) => onNote(payload || {}));
+  ch.subscribe(status => {
+    connected = status === "SUBSCRIBED";
+    $("conn").textContent = connected ? "● Live" : (status === "CLOSED" ? "○ Disconnected" : "○ Connecting…");
+    $("conn").className = "conn " + (connected ? "ok" : "bad");
+    if(connected) send("prompts", { room: S.room, prompts: PROMPTS }); // re-sync phones after a resume
+  });
+}
+function send(event, payload){ if(ch) ch.send({ type: "broadcast", event, payload }).catch(()=>{}); }
+const validId = id => typeof id === "string" && /^[a-z0-9-]{8,40}$/i.test(id);
+
+function onHello(p){
+  if(!validId(p.id)) return;
+  const name = typeof p.name === "string" ? p.name.trim().slice(0, MAX_NAME) : "";
+  if(name && S.joined[p.id] !== name){ S.joined[p.id] = name; save(); renderStats(); }
+  send("prompts", { room: S.room, to: p.id, prompts: PROMPTS });
+}
+function onNote(p){
+  const ack = (ok, reason) => send("ack", { id: p.id, board: p.board, nonce: p.nonce, ok, reason: reason || "" });
+  if(!validId(p.id)) return;
+  const name = typeof p.name === "string" ? p.name.trim() : "";
+  const text = typeof p.text === "string" ? p.text.trim() : "";
+  const b = Number(p.board);
+  if(!Number.isInteger(b) || b < 0 || b >= PROMPTS.length) return ack(false, "That prompt doesn't exist.");
+  if(!name || name.length > MAX_NAME) return ack(false, "Add your name first.");
+  if(!text) return ack(false, "Your note is empty.");
+  if(text.length > MAX_LEN) return ack(false, `Keep it under ${MAX_LEN} characters.`);
+  const k = p.id + ":" + b, now = Date.now();
+  if(lastAt[k] && now - lastAt[k] < 1500) return ack(false, "Wait a second, then send again.");
+  lastAt[k] = now;
+  const board = S.notes[b] || (S.notes[b] = {});
+  const isNew = !board[p.id];
+  board[p.id] = { name, text, at: now, hidden: board[p.id] ? board[p.id].hidden : false };
+  S.joined[p.id] = name;
+  save();
+  ack(true);
+  renderBoard(b, isNew ? p.id : null);
+  renderStats();
+  if(S.spot === b) renderSpot();
+}
+
+/* ---------- rendering ---------- */
+function joinUrl(){ const u = new URL("join.html", location.href); u.search = "?room=" + S.room; u.hash = ""; return u.toString(); }
+function qrSvg(text){ const q = qrcode(0, "M"); q.addData(text); q.make(); return q.createSvgTag({ cellSize: 6, margin: 0, scalable: true }); }
+
+function renderStats(){
+  const n = countNotes(), s = senders(), j = Object.keys(S.joined).length;
+  $("stats").textContent = `${j} joined · ${s} posting · ${n} note${n === 1 ? "" : "s"}`;
+  $("joinCount").textContent = j ? `${j} student${j === 1 ? "" : "s"} joined` : "Waiting for students…";
+}
+function buildGrid(){
+  const g = $("grid"); g.innerHTML = "";
+  PROMPTS.forEach((pr, i) => {
+    const el = document.createElement("button");
+    el.className = "board"; el.id = "board-" + i;
+    el.setAttribute("aria-label", `Open prompt ${i + 1}`);
+    el.innerHTML = `<span class="num">${i + 1}</span><span class="n"></span><span class="prompt"></span><span class="pad"></span>`;
+    el.querySelector(".prompt").textContent = "\u201C" + pr.p + "\u201D";
+    el.addEventListener("click", () => openSpot(i));
+    g.appendChild(el);
+    renderBoard(i);
+  });
+}
+function renderBoard(i, popId){
+  const el = $("board-" + i); if(!el) return;
+  const notes = S.notes[i] || {}, ids = Object.keys(notes).sort((a, b) => notes[a].at - notes[b].at);
+  const pad = el.querySelector(".pad");
+  if(popId){
+    pad.appendChild(stickyDot(popId, true));
+  } else {
+    pad.innerHTML = ""; ids.forEach(id => pad.appendChild(stickyDot(id, false)));
+  }
+  el.querySelector(".n").textContent = ids.length ? ids.length : "";
+}
+function stickyDot(id, pop){
+  const h = shade(id), d = document.createElement("span");
+  d.className = "sticky c" + (1 + h % 3) + (pop ? " pop" : "");
+  d.style.transform = `rotate(${(h % 17) - 8}deg)`;
+  if(pop) d.addEventListener("animationend", () => { d.classList.remove("pop"); d.style.transform = `rotate(${(h % 17) - 8}deg)`; }, { once: true });
+  return d;
+}
+function openSpot(i){ S.spot = i; save(); renderSpot(); $("spot").classList.remove("hidden"); $("spClose").focus(); }
+function closeSpot(){ const i = S.spot; S.spot = null; save(); $("spot").classList.add("hidden"); if(i !== null) $("board-" + i)?.focus(); }
+function renderSpot(){
+  const i = S.spot, pr = PROMPTS[i], notes = S.notes[i] || {};
+  $("spNum").textContent = `Prompt ${i + 1} of ${PROMPTS.length}`;
+  $("spPrompt").textContent = "\u201C" + pr.p + "\u201D";
+  $("spAnswer").textContent = pr.a;
+  const box = $("spNotes"); box.innerHTML = "";
+  const ids = Object.keys(notes).sort((a, b) => notes[a].at - notes[b].at);
+  if(!ids.length){ box.innerHTML = '<p class="empty">No sticky notes on this prompt yet.</p>'; return; }
+  ids.forEach(id => {
+    const n = notes[id], h = shade(id);
+    const el = document.createElement("div");
+    el.className = "sticky note c" + (1 + h % 3) + (n.hidden ? " off" : "");
+    el.style.transform = `rotate(${(h % 5) - 2}deg)`;
+    const t = document.createElement("div"); t.className = "t"; t.textContent = n.text;
+    const w = document.createElement("div"); w.className = "who"; w.textContent = "\u2014 " + n.name;
+    const x = document.createElement("button"); x.className = "hide"; x.textContent = n.hidden ? "Show" : "Hide";
+    x.setAttribute("aria-label", (n.hidden ? "Show" : "Hide") + " the note by " + n.name);
+    x.addEventListener("click", () => { n.hidden = !n.hidden; save(); renderSpot(); });
+    el.append(x, t, w); box.appendChild(el);
+  });
+}
+function showJoin(on){
+  $("joinOv").classList.toggle("hidden", !on);
+  if(on){ $("bigQr").innerHTML = qrSvg(joinUrl()); $("joinUrl").textContent = joinUrl(); $("codeBig").textContent = S.room; $("showBoards").focus(); }
+}
+function enterRoom(){
+  $("start").classList.add("hidden"); $("main").classList.remove("hidden");
+  $("codeTop").textContent = S.room;
+  $("miniQr").innerHTML = qrSvg(joinUrl());
+  buildGrid(); renderStats(); connect();
+  if(S.spot !== null && S.spot !== undefined){ renderSpot(); $("spot").classList.remove("hidden"); }
+}
+
+/* ---------- events ---------- */
+$("newBtn").addEventListener("click", () => {
+  const prev = loadSaved();
+  if(prev && countNotesOf(prev) && !confirm(`Start a new room? Room ${prev.room} and its notes will be cleared.`)) return;
+  S = { room: newCode(), created: Date.now(), joined: {}, notes: {}, spot: null };
+  save(); enterRoom(); showJoin(true);
+});
+function countNotesOf(st){ return Object.values(st.notes || {}).reduce((t, b) => t + Object.keys(b).length, 0); }
+$("resumeBtn").addEventListener("click", () => { S = loadSaved(); S.spot = S.spot ?? null; enterRoom(); });
+$("showBoards").addEventListener("click", () => showJoin(false));
+$("miniQr").addEventListener("click", () => showJoin(true));
+$("spClose").addEventListener("click", closeSpot);
+$("spPrev").addEventListener("click", () => openSpot((S.spot + PROMPTS.length - 1) % PROMPTS.length));
+$("spNext").addEventListener("click", () => openSpot((S.spot + 1) % PROMPTS.length));
+$("endBtn").addEventListener("click", () => {
+  if(!confirm("End this room? The notes on this screen will be cleared.")) return;
+  try{ localStorage.removeItem(KEY); }catch(e){}
+  if(ch) try{ client.removeChannel(ch); }catch(e){}
+  location.reload();
+});
+document.addEventListener("keydown", e => {
+  if(!S || e.target.tagName === "INPUT") return;
+  const spotOpen = !$("spot").classList.contains("hidden");
+  if(e.key === "Escape"){ if(spotOpen) closeSpot(); else showJoin(false); }
+  else if(spotOpen && e.key === "ArrowRight") $("spNext").click();
+  else if(spotOpen && e.key === "ArrowLeft") $("spPrev").click();
+  else if(/^[1-6]$/.test(e.key) && $("joinOv").classList.contains("hidden")) openSpot(Number(e.key) - 1);
+});
+
+/* ---------- boot ---------- */
+(function boot(){
+  const prob = cfgProblem();
+  if(prob){ $("cfgErr").textContent = prob; $("cfgErr").classList.remove("hidden"); $("newBtn").disabled = true; return; }
+  const prev = loadSaved();
+  if(prev && prev.room){
+    const n = countNotesOf(prev);
+    $("resumeBtn").textContent = `Resume room ${prev.room} (${n} note${n === 1 ? "" : "s"})`;
+    $("resumeBtn").classList.remove("hidden");
+  }
+})();
+</script>
+</body>
+</html>

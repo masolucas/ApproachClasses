@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prompt Gallery · Join</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+body{background:var(--cream);color:var(--ink)}
+.brackets{inset:10px}.brackets i{width:22px;height:22px}
+.wrap{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:30px 22px 28px;min-height:100%;display:flex;flex-direction:column}
+header .eyebrow{color:#8a6d22}
+header h1{font-size:34px;color:var(--navy);margin-top:2px}
+header h1 em{color:#8a6d22}
+.sub{font-family:var(--head);font-style:italic;color:var(--ink-s);margin:6px 0 20px}
+.field{margin-bottom:16px}
+label.lbl{color:var(--navy)}
+input[type=text],textarea{border-color:#d8ccb0}
+.btn.wide{width:100%}
+.status{min-height:24px;margin-top:10px;font-weight:700;font-size:15px}
+.status.ok{color:var(--ok)}.status.err{color:var(--err)}.status.wait{color:var(--ink-s)}
+.who{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--ink-s);margin-bottom:10px}
+.who button{background:none;border:0;color:var(--navy);text-decoration:underline;font:inherit;font-size:14px;cursor:pointer;padding:4px}
+.dots{display:flex;gap:8px;justify-content:center;margin:4px 0 14px}
+.dot{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--navy);background:transparent;font-family:var(--head);font-style:italic;font-size:16px;color:var(--navy);cursor:pointer;padding:0}
+.dot.cur{background:var(--navy);color:var(--cream)}
+.dot.done{border-color:var(--ok);box-shadow:inset 0 0 0 3px var(--cream);background:var(--sticky-1)}
+.dot.cur.done{background:var(--navy);box-shadow:inset 0 0 0 3px var(--sticky-1)}
+.card{background:#fff;border:1px solid #e3d8bf;border-radius:8px;padding:18px 18px 16px;box-shadow:0 4px 12px rgba(15,35,64,.08);touch-action:pan-y}
+.card .num{font-family:var(--head);font-style:italic;color:#8a6d22;font-size:15px}
+.card .prompt{font-size:20px;margin:6px 0 12px}
+.card .answer{font-size:16px;border-left:3px solid var(--gold);padding-left:12px;margin:0 0 16px}
+.count{font-size:13px;color:var(--ink-s);text-align:right;margin-top:4px}
+.navrow{display:flex;gap:10px;margin-top:14px}
+.navrow .btn{flex:1}
+.btn.ghost{color:var(--navy);border-color:#cdbf9f}
+.done-banner{margin-top:14px;padding:12px 14px;border:1px solid var(--ok);border-radius:6px;color:var(--ok);font-weight:700;text-align:center}
+.center{margin:auto 0;text-align:center}
+.foot{margin-top:auto;padding-top:18px;font-size:12px;color:var(--ink-s);text-align:center}
+</style>
+</head>
+<body>
+<div class="brackets" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">AI Sprint · Week 02</div>
+    <h1>Prompt <em>Gallery</em></h1>
+  </header>
+
+  <!-- room code (only if the link had no room) -->
+  <section id="vRoom" class="hidden">
+    <p class="sub">Type the room code on the teacher's screen.</p>
+    <div class="field"><label class="lbl" for="roomIn">Room code</label>
+      <input type="text" id="roomIn" maxlength="4" autocomplete="off" autocapitalize="characters" style="font-family:var(--mono);font-size:24px;letter-spacing:.3em;text-transform:uppercase"></div>
+    <button class="btn wide" id="roomGo">Continue</button>
+    <div class="status err" id="roomErr" role="alert"></div>
+  </section>
+
+  <!-- name -->
+  <section id="vName" class="hidden">
+    <p class="sub">Your teacher will see your name when your note is on the big screen.</p>
+    <div class="field"><label class="lbl" for="nameIn">Your name</label>
+      <input type="text" id="nameIn" maxlength="40" autocomplete="given-name"></div>
+    <button class="btn wide dark" id="nameGo">Join room <span id="roomShow"></span></button>
+    <div class="status err" id="nameErr" role="alert"></div>
+  </section>
+
+  <!-- waiting -->
+  <section id="vWait" class="hidden center">
+    <p class="sub" id="waitMsg">Connecting to the teacher's screen…</p>
+    <button class="btn ghost hidden" id="retryBtn">Try again</button>
+  </section>
+
+  <!-- prompts -->
+  <section id="vPlay" class="hidden">
+    <div class="who"><span id="whoName"></span><button id="renameBtn">Change name</button></div>
+    <div class="dots" id="dots" role="tablist" aria-label="Prompts"></div>
+    <div class="card" id="card">
+      <div class="num" id="pNum"></div>
+      <div class="prompt" id="pText"></div>
+      <div class="eyebrow" style="color:#8a6d22;margin-bottom:4px">What the AI gave back</div>
+      <div class="answer" id="pAns"></div>
+      <label class="lbl" for="noteIn">Your sticky note: what went wrong?</label>
+      <textarea id="noteIn" maxlength="280" placeholder="e.g., It doesn't say what is broken or what the writer wants."></textarea>
+      <div class="count" id="cnt">0 / 280</div>
+      <button class="btn wide" id="sendBtn">Send note</button>
+      <div class="status" id="st" role="status" aria-live="polite"></div>
+    </div>
+    <div class="navrow">
+      <button class="btn ghost" id="prevBtn">← Previous</button>
+      <button class="btn ghost" id="nextBtn">Next →</button>
+    </div>
+    <div class="done-banner hidden" id="allDone">All six sent. Nice work! You can still edit and resend any note.</div>
+  </section>
+
+  <div class="foot">Fictional practice material · Don't write personal or private information.</div>
+</div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+"use strict";
+const CFG = window.APP_CONFIG || {};
+const ACT = CFG.ACTIVITY || "prompt-gallery";
+const $ = id => document.getElementById(id);
+const params = new URLSearchParams(location.search);
+let room = (params.get("room") || "").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 4);
+let me = null;           // { id, name, cur, drafts:{b:text}, sent:{b:text} }
+let prompts = null, client = null, ch = null, live = false;
+let pending = null;      // { board, nonce, timer }
+let helloTimer = null, helloTries = 0;
+
+const storeKey = () => "pg-join-" + room;
+function save(){ try{ localStorage.setItem(storeKey(), JSON.stringify(me)); }catch(e){} }
+function load(){
+  try{ me = JSON.parse(localStorage.getItem(storeKey()) || "null"); }catch(e){ me = null; }
+  if(!me || !me.id){ me = { id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + "-" + Math.random().toString(36).slice(2, 10)), name: "", cur: 0, drafts: {}, sent: {} }; save(); }
+}
+function view(v){ ["vRoom", "vName", "vWait", "vPlay"].forEach(x => $(x).classList.toggle("hidden", x !== v)); }
+function autosize(t){ t.style.height = "auto"; t.style.height = (t.scrollHeight + 2) + "px"; }
+
+/* ---------- realtime ---------- */
+function connect(){
+  if(!window.supabase || /YOUR-PROJECT|YOUR-ANON/.test((CFG.SUPABASE_URL || "") + (CFG.SUPABASE_ANON_KEY || ""))){
+    view("vWait"); $("waitMsg").textContent = "This page isn't set up yet. Tell your teacher."; return;
+  }
+  view("vWait"); $("waitMsg").textContent = "Connecting to the teacher's screen…";
+  client = client || window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
+  if(ch) try{ client.removeChannel(ch); }catch(e){}
+  ch = client.channel(ACT + "-" + room, { config: { broadcast: { self: false } } });
+  ch.on("broadcast", { event: "prompts" }, ({ payload }) => onPrompts(payload || {}));
+  ch.on("broadcast", { event: "ack" }, ({ payload }) => onAck(payload || {}));
+  ch.subscribe(status => {
+    live = status === "SUBSCRIBED";
+    if(live){ helloTries = 0; sayHello(); }
+    else if(status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED"){
+      if(!prompts){ $("waitMsg").textContent = "Can't connect. Check your Wi-Fi."; $("retryBtn").classList.remove("hidden"); }
+    }
+  });
+}
+function send(event, payload){ return ch ? ch.send({ type: "broadcast", event, payload }) : Promise.resolve("error"); }
+function sayHello(){
+  clearTimeout(helloTimer);
+  send("hello", { id: me.id, name: me.name });
+  if(prompts) return;
+  helloTries++;
+  if(helloTries >= 4){ $("waitMsg").textContent = `No answer from room ${room}. Check the code on the teacher's screen.`; $("retryBtn").classList.remove("hidden"); }
+  helloTimer = setTimeout(sayHello, 3000);
+}
+function onPrompts(p){
+  if(p.to && p.to !== me.id) { if(prompts) return; }      // addressed to someone else; still fine to use if we have nothing
+  if(!Array.isArray(p.prompts) || !p.prompts.length) return;
+  const first = !prompts;
+  prompts = p.prompts.map(x => ({ p: String(x.p || ""), a: String(x.a || "") }));
+  clearTimeout(helloTimer);
+  if(first){ me.cur = Math.min(me.cur || 0, prompts.length - 1); view("vPlay"); render(); }
+}
+function onAck(a){
+  if(a.id !== me.id || !pending || a.nonce !== pending.nonce) return;
+  clearTimeout(pending.timer);
+  const b = pending.board; pending = null;
+  $("sendBtn").disabled = false;
+  if(a.ok){ me.sent[b] = (me.drafts[b] || "").trim(); save(); status("ok", "Sent \u2713  Your sticky note is on the board."); renderDots(); renderSendLabel(); checkDone(); }
+  else status("err", "Try again: " + (a.reason || "the note wasn't accepted."));
+}
+
+/* ---------- UI ---------- */
+function status(kind, text){ const s = $("st"); s.className = "status " + kind; s.textContent = text; }
+function renderDots(){
+  const d = $("dots"); d.innerHTML = "";
+  prompts.forEach((_, i) => {
+    const b = document.createElement("button");
+    b.className = "dot" + (i === me.cur ? " cur" : "") + (me.sent[i] !== undefined ? " done" : "");
+    b.textContent = i + 1; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", i === me.cur);
+    b.setAttribute("aria-label", `Prompt ${i + 1}` + (me.sent[i] !== undefined ? ", sent" : ""));
+    b.addEventListener("click", () => go(i));
+    d.appendChild(b);
+  });
+}
+function renderSendLabel(){
+  const b = me.cur, txt = (me.drafts[b] || "").trim();
+  const sent = me.sent[b];
+  $("sendBtn").textContent = sent === undefined ? "Send note" : (txt === sent ? "Sent \u2713" : "Send changes");
+}
+function render(){
+  const i = me.cur, pr = prompts[i];
+  $("whoName").textContent = "Signed in as " + me.name + " \u00B7 Room " + room;
+  $("pNum").textContent = `Prompt ${i + 1} of ${prompts.length}`;
+  $("pText").textContent = "\u201C" + pr.p + "\u201D";
+  $("pAns").textContent = pr.a;
+  const t = $("noteIn"); t.value = me.drafts[i] || ""; autosize(t);
+  $("cnt").textContent = t.value.length + " / 280";
+  $("prevBtn").disabled = i === 0; $("nextBtn").disabled = i === prompts.length - 1;
+  if(!pending) status("", me.sent[i] !== undefined ? "Sent \u2713  You can edit and send again." : "");
+  renderDots(); renderSendLabel(); checkDone();
+}
+function checkDone(){ $("allDone").classList.toggle("hidden", !prompts || Object.keys(me.sent).length < prompts.length); }
+function go(i){ if(!prompts || i < 0 || i >= prompts.length) return; me.cur = i; save(); render(); window.scrollTo({ top: 0 }); }
+
+$("noteIn").addEventListener("input", e => {
+  me.drafts[me.cur] = e.target.value; save(); autosize(e.target);
+  $("cnt").textContent = e.target.value.length + " / 280"; renderSendLabel();
+});
+$("sendBtn").addEventListener("click", () => {
+  const b = me.cur, text = (me.drafts[b] || "").trim();
+  if(!text) return status("err", "Write your note first.");
+  if(me.sent[b] === text) return status("ok", "Already sent \u2713");
+  if(!live) return status("err", "Try again: you're offline. Check your Wi-Fi.");
+  const nonce = Math.random().toString(36).slice(2, 10);
+  $("sendBtn").disabled = true; status("wait", "Sending\u2026");
+  pending = { board: b, nonce, timer: setTimeout(() => {
+    if(pending && pending.nonce === nonce){ pending = null; $("sendBtn").disabled = false; status("err", "Try again: the teacher's screen didn't answer."); }
+  }, 6000) };
+  send("note", { id: me.id, name: me.name, board: b, text, nonce }).then(r => {
+    if(r !== "ok" && pending && pending.nonce === nonce){ clearTimeout(pending.timer); pending = null; $("sendBtn").disabled = false; status("err", "Try again: the message didn't go through."); }
+  });
+});
+$("prevBtn").addEventListener("click", () => go(me.cur - 1));
+$("nextBtn").addEventListener("click", () => go(me.cur + 1));
+// swipe
+let sx = null, sy = null;
+$("card").addEventListener("touchstart", e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+$("card").addEventListener("touchend", e => {
+  if(sx === null || document.activeElement === $("noteIn")) { sx = null; return; }
+  const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
+  if(Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) go(me.cur + (dx < 0 ? 1 : -1));
+});
+$("renameBtn").addEventListener("click", () => { $("nameIn").value = me.name; $("roomShow").textContent = room; view("vName"); $("nameIn").focus(); });
+$("retryBtn").addEventListener("click", () => { $("retryBtn").classList.add("hidden"); helloTries = 0; connect(); });
+
+/* ---------- start ---------- */
+$("roomGo").addEventListener("click", () => {
+  const c = $("roomIn").value.toUpperCase().replace(/[^A-Z]/g, "");
+  if(c.length !== 4) return void ($("roomErr").textContent = "The code has 4 letters.");
+  room = c; history.replaceState(null, "", "?room=" + room); startWithRoom();
+});
+$("roomIn").addEventListener("keydown", e => { if(e.key === "Enter") $("roomGo").click(); });
+$("nameGo").addEventListener("click", () => {
+  const n = $("nameIn").value.trim().replace(/\s+/g, " ");
+  if(n.length < 2) return void ($("nameErr").textContent = "Type your name (at least 2 letters).");
+  $("nameErr").textContent = "";
+  const changed = me.name && me.name !== n;
+  me.name = n.slice(0, 40); save();
+  if(prompts){ view("vPlay"); render(); send("hello", { id: me.id, name: me.name }); if(changed) status("", "Name changed. Resend a note to update your name on that board."); }
+  else connect();
+});
+$("nameIn").addEventListener("keydown", e => { if(e.key === "Enter") $("nameGo").click(); });
+
+function startWithRoom(){
+  load(); $("roomShow").textContent = room;
+  if(me.name) connect(); else { view("vName"); $("nameIn").focus(); }
+}
+if(room.length === 4) startWithRoom(); else { view("vRoom"); }
+</script>
+</body>
+</html>
