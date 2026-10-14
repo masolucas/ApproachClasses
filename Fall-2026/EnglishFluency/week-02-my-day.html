@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>True or False: My Day · English Fluency Week 2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0C2340; --gold:#AE9142; --gold-b:#D39F10; --warm:#EFE9D9;
+  --bg:#F8F4EC; --card:#FFFFFF; --ink:#1A1A1A; --ink-s:#3D3D3D; --muted:#6B6B6B;
+  --line:#E3DCC8; --green:#26890C; --green-s:#D4EDDA; --red:#C0392B; --red-s:#F8D7DA;
+  --serif: Cambria, "Iowan Old Style", Georgia, serif;
+  --sans: "Montserrat", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#081629; --card:#0F2A4A; --ink:#EFE9D9; --ink-s:#D9D2BF; --muted:#A9B4C4; --line:#22406A;
+         --navy:#EFE9D9; --green-s:#163D1B; --red-s:#4A1A16; color-scheme: dark; }
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);
+  padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);-webkit-tap-highlight-color:transparent}
+.wrap{max-width:560px;margin:0 auto;padding:20px 18px 32px;min-height:100%;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.mono{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--gold);display:grid;place-items:center;
+  font-family:var(--serif);font-style:italic;font-weight:700;color:var(--gold);flex:none}
+.course{font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--gold)}
+.sub{font-size:11px;color:var(--muted);letter-spacing:.06em}
+h1{font-family:var(--serif);font-weight:400;font-size:40px;line-height:1.05;margin:18px 0 8px;color:var(--navy)}
+h1 em{color:var(--gold)}
+p.lead{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--ink-s);margin:0 0 22px}
+.rounds{display:grid;gap:10px;margin-bottom:24px}
+.round{display:flex;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.round b{font-family:var(--serif);font-style:italic;font-size:28px;color:var(--gold);font-weight:400;width:28px}
+.round span{font-size:15px;color:var(--ink-s)}
+button{font-family:var(--sans);cursor:pointer;border:none}
+button:focus-visible{outline:3px solid var(--gold-b);outline-offset:2px}
+.primary{background:var(--gold);color:#0C2340;font-weight:700;font-size:17px;padding:16px;border-radius:14px;width:100%}
+.primary:active{transform:scale(.98)}
+.progress{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--gold);margin-bottom:8px}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:16px}
+.bar i{display:block;height:100%;background:var(--gold);width:0;transition:width .3s}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 18px;text-align:center}
+.visual{font-size:72px;line-height:1;min-height:150px;display:grid;place-items:center;margin-bottom:12px}
+.visual svg{width:150px;height:150px}
+.statement{font-family:var(--serif);font-size:26px;line-height:1.25;color:var(--navy);margin:4px 0 16px}
+.audio{display:flex;gap:8px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}
+.chip{background:transparent;border:1.5px solid var(--gold);color:var(--ink);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600}
+.tf{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tf button{padding:18px 0;border-radius:14px;font-size:18px;font-weight:700;letter-spacing:.08em;border:2px solid}
+.t{background:var(--green-s);color:var(--green);border-color:var(--green)}
+.f{background:var(--red-s);color:var(--red);border-color:var(--red)}
+@media (prefers-color-scheme: dark){ .t{color:#8FDB7A;border-color:#8FDB7A} .f{color:#F2938A;border-color:#F2938A} }
+.tf button:disabled{opacity:.45}
+.feedback{margin-top:16px;border-radius:14px;padding:14px;text-align:left;font-size:15px;line-height:1.45;display:none}
+.feedback.show{display:block}
+.feedback.ok{background:var(--green-s);border-left:5px solid var(--green)}
+.feedback.no{background:var(--red-s);border-left:5px solid var(--red)}
+.feedback strong{display:block;font-size:16px;margin-bottom:2px}
+.next{margin-top:14px;display:none}
+.next.show{display:block}
+.dialogue{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:14px;text-align:left;font-size:14px;line-height:1.5;display:none;max-height:240px;overflow:auto}
+.dialogue.show{display:block}
+.dialogue b{color:var(--gold)}
+.end{text-align:center}
+.big{font-family:var(--serif);font-size:72px;color:var(--navy);margin:10px 0 0}
+.stars{font-size:34px;letter-spacing:6px;margin:6px 0 16px}
+.breakdown{display:grid;gap:8px;margin:0 0 22px;text-align:left}
+.breakdown div{display:flex;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:15px}
+.hidden{display:none !important}
+footer{margin-top:auto;padding-top:26px;font-size:10px;color:var(--muted);text-align:center;letter-spacing:.04em}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mono">A</div>
+    <div><div class="course">ENGLISH FLUENCY · BASIC</div><div class="sub">Week 2 · My Day</div></div>
+  </header>
+
+  <!-- START -->
+  <section id="start">
+    <h1>True or false?<br><em>My Day.</em></h1>
+    <p class="lead">Read or listen. Tap TRUE or FALSE.</p>
+    <div class="rounds">
+      <div class="round"><b>1</b><span>⏰ Clocks — What time is it?</span></div>
+      <div class="round"><b>2</b><span>🚿 My Day — routines</span></div>
+      <div class="round"><b>3</b><span>🏠 Linda &amp; Tom — the conversation</span></div>
+    </div>
+    <button class="primary" id="go">Start</button>
+  </section>
+
+  <!-- GAME -->
+  <section id="game" class="hidden">
+    <div class="progress"><span id="roundName">ROUND 1</span><span id="count">1 / 6</span></div>
+    <div class="bar"><i id="barFill"></i></div>
+    <div class="audio hidden" id="dlgControls">
+      <button class="chip" id="playDlg">🔊 Listen to Linda &amp; Tom</button>
+      <button class="chip" id="slowDlg">🐢 More slowly, please</button>
+      <button class="chip" id="showDlg">📄 Read it</button>
+    </div>
+    <div class="dialogue" id="dlgText"></div>
+    <div class="card">
+      <div class="visual" id="visual"></div>
+      <div class="statement" id="statement"></div>
+      <div class="audio">
+        <button class="chip" id="say">🔊 Listen</button>
+        <button class="chip" id="saySlow">🐢 More slowly, please</button>
+      </div>
+      <div class="tf">
+        <button class="t" id="btnT">TRUE</button>
+        <button class="f" id="btnF">FALSE</button>
+      </div>
+      <div class="feedback" id="fb" role="status" aria-live="polite"></div>
+      <button class="primary next" id="next">Next</button>
+    </div>
+  </section>
+
+  <!-- END -->
+  <section id="end" class="hidden end">
+    <h1>Great <em>work!</em></h1>
+    <div class="big" id="final"></div>
+    <div class="stars" id="stars"></div>
+    <div class="breakdown" id="breakdown"></div>
+    <button class="primary" id="again">Play again</button>
+  </section>
+
+  <footer>Copyright © 2026 Approach International Student Center, Inc. - Revised on 10/14/2026</footer>
+</div>
+
+<script>
+const words = ["twelve","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve"];
+const mins = {0:"o'clock",15:"fifteen",30:"thirty",45:"forty-five"};
+const say = (h,m) => m===0 ? `${words[h]} o'clock` : `${words[h]} ${mins[m]}`;
+
+const DIALOGUE = [
+ ["Tom","Hi! I'm Tom. I'm your new neighbor."],["Linda","Hi, Tom. I'm Linda. Nice to meet you."],
+ ["Tom","Nice to meet you, too. What's your day like, Linda?"],["Linda","Busy! I'm a nurse. I get up at 5:30."],
+ ["Tom","5:30? Wow, that's early!"],["Linda","Yes. I take a shower, have breakfast, and take the bus at 6:15. And you?"],
+ ["Tom","I get up at 9:00. I don't work in the morning. I work at a restaurant from 3:00 to 11:00."],
+ ["Linda","What time do you have dinner?"],["Tom","Sorry? More slowly, please."],["Linda","What… time… do you… have dinner?"],
+ ["Tom","Oh! At 6:00, at the restaurant. And your family?"],
+ ["Linda","We have dinner at 7:00. My husband, David, cooks dinner. My son, Mike, doesn't watch TV. He does his homework."],
+ ["Tom","And on Sunday?"],["Linda","On Sunday, I don't get up early! I get up at 9:30. Then I do the laundry."],
+ ["Tom","Ha! Me too. I do the laundry on Sunday!"]];
+
+const ROUNDS = [
+ { name:"ROUND 1 · CLOCKS", items:[
+   {clock:[7,30], s:"It's seven thirty.", a:true},
+   {clock:[8,15], s:"It's eight forty-five.", a:false, fix:"It's eight fifteen."},
+   {clock:[6,0],  s:"It's six o'clock.", a:true},
+   {clock:[9,45], s:"It's nine fifteen.", a:false, fix:"It's nine forty-five."},
+   {clock:[11,30],s:"It's eleven thirty.", a:true},
+   {clock:[5,15], s:"It's five fifty.", a:false, fix:"It's five fifteen. (15 = fifteen, 50 = fifty)"}
+ ]},
+ { name:"ROUND 2 · MY DAY", items:[
+   {emoji:"👩 🚿", s:"She takes a shower.", a:true},
+   {emoji:"👨 📺", s:"He cooks dinner.", a:false, fix:"He watches TV."},
+   {emoji:"👩 🚌", s:"She doesn't take the bus.", a:false, fix:"She takes the bus."},
+   {emoji:"🧑 🧺", s:"He does the laundry.", a:true},
+   {emoji:"👨 🍳", s:"He doesn't have breakfast.", a:false, fix:"He has breakfast."},
+   {emoji:"👩 🛏️", s:"She goes to bed.", a:true},
+   {emoji:"👨 💼", s:"He goes to work.", a:true}
+ ]},
+ { name:"ROUND 3 · LINDA & TOM", dialogue:true, items:[
+   {emoji:"👩‍⚕️", s:"Linda is a nurse.", a:true},
+   {emoji:"⏰", s:"Linda gets up at 9:30 on weekdays.", a:false, fix:"She gets up at 5:30. On Sunday, she gets up at 9:30."},
+   {emoji:"🍽️", s:"Tom works at a restaurant.", a:true},
+   {emoji:"☀️", s:"Tom works in the morning.", a:false, fix:"Tom doesn't work in the morning. He works from 3:00 to 11:00."},
+   {emoji:"👨", s:"David is Linda's brother.", a:false, fix:"David is her husband. (Week 1!)"},
+   {emoji:"📺", s:"Mike doesn't watch TV.", a:true},
+   {emoji:"🍲", s:"Linda's family has dinner at 7:00.", a:true},
+   {emoji:"🧺", s:"Tom does the laundry on Sunday.", a:true}
+ ]}
+];
+
+let r=0, i=0, scores=[0,0,0], locked=false;
+const $ = id => document.getElementById(id);
+
+function clockSVG(h,m){
+  const ha=((h%12)+m/60)*30, ma=m*6;
+  let ticks="", nums="";
+  for(let k=0;k<60;k++){ const big=k%5===0, a=k*6*Math.PI/180, r1=88, r2=big?78:83;
+    ticks+=`<line x1="${100+r1*Math.sin(a)}" y1="${100-r1*Math.cos(a)}" x2="${100+r2*Math.sin(a)}" y2="${100-r2*Math.cos(a)}" stroke="${big?'#0C2340':'#9a9a9a'}" stroke-width="${big?3:1}"/>`; }
+  for(let n=1;n<=12;n++){ const a=n*30*Math.PI/180;
+    nums+=`<text x="${100+66*Math.sin(a)}" y="${100-66*Math.cos(a)+6}" text-anchor="middle" font-family="Montserrat,sans-serif" font-weight="700" font-size="17" fill="#0C2340">${n}</text>`; }
+  return `<svg viewBox="0 0 200 200" role="img" aria-label="A clock"><circle cx="100" cy="100" r="94" fill="#fff" stroke="#0C2340" stroke-width="6"/>${ticks}${nums}
+  <line x1="100" y1="100" x2="100" y2="58" stroke="#0C2340" stroke-width="8" stroke-linecap="round" transform="rotate(${ha} 100 100)"/>
+  <line x1="100" y1="100" x2="100" y2="40" stroke="#AE9142" stroke-width="5" stroke-linecap="round" transform="rotate(${ma} 100 100)"/>
+  <circle cx="100" cy="100" r="7" fill="#0C2340"/></svg>`;
+}
+
+function speak(text, rate=0.95){
+  if(!("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text.replace(/…/g,", ")); u.lang="en-US"; u.rate=rate;
+  const v=speechSynthesis.getVoices().find(v=>v.lang==="en-US"); if(v) u.voice=v;
+  speechSynthesis.speak(u);
+}
+function speakDialogue(rate){
+  if(!("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  const voices=speechSynthesis.getVoices().filter(v=>v.lang && v.lang.startsWith("en"));
+  DIALOGUE.forEach(([who,line])=>{
+    const u=new SpeechSynthesisUtterance(line.replace(/…/g,", ")); u.lang="en-US"; u.rate=rate;
+    if(voices.length>1) u.voice = who==="Linda" ? voices[0] : voices[1];
+    else u.pitch = who==="Linda" ? 1.25 : 0.85;
+    speechSynthesis.speak(u);
+  });
+}
+
+function render(){
+  const R=ROUNDS[r], it=R.items[i]; locked=false;
+  $("roundName").textContent=R.name;
+  $("count").textContent=`${i+1} / ${R.items.length}`;
+  $("barFill").style.width=`${(i/R.items.length)*100}%`;
+  $("visual").innerHTML = it.clock ? clockSVG(...it.clock) : `<span aria-hidden="true">${it.emoji}</span>`;
+  $("statement").textContent=it.s;
+  $("dlgControls").classList.toggle("hidden", !R.dialogue);
+  if(!R.dialogue) $("dlgText").classList.remove("show");
+  $("btnT").disabled=$("btnF").disabled=false;
+  $("fb").className="feedback"; $("fb").innerHTML="";
+  $("next").classList.remove("show");
+}
+function answer(choice){
+  if(locked) return; locked=true;
+  const it=ROUNDS[r].items[i], ok = choice===it.a;
+  if(ok) scores[r]++;
+  $("btnT").disabled=$("btnF").disabled=true;
+  const right = it.a ? "TRUE" : "FALSE";
+  let html = ok ? `<strong>✓ Yes! It's ${right}.</strong>` : `<strong>✗ Not this time. It's ${right}.</strong>`;
+  if(!it.a && it.fix) html += it.fix;
+  else if(it.clock) html += `${it.clock[0]}:${String(it.clock[1]).padStart(2,"0")} = ${say(it.clock[0],it.clock[1])}`;
+  $("fb").innerHTML=html; $("fb").className="feedback show "+(ok?"ok":"no");
+  $("next").classList.add("show"); $("next").focus();
+}
+function next(){
+  const R=ROUNDS[r];
+  if(i<R.items.length-1){ i++; render(); return; }
+  if(r<ROUNDS.length-1){ r++; i=0; render(); return; }
+  finish();
+}
+function finish(){
+  speechSynthesis && speechSynthesis.cancel();
+  const total=scores.reduce((a,b)=>a+b,0), max=ROUNDS.reduce((a,R)=>a+R.items.length,0);
+  $("game").classList.add("hidden"); $("end").classList.remove("hidden");
+  $("final").textContent=`${total} / ${max}`;
+  const pct=total/max; $("stars").textContent = pct===1?"★★★":pct>=.75?"★★☆":pct>=.5?"★☆☆":"☆☆☆";
+  $("breakdown").innerHTML=ROUNDS.map((R,k)=>`<div><span>${R.name.replace(/ROUND \d · /,"")}</span><b>${scores[k]} / ${R.items.length}</b></div>`).join("");
+}
+$("go").onclick=()=>{ $("start").classList.add("hidden"); $("game").classList.remove("hidden"); render(); };
+$("btnT").onclick=()=>answer(true); $("btnF").onclick=()=>answer(false);
+$("next").onclick=next;
+$("say").onclick=()=>speak($("statement").textContent,0.95);
+$("saySlow").onclick=()=>speak($("statement").textContent,0.6);
+$("playDlg").onclick=()=>speakDialogue(0.95);
+$("slowDlg").onclick=()=>speakDialogue(0.65);
+$("showDlg").onclick=()=>{
+  const el=$("dlgText");
+  if(!el.innerHTML) el.innerHTML=DIALOGUE.map(([w,l])=>`<div><b>${w}:</b> ${l}</div>`).join("");
+  el.classList.toggle("show");
+};
+$("again").onclick=()=>{ r=0;i=0;scores=[0,0,0]; $("end").classList.add("hidden"); $("game").classList.remove("hidden"); render(); };
+if("speechSynthesis" in window) speechSynthesis.onvoiceschanged=()=>{};
+</script>
+</body>
+</html>
