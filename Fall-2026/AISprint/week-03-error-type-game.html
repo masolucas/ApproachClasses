@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Name the Error · AI Sprint Week 3</title>
+<style>
+:root{
+  --navy:#0C2340; --gold:#AE9142; --gold-b:#D39F10;
+  --bg:#FFFFFF; --surface:#EDF2F9; --ink:#1A1A1A; --ink-s:#3D3D3D; --muted:#6B6B6B; --line:#D5DCE6;
+  --ok:#26890C; --ok-s:#E3F2DF; --bad:#C0392B; --bad-s:#F8E0E2;
+  --card:#FFFFFF; --head:#0C2340; --on-head:#EFE9D9;
+  --serif: Cambria, "Caladea", Georgia, serif;
+  --sans: Calibri, "Carlito", "Segoe UI", Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#081629; --surface:#10284A; --ink:#EFE9D9; --ink-s:#CFC8B6; --muted:#9AA6B6; --line:#24406A;
+    --ok:#7FD06A; --ok-s:#173A1E; --bad:#FF8A7D; --bad-s:#47191C;
+    --card:#0E2240; --head:#0C2340; --on-head:#EFE9D9; --navy:#EFE9D9;
+    color-scheme: dark;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.45;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+header{background:var(--head);color:var(--on-head);padding:14px 20px}
+.bar{max-width:820px;margin:0 auto;display:flex;align-items:center;gap:14px}
+.mono{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--gold);display:grid;place-items:center;
+  font-family:var(--serif);font-style:italic;font-weight:700;color:var(--gold);flex:none}
+.bar h1{font-family:var(--serif);font-weight:400;font-size:20px;margin:0;flex:1}
+.bar .meta{font-size:15px;color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap}
+.progress{height:4px;background:rgba(174,145,66,.25)}
+.progress i{display:block;height:100%;width:0;background:var(--gold);transition:width .3s}
+main{max-width:820px;margin:0 auto;padding:28px 20px 48px}
+.screen[hidden]{display:none}
+h2{font-family:var(--serif);font-weight:400;font-size:clamp(30px,6vw,46px);line-height:1.1;margin:0 0 14px;color:var(--navy)}
+.lead{font-family:var(--serif);font-size:19px;color:var(--ink-s);max-width:62ch;margin:0 0 22px}
+.legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin:0 0 26px;padding:0;list-style:none}
+.legend li{background:var(--surface);padding:12px 14px;border-radius:6px;font-size:15px;color:var(--ink-s)}
+.legend b{display:block;color:var(--ink);font-size:16px;margin-bottom:2px}
+.btn{font:inherit;font-weight:700;font-size:17px;border:0;border-radius:6px;padding:13px 26px;cursor:pointer;
+  background:var(--gold);color:#0C2340}
+.btn:hover{background:var(--gold-b)}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line)}
+.btn:focus-visible,.choice:focus-visible{outline:3px solid var(--gold-b);outline-offset:2px}
+
+.case{position:relative;background:var(--card);border:1.5px solid var(--line);border-radius:8px;padding:22px 24px 64px;margin-bottom:22px;overflow:hidden}
+.case small{display:block;color:var(--muted);font-size:14px;margin-bottom:8px}
+.case p{font-family:var(--serif);font-size:clamp(21px,3.6vw,27px);line-height:1.35;margin:0;color:var(--ink);max-width:40ch}
+.stamp{position:absolute;right:18px;bottom:14px;transform:rotate(-8deg) scale(1.6);opacity:0;
+  font-family:var(--sans);font-weight:700;font-size:15px;letter-spacing:.06em;padding:6px 12px;border:3px solid currentColor;border-radius:6px;
+  pointer-events:none;background:var(--card)}
+.stamp.show{animation:stamp .28s ease-out forwards}
+.stamp.ok{color:var(--ok)} .stamp.bad{color:var(--bad)}
+@keyframes stamp{to{opacity:.95;transform:rotate(-8deg) scale(1)}}
+@media (prefers-reduced-motion:reduce){.stamp.show{animation:none;opacity:.95;transform:rotate(-8deg)}}
+
+.prompt{font-size:15px;color:var(--muted);margin:0 0 10px}
+.choices{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media (max-width:640px){.choices{grid-template-columns:repeat(2,1fr)}.choice .k,.tip{display:none}}
+.choice{font:inherit;text-align:left;display:flex;align-items:center;gap:10px;min-height:58px;
+  background:var(--surface);color:var(--ink);border:2px solid transparent;border-radius:8px;padding:10px 12px;cursor:pointer}
+.choice:hover:not(:disabled){border-color:var(--gold)}
+.choice .ic{font-size:24px;line-height:1;flex:none}
+.choice .nm{font-weight:700;font-size:16px}
+.choice .k{margin-left:auto;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.choice:disabled{cursor:default}
+.choice.right{border-color:var(--ok);background:var(--ok-s)}
+.choice.wrong{border-color:var(--bad);background:var(--bad-s)}
+.choice.dim{opacity:.45}
+
+.feedback{margin-top:18px;padding:16px 18px;border-radius:8px;border:1.5px solid var(--line);display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.feedback[hidden]{display:none}
+.feedback .msg{flex:1;min-width:240px}
+.feedback .msg b{display:block;font-size:17px;margin-bottom:2px}
+.feedback .msg span{color:var(--ink-s);font-family:var(--serif);font-size:17px}
+.feedback.ok b{color:var(--ok)} .feedback.bad b{color:var(--bad)}
+
+.score{font-family:var(--serif);font-size:clamp(64px,14vw,110px);line-height:1;color:var(--navy);margin:6px 0 8px}
+.score span{color:var(--gold);font-size:.5em}
+.types{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin:20px 0 26px;padding:0;list-style:none}
+.types li{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:6px;background:var(--surface);font-size:16px}
+.types li .r{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums}
+.types li.miss .r{color:var(--bad)} .types li.full .r{color:var(--ok)}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;margin:8px 0 10px;color:var(--navy)}
+.review{list-style:none;padding:0;margin:0 0 26px}
+.review li{border-top:1.5px solid var(--line);padding:14px 0}
+.review q{font-family:var(--serif);font-size:18px;display:block;margin-bottom:6px;quotes:none}
+.review .det{font-size:15px;color:var(--ink-s)}
+.review .det b{color:var(--ok)} .review .det s{color:var(--bad)}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.foot{margin-top:36px;font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="mono" aria-hidden="true">A</div>
+    <h1>Name the Error</h1>
+    <div class="meta" id="meta" aria-live="polite"></div>
+  </div>
+</header>
+<div class="progress" aria-hidden="true"><i id="prog"></i></div>
+
+<main>
+  <section class="screen" id="start">
+    <h2>Can you spot what went wrong?</h2>
+    <p class="lead">You will see 16 short AI outputs. Each one has one problem. Choose the error type. You get feedback after every answer.</p>
+    <ul class="legend" id="legend"></ul>
+    <button class="btn" id="go">Start the game</button>
+    <p class="foot tip">Tip: on a keyboard, press 1–6 to choose and Enter for the next output.</p>
+  </section>
+
+  <section class="screen" id="play" hidden>
+    <div class="case">
+      <small id="caseNo"></small>
+      <p id="caseText"></p>
+      <div class="stamp" id="stamp"></div>
+    </div>
+    <p class="prompt" id="promptQ">What type of error is this?</p>
+    <div class="choices" id="choices" role="group" aria-labelledby="promptQ"></div>
+    <div class="feedback" id="fb" hidden aria-live="polite">
+      <div class="msg"><b id="fbHead"></b><span id="fbText"></span></div>
+      <button class="btn" id="next">Next output</button>
+    </div>
+  </section>
+
+  <section class="screen" id="end" hidden>
+    <h2>Game over.</h2>
+    <div class="score" id="final"></div>
+    <p class="lead" id="verdict"></p>
+    <ul class="types" id="byType"></ul>
+    <div id="missWrap">
+      <h3>Review the ones you missed</h3>
+      <ol class="review" id="missList"></ol>
+    </div>
+    <div class="actions">
+      <button class="btn" id="again">Play again</button>
+    </div>
+    <p class="foot">Nothing is saved. Your results disappear when you close this page.</p>
+  </section>
+</main>
+
+<script>
+const TYPES = [{"key":"H","icon":"👻","name":"Hallucination","def":"The AI invents a fact that sounds real but is not true."},{"key":"S","icon":"📚","name":"Fake source","def":"The AI cites a study, book, or expert that does not exist."},{"key":"O","icon":"⏳","name":"Outdated info","def":"The information was true once but is no longer true."},{"key":"U","icon":"❓","name":"Unsupported claim","def":"A strong claim with no evidence, often with words like always or never."},{"key":"B","icon":"⚖️","name":"Bias","def":"An unfair generalization about a group of people."},{"key":"M","icon":"🧮","name":"Math error","def":"A calculation, total, or percentage is wrong."}];
+const ITEMS = [{"t":"“Your total for 3 items at $12.50 is $40.50.”","e":"M","fix":"$37.50"},{"t":"“A 2021 study in the Journal of Remote Work Science found that 88% of workers prefer email.”","e":"S","fix":"No such journal or study can be found."},{"t":"“As of today, the newest iPhone is the iPhone 11.”","e":"O","fix":"Newer models have been released since."},{"t":"“Women are naturally better at customer service jobs.”","e":"B","fix":"This is a stereotype with no evidence."},{"t":"“Learning English for 30 days guarantees a promotion.”","e":"U","fix":"Nothing can guarantee a promotion."},{"t":"“The capital of Texas is Springfield.”","e":"H","fix":"The capital of Texas is Austin."},{"t":"“The social media site Twitter is still officially called Twitter.”","e":"O","fix":"Twitter was renamed X in 2023."},{"t":"“If you work 9 to 5 with a one-hour lunch, you work 8 hours.”","e":"M","fix":"7 hours of work."},{"t":"“The Amazon River flows through Africa.”","e":"H","fix":"The Amazon River is in South America."},{"t":"“Albert Einstein invented the telephone.”","e":"H","fix":"Alexander Graham Bell is usually credited with the telephone. Einstein is known for physics."},{"t":"“In her 2019 book Smart Emails (Oxford Press), Professor Linda Moore shows that short emails get 75% more replies.”","e":"S","fix":"No such book or professor can be found."},{"t":"“The U.S. Office of Happy Workplaces reports that 9 out of 10 workers prefer open-plan offices.”","e":"S","fix":"No such government office exists."},{"t":"“Young employees are lazy and don’t want to work hard.”","e":"B","fix":"This is a stereotype about an age group."},{"t":"“Introverts can’t be good managers.”","e":"B","fix":"This is a stereotype about a personality type."},{"t":"“Using AI at work will double your salary within one year.”","e":"U","fix":"No evidence; nothing can guarantee a salary increase."},{"t":"“Everyone who works from a coffee shop is more creative.”","e":"U","fix":"“Everyone” is a red flag; there is no evidence."}];
+const $ = id => document.getElementById(id);
+const tName = k => TYPES.find(t => t.key === k).name;
+const ART = { H: "a hallucination", S: "a fake source", O: "outdated info", U: "an unsupported claim", B: "bias", M: "a math error" };
+const tIcon = k => TYPES.find(t => t.key === k).icon;
+let order = [], idx = 0, score = 0, answers = [], locked = false;
+
+function shuffle(a){ a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function show(id){ ["start","play","end"].forEach(s => $(s).hidden = s !== id); window.scrollTo(0, 0); }
+function meta(){
+  $("meta").textContent = $("play").hidden ? "" : "Output " + (idx + 1) + " of " + ITEMS.length + "  ·  Score " + score;
+  $("prog").style.width = (answers.length / ITEMS.length * 100) + "%";
+}
+
+$("legend").innerHTML = TYPES.map(t => '<li><b>' + t.icon + ' ' + t.name + '</b>' + t.def + '</li>').join("");
+$("choices").innerHTML = TYPES.map((t, i) =>
+  '<button class="choice" data-k="' + t.key + '"><span class="ic" aria-hidden="true">' + t.icon + '</span><span class="nm">' + t.name + '</span><span class="k" aria-hidden="true">' + (i + 1) + '</span></button>').join("");
+
+function start(){
+  order = shuffle(ITEMS); idx = 0; score = 0; answers = [];
+  show("play"); render();
+}
+function render(){
+  const it = order[idx]; locked = false;
+  $("caseNo").textContent = "AI output " + (idx + 1);
+  $("caseText").textContent = it.t;
+  $("stamp").className = "stamp"; $("stamp").textContent = "";
+  $("fb").hidden = true;
+  document.querySelectorAll(".choice").forEach(b => { b.disabled = false; b.className = "choice"; b.removeAttribute("aria-pressed"); });
+  meta();
+  document.querySelector(".choice").focus({ preventScroll: true });
+}
+function pick(k){
+  if (locked) return; locked = true;
+  const it = order[idx], ok = k === it.e;
+  if (ok) score++;
+  answers.push({ it, pick: k, ok });
+  document.querySelectorAll(".choice").forEach(b => {
+    b.disabled = true;
+    if (b.dataset.k === it.e) b.classList.add("right");
+    else if (b.dataset.k === k) b.classList.add("wrong");
+    else b.classList.add("dim");
+    if (b.dataset.k === k) b.setAttribute("aria-pressed", "true");
+  });
+  const st = $("stamp");
+  st.textContent = ok ? "✓ " + tName(it.e) : "✗ Not " + tName(k);
+  st.className = "stamp show " + (ok ? "ok" : "bad");
+  $("fb").className = "feedback " + (ok ? "ok" : "bad");
+  $("fbHead").textContent = ok ? "Correct: " + tName(it.e) + "." : "Not quite. This is " + ART[it.e] + ".";
+  $("fbText").textContent = it.fix;
+  $("next").textContent = idx === ITEMS.length - 1 ? "See my results" : "Next output";
+  $("fb").hidden = false;
+  meta();
+  $("next").focus({ preventScroll: true });
+}
+function next(){
+  if (!locked) return;
+  if (idx < ITEMS.length - 1){ idx++; render(); } else finish();
+}
+function finish(){
+  show("end"); meta();
+  $("final").innerHTML = score + '<span> / ' + ITEMS.length + '</span>';
+  const pct = score / ITEMS.length;
+  $("verdict").textContent = pct === 1 ? "Perfect. You can name every error type." :
+    pct >= 0.75 ? "Strong work. Check the types you missed below." :
+    pct >= 0.5 ? "Good start. Review the missed outputs, then play again." :
+    "Keep practicing. Read the review below, then play again.";
+  $("byType").innerHTML = TYPES.map(t => {
+    const all = answers.filter(a => a.it.e === t.key), got = all.filter(a => a.ok).length;
+    return '<li class="' + (got === all.length ? "full" : "miss") + '"><span aria-hidden="true">' + t.icon + '</span>' + t.name + '<span class="r">' + got + ' / ' + all.length + '</span></li>';
+  }).join("");
+  const miss = answers.filter(a => !a.ok);
+  $("missWrap").hidden = miss.length === 0;
+  $("missList").innerHTML = miss.map(a =>
+    '<li><q></q><div class="det">Your answer: <s></s> · Correct: <b></b><br><span class="fx"></span></div></li>').join("");
+  [...$("missList").children].forEach((li, i) => {
+    const a = miss[i];
+    li.querySelector("q").textContent = a.it.t;
+    li.querySelector("s").textContent = tName(a.pick);
+    li.querySelector("b").textContent = tIcon(a.it.e) + " " + tName(a.it.e);
+    li.querySelector(".fx").textContent = a.it.fix;
+  });
+  $("again").focus({ preventScroll: true });
+}
+
+$("go").onclick = start;
+$("again").onclick = start;
+$("next").onclick = next;
+$("choices").addEventListener("click", e => { const b = e.target.closest(".choice"); if (b) pick(b.dataset.k); });
+document.addEventListener("keydown", e => {
+  if ($("play").hidden) return;
+  const n = parseInt(e.key, 10);
+  if (n >= 1 && n <= TYPES.length && !locked){ e.preventDefault(); pick(TYPES[n - 1].key); }
+  else if (e.key === "Enter" && locked && document.activeElement !== $("next")){ e.preventDefault(); next(); }
+});
+show("start"); meta();
+</script>
+</body>
+</html>
