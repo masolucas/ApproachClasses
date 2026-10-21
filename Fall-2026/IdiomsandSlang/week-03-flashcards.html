@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mixed Bag · Week 3 Flashcards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --page: #EFE9D9;
+    --card: #FFFFFF;
+    --card-edge: #D9CFB4;
+    --ink: #0C2340;
+    --ink-soft: #3D3D3D;
+    --muted: #6B6B6B;
+    --gold: #8C7535;
+    --ph-line: #9A9A9A;
+    --ph-bg: #F8F4EC;
+    --btn: #0C2340;
+    --btn-ink: #FFFFFF;
+    --btn2: transparent;
+    --btn2-ink: #0C2340;
+    --wk1: #1C4F8F;
+    --wk2: #0E6B6B;
+    --wk3: #B45309;
+    --shadow: 0 18px 40px rgba(12, 35, 64, 0.16);
+    color-scheme: light;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --page: #081629; --card: #0C2340; --card-edge: #2A4268; --ink: #EFE9D9; --ink-soft: #D6D0C0;
+      --muted: #A9B3C4; --gold: #D3B865; --ph-line: #5E7396; --ph-bg: #10294A; --btn: #AE9142; --btn-ink: #081629;
+      --btn2-ink: #EFE9D9; --wk1: #6F9FE0; --wk2: #4FB3B3; --wk3: #E89A5C; --shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --page: #081629; --card: #0C2340; --card-edge: #2A4268; --ink: #EFE9D9; --ink-soft: #D6D0C0;
+    --muted: #A9B3C4; --gold: #D3B865; --ph-line: #5E7396; --ph-bg: #10294A; --btn: #AE9142; --btn-ink: #081629;
+    --btn2-ink: #EFE9D9; --wk1: #6F9FE0; --wk2: #4FB3B3; --wk3: #E89A5C; --shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    color-scheme: dark;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; min-height: 100%; background: var(--page); color: var(--ink);
+    font-family: "Lora", Cambria, Georgia, serif;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px 16px;
+  }
+  .stage { width: min(960px, 100%); display: flex; flex-direction: column; align-items: center; gap: 22px; }
+
+  .scene { width: 100%; perspective: 1800px; }
+  .card {
+    position: relative; width: 100%; aspect-ratio: 16 / 9; min-height: 340px;
+    transform-style: preserve-3d; transition: transform 0.55s cubic-bezier(.2,.7,.2,1);
+    cursor: pointer; border: 0; padding: 0; background: none; color: inherit; font: inherit; display: block;
+  }
+  .card.flipped { transform: rotateY(180deg); }
+  .card:focus-visible { outline: 3px solid var(--gold); outline-offset: 6px; border-radius: 22px; }
+  .face {
+    position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    background: var(--card); border: 1px solid var(--card-edge); border-radius: 22px; box-shadow: var(--shadow);
+    display: flex; overflow: hidden; text-align: left;
+  }
+  .front { gap: clamp(16px, 3vw, 36px); padding: clamp(18px, 3.4vw, 44px); align-items: center; }
+  .pic {
+    flex: 0 0 40%; align-self: stretch; border: 2px dashed var(--ph-line); border-radius: 14px; background: var(--ph-bg);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 16px; text-align: center; overflow: hidden;
+  }
+  .pic img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+  .pic .id { font-family: "Montserrat", Calibri, sans-serif; font-weight: 600; font-size: 0.85rem; color: var(--muted); letter-spacing: 0.04em; }
+  .pic .desc { font-style: italic; font-size: clamp(0.8rem, 1.4vw, 0.95rem); color: var(--muted); line-height: 1.4; }
+  .pic.has-emo { border-style: solid; border-color: transparent; }
+  .pic .emo { font-size: clamp(3.4rem, 8.5vw, 6.5rem); line-height: 1.2; letter-spacing: 0.06em; font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
+  .words { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 18px; min-width: 0; }
+  .sit { font-size: clamp(1.35rem, 3.4vw, 2.35rem); line-height: 1.32; margin: 0; color: var(--ink); }
+  .ask { font-family: "Montserrat", Calibri, sans-serif; font-weight: 500; font-size: clamp(0.9rem, 1.6vw, 1.1rem); color: var(--gold); margin: 0; }
+
+  .back { transform: rotateY(180deg); flex-direction: column; }
+  .back .band { height: 14px; background: var(--wk); flex: 0 0 auto; }
+  .back .body { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 22px; padding: clamp(20px, 4vw, 56px); }
+  .back .ctx { font-style: italic; font-size: clamp(0.95rem, 1.8vw, 1.2rem); color: var(--ink-soft); margin: 0; line-height: 1.4; }
+  .back .ans { font-size: clamp(2rem, 6vw, 4rem); line-height: 1.12; margin: 0; color: var(--ink); font-weight: 600; }
+  .back .wk { font-family: "Montserrat", Calibri, sans-serif; font-weight: 600; font-size: clamp(0.9rem, 1.6vw, 1.05rem); color: var(--wk); margin: 0; }
+
+  .controls { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  button.ctl {
+    font-family: "Montserrat", Calibri, sans-serif; font-weight: 600; font-size: 1rem;
+    border-radius: 999px; padding: 12px 22px; border: 2px solid var(--btn); background: var(--btn2); color: var(--btn2-ink); cursor: pointer; min-width: 112px;
+  }
+  button.ctl.main { background: var(--btn); color: var(--btn-ink); min-width: 150px; }
+  button.ctl:hover { filter: brightness(1.08); }
+  button.ctl:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+  button.ctl:disabled { opacity: 0.35; cursor: default; }
+  .meta { display: flex; align-items: center; justify-content: center; gap: 18px; font-family: "Montserrat", Calibri, sans-serif; font-size: 0.95rem; color: var(--muted); }
+  .meta button { font: inherit; background: none; border: 0; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 6px; }
+  .meta button:focus-visible { outline: 2px solid var(--gold); border-radius: 4px; }
+  .hint { font-family: "Montserrat", Calibri, sans-serif; font-size: 0.8rem; color: var(--muted); margin: 0; text-align: center; }
+
+  @media (max-width: 640px) {
+    .card { aspect-ratio: auto; height: 520px; }
+    .front { flex-direction: column; align-items: stretch; }
+    .pic { flex: 0 0 42%; }
+    button.ctl { min-width: 0; padding: 12px 16px; }
+    .hint { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card { transition: none; }
+  }
+</style>
+</head>
+<body>
+<main class="stage">
+  <div class="scene">
+    <button class="card" id="card" aria-live="polite" aria-label="Flashcard. Press to flip.">
+      <div class="face front" id="front"></div>
+      <div class="face back" id="back"></div>
+    </button>
+  </div>
+
+  <div class="controls">
+    <button class="ctl" id="prev">← Back</button>
+    <button class="ctl main" id="flip">Show answer</button>
+    <button class="ctl" id="next">Next →</button>
+  </div>
+  <div class="meta">
+    <span id="count">1 of 22</span>
+    <button id="shuffle">Shuffle</button>
+  </div>
+  <p class="hint">Space flips the card · ← → move between cards · S shuffles</p>
+</main>
+
+<script>
+/* Each card shows its emoji (emo). To use a real picture instead, put its address in src,
+   e.g. src: "img/IMG-30.jpg" — the picture replaces the emoji. */
+const CARDS = [
+  { wk: 1, emo: "🌅👋🙂", id: "IMG-30", desc: "A person waving to a friend across the street, both smiling.", sit: "You see your classmate in the morning.", ans: "Hey! / Hi there!", src: "" },
+  { wk: 3, emo: "🛍️🚪🙏", id: "IMG-49", desc: "A person carrying bags who can’t open a door; another person nearby.", sit: "Your teacher: “Can you open the door?”", ans: "Sure! / No problem.", src: "" },
+  { wk: 2, emo: "💼🎉😃", id: "IMG-33", desc: "A happy person holding a “Welcome to the team!” letter or a new work ID badge.", sit: "Your friend: “I have a new job!”", ans: "Oh wow! / That’s great!", src: "" },
+  { wk: 3, emo: "⚽📅", id: "IMG-53", desc: "Friends playing soccer in a park.", sit: "A classmate: “Do you want to play soccer on Saturday?” You are busy.", ans: "Sorry, I can’t.", src: "" },
+  { wk: 1, emo: "🙂🤝🙂", id: "IMG-31", desc: "Two new classmates shaking hands on the first day of class.", sit: "A new coworker: “Hi, I’m Sam.”", ans: "Nice to meet you.", src: "" },
+  { wk: 3, emo: "👔📅🤔", id: "IMG-60", desc: "A manager showing a work schedule to an employee.", sit: "Your boss: “Can you work on Sunday?” You don’t know.", ans: "I’m not sure. / Maybe.", src: "" },
+  { wk: 2, emo: "🍕😋", id: "IMG-34", desc: "A friend holding up a pizza box with a big smile.", sit: "Your friend: “Let’s eat pizza tonight.”", ans: "Sounds good!", src: "" },
+  { wk: 3, emo: "🎈🎉🥳", id: "IMG-54", desc: "A small party at home with balloons and snacks.", sit: "Your friend: “Do you want to come to my party?” You want to go!", ans: "Of course! / Sure!", src: "" },
+  { wk: 1, emo: "🚶💥😬", id: "IMG-32", desc: "One person bumps into another on a sidewalk; the first person looks sorry.", sit: "Someone bumps you: “Oh, sorry!”", ans: "No worries!", src: "" },
+  { wk: 3, emo: "📚⏰😓", id: "IMG-59", desc: "A desk with a big pile of papers and a clock showing 4:55.", sit: "A coworker: “Can you finish this today?” It is difficult.", ans: "I’ll try.", src: "" },
+  { wk: 2, emo: "🍂❄️😲", id: "IMG-35", desc: "Snow falling on colorful autumn trees; a surprised person looking at it.", sit: "Your friend: “It’s snowing in October!”", ans: "No way! / Really?", src: "" },
+  { wk: 3, emo: "⏰😴", id: "IMG-61", desc: "A phone calendar with “7:00 a.m.” highlighted and an alarm clock.", sit: "Your friend: “Do you want to meet at 7 a.m.?” 7 a.m. is bad for you.", ans: "That doesn’t work for me.", src: "" },
+  { wk: 1, emo: "🚪👋", id: "IMG-62", desc: "Two friends at a front door waving goodbye after a visit.", sit: "Your friend is leaving: “Bye! I have to go.”", ans: "See you later! / Take care!", src: "" },
+  { wk: 3, emo: "📝🤔", id: "IMG-67", desc: "Two classmates looking at a difficult worksheet together.", sit: "A classmate: “Can you help me with my homework?” It is difficult for you too.", ans: "I’ll try. / I’m not sure.", src: "" },
+  { wk: 2, emo: "😩☕📅", id: "IMG-64", desc: "A tired coworker at a desk with coffee; a calendar shows “Monday”.", sit: "Your coworker: “Mondays are so hard!”", ans: "I know, right?", src: "" },
+  { wk: 3, emo: "🌳🚶🚶", id: "IMG-56", desc: "Two people walking in a park with autumn trees.", sit: "Your friend: “Do you want to go for a walk?” You want to go!", ans: "Of course! / Sure!", src: "" },
+  { wk: 1, emo: "👋😄", id: "IMG-63", desc: "Two friends meeting in a school hallway, one waving and smiling.", sit: "Your friend: “Hey! What’s up?”", ans: "Not much. You?", src: "" },
+  { wk: 3, emo: "🌙🏢⏰", id: "IMG-68", desc: "An office in the evening; a clock shows 6:00 p.m.; a manager talking to an employee.", sit: "Your boss: “Can you work late tonight?” You can’t.", ans: "Sorry, I can’t.", src: "" },
+  { wk: 2, emo: "📱😔", id: "IMG-65", desc: "A friend on the phone with an apologetic face.", sit: "Your friend: “Sorry, I can’t come tonight. I have work.”", ans: "Fair enough. / No worries!", src: "" },
+  { wk: 3, emo: "🥪🍴", id: "IMG-55", desc: "Two people having lunch (sandwiches) at a table.", sit: "Your friend: “Do you want to have lunch on Monday?” Monday is bad for you.", ans: "Sorry, that doesn’t work for me.", src: "" },
+  { wk: 2, emo: "🙋📚😍", id: "IMG-66", desc: "A smiling student raising a hand in an English class.", sit: "Your teacher: “Do you like this class?” You really like it!", ans: "Absolutely!", src: "" },
+  { wk: 3, emo: "🙏😊", id: "IMG-69", desc: "A neighbour smiling and saying thank you at an apartment door.", sit: "Your neighbour: “Thank you for your help!”", ans: "No problem! / No worries!", src: "" }
+];
+const WEEK = { 1: "Week 1 · Greetings", 2: "Week 2 · Reactions", 3: "Week 3 · Yes, no & maybe" };
+
+let order = CARDS.map((_, i) => i);
+let pos = 0, flipped = false;
+const $ = (id) => document.getElementById(id);
+const card = $("card"), front = $("front"), back = $("back");
+
+function esc(s) { return s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function render() {
+  const c = CARDS[order[pos]];
+  const pic = c.src
+    ? `<img src="${esc(c.src)}" alt="${esc(c.desc)}">`
+    : `<span class="emo" role="img" aria-label="${esc(c.desc)}">${c.emo}</span>`;
+  front.innerHTML = `<div class="pic${c.src ? "" : " has-emo"}">${pic}</div>
+    <div class="words"><p class="sit">${esc(c.sit)}</p><p class="ask">What do you say?</p></div>`;
+  back.style.setProperty("--wk", `var(--wk${c.wk})`);
+  back.innerHTML = `<div class="band"></div><div class="body">
+    <p class="ctx">${esc(c.sit)}</p><p class="ans">${esc(c.ans)}</p><p class="wk">${WEEK[c.wk]}</p></div>`;
+  $("count").textContent = `${pos + 1} of ${CARDS.length}`;
+  $("prev").disabled = pos === 0;
+  $("next").disabled = pos === CARDS.length - 1;
+  setFlip(false);
+}
+function setFlip(v) {
+  flipped = v;
+  card.classList.toggle("flipped", v);
+  front.setAttribute("aria-hidden", v);
+  back.setAttribute("aria-hidden", !v);
+  $("flip").textContent = v ? "Show question" : "Show answer";
+}
+function go(d) {
+  const n = pos + d;
+  if (n < 0 || n >= CARDS.length) return;
+  pos = n; render();
+}
+function shuffle() {
+  for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  pos = 0; render();
+}
+
+card.addEventListener("click", () => setFlip(!flipped));
+$("flip").addEventListener("click", () => setFlip(!flipped));
+$("prev").addEventListener("click", () => go(-1));
+$("next").addEventListener("click", () => go(1));
+$("shuffle").addEventListener("click", shuffle);
+document.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "BUTTON" && (e.key === " " || e.key === "Enter")) return;
+  if (e.key === " " || e.key === "Enter") { e.preventDefault(); setFlip(!flipped); }
+  else if (e.key === "ArrowRight") go(1);
+  else if (e.key === "ArrowLeft") go(-1);
+  else if (e.key.toLowerCase() === "s") shuffle();
+});
+let tx = null;
+card.addEventListener("touchstart", (e) => { tx = e.touches[0].clientX; }, { passive: true });
+card.addEventListener("touchend", (e) => {
+  if (tx === null) return;
+  const dx = e.changedTouches[0].clientX - tx; tx = null;
+  if (Math.abs(dx) > 50) { e.preventDefault(); go(dx < 0 ? 1 : -1); }
+});
+render();
+</script>
+</body>
+</html>
