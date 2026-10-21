@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Have You Ever…? · Week 1 · Survival English</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0c2340; --navy-d: #081629; --navy-l: #143865;
+    --gold: #ae9142; --gold-b: #d39f10; --warm: #efe9d9; --paper: #ffffff;
+    --ink: #1a1a1a; --muted: #7a7a7a;
+    --serif: Cambria, "Book Antiqua", Georgia, "Times New Roman", serif;
+    --sans: Montserrat, "Segoe UI", Calibri, Arial, sans-serif;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; min-height: 100%; background: var(--navy); color: var(--warm);
+    font-family: var(--sans); display: flex; flex-direction: column;
+  }
+  /* gold corner brackets, as on the slides */
+  .frame { position: fixed; inset: 18px; pointer-events: none; }
+  .frame i { position: absolute; width: 34px; height: 34px; border-color: var(--gold); border-style: solid; border-width: 0; }
+  .frame i:nth-child(1) { top: 0; left: 0; border-top-width: 2px; border-left-width: 2px; }
+  .frame i:nth-child(2) { top: 0; right: 0; border-top-width: 2px; border-right-width: 2px; }
+  .frame i:nth-child(3) { bottom: 0; left: 0; border-bottom-width: 2px; border-left-width: 2px; }
+  .frame i:nth-child(4) { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 2.2rem 3.2rem 0;
+  }
+  .brand { display: flex; align-items: center; gap: .8rem; }
+  .mono {
+    width: 2.4rem; height: 2.4rem; border-radius: 50%; border: 1.5px solid var(--gold);
+    display: grid; place-items: center; font-family: var(--serif); font-style: italic; font-weight: 700;
+    color: var(--gold); font-size: 1.2rem;
+  }
+  .brand small { display: block; font-size: .7rem; font-weight: 700; letter-spacing: .2em; color: var(--gold); }
+  .brand span { display: block; font-size: .7rem; letter-spacing: .12em; color: var(--warm); opacity: .85; }
+  .classsize { font-size: .8rem; color: var(--warm); display: flex; align-items: center; gap: .5rem; }
+  .classsize input {
+    width: 3.6rem; background: transparent; color: var(--warm); border: 1px solid var(--gold);
+    border-radius: 4px; padding: .3rem .4rem; font: inherit; font-size: .95rem; text-align: center;
+  }
+
+  main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem 3rem 1rem; gap: 1.6rem; }
+
+  .stage { perspective: 1600px; width: min(920px, 92vw); aspect-ratio: 16 / 8.2; }
+  .card { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .7s cubic-bezier(.2,.75,.25,1); }
+  .card.flipped { transform: rotateY(180deg); }
+  .face {
+    position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+  }
+  .back {
+    background: var(--navy-l); border: 2px solid var(--gold);
+    background-image: repeating-linear-gradient(45deg, rgba(174,145,66,.08) 0 14px, transparent 14px 28px);
+  }
+  .back .big-a { font-family: var(--serif); font-style: italic; font-weight: 700; font-size: clamp(5rem, 14vw, 10rem); color: var(--gold); line-height: 1; }
+  .back p { margin: .8rem 0 0; font-family: var(--serif); font-style: italic; font-size: clamp(1.1rem, 2.4vw, 1.6rem); color: var(--warm); }
+  .front { background: var(--paper); color: var(--navy); transform: rotateY(180deg); padding: 2rem 3rem; border: 2px solid var(--gold); }
+  .front .icon { font-size: clamp(3.2rem, 8vw, 5.6rem); line-height: 1; }
+  .front .lead { font-family: var(--serif); font-style: italic; color: var(--gold); font-size: clamp(1.3rem, 3vw, 2.1rem); margin-top: .8rem; }
+  .front .prompt { font-family: var(--serif); font-size: clamp(2rem, 5.2vw, 3.6rem); line-height: 1.12; margin-top: .2rem; max-width: 20ch; }
+  .front .follow { font-size: clamp(.95rem, 1.8vw, 1.2rem); color: #3d3d3d; margin-top: 1.2rem; }
+  .front .follow b { color: var(--navy); }
+  .counter { position: absolute; top: 1rem; right: 1.3rem; font-size: .8rem; font-weight: 600; letter-spacing: .1em; color: var(--muted); }
+
+  .controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 1.2rem; min-height: 4.2rem; }
+  button {
+    font: inherit; font-weight: 600; cursor: pointer; border-radius: 999px; padding: .85rem 1.8rem; font-size: 1rem;
+    border: 2px solid var(--gold); background: var(--gold); color: var(--navy);
+  }
+  button.ghost { background: transparent; color: var(--warm); }
+  button:focus-visible, input:focus-visible { outline: 3px solid var(--gold-b); outline-offset: 3px; }
+  button:disabled { opacity: .4; cursor: default; }
+
+  .tally { display: none; align-items: center; gap: .8rem; background: rgba(255,255,255,.06); border: 1px solid rgba(174,145,66,.6); border-radius: 999px; padding: .4rem .6rem .4rem 1.3rem; }
+  .tally.on { display: flex; }
+  .tally label { font-size: .95rem; }
+  .tally .step { width: 2.6rem; height: 2.6rem; padding: 0; font-size: 1.4rem; line-height: 1; }
+  .tally output { font-family: var(--serif); font-size: 2rem; min-width: 2.6ch; text-align: center; color: var(--gold-b); }
+  .hint { font-size: .75rem; color: var(--warm); opacity: .6; text-align: center; }
+
+  /* snapshot */
+  .snapshot { display: none; width: min(980px, 94vw); }
+  .snapshot.on { display: block; }
+  .snapshot h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(2.2rem, 5vw, 3.8rem); margin: 0 0 .3rem; letter-spacing: -.01em; }
+  .snapshot h1 em { color: var(--gold); }
+  .snapshot .sub { font-family: var(--serif); font-style: italic; font-size: 1.15rem; margin: 0 0 1.6rem; opacity: .9; }
+  .rows { display: grid; gap: .7rem; max-height: 58vh; overflow-y: auto; padding-right: .4rem; }
+  .row { display: grid; grid-template-columns: 2.2rem 1fr 5.5rem; align-items: center; gap: .9rem; }
+  .row .ic { font-size: 1.6rem; text-align: center; }
+  .row .txt { font-size: 1rem; }
+  .row .bar { height: 10px; background: rgba(255,255,255,.12); border-radius: 6px; margin-top: .35rem; overflow: hidden; }
+  .row .bar span { display: block; height: 100%; background: var(--gold); border-radius: 6px; }
+  .row .num { text-align: right; font-family: var(--serif); font-size: 1.35rem; color: var(--gold-b); white-space: nowrap; }
+  .row .num small { font-family: var(--sans); font-size: .75rem; color: var(--warm); opacity: .75; }
+  .takeaway { margin-top: 1.6rem; font-family: var(--serif); font-size: clamp(1.2rem, 2.6vw, 1.7rem); line-height: 1.35; border-left: 3px solid var(--gold); padding-left: 1rem; }
+
+  footer { padding: 0 3.2rem 2rem; display: flex; justify-content: space-between; font-size: .7rem; font-weight: 700; letter-spacing: .2em; color: var(--gold); }
+
+  @media (max-width: 640px) {
+    header, footer { padding-left: 1.6rem; padding-right: 1.6rem; }
+    .stage { aspect-ratio: 3 / 4; }
+    .front { padding: 1.4rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+</style>
+</head>
+<body>
+<div class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+<header>
+  <div class="brand">
+    <div class="mono" aria-hidden="true">A</div>
+    <div><small>SURVIVAL ENGLISH · INDEPENDENT</small><span>WEEK 01 · RESOLVING PROBLEMS</span></div>
+  </div>
+  <div class="classsize"><label for="size">Students today</label><input id="size" type="number" min="1" max="60" value="26"></div>
+</header>
+
+<main>
+  <section id="play" style="display:contents">
+    <div class="stage">
+      <div class="card" id="card" aria-live="polite">
+        <div class="face back">
+          <div class="big-a" aria-hidden="true">A</div>
+          <p>Have you ever…?</p>
+        </div>
+        <div class="face front">
+          <div class="counter" id="counter"></div>
+          <div class="icon" id="icon" aria-hidden="true"></div>
+          <div class="lead">Have you ever…</div>
+          <div class="prompt" id="prompt"></div>
+          <div class="follow"><b>Raise your hand</b> if this happened to you. Then tell your neighbor: <b>When? What happened?</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="tally" id="tally">
+        <label for="hands">Hands up:</label>
+        <button class="step ghost" id="minus" aria-label="One fewer hand">−</button>
+        <output id="hands">0</output>
+        <button class="step ghost" id="plus" aria-label="One more hand">+</button>
+      </div>
+      <button id="draw">Draw a card</button>
+      <button class="ghost" id="finish">Class snapshot</button>
+    </div>
+    <div class="hint">Space = draw next card · ↑ / ↓ = count hands · S = snapshot</div>
+  </section>
+
+  <section class="snapshot" id="snapshot">
+    <h1>Our class <em>snapshot.</em></h1>
+    <p class="sub">Problems happen to everyone. This course teaches what to <em>do</em> about them.</p>
+    <div class="rows" id="rows"></div>
+    <div class="takeaway" id="takeaway"></div>
+    <div class="controls" style="margin-top:1.6rem">
+      <button class="ghost" id="back">Back to cards</button>
+      <button class="ghost" id="reset">Start over</button>
+    </div>
+  </section>
+</main>
+
+<footer><span>APPROACH INTERNATIONAL STUDENT CENTER</span><span id="foot">CARD 00 / 12</span></footer>
+
+<script>
+(function () {
+  var CARDS = [
+    { icon: "🛍️", text: "returned something to a store?", problem: true },
+    { icon: "🏷️", text: "been charged the wrong price?", problem: true },
+    { icon: "☎️", text: "waited more than 30 minutes on hold?", problem: true },
+    { icon: "🍽️", text: "gotten the wrong order at a restaurant?", problem: true },
+    { icon: "🔧", text: "had something break in your apartment?", problem: true },
+    { icon: "🧾", text: "gotten a bill that was higher than you expected?", problem: true },
+    { icon: "🙋", text: "asked to speak to a manager?" },
+    { icon: "📦", text: "bought something online that arrived broken?", problem: true },
+    { icon: "🚚", text: "had a package that never arrived?", problem: true },
+    { icon: "🗂️", text: "kept a receipt for months, just in case?" },
+    { icon: "📞", text: "felt nervous speaking English on the phone?" },
+    { icon: "✅", text: "complained about something — and it worked?" }
+  ];
+  var KEY = "approach-w1-haveyouever";
+  var state = { order: [], pos: -1, counts: {} };
+
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  function load() {
+    try { var s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.order && s.order.length === CARDS.length) state = s; } catch (e) {}
+    if (!state.order.length) state.order = shuffle(CARDS.map(function (_, i) { return i; }));
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var card = $("card"), handsOut = $("hands"), drawBtn = $("draw");
+  function size() { var n = parseInt($("size").value, 10); return n > 0 ? n : 26; }
+  function current() { return state.pos >= 0 ? state.order[state.pos] : null; }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+
+  function render() {
+    var c = current();
+    $("foot").textContent = "CARD " + pad(Math.max(state.pos + 1, 0)) + " / " + CARDS.length;
+    if (c === null) { $("tally").classList.remove("on"); drawBtn.textContent = "Draw a card"; return; }
+    $("icon").textContent = CARDS[c].icon;
+    $("prompt").textContent = CARDS[c].text;
+    $("counter").textContent = (state.pos + 1) + " of " + CARDS.length;
+    handsOut.textContent = state.counts[c] || 0;
+    $("tally").classList.add("on");
+    drawBtn.textContent = state.pos >= CARDS.length - 1 ? "See class snapshot" : "Next card";
+  }
+
+  function draw() {
+    if (state.pos >= CARDS.length - 1) { showSnapshot(); return; }
+    card.classList.remove("flipped");
+    setTimeout(function () {
+      state.pos++; save(); render();
+      requestAnimationFrame(function () { card.classList.add("flipped"); });
+    }, state.pos >= 0 ? 380 : 0);
+  }
+
+  function bump(d) {
+    var c = current(); if (c === null) return;
+    var v = Math.min(size(), Math.max(0, (state.counts[c] || 0) + d));
+    state.counts[c] = v; handsOut.textContent = v; save();
+  }
+
+  function showSnapshot() {
+    var used = state.order.slice(0, state.pos + 1);
+    var rows = $("rows"); rows.innerHTML = "";
+    var n = size();
+    if (!used.length) {
+      rows.innerHTML = '<p class="sub">Draw a few cards first. Their results will appear here.</p>';
+      $("takeaway").textContent = "";
+    } else {
+      used.sort(function (a, b) { return (state.counts[b] || 0) - (state.counts[a] || 0); });
+      used.forEach(function (i) {
+        var v = state.counts[i] || 0, pct = Math.round(v / n * 100);
+        var r = document.createElement("div"); r.className = "row";
+        r.innerHTML = '<div class="ic" aria-hidden="true">' + CARDS[i].icon + '</div>' +
+          '<div><div class="txt">Have you ever ' + CARDS[i].text + '</div><div class="bar"><span style="width:' + pct + '%"></span></div></div>' +
+          '<div class="num">' + v + ' <small>of ' + n + '</small></div>';
+        rows.appendChild(r);
+      });
+      var probs = used.filter(function (i) { return CARDS[i].problem; });
+      var top = probs.length ? probs[0] : null, tv = top !== null ? (state.counts[top] || 0) : 0;
+      $("takeaway").textContent = tv > 0
+        ? tv + " of " + n + " of us have " + CARDS[top].text.replace(/\?$/, "") + ". Problems happen to everyone. Today you will learn what to say."
+        : "Problems happen to everyone. Today you will learn what to say.";
+    }
+    $("play").style.display = "none";
+    $("snapshot").classList.add("on");
+  }
+
+  function hideSnapshot() { $("snapshot").classList.remove("on"); $("play").style.display = "contents"; }
+
+  drawBtn.addEventListener("click", draw);
+  $("plus").addEventListener("click", function () { bump(1); });
+  $("minus").addEventListener("click", function () { bump(-1); });
+  $("finish").addEventListener("click", showSnapshot);
+  $("back").addEventListener("click", hideSnapshot);
+  $("reset").addEventListener("click", function () {
+    if (!confirm("Start over? This clears all the hand counts.")) return;
+    state = { order: shuffle(CARDS.map(function (_, i) { return i; })), pos: -1, counts: {} };
+    save(); card.classList.remove("flipped"); render(); hideSnapshot();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.target.tagName === "INPUT") return;
+    if (e.code === "Space") { e.preventDefault(); if ($("snapshot").classList.contains("on")) return; draw(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); bump(1); }
+    else if (e.key === "ArrowDown") { e.preventDefault(); bump(-1); }
+    else if (e.key === "s" || e.key === "S") { showSnapshot(); }
+  });
+
+  load(); render();
+  if (state.pos >= 0) card.classList.add("flipped");
+})();
+</script>
+</body>
+</html>
