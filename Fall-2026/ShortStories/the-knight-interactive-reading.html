@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Knight — Interactive Reading</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --navy: #0C2340;
+    --navy-l: #143865;
+    --navy-d: #081629;
+    --navy-s: #D9E2F1;
+    --gold: #AE9142;
+    --gold-b: #D39F10;
+    --warm-w: #EFE9D9;
+    --paper: #FFFFFF;
+    --ink: #1A1A1A;
+    --ink-s: #3D3D3D;
+    --muted: #7A7A7A;
+    --sky: #EDF2F9;
+    --lt-gold: #F5EED2;
+    --red: #C0392B;
+    --red-s: #F8D7DA;
+    --teal: #0E6B6B;
+    --teal-s: #D0EDED;
+    --amber: #B45309;
+    --amber-s: #FEF3C7;
+    --story-size:19px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    font-family:'Calibri','Segoe UI',sans-serif;
+    color:var(--ink);
+  }
+
+  /* ---------- Header ---------- */
+  .chrome-header{
+    display:flex; align-items:center; gap:12px;
+    max-width:760px; margin:0 auto; padding:32px 24px 0 24px;
+  }
+  .monogram{
+    width:36px; height:36px; border-radius:50%;
+    border:1.5px solid var(--gold); background:var(--paper);
+    display:flex; align-items:center; justify-content:center;
+    font-family:Cambria,Georgia,serif; font-style:italic; font-weight:bold;
+    color:var(--gold); font-size:17px; flex-shrink:0;
+  }
+  .chrome-text .eyebrow{
+    font-family:Calibri,sans-serif; font-size:10px; font-weight:bold;
+    letter-spacing:3px; color:var(--navy); text-transform:uppercase;
+  }
+  .chrome-text .subline{
+    font-family:Calibri,sans-serif; font-size:10px; letter-spacing:1px;
+    color:var(--muted);
+  }
+
+  .titleblock{ max-width:760px; margin:0 auto; padding:22px 24px 18px 24px; border-bottom:2px solid var(--navy); }
+  .titleblock h1{
+    font-family:Cambria,Georgia,serif; color:var(--navy);
+    font-size:40px; margin:0 0 4px 0; font-weight:bold;
+  }
+  .titleblock h1 em{ color:var(--gold); font-style:italic; }
+  .titleblock p{
+    font-family:Cambria,Georgia,serif; font-style:italic; color:var(--ink-s);
+    font-size:16px; margin:0;
+  }
+
+  .howto{
+    max-width:760px; margin:16px auto 0 auto; padding:12px 18px;
+    background:var(--sky); border-left:4px solid var(--gold);
+    font-size:14px; color:var(--ink-s); font-family:Calibri,sans-serif;
+  }
+  .howto b{ color:var(--navy); }
+
+  /* ============================================================
+     BUTTONS
+     ============================================================ */
+  .btn {
+    font-family: Calibri,sans-serif; font-size: 0.86rem; font-weight: 700; letter-spacing: 0.02em;
+    padding: 0.65rem 1.3rem; border-radius: 5px; border: 1.5px solid transparent; cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease; display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn--primary { background: var(--navy); color: var(--warm-w); }
+  .btn--primary:hover { background: var(--navy-l); }
+  a.btn { text-decoration: none; }
+
+  /* ---------- Part label ---------- */
+  .part-label{
+    max-width:760px; margin:22px auto 0 auto; padding:0 24px;
+    display:flex; align-items:baseline; gap:10px;
+  }
+  .part-label .part-num{
+    font-family:Cambria,Georgia,serif; font-style:italic; font-weight:bold;
+    color:var(--gold); font-size:15px; letter-spacing:1px; text-transform:uppercase;
+  }
+  .part-label .part-title{
+    font-family:Cambria,Georgia,serif; font-style:italic; color:var(--navy); font-size:19px;
+  }
+
+  /* ---------- Story ---------- */
+  .story{
+    max-width:760px; margin:0 auto; padding:18px 24px 130px 24px;
+    font-family:Cambria,Georgia,serif;
+    font-size:var(--story-size);
+    line-height:1.75;
+    color:var(--ink);
+  }
+  .story p{ margin:0 0 1.2em 0; }
+  .story .signature{ text-align:right; font-style:italic; color:var(--ink-s); margin-top:2em; }
+  .story.hidden{ display:none; }
+
+  /* ---------- Clickable vocabulary ---------- */
+  .voc{
+    position:relative;
+    z-index:1000;
+    cursor:pointer;
+    border-bottom:2px dotted var(--gold);
+    padding-bottom:1px;
+    transition:background .15s ease;
+  }
+  .voc:hover{ background:rgba(174,145,66,0.12); }
+  .voc.active{
+    position:relative;
+    z-index:1001;
+    background:var(--paper);
+    border-radius:3px;
+    box-shadow:0 0 0 6px var(--paper), 0 0 0 9999px rgba(8,22,41,0.72);
+    border-bottom:2px solid var(--gold-b);
+  }
+
+  /* ---------- Backdrop (click to close) ---------- */
+  .backdrop{
+    display:none;
+    position:fixed; inset:0;
+    z-index:999;
+  }
+  .backdrop.show{ display:block; }
+
+  /* ---------- Popover ---------- */
+  .popover{
+    display:none;
+    position:absolute;
+    z-index:1002;
+    width:320px;
+    max-width:88vw;
+    background:var(--navy);
+    border-radius:4px;
+    box-shadow:0 12px 32px rgba(0,0,0,0.35);
+    padding:18px 20px 16px 20px;
+    font-family:Calibri,sans-serif;
+  }
+  .popover.show{ display:block; }
+  .popover .pop-top{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:8px;
+    margin-bottom:8px;
+  }
+  .popover .pop-label{
+    font-family:Consolas,monospace; font-size:9px; font-weight:bold;
+    letter-spacing:2px; color:var(--gold); text-transform:uppercase;
+  }
+  .popover .pop-level{
+    font-family:Calibri,sans-serif; font-size:9px; font-weight:bold;
+    letter-spacing:1px; color:var(--navy); background:var(--gold);
+    border-radius:20px; padding:2px 9px; white-space:nowrap;
+  }
+  .popover .pop-close{
+    background:none; border:none; color:var(--warm-w); opacity:.6;
+    font-size:16px; cursor:pointer; line-height:1; padding:0 0 0 8px;
+  }
+  .popover .pop-close:hover{ opacity:1; }
+  .popover .pop-word{
+    font-family:Cambria,Georgia,serif; font-style:italic; font-weight:bold;
+    color:var(--gold-b); font-size:22px; margin:0 0 8px 0;
+  }
+  .popover .pop-def{
+    font-family:Cambria,Georgia,serif; font-style:italic;
+    color:var(--warm-w); font-size:15px; line-height:1.5; margin:0 0 12px 0;
+  }
+  .popover .pop-ex-label{
+    font-family:Calibri,sans-serif; font-size:9px; font-weight:bold;
+    letter-spacing:2px; color:var(--gold); text-transform:uppercase;
+    border-top:1px solid rgba(239,233,217,0.2); padding-top:10px; margin-bottom:6px;
+  }
+  .popover .pop-ex{
+    font-family:Cambria,Georgia,serif; color:var(--warm-w); font-size:14px;
+    line-height:1.5; margin:0;
+  }
+
+  /* ---------- Floating font-size menu ---------- */
+  .font-menu{
+    position:fixed; bottom:96px; right:24px; z-index:1003;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .font-menu button{
+    width:44px; height:44px; border-radius:50%;
+    background:var(--navy); border:1.5px solid var(--gold);
+    color:var(--gold); font-family:Calibri,sans-serif; font-weight:bold;
+    font-size:15px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.25);
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .12s ease, background .12s ease;
+  }
+  .font-menu button:hover{ background:var(--navy-d); transform:scale(1.06); }
+  .font-menu button:active{ transform:scale(0.96); }
+  .font-menu .reset-btn{ font-size:12px; }
+
+  /* ---------- Fixed bottom part-navigation ---------- */
+  .part-nav{
+    position:fixed; left:0; right:0; bottom:0; z-index:1003;
+    background:var(--navy);
+    border-top:2px solid var(--gold);
+    display:flex; overflow-x:auto;
+    box-shadow:0 -6px 18px rgba(0,0,0,0.2);
+    -webkit-overflow-scrolling:touch;
+  }
+  .part-nav::-webkit-scrollbar{ height:4px; }
+  .part-btn{
+    flex:1 0 auto;
+    min-width:88px;
+    background:none; border:none; cursor:pointer;
+    font-family:Calibri,sans-serif; font-size:11px; font-weight:bold; letter-spacing:1px;
+    color:var(--warm-w); opacity:0.55;
+    padding:12px 10px 10px 10px;
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    border-top:3px solid transparent;
+    transition:opacity .15s ease, border-color .15s ease, background .15s ease;
+    text-transform:uppercase;
+  }
+  .part-btn .p-roman{
+    font-family:Cambria,Georgia,serif; font-style:italic; font-weight:bold;
+    font-size:16px; color:var(--gold);
+  }
+  .part-btn:hover{ opacity:0.85; background:rgba(255,255,255,0.05); }
+  .part-btn.active{
+    opacity:1; border-top-color:var(--gold);
+    background:rgba(174,145,66,0.12);
+  }
+  .part-btn.active .p-roman{ color:var(--gold-b); }
+
+  @media (max-width:600px){
+    .titleblock h1{ font-size:30px; }
+    .story{ padding:14px 18px 140px 18px; }
+    .popover{ width:270px; }
+    .part-btn{ min-width:70px; font-size:9px; padding:10px 6px 8px 6px; }
+    .part-btn .p-roman{ font-size:14px; }
+    .font-menu{ bottom:96px; right:14px; }
+  }
+
+  /* ---------- Week 1 additions ---------- */
+  .part-btn .p-title{ font-size:9px; letter-spacing:.5px; text-transform:none; font-weight:normal; opacity:.9; }
+  .pic-slot{
+    border:2px dashed var(--gold); border-radius:4px; background:transparent;
+    padding:22px 18px; margin:6px 0 24px 0; text-align:center;
+    font-family:Calibri,sans-serif; font-size:14px; color:var(--ink-s); line-height:1.45;
+  }
+  .pic-slot b{ display:block; font-size:10px; letter-spacing:2px; color:var(--gold); text-transform:uppercase; margin-bottom:6px; }
+  .chapter-pic img{ width:100%; max-width:100%; height:auto; border-radius:4px; display:block; margin:6px 0 24px 0; }
+  .popover .pop-head{ display:flex; align-items:center; gap:10px; margin:0 0 8px 0; }
+  .popover .pop-head .pop-word{ margin:0; }
+  .pop-say{
+    flex-shrink:0; width:32px; height:32px; border-radius:50%;
+    background:transparent; border:1.5px solid var(--gold); color:var(--gold);
+    cursor:pointer; font-size:14px; line-height:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pop-say:hover{ background:rgba(174,145,66,0.2); }
+  .pop-say:focus-visible, .part-btn:focus-visible, .font-menu button:focus-visible, .next-btn:focus-visible{ outline:2px solid var(--gold-b); outline-offset:2px; }
+  .popover .pop-note{
+    font-family:Calibri,sans-serif; font-size:13px; color:var(--warm-w);
+    background:rgba(174,145,66,0.18); border-left:3px solid var(--gold);
+    padding:6px 10px; margin:0 0 12px 0; border-radius:2px;
+  }
+  .popover .pop-pic{
+    border:1.5px dashed var(--gold); border-radius:3px; padding:10px 12px; margin:12px 0 0 0;
+    font-family:Calibri,sans-serif; font-size:12px; line-height:1.4; color:var(--warm-w); opacity:.85;
+  }
+  .popover .pop-pic b{ color:var(--gold); letter-spacing:1.5px; font-size:9px; text-transform:uppercase; display:block; margin-bottom:3px; }
+  .popover img.pop-img{ width:100%; height:auto; border-radius:3px; margin:12px 0 0 0; display:block; }
+  .chapter-end{ display:flex; justify-content:flex-end; margin-top:1.5em; }
+  .next-btn{ font-size:0.95rem; }
+  .theend{ text-align:center; font-style:italic; color:var(--gold); font-size:1.1em; margin-top:2em; }
+</style>
+</head>
+<body>
+  <div class="chrome-header">
+    <a href="#" onclick="history.back(); return false;" class="btn btn--primary" style="padding: 5px 10px;" aria-label="Go back">&#x2B05;</a>
+    <div class="monogram">A</div>
+    <div class="chrome-text">
+      <div class="eyebrow">Short Stories &mdash; Basic</div>
+      <div class="subline">Week 03 &nbsp;·&nbsp; Interactive Reading</div>
+    </div>
+  </div>
+  <div class="titleblock">
+    <h1>The <em>Knight.</em></h1>
+    <p>Olly Richards &nbsp;·&nbsp; <i>Short Stories in English for Beginners</i> &nbsp;·&nbsp; Story 3</p>
+  </div>
+  <div class="howto">
+    <b>How to use this page:</b> the story has 3 chapters. Use the buttons at the bottom of the screen to change chapters. Words with a dotted gold line are new vocabulary. Tap or click a word to see the meaning and an example. Tap &#128264; to hear the word. Use <b>A+</b> and <b>A&minus;</b> to change the text size. Some words are <b>review</b> words from Week 1. Can you remember the meaning before you tap?
+  </div>
+
+  <!-- ============================================================
+       CHAPTER 1
+  ============================================================ -->
+  <div class="story" id="story-1">
+    <div class="part-label"><span class="part-num">Chapter 1</span><span class="part-title">— Gold.</span></div>
+    <div class="chapter-pic"><img src="./img/the-knight-chapter-1.jpg" alt="A knight dressed in black and white in a busy medieval market square, talking to a trader who has small potion bottles on his table."></div>
+    <!-- <div class="pic-slot"><b>Picture</b>A knight dressed in black and white in a busy medieval market square, talking to a trader who has small potion bottles on his table.</div>-->
+    <p>A long time ago, there was a large <span class="voc" data-term="kingdom">kingdom</span>. It was full of interesting people, animals and things. One day, a <span class="voc" data-term="knight">knight</span> came to the kingdom. He was dressed in all black and white. He looked very strong.</p>
+    <p>The knight came to the main town. He stopped in the <span class="voc" data-term="market-square">market square</span>. He wanted to <span class="voc" data-term="purchase">purchase</span> something. It was something very special.</p>
+    <p>The market square was very big. It was full of people. There were various products for sale. The knight walked slowly through the square. He went directly to a dark corner of the market. There he found a <span class="voc" data-term="trader">trader</span>.</p>
+    <p>The trader had an unusual range of items. The knight looked at the products. ‘Hello, trader,’ he said.</p>
+    <p>‘Yes, sir?’</p>
+    <p>‘I <span class="voc" data-term="seek">seek</span> a <span class="voc" data-term="potion">potion</span>. Do you have any?’</p>
+    <p>‘Potion? No, we have no potion here. None.’</p>
+    <p>The knight looked the trader in the eye. Then he said, ‘I believe you know what I want.’</p>
+    <p>‘Oh, yes. Oh ... oh ... potion. Um ... What kind of potion?’</p>
+    <p>‘The potion for <span class="voc" data-term="strength">strength</span>.’</p>
+    <p>The trader looked around him. Then he looked at the knight. ‘I don’t have any here. There is not much these days. The ... uh "item" I need to make it is hard to find.’ The trader paused and looked around again. Then he said, ‘I can make you some, but it will be at great cost.’</p>
+    <p>‘I have gold. I <span class="voc" data-term="require">require</span> two potions for strength. How long will it take?’</p>
+    <p>‘Come back this evening. They’ll be ready.’</p>
+    <p>The knight <span class="voc" data-term="nod">nodded</span> and walked away.</p>
+    <p>The knight walked across the square. People looked at him. They did not know him. However, the knight was famous. He was an independent fighter. His name was Lars. Lars travelled from kingdom to kingdom. He fought many men. He often fought for kings.</p>
+    <p>Lars crossed a stone bridge. He arrived at the <span class="voc" data-term="castle">castle</span> door. Then two <span class="voc" data-term="guard">guards</span> stopped him.</p>
+    <p>‘Who are you?’ asked one of the guards.</p>
+    <p>‘My name is Lars. I want to see the king.’</p>
+    <p>‘You can’t. Now leave.’</p>
+    <p>Lars looked at the guard. He took a few steps back. He put his bag down. The bag contained many unusual items. Lars took an old <span class="voc" data-term="scroll">scroll</span> from the bag. He gave it to the guard.</p>
+    <p>‘Look at this scroll. It is from the king,’ said Lars.</p>
+    <p>The guard looked at the scroll. It looked official. It also had the king’s mark.</p>
+    <p>‘Fine,’ the guard said. ‘Come in.’</p>
+    <p>The knight moved forward. He walked into a large room and waited. The room was very big and beautiful. Several guards were there. They looked at the knight <span class="voc" data-term="suspiciously">suspiciously</span>. They wanted to know why he was there.</p>
+    <p>Soon, the king entered. His name was Andur. He was dressed completely in purple. Purple was the colour of kings. He wore gold around his arms and neck.</p>
+    <p>‘Are you Lars?’ King Andur asked.</p>
+    <p>‘I am,’ answered Lars. He held up the scroll. ‘I want to speak with you.’</p>
+    <p>‘Come with me,’ said the king.</p>
+    <p>King Andur and Lars went into a smaller room. Both men sat down. The king offered Lars a cold drink. Lars accepted.</p>
+    <p>‘Thank you for coming,’ the king said to Lars. ‘I see you received my message.’</p>
+    <p>‘Yes. I’ve also heard that you require help.’</p>
+    <p>‘What have you heard exactly?’</p>
+    <p>‘You need someone to carry a load of gold. It must go to your brother Arthuren. You need a man you can <span class="voc" data-term="trust">trust</span>. I am that man.’</p>
+    <p>The king thought for several minutes. At last he said, ‘And why should I trust you?’</p>
+    <p>‘I have helped you before. I will not <span class="voc" data-term="betray">betray</span> you now.’</p>
+    <p>‘War and gold are different things. And this is a lot of gold.’</p>
+    <p>‘I don’t need gold. I have gold.’</p>
+    <p>‘Then why are you here?’</p>
+    <p>‘I like to travel and discover new things.’</p>
+    <p>King Andur thought for a moment. He looked suspicious. Lars smiled. After a moment, the king said, ‘OK, Lars. Take the gold to my brother. I’ll tell my guards.’</p>
+    <p>‘Thank you, King Andur.’</p>
+    <p>‘Don’t thank me yet. First I must hear from Arthuren that the gold has arrived. Then you will get your own gold.’</p>
+    <p>Lars left the castle. He walked over to the guards. One of the guards called. ‘So, you are back! We’ve just heard. You are taking the gold to Arthuren’s kingdom?’</p>
+    <p>‘Yes.’</p>
+    <p>‘Well, good travels!’ the guard laughed. ‘There are many dangers on the road. You’ll never make it!’ The other guards laughed as well. Then the guard became serious. ‘Men,’ he called, ‘prepare the gold. It leaves tomorrow.’</p>
+    <p>It was now evening. The knight returned to the market square. He found the trader. ‘Do you have my potions?’ he asked.</p>
+    <p>‘Yes, here they are. It was not easy! And it was very costly. That will be six pieces of gold.’</p>
+    <p>The knight looked up in surprise. He gave the trader the gold. The trader handed him the potions. ‘Thank you, kind sir,’ said the trader. ‘Have a good day.’</p>
+    <p>The knight simply walked away.</p>
+    <p>The next day, three guards came to Lars. They were joining the knight on the <span class="voc" data-term="journey">journey</span>. They carried <span class="voc" data-term="weapon">weapons</span>. They were prepared for a fight if needed.</p>
+    <p>The four men walked to the Northern Road. It led straight to Arthuren’s kingdom. At the road, the horses and the gold were waiting.</p>
+    <p>The main guard was named Alfred. He turned to Lars. ‘Are you ready?’ he asked.</p>
+    <p>‘Yes. We can go.’</p>
+    <p>‘Before we leave,’ said Alfred, ‘I must tell you something. We are the king’s top guards. We will protect you on the journey. But this gold is not your <span class="voc" data-term="property">property</span>. If you try to take it, we will kill you.’</p>
+    <p>‘That’s good to know,’ said Lars, smiling.</p>
+    <p>Alfred looked Lars directly in the eye. ‘It’s not funny. It’s true.’</p>
+    <p>‘I understand. Now let’s leave.’</p>
+    <p>The load of gold was in the back of a <span class="voc" data-term="wagon">wagon</span>. Lars looked at the bags and smiled. The horses began to move. Lars and the guards slowly began to walk.</p>
+    <div class="chapter-end"><button class="btn btn--primary next-btn" data-goto="2">Next: Chapter 2</button></div>
+  </div>
+  <!-- ============================================================
+       CHAPTER 2
+  ============================================================ -->
+  <div class="story hidden" id="story-2">
+    <div class="part-label"><span class="part-num">Chapter 2</span><span class="part-title">— The journey.</span></div>
+    <div class="chapter-pic"><img src="./img/the-knight-chapter-2.jpg" alt="A knight and three guards walking next to a horse-drawn wagon through a dark, silent forest with very tall trees."></div>
+    <!--<div class="pic-slot"><b>Picture</b>A knight and three guards walking next to a horse-drawn wagon through a dark, silent forest with very tall trees.</div> -->
+    <p>Lars and the guards followed the Northern Road. Behind them came the horses and the wagon of gold. After some time, Alfred, the main guard, said, ‘Lars, what is along the way?’</p>
+    <p>‘It’s not an easy way. It’s very dangerous,’ replied Lars.</p>
+    <p>‘So, what will we do?’</p>
+    <p>‘Well, there are some dangerous men and animals on this road. I recommend that we <span class="voc" data-term="stay-away">stay away from</span> them. We’ll try not to fight.’</p>
+    <p>‘Do you fight well, Lars?’</p>
+    <p>‘I’m well known for my <span class="voc" data-term="skill">skill</span>. I can fight very well.’</p>
+    <p>‘I hope so,’ said Alfred. Three men carried on walking. Soon they came to a big stone bridge. It was <span class="voc" data-term="similar">similar</span> to the bridge at King Andur’s castle.</p>
+    <p>‘Lars,’ said Alfred. ‘This bridge is very similar to the castle bridge.’</p>
+    <p>‘Yes. You built it a long time ago.’</p>
+    <p>‘I built it?’ said Alfred with surprise.</p>
+    <p>‘Well, not you. The people of your kingdom. They built it a long time ago. They built it for a reason. But I will not tell you that now.’</p>
+    <p>The men crossed the bridge. Then they walked into a big <span class="voc" data-term="wood">wood</span>. It was full of trees. But there were no animals. In fact, it was <span class="voc" data-term="silent">silent</span>.</p>
+    <p>‘Why are these woods so silent?’ Alfred asked.</p>
+    <p>‘We are in the Silent Woods. There aren’t any animals here,’ Lars replied.</p>
+    <p>‘Why not?’</p>
+    <p>‘A long time ago there was a great <span class="voc" data-term="battle">battle</span> here. It was between King Andur and his brother.’</p>
+    <p>Alfred was young. He didn’t know about the battle. He thought that King Andur and King Arthuren trusted each other.</p>
+    <p>‘You look surprised, Alfred,’ said Lars.</p>
+    <p>‘I am,’ Alfred replied.</p>
+    <p>‘Why?’ asked Lars.</p>
+    <p>‘I thought the two brothers never fought.’</p>
+    <p>Lars laughed. ‘Oh, I see. Well, they did. But that was many years ago.’</p>
+    <p>Lars stopped talking. The men moved on.</p>
+    <p>The Silent Woods were very dark. The trees were tall. You could <span class="voc" data-term="hardly">hardly</span> see daylight.</p>
+    <p>Later, Alfred asked, ‘Do you know where we’re going, knight?’</p>
+    <p>‘Yes. I’ve been here before.’</p>
+    <p>‘When?’ asked Alfred.</p>
+    <p>‘A long time ago.’ Lars thought back. He remembered the fight between King Andur and King Arthuren. It was one of the biggest battles in history. Before it, the woods were called the Animal Woods. But after the battle, they became the Silent Woods.</p>
+    <p>Lars continued talking. ‘When I was younger, I fought for King Andur. I was in the battle in these woods.’</p>
+    <p>‘What was the battle for?’</p>
+    <p>‘King Andur started it.’</p>
+    <p>‘And why did he fight his brother?’</p>
+    <p>‘King Andur wanted a <span class="voc" data-term="fountain">fountain</span> in the woods.’</p>
+    <p>Lars walked in <span class="voc" data-term="silence">silence</span> for several minutes. Alfred stayed silent, but he was thinking. He wanted to know more about the great battle. He had always thought that King Andur was a <span class="voc" data-term="peaceful">peaceful</span> king.</p>
+    <p>‘Can I ask you something, Lars?’</p>
+    <p>‘Yes.’</p>
+    <p>‘What kind of fountain is it exactly?’</p>
+    <p>‘Wait and see,’ was all Lars said.</p>
+    <p>Lars and Alfred were silent for an hour. The other guards talked softly at times. There were only trees and silence - nothing more. At last the group came to a lake. ‘We’ve arrived,’ the knight said.</p>
+    <p>‘What is this?’</p>
+    <p>‘A long time ago, this lake was a fountain.’</p>
+    <p>‘The fountain from the battle?’</p>
+    <p>‘Yes.’</p>
+    <p>The guards and the knight walked to the lake. Lars finally spoke. ‘A long time ago, there was a fountain here. There wasn’t much water. Nothing like this. But the original water was <span class="voc" data-term="magic">magic</span>. If you drank the water, it gave you special <span class="voc" data-term="powers">powers</span>.’</p>
+    <p>‘What type of powers?’ asked one of the guards.</p>
+    <p>‘If a person drank the water, he or she became very strong.’</p>
+    <p>Alfred <span class="voc" data-term="cup-hands">cupped his hands</span>. He drank some of the water.</p>
+    <p>‘It tastes normal,’ he said.</p>
+    <p>‘Of course,’ said Lars. ‘It’s normal water now. It was magic a long time ago.’</p>
+    <p>Alfred dried his hands and asked, ‘So, what happened? Why isn’t the water magic now?’</p>
+    <p>Lars looked at him and began to tell the story. ‘Both Andur and Arthuren wanted power. They would do anything for it. One day they heard about a magic fountain. A fountain that made people strong. Immediately, both kings wanted it. They raced to the woods. When they met at the fountain, the fighting started.’</p>
+    <p>‘What did they do?’ asked Alfred.</p>
+    <p>‘Both kings called in their soldiers. The battle went on for days, weeks and then months. It was an ugly scene. During the battle, the men drank as much water as they could. They wanted to be strong to win. They let their horses roll in it. They walked through it. They bathed in it. They took all the water. Soon the water became <span class="voc" data-term="foul">foul</span>. It could no longer be used.’</p>
+    <p>He looked at the guards. ‘After some time, the fountain <span class="voc" data-term="dry-up">dried up</span>. The rains came and created the lake. But it was not magic water.’</p>
+    <p>Alfred looked at him. ‘So that was the end of the magic water?’</p>
+    <p>‘Not quite,’ replied Lars. He gave Alfred a serious look. ‘Arthuren had a small amount of magic water saved. And he knew a secret. You can make magic water. You need to have some of the original magic water and time, but it’s possible.’</p>
+    <p>‘So that’s the secret...’ began Alfred.</p>
+    <p>‘Well, that’s part of the secret. Come now. Let’s leave these woods.’</p>
+    <p>The group continued on their way. Soon, they left the woods. The sun was out. The trees weren’t as tall. They had a beautiful view of the <span class="voc" data-term="countryside">countryside</span>.</p>
+    <p>‘Where are we?’ asked Alfred.</p>
+    <p>‘We’re nearly at Arthuren’s castle. It’s good that we didn’t <span class="voc" data-term="run-into">run into</span> any dangers.’</p>
+    <p>Alfred looked at him. ‘Are there really dangers in those woods?’</p>
+    <p>Lars looked back. ‘Yes. Why do you think we travelled in the day? They mostly come out at night.’</p>
+    <p>‘Why didn’t you tell me?’</p>
+    <p>‘I didn’t think you would come,’ said Lars. He laughed. Then he said, ‘OK, let’s go.’</p>
+    <p>The group could soon see a town. In it, there was a large castle. The guards had never been in another kingdom before.</p>
+    <p>‘Is this it?’ asked Alfred.</p>
+    <p>‘Yes, this is the kingdom. And that is Arthuren’s castle. We are taking the gold there.’</p>
+    <p>Alfred paused. ‘Lars,’ he began, ‘there’s something I haven’t asked you ...’</p>
+    <p>‘What’s that?’</p>
+    <p>‘What’s this gold for? Is it a <span class="voc" data-term="tax">tax</span>?’</p>
+    <p>‘King Andur lost the battle of the Silent Woods. So now he must pay his brother in gold every five years.’</p>
+    <p>‘Why does he pay? Can’t they <span class="voc" data-term="make-peace">make peace</span>?’</p>
+    <p>‘They made peace. But Arthuren has something that King Andur doesn’t. Andur must buy it.’</p>
+    <p>Alfred looked at Lars in surprise. ‘What does Arthuren have?’</p>
+    <p>‘More magic water. Andur purchases it to keep his people happy. They use it to make strength potions. Like these two potions here.’ Lars took out the potions he had bought.</p>
+    <p>‘I have heard about the potions! Do they really work?’</p>
+    <p>‘They do,’ said Lars. He put the potions away and looked at Alfred. ‘But they only work if they are made from real magic water. Come now. It’s time to go.’</p>
+    <div class="chapter-end"><button class="btn btn--primary next-btn" data-goto="3">Next: Chapter 3</button></div>
+  </div>
+  <!-- ============================================================
+       CHAPTER 3
+  ============================================================ -->
+  <div class="story hidden" id="story-3">
+    <div class="part-label"><span class="part-num">Chapter 3</span><span class="part-title">— The secret.</span></div>
+    <div class="chapter-pic"><img src="./img/the-knight-chapter-3.jpg" alt="Inside a castle room: a king holds two small potion bottles, a knight stands next to him, and a young guard watches, surprised."></div>
+    <!-- <div class="pic-slot"><b>Picture</b>Inside a castle room: a king holds two small potion bottles, a knight stands next to him, and a young guard watches, surprised.</div> -->
+    <p>Lars, Alfred and the guards walked towards Arthuren’s castle.</p>
+    <p>‘How are we going to get into the castle?’ asked Alfred.</p>
+    <p>‘Through the front door,’ Lars said and laughed very hard. Then he gave Alfred a strange look. Alfred looked at him silently. Something feels wrong, thought Alfred.</p>
+    <p>The group walked through the countryside. There were trees and <span class="voc" data-term="field">fields</span>. The fields were covered in grass. On the way, they passed many <span class="voc" data-term="farmer">farmers</span>. The farmers lived outside the castle’s walls. They grew food to feed the kingdom.</p>
+    <p>One of the farmers saw the group. They were near his field. He stopped working and spoke to them. ‘Good afternoon, sir!’ the farmer said to Lars.</p>
+    <p>‘Good afternoon,’ Lars called back.</p>
+    <p>‘Where are you going?’</p>
+    <p>‘I’m going to the castle. We must see the king.’</p>
+    <p>The farmer’s wife came over. ‘Who are these men?’ she <span class="voc" data-term="whisper">whispered</span> to her husband. Her husband didn’t answer.</p>
+    <p>Soon the farmer asked, ‘Who are you? I see your horses are carrying a load.’</p>
+    <p>‘King Andur sent us. He has given us an important <span class="voc" data-term="task">task</span>.’</p>
+    <p>The farmer was silent. Then he spoke, ‘I hope nothing bad has happened?’ He looked at Lars <span class="voc" data-term="with-concern">with concern</span>.</p>
+    <p>‘No, don’t worry,’ Lars replied with a smile. ‘Everything is fine.’</p>
+    <p>‘Well. Have a good journey then,’ said the farmer. He went back to work.</p>
+    <p>The group continued walking across the fields. Alfred turned to the knight, ‘It seemed like they were <span class="voc" data-term="frightened">frightened</span>,’ he commented.</p>
+    <p>‘They were.’</p>
+    <p>‘But why?’</p>
+    <p>‘Because there is a secret. Only people in this kingdom know. And they want to keep it safe.’</p>
+    <p>‘And what is it? Is it something dangerous?’</p>
+    <p>Lars didn’t answer.</p>
+    <p>Soon, the men came to a big stone bridge. It was near the castle. Again, it was similar to the bridge at King Andur’s castle bridge. Two guards were on the bridge. One of them came over. He looked at Alfred, ‘Are you King Andur’s men?’</p>
+    <p>‘Yes. I <span class="voc" data-term="represent">represent</span> the king,’ answered Alfred. Then he indicated Lars. ‘This knight kept us safe during the journey. The other two guards are with us.’</p>
+    <p>The guard looked at the wagon. Then he asked, ‘Is that the gold?’</p>
+    <p>‘Yes,’ replied Lars, ‘it’s the gold.’</p>
+    <p>‘OK,’ said the guard, ‘you may pass.’</p>
+    <p>Alfred looked at Lars in surprise. Lars seems to know the kingdom of Arthuren very well, Alfred thought.</p>
+    <p>The guard gave a sign to open the door. Another guard stood by the door as they entered. They walked into the castle’s market square. There were lots of people. Many of them were market traders. Others were farmers.</p>
+    <p>The group walked across the square. Suddenly, Alfred looked <span class="voc" data-term="puzzled">puzzled</span>. ‘I know this place,’ he said.</p>
+    <p>‘It’s similar to the market square in King Andur’s castle,’ said Lars.</p>
+    <p>‘Yes, it’s almost <span class="voc" data-term="identical">identical</span>!’</p>
+    <p>‘A long time ago, the two kingdoms were joined,’ explained Lars. ‘That’s why they are so similar. But that was before the great battle. Now they have no social contact. The people of the two kingdoms don’t like each other at all.’</p>
+    <p>The horses and wagon neared the castle doors. The castle itself was also very similar to King Andur’s. In fact, the structure was exactly the same.</p>
+    <p>Two guards went to <span class="voc" data-term="unload">unload</span> the gold. Lars and Alfred went to see King Arthuren. They entered the king’s rooms.</p>
+    <p>King Arthuren called out, ‘Welcome to my kingdom!’</p>
+    <p>‘Good afternoon, <span class="voc" data-term="majesty">Your Majesty</span>,’ replied Lars.</p>
+    <p>‘Lars, it’s really you! I’m so happy to see you.’</p>
+    <p>‘I’m happy to see you, too, Your Majesty.’</p>
+    <p>Alfred didn’t understand at all. How did Lars and the king know each other?</p>
+    <p>‘Have you brought the gold, Lars?’</p>
+    <p>‘Yes, it’s yours.’</p>
+    <p>‘Excellent. We can start our plan.’</p>
+    <p>Alfred looked surprised. What plan is that? he thought.</p>
+    <p>Lars took out the strength potions. He had brought them from King Andur’s kingdom. He gave them to King Arthuren. Arthuren carefully <span class="voc" data-term="measure">measured</span> the amounts.</p>
+    <p>‘What is happening?’ Alfred asked.</p>
+    <p>Lars and Arthuren looked at each other. Then Lars spoke. ‘I must tell you something, Alfred,’ he began.</p>
+    <p>Alfred took a few steps back. He was frightened. How did the king and Lars know each other? Why did Lars buy those strength potions? King Arthuren had magic water. He could make them himself!</p>
+    <p>Lars walked over. ‘Alfred,’ he began again, ‘this kingdom <span class="voc" data-term="run-out">ran out of</span> magic water a long time ago.’</p>
+    <p>‘What? Does King Andur know?’</p>
+    <p>‘No, he doesn’t.’</p>
+    <p>‘But we must tell him!’ Lars just looked at Alfred. Alfred became suspicious. ‘Why did you give the strength potions to this king? It is an act against King Andur!’</p>
+    <p>‘These are some of the last potions for strength. There is no more magic water. Do you understand?’</p>
+    <p>Alfred nodded.</p>
+    <p>Lars continued, ‘We might be able to make more magic water. We will use these potions <span class="voc" data-term="instead-of">instead of</span> original water.’ Then Lars added, ‘We have always used original water. But this might work. We hope.’</p>
+    <p>Alfred was angry. ‘We have paid the gold for nothing? You betrayed me, Lars!’ he cried. ‘You betrayed King Andur!’</p>
+    <p>‘Yes, I <span class="voc" data-term="lie">lied</span>. But I did it to <span class="voc" data-term="maintain">maintain</span> peace,’ said Lars. ‘I want no <span class="voc" data-term="blood-hands">blood on my hands</span>.’ He looked at Alfred and hoped he would understand.</p>
+    <p>‘How will this keep peace?’ replied Alfred. ‘The secret is that there is no more magic water. No one knows now. But soon people will <span class="voc" data-term="find-out">find out</span>. Then Andur will know you <span class="voc" data-term="steal">stole</span> the gold.’</p>
+    <p>Lars stopped smiling. ‘Alfred, King Andur cannot find out that there’s no magic water. The result will be war. Peace will be over. King Andur will <span class="voc" data-term="attack">attack</span> Arthuren.’</p>
+    <p>‘So you will make magic water for Andur with the potions?’ asked Alfred.</p>
+    <p>‘Yes. Just to keep the peace,’ Lars said. ‘If we can.’</p>
+    <p>Alfred looked at Lars suspiciously again. The comment worried him. ‘What do you mean "if we can"?’</p>
+    <p>Lars looked at Alfred. Then he spoke slowly. ‘As I said, we usually make new magic water with pure magic water. We mix magic water with normal water. The normal water becomes magic.’ Then Lars paused. ‘But there is no more pure magic water. The original water is gone.’</p>
+    <p>‘And?’</p>
+    <p>‘Well, we will try.’</p>
+    <p>‘Try what?’</p>
+    <p>‘We will try to make magic water from these potions. The potions have the magic water in them. We will mix the potions with normal water. Maybe it will make the normal water become magic.’</p>
+    <p>‘Maybe? Maybe?’ cried Alfred. ‘And what if it doesn’t? As you said, there is no more magic water ...’</p>
+    <p>Lars was silent. After a moment, King Arthuren answered. ‘If the potion does not work,’ he explained, ‘then the battle at the Silent Woods was not the last one.’</p>
+    <p class="theend">The End</p>
+  </div>
+
+  <!-- Backdrop that closes popover on outside click -->
+  <div class="backdrop" id="backdrop"></div>
+
+  <!-- Popover -->
+  <div class="popover" id="popover" role="dialog" aria-live="polite">
+    <div class="pop-top">
+      <div><div class="pop-label" id="pop-label">WORD / PHRASE</div></div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="pop-level" id="pop-level">noun</span>
+        <button class="pop-close" id="pop-close" aria-label="Close">&#10005;</button>
+      </div>
+    </div>
+    <div class="pop-head">
+      <p class="pop-word" id="pop-word">word</p>
+      <button class="pop-say" id="pop-say" aria-label="Listen to the word">&#128264;</button>
+    </div>
+    <p class="pop-def" id="pop-def">definition</p>
+    <p class="pop-note" id="pop-note"></p>
+    <div class="pop-ex-label">Example</div>
+    <p class="pop-ex" id="pop-ex">example</p>
+    <div id="pop-media"></div>
+  </div>
+
+  <!-- Floating font-size controls -->
+  <div class="font-menu">
+    <button id="font-inc" aria-label="Increase text size">A+</button>
+    <button id="font-reset" class="reset-btn" aria-label="Reset text size">&#8635;</button>
+    <button id="font-dec" aria-label="Decrease text size">A&minus;</button>
+  </div>
+
+  <!-- Fixed bottom chapter navigation -->
+  <div class="part-nav" id="partNav">
+    <button class="part-btn active" data-part="1"><span class="p-roman">1</span><span>Chapter 1</span><span class="p-title">Gold</span></button>
+    <button class="part-btn" data-part="2"><span class="p-roman">2</span><span>Chapter 2</span><span class="p-title">The journey</span></button>
+    <button class="part-btn" data-part="3"><span class="p-roman">3</span><span>Chapter 3</span><span class="p-title">The secret</span></button>
+  </div>
+
+<script>
+  /* ============================================================
+     GLOSSARY — one entry per vocabulary word.
+     review = this word was taught in an earlier week (label shows it)
+     type  = shown in the gold badge
+     note  = U.S. / U.K. note (empty = hidden)
+     pic   = picture description (shows a placeholder until img is set)
+     img   = paste an image URL here to show the picture instead
+  ============================================================ */
+  var GLOSSARY = {
+ "kingdom": {
+  "word": "kingdom",
+  "type": "noun",
+  "def": "a country with a king or queen",
+  "example": "Spain and the United Kingdom are kingdoms. They have kings.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "knight": {
+  "word": "knight",
+  "type": "noun",
+  "def": "a soldier long ago who fought for a king, often on a horse",
+  "example": "In the movie, the knight rides a white horse and carries a sword.",
+  "note": "",
+  "pic": "A medieval knight in metal armor holding a sword and a shield.",
+  "img": ""
+ },
+ "market-square": {
+  "word": "market square",
+  "type": "noun",
+  "def": "a big open place in the middle of a town where people buy and sell things",
+  "example": "On Saturdays, there is a farmers’ market in our town square.",
+  "note": "",
+  "pic": "A busy medieval market square with tables of food, cloth, and small bottles for sale.",
+  "img": ""
+ },
+ "purchase": {
+  "word": "purchase",
+  "type": "verb",
+  "def": "buy (formal)",
+  "example": "You can purchase bus tickets online.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "trader": {
+  "word": "trader",
+  "type": "noun",
+  "def": "a person who buys and sells things",
+  "example": "My uncle is a trader. He buys and sells used cars.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "seek": {
+  "word": "seek",
+  "type": "verb",
+  "def": "look for (formal, old-fashioned)",
+  "example": "The company is seeking new workers. “I seek a potion” = I am looking for a potion.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "potion": {
+  "word": "potion",
+  "type": "noun",
+  "def": "a magic drink",
+  "example": "In the story, the wizard makes a potion in a small bottle.",
+  "note": "",
+  "pic": "A small old glass bottle with a cork, full of a glowing colored liquid.",
+  "img": ""
+ },
+ "strength": {
+  "word": "strength",
+  "type": "noun",
+  "def": "being strong",
+  "example": "You need a lot of strength to move a sofa.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "nod": {
+  "word": "nod",
+  "type": "verb",
+  "def": "move your head up and down to say yes",
+  "example": "When I asked, “Are you ready?” she nodded.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "castle": {
+  "word": "castle",
+  "type": "noun",
+  "def": "a big, strong building where kings and queens lived long ago",
+  "example": "Disneyland has a famous castle.",
+  "note": "",
+  "pic": "A large stone castle with towers, a big door, and a stone bridge in front.",
+  "img": ""
+ },
+ "guard": {
+  "word": "guard",
+  "type": "noun",
+  "def": "a person whose job is to protect a place or a person",
+  "example": "There is a security guard at the entrance of the mall.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "scroll": {
+  "word": "scroll",
+  "type": "noun",
+  "def": "a long piece of paper rolled up, used long ago for letters",
+  "example": "In the museum, we saw an old scroll from Egypt.",
+  "note": "",
+  "pic": "An old rolled-up paper tied with a ribbon and closed with a red wax seal.",
+  "img": ""
+ },
+ "suspiciously": {
+  "word": "suspiciously",
+  "type": "adverb",
+  "def": "in a way that shows you don’t trust someone",
+  "example": "The store worker watched the man suspiciously.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "require": {
+  "word": "require",
+  "type": "verb",
+  "def": "need (formal)",
+  "example": "This job requires a driver’s license.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "trust": {
+  "word": "trust",
+  "type": "verb",
+  "def": "believe that someone is honest and good",
+  "example": "I trust my best friend with my secrets.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "betray": {
+  "word": "betray",
+  "type": "verb",
+  "def": "hurt someone who trusts you, for example by lying or helping their enemy",
+  "example": "He told my secret to everyone. He betrayed me.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "journey": {
+  "word": "journey",
+  "type": "noun",
+  "def": "a long trip",
+  "example": "The journey from New York to Los Angeles by car takes about five days.",
+  "note": "In everyday American English, people usually say trip.",
+  "pic": "",
+  "img": ""
+ },
+ "weapon": {
+  "word": "weapon",
+  "type": "noun",
+  "def": "a thing you use to fight, like a sword",
+  "example": "Knights fought with swords and other weapons.",
+  "note": "",
+  "pic": "Old weapons on a wall: two swords, a shield, and a spear.",
+  "img": ""
+ },
+ "property": {
+  "word": "property",
+  "type": "noun",
+  "def": "something that belongs to someone",
+  "example": "This laptop is school property. Please don’t take it home.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "wagon": {
+  "word": "wagon",
+  "type": "noun",
+  "def": "a vehicle with four wheels, pulled by horses",
+  "example": "Long ago, many families crossed America in wagons.",
+  "note": "",
+  "pic": "A wooden wagon pulled by two horses, carrying heavy bags.",
+  "img": ""
+ },
+ "stay-away": {
+  "word": "stay away from",
+  "type": "phrasal verb",
+  "def": "don’t go near",
+  "example": "Stay away from that dog. It bites!",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "skill": {
+  "word": "skill",
+  "type": "noun",
+  "def": "the ability to do something well",
+  "example": "Speaking two languages is a great skill for a job.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "similar": {
+  "word": "similar",
+  "type": "adjective",
+  "def": "almost the same",
+  "example": "Spanish and Portuguese are similar languages.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "wood": {
+  "word": "wood / woods",
+  "type": "noun",
+  "def": "a place with many trees (a small forest)",
+  "example": "On Sundays, we go for a walk in the woods.",
+  "note": "Americans usually say the woods.",
+  "pic": "A dark, quiet forest with very tall trees and almost no sunlight.",
+  "img": ""
+ },
+ "silent": {
+  "word": "silent",
+  "type": "adjective",
+  "def": "with no sound",
+  "example": "The classroom was silent during the test.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "battle": {
+  "word": "battle",
+  "type": "noun",
+  "def": "a big fight between two armies",
+  "example": "Gettysburg was an important battle in American history.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "hardly": {
+  "word": "hardly",
+  "type": "adverb",
+  "def": "almost not",
+  "example": "I can hardly hear you. Can you speak louder?",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "fountain": {
+  "word": "fountain",
+  "type": "noun",
+  "def": "a place where water comes up from the ground or out of a pipe",
+  "example": "There is a beautiful fountain in the park.",
+  "note": "",
+  "pic": "An old stone fountain with clear water in the middle of a forest.",
+  "img": ""
+ },
+ "silence": {
+  "word": "silence",
+  "type": "noun",
+  "def": "when there is no sound at all",
+  "example": "When the teacher asked the question, there was silence.",
+  "note": "",
+  "pic": "",
+  "img": "",
+  "review": "Week 1"
+ },
+ "peaceful": {
+  "word": "peaceful",
+  "type": "adjective",
+  "def": "calm; not wanting to fight",
+  "example": "Sunday mornings are very peaceful in my neighborhood.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "magic": {
+  "word": "magic",
+  "type": "adjective",
+  "def": "with special powers that are not normal",
+  "example": "In the movie, the girl has a magic ring.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "powers": {
+  "word": "powers",
+  "type": "noun",
+  "def": "special abilities",
+  "example": "Superman has many powers. He can fly.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "cup-hands": {
+  "word": "cup your hands",
+  "type": "expression",
+  "def": "put your hands together like a bowl",
+  "example": "He cupped his hands and drank water from the river.",
+  "note": "",
+  "pic": "Two hands held together like a bowl, full of water.",
+  "img": ""
+ },
+ "foul": {
+  "word": "foul",
+  "type": "adjective",
+  "def": "dirty and very bad; you can’t use it",
+  "example": "The milk was very old, and it smelled foul.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "dry-up": {
+  "word": "dry up",
+  "type": "phrasal verb",
+  "def": "lose all its water",
+  "example": "In the hot summer, the river dried up.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "countryside": {
+  "word": "countryside",
+  "type": "noun",
+  "def": "land outside cities, with fields, farms, and trees",
+  "example": "I live in the city, but I love driving in the countryside.",
+  "note": "",
+  "pic": "Green countryside with fields, trees, and a castle far away on a hill.",
+  "img": ""
+ },
+ "run-into": {
+  "word": "run into",
+  "type": "phrasal verb",
+  "def": "meet someone or something by chance (often a problem)",
+  "example": "I ran into my teacher at the supermarket.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "tax": {
+  "word": "tax",
+  "type": "noun",
+  "def": "money you must pay to the government (or to a king)",
+  "example": "In the U.S., the price on the shelf doesn’t include sales tax.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "make-peace": {
+  "word": "make peace",
+  "type": "expression",
+  "def": "stop fighting and agree to be friends",
+  "example": "After the argument, the two brothers made peace.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "field": {
+  "word": "field",
+  "type": "noun",
+  "def": "an open area of land where farmers grow food",
+  "example": "There are corn fields everywhere in Iowa.",
+  "note": "",
+  "pic": "Farm fields with green grass and crops, and a farmer working.",
+  "img": ""
+ },
+ "farmer": {
+  "word": "farmer",
+  "type": "noun",
+  "def": "a person who grows food or keeps animals",
+  "example": "Farmers sell fresh vegetables at the market.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "whisper": {
+  "word": "whisper",
+  "type": "verb",
+  "def": "speak very quietly",
+  "example": "In the library, we whisper.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "task": {
+  "word": "task",
+  "type": "noun",
+  "def": "a job you must do",
+  "example": "My first task at work every day is to check my email.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "with-concern": {
+  "word": "with concern",
+  "type": "expression",
+  "def": "in a worried way",
+  "example": "The doctor looked at my X-ray with concern.",
+  "note": "",
+  "pic": "",
+  "img": "",
+  "review": "Week 1"
+ },
+ "frightened": {
+  "word": "frightened",
+  "type": "adjective",
+  "def": "afraid",
+  "example": "My little girl is frightened of the dark.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "represent": {
+  "word": "represent",
+  "type": "verb",
+  "def": "speak or act for another person or group",
+  "example": "A lawyer represents you in court.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "puzzled": {
+  "word": "puzzled",
+  "type": "adjective",
+  "def": "confused; not understanding",
+  "example": "I was puzzled by the question, so I asked the teacher.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "identical": {
+  "word": "identical",
+  "type": "adjective",
+  "def": "exactly the same",
+  "example": "The twins are identical. I can’t tell them apart.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "unload": {
+  "word": "unload",
+  "type": "verb",
+  "def": "take things out of a car, truck, or wagon",
+  "example": "Can you help me unload the groceries from the car?",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "majesty": {
+  "word": "Your Majesty",
+  "type": "expression",
+  "def": "what you call a king or queen when you speak to them",
+  "example": "“Good morning, Your Majesty,” said the guard to the queen.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "measure": {
+  "word": "measure",
+  "type": "verb",
+  "def": "find the size or amount of something",
+  "example": "Measure two cups of rice and put them in the pot.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "run-out": {
+  "word": "run out of",
+  "type": "phrasal verb",
+  "def": "have no more of something",
+  "example": "We ran out of milk. Can you buy some?",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "instead-of": {
+  "word": "instead of",
+  "type": "preposition",
+  "def": "in the place of",
+  "example": "I drink tea instead of coffee.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "lie": {
+  "word": "lie",
+  "type": "verb",
+  "def": "say something that is not true (past: lied)",
+  "example": "He lied to his boss. He said he was sick.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "maintain": {
+  "word": "maintain",
+  "type": "verb",
+  "def": "keep something the same; keep it going",
+  "example": "It’s important to maintain good grades.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "blood-hands": {
+  "word": "blood on my hands",
+  "type": "expression",
+  "def": "I am responsible for people being hurt or killed",
+  "example": "The general didn’t want blood on his hands, so he stopped the war.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "find-out": {
+  "word": "find out",
+  "type": "phrasal verb",
+  "def": "learn information you didn’t know",
+  "example": "I found out my test score today.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "steal": {
+  "word": "steal",
+  "type": "verb",
+  "def": "take something that isn’t yours (past: stole)",
+  "example": "Someone stole my bike from in front of the school.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ },
+ "attack": {
+  "word": "attack",
+  "type": "verb",
+  "def": "start to fight against someone",
+  "example": "The army attacked the city at night.",
+  "note": "",
+  "pic": "",
+  "img": ""
+ }
+};
+
+  var activeSpan = null;
+
+  function positionPopover(span, pop){
+    var rect = span.getBoundingClientRect();
+    var scrollY = window.scrollY || document.documentElement.scrollTop;
+    var scrollX = window.scrollX || document.documentElement.scrollLeft;
+    var popWidth = pop.offsetWidth, popHeight = pop.offsetHeight;
+    var top = rect.bottom + scrollY + 14;
+    var left = rect.left + scrollX + (rect.width/2) - (popWidth/2);
+    var maxLeft = document.documentElement.clientWidth - popWidth - 12;
+    if(left > maxLeft) left = maxLeft;
+    if(left < 12) left = 12;
+    var viewportBottom = scrollY + window.innerHeight;
+    if(top + popHeight > viewportBottom - 96){
+      top = rect.top + scrollY - popHeight - 14;
+      if(top < scrollY + 8) top = scrollY + 8;
+    }
+    pop.style.top = top + "px";
+    pop.style.left = left + "px";
+  }
+
+  function openPopover(span){
+    var data = GLOSSARY[span.getAttribute("data-term")];
+    if(!data) return;
+    if(activeSpan) activeSpan.classList.remove("active");
+    activeSpan = span;
+    span.classList.add("active");
+
+    document.getElementById("pop-word").textContent = data.word;
+    document.getElementById("pop-def").textContent = data.def;
+    document.getElementById("pop-ex").textContent = data.example;
+    document.getElementById("pop-level").textContent = data.type;
+    document.getElementById("pop-label").textContent = data.review ? "REVIEW · FROM " + data.review.toUpperCase() : "WORD / PHRASE";
+    var note = document.getElementById("pop-note");
+    note.textContent = data.note ? "\uD83C\uDDFA\uD83C\uDDF8 " + data.note : "";
+    note.style.display = data.note ? "block" : "none";
+
+    var media = document.getElementById("pop-media");
+    media.innerHTML = "";
+    if(data.img){
+      var im = document.createElement("img");
+      im.className = "pop-img"; im.src = data.img; im.alt = data.pic || data.word;
+      im.onload = function(){ positionPopover(span, document.getElementById("popover")); };
+      media.appendChild(im);
+    } else if(data.pic){
+      var box = document.createElement("div");
+      box.className = "pop-pic";
+      var b = document.createElement("b"); b.textContent = "Picture";
+      box.appendChild(b); box.appendChild(document.createTextNode(data.pic));
+      media.appendChild(box);
+    }
+
+    var pop = document.getElementById("popover");
+    pop.classList.add("show");
+    document.getElementById("backdrop").classList.add("show");
+    positionPopover(span, pop);
+  }
+
+  function closePopover(){
+    if(activeSpan) activeSpan.classList.remove("active");
+    activeSpan = null;
+    document.getElementById("popover").classList.remove("show");
+    document.getElementById("backdrop").classList.remove("show");
+    if(window.speechSynthesis) window.speechSynthesis.cancel();
+  }
+
+  function bindVocab(){
+    document.querySelectorAll(".voc").forEach(function(span){
+      if(span.dataset.bound) return;
+      span.dataset.bound = "1";
+      span.setAttribute("tabindex","0");
+      span.setAttribute("role","button");
+      span.addEventListener("click", function(e){
+        e.stopPropagation();
+        if(activeSpan === span){ closePopover(); return; }
+        openPopover(span);
+      });
+      span.addEventListener("keydown", function(e){
+        if(e.key === "Enter" || e.key === " "){ e.preventDefault(); span.click(); }
+      });
+    });
+  }
+  bindVocab();
+
+  /* ---------- Listen (browser text-to-speech) ---------- */
+  document.getElementById("pop-say").addEventListener("click", function(e){
+    e.stopPropagation();
+    if(!activeSpan || !window.speechSynthesis) return;
+    var data = GLOSSARY[activeSpan.getAttribute("data-term")];
+    var text = data.word.replace(/\(.*?\)/g, "").replace("/", " or ");
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = (data.type.indexOf("Spanish") > -1) ? "es-ES" : "en-US";
+    u.rate = 0.85;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+  });
+
+  document.getElementById("backdrop").addEventListener("click", closePopover);
+  document.getElementById("pop-close").addEventListener("click", closePopover);
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") closePopover(); });
+  window.addEventListener("resize", function(){ if(activeSpan) positionPopover(activeSpan, document.getElementById("popover")); });
+  window.addEventListener("scroll", function(){ if(activeSpan) positionPopover(activeSpan, document.getElementById("popover")); }, true);
+
+  /* ---------- Font size controls ---------- */
+  var BASE_SIZE = 19, MIN_SIZE = 14, MAX_SIZE = 30, STEP = 2;
+  var currentSize = BASE_SIZE;
+  function applySize(){
+    document.documentElement.style.setProperty("--story-size", currentSize + "px");
+    if(activeSpan) positionPopover(activeSpan, document.getElementById("popover"));
+  }
+  document.getElementById("font-inc").addEventListener("click", function(){ currentSize = Math.min(MAX_SIZE, currentSize + STEP); applySize(); });
+  document.getElementById("font-dec").addEventListener("click", function(){ currentSize = Math.max(MIN_SIZE, currentSize - STEP); applySize(); });
+  document.getElementById("font-reset").addEventListener("click", function(){ currentSize = BASE_SIZE; applySize(); });
+
+  /* ---------- Chapter navigation ---------- */
+  var TOTAL = 3;
+  function showPart(n){
+    for(var i=1;i<=TOTAL;i++){
+      var el = document.getElementById("story-"+i);
+      if(el) el.classList.toggle("hidden", i !== n);
+    }
+    document.querySelectorAll(".part-btn").forEach(function(btn){
+      btn.classList.toggle("active", parseInt(btn.getAttribute("data-part"),10) === n);
+    });
+    closePopover();
+    window.scrollTo({top:0, behavior:"instant"});
+    bindVocab();
+  }
+  document.querySelectorAll(".part-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){ showPart(parseInt(btn.getAttribute("data-part"),10)); });
+  });
+  document.querySelectorAll(".next-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){ showPart(parseInt(btn.getAttribute("data-goto"),10)); });
+  });
+</script>
+
+</body>
+</html>
