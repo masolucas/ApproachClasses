@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Week 2 Vocabulary · Building an Argument</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0C2340; --gold:#AE9142; --gold-d:#8C7535; --teal:#0E6B6B;
+  --bg:#F8F4EC; --surface:#FFFFFF; --ink:#1A1A1A; --ink-s:#4A4A4A; --muted:#7A7A7A;
+  --line:#E3DCCB; --sky:#EDF2F9; --ok:#26890C; --ok-s:#E3F2DE; --bad:#C0392B; --bad-s:#FBE3E0;
+  --accent:var(--navy); --sel:#D39F10;
+  --serif:"Source Serif 4", Cambria, Georgia, serif;
+  --sans:"Montserrat", Calibri, "Segoe UI", Arial, sans-serif;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#081629; --surface:#0F2342; --ink:#EFE9D9; --ink-s:#C9C2B2; --muted:#9AA3B2;
+    --line:#22385C; --sky:#132B4F; --ok:#7BC96A; --ok-s:#173A2A; --bad:#F08A7E; --bad-s:#3D1E24;
+    --accent:#EFE9D9; --teal:#5FB8B2; --gold:#C9AE5E; --gold-d:#C9AE5E; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#081629; --surface:#0F2342; --ink:#EFE9D9; --ink-s:#C9C2B2; --muted:#9AA3B2;
+  --line:#22385C; --sky:#132B4F; --ok:#7BC96A; --ok-s:#173A2A; --bad:#F08A7E; --bad-s:#3D1E24;
+  --accent:#EFE9D9; --teal:#5FB8B2; --gold:#C9AE5E; --gold-d:#C9AE5E; color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%}
+.wrap{max-width:860px;margin:0 auto;padding:20px 18px 48px}
+header.top{display:flex;align-items:center;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--line);margin-bottom:22px}
+.mono{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--gold);display:grid;place-items:center;font-family:var(--serif);font-style:italic;font-weight:600;color:var(--gold);font-size:19px;flex:none}
+.top .t1{font-weight:600;font-size:13px;color:var(--accent)}
+.top .t2{font-size:12.5px;color:var(--muted)}
+.steps{margin-left:auto;display:flex;gap:6px}
+.steps span{width:28px;height:4px;border-radius:2px;background:var(--line)}
+.steps span.on{background:var(--gold)}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(34px,7vw,52px);line-height:1.08;margin:6px 0 14px;color:var(--accent);letter-spacing:-.01em}
+h1 em{color:var(--teal)}
+h2{font-family:var(--serif);font-weight:400;font-size:clamp(26px,5vw,34px);line-height:1.15;margin:0 0 6px;color:var(--accent)}
+p.lead{font-family:var(--serif);font-size:19px;color:var(--ink-s);max-width:60ch;margin:0 0 22px}
+.hint{font-size:14px;color:var(--muted);margin:0 0 18px}
+button{font:inherit;cursor:pointer}
+.btn{background:var(--navy);color:#EFE9D9;border:0;border-radius:10px;padding:14px 22px;font-weight:600;font-size:16px;min-height:48px}
+:root[data-theme="dark"] .btn{background:var(--gold);color:#081629}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn{background:var(--gold);color:#081629}}
+.btn.ghost{background:transparent;color:var(--accent);border:1.5px solid var(--line)}
+.btn:focus-visible,.chip:focus-visible,.def:focus-visible,.opt:focus-visible{outline:3px solid var(--sel);outline-offset:2px}
+.rounds{display:grid;gap:12px;margin:0 0 26px;max-width:560px}
+.rounds div{display:flex;gap:14px;align-items:baseline;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.rounds b{font-family:var(--serif);font-style:italic;font-weight:600;color:var(--gold-d);font-size:22px;width:24px;flex:none}
+.rounds strong{display:block;color:var(--accent)}
+.rounds small{color:var(--ink-s);font-size:14px}
+.status{display:flex;align-items:center;gap:14px;margin:0 0 16px;font-size:14px;color:var(--ink-s)}
+.status .bar{flex:1;height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.status .bar i{display:block;height:100%;width:0;background:var(--teal);transition:width .3s}
+/* Round 1 */
+.board{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,8fr);gap:18px;align-items:start}
+.words{display:grid;gap:10px;position:sticky;top:12px}
+.chip{display:flex;align-items:center;gap:10px;text-align:left;padding:12px 14px;min-height:52px;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;color:var(--accent);font-family:var(--serif);font-size:18px;transition:border-color .15s, background .15s}
+.chip .ic{font-size:20px;line-height:1}
+.chip.sel{border-color:var(--sel);background:var(--sky);box-shadow:0 0 0 3px color-mix(in srgb,var(--sel) 25%,transparent)}
+.chip.done{opacity:.35;pointer-events:none;text-decoration:line-through;text-decoration-color:var(--muted)}
+.defs{display:grid;gap:10px}
+.def{display:block;width:100%;text-align:left;padding:14px 16px;min-height:52px;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;color:var(--ink);font-family:var(--serif);font-size:17px;line-height:1.4}
+.def.done{border-color:var(--ok);background:var(--ok-s);cursor:default}
+.def .got{display:block;font-family:var(--sans);font-weight:600;font-size:13.5px;color:var(--ok);margin-bottom:4px}
+.def .chunk{display:block;font-family:var(--sans);font-size:13.5px;color:var(--teal);margin-top:6px}
+.def.wrong,.opt.wrong{animation:shake .35s}
+.def.wrong{border-color:var(--bad);background:var(--bad-s)}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@media (max-width:620px){
+  .board{grid-template-columns:1fr}
+  .words{position:sticky;top:0;z-index:2;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;background:var(--bg);padding:8px 0 10px;margin:0 -2px;border-bottom:1px solid var(--line)}
+  .chip{font-size:15.5px;padding:9px 10px;min-height:44px}
+  .chip .ic{font-size:17px}
+}
+/* Round 2 */
+.qcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px 22px;margin-bottom:16px}
+.qnum{font-size:13.5px;color:var(--muted);margin-bottom:10px}
+.sentence{font-family:var(--serif);font-size:clamp(20px,4vw,25px);line-height:1.45;margin:0;color:var(--ink)}
+.blank{display:inline-block;min-width:5.5em;border-bottom:2px solid var(--gold);text-align:center;color:var(--gold-d);font-style:italic;padding:0 4px}
+.blank.ok{color:var(--ok);border-color:var(--ok)}
+.blank.no{color:var(--bad);border-color:var(--bad)}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:16px}
+.opt{padding:14px;min-height:54px;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;color:var(--accent);font-family:var(--serif);font-size:18px}
+.opt.right{border-color:var(--ok);background:var(--ok-s);color:var(--ink)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-s);color:var(--ink)}
+.opt:disabled{cursor:default}
+.feedback{min-height:24px;margin:0 0 16px;font-size:15px;color:var(--ink-s)}
+.feedback b{color:var(--teal)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+/* Results */
+.score{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0 22px}
+.score > div{flex:1 1 200px;padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.score .n{font-family:var(--serif);font-size:44px;line-height:1;color:var(--accent)}
+.score .l{font-size:14px;color:var(--ink-s);margin-top:6px}
+.review{margin:0 0 24px;padding:0;list-style:none;display:grid;gap:8px}
+.review li{padding:12px 14px;border-left:3px solid var(--gold);background:var(--surface);border-radius:0 10px 10px 0;font-size:15px}
+.review li b{font-family:var(--serif);font-size:17px;color:var(--accent)}
+.hide{display:none!important}
+footer{margin-top:40px;font-size:12px;color:var(--muted);text-align:center}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="mono" aria-hidden="true">A</div>
+    <div><div class="t1">Academic Writing · Advanced</div><div class="t2">Week 2 · Building an Argument</div></div>
+    <div class="steps" aria-hidden="true"><span id="st1"></span><span id="st2"></span></div>
+  </header>
+
+  <!-- START -->
+  <section id="start">
+    <h1>Words for <em>building</em> an argument</h1>
+    <p class="lead">Eight words and phrases you’ll use every time you write a body paragraph. Two rounds, about eight minutes.</p>
+    <div class="rounds">
+      <div><b>1</b><span><strong>Match the meaning</strong><small>Tap a word, then tap its meaning.</small></span></div>
+      <div><b>2</b><span><strong>Complete the sentence</strong><small>Choose the word that fits the blank.</small></span></div>
+    </div>
+    <button class="btn" id="go">Start round 1</button>
+  </section>
+
+  <!-- ROUND 1 -->
+  <section id="r1" class="hide">
+    <h2>Round 1: Match the meaning</h2>
+    <p class="hint">Tap a word, then tap the meaning that goes with it.</p>
+    <div class="status"><span id="r1count">0 of 8 matched</span><div class="bar"><i id="r1bar"></i></div></div>
+    <div class="board">
+      <div class="words" id="words" role="group" aria-label="Words"></div>
+      <div class="defs" id="defs" role="group" aria-label="Meanings"></div>
+    </div>
+    <div class="row" style="margin-top:22px"><button class="btn hide" id="toR2">Start round 2</button></div>
+  </section>
+
+  <!-- ROUND 2 -->
+  <section id="r2" class="hide">
+    <h2>Round 2: Complete the sentence</h2>
+    <p class="hint">Choose the word that fits the blank. Some words change form, like <i>support</i> → <i>supported</i>.</p>
+    <div class="status"><span id="r2count">Sentence 1 of 8</span><div class="bar"><i id="r2bar"></i></div></div>
+    <div class="qcard">
+      <div class="qnum" id="qnum"></div>
+      <p class="sentence" id="sentence"></p>
+    </div>
+    <div class="opts" id="opts"></div>
+    <p class="feedback" id="fb" aria-live="polite"></p>
+    <div class="row"><button class="btn hide" id="next">Next sentence</button></div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="end" class="hide">
+    <h2>Finished</h2>
+    <p class="lead" id="endmsg"></p>
+    <div class="score">
+      <div><div class="n" id="s1"></div><div class="l">Round 1: wrong tries before all 8 matched</div></div>
+      <div><div class="n" id="s2"></div><div class="l">Round 2: sentences correct on the first try</div></div>
+    </div>
+    <div id="revwrap">
+      <h2 style="font-size:24px">Words to review</h2>
+      <p class="hint">Say each chunk out loud, then make your own sentence with it.</p>
+      <ul class="review" id="review"></ul>
+    </div>
+    <div class="row">
+      <button class="btn" id="again">Play again</button>
+      <button class="btn ghost hide" id="retry">Retry missed sentences</button>
+    </div>
+  </section>
+
+  <footer>Copyright © 2026 Approach International Student Center, Inc. · Revised on 10/23/2026</footer>
+</div>
+
+<script>
+const VOCAB = [
+  { w:"evidence",        ic:"🔍", d:"facts, examples, or numbers that show a claim is true", c:"provide strong evidence" },
+  { w:"support a claim", ic:"🏛️", d:"give reasons or proof that make a claim stronger",       c:"support a claim with examples" },
+  { w:"specific",        ic:"📍", d:"exact and detailed: it tells who, where, when, or how many", c:"a specific example" },
+  { w:"general",         ic:"🌍", d:"broad and not detailed; true about many things",        c:"a general statement" },
+  { w:"statistic",       ic:"📊", d:"a number that comes from research or collected data",    c:"a recent statistic shows that…" },
+  { w:"explanation",     ic:"🌉", d:"the sentence that tells the reader WHY the evidence matters", c:"give a clear explanation" },
+  { w:"convincing",      ic:"💡", d:"able to make someone believe something",                c:"a convincing argument" },
+  { w:"reasoning",       ic:"⚙️", d:"the logical steps that connect one idea to the next",   c:"follow someone’s reasoning" },
+];
+const SENT = [
+  { pre:"The lawyer showed photos and emails as", post:"that the contract was signed.", a:"evidence", o:["evidence","reasoning","explanation","statistic"], v:"evidence" },
+  { pre:"She", post:"her claim with two examples from her own job.", a:"supported", o:["supported","explained","convinced","reasoned"], v:"support a claim" },
+  { pre:"Don’t write “a lot of people.” Give a", post:"number, like “nine of my thirteen classmates.”", a:"specific", o:["specific","general","convincing","logical"], v:"specific" },
+  { pre:"“Technology is changing the world” is a", post:"statement. It is true, but it does not prove much.", a:"general", o:["general","specific","convincing","detailed"], v:"general" },
+  { pre:"A", post:"from the city’s transit agency shows how many people ride the bus each day.", a:"statistic", o:["statistic","reasoning","explanation","claim"], v:"statistic" },
+  { pre:"The teacher gave a clear", post:"of why the answer was wrong.", a:"explanation", o:["explanation","evidence","statistic","reasoning"], v:"explanation" },
+  { pre:"His argument was", post:"— by the end of the meeting, even his boss agreed with him.", a:"convincing", o:["convincing","general","specific","supported"], v:"convincing" },
+  { pre:"I could not follow her", post:". I did not see how her example connected to her claim.", a:"reasoning", o:["reasoning","statistic","evidence","explanation"], v:"reasoning" },
+];
+const $ = id => document.getElementById(id);
+const shuffle = a => { a=[...a]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const show = id => ["start","r1","r2","end"].forEach(s=>$(s).classList.toggle("hide",s!==id));
+const byWord = w => VOCAB.find(v=>v.w===w);
+
+let r1Miss=0, r1Done=0, sel=null, missedWords=new Set();
+let queue=[], qi=0, r2Right=0, r2Missed=[];
+
+function startR1(){
+  r1Miss=0; r1Done=0; sel=null; missedWords=new Set();
+  $("st1").classList.add("on"); $("st2").classList.remove("on");
+  $("toR2").classList.add("hide");
+  $("words").innerHTML=""; $("defs").innerHTML="";
+  shuffle(VOCAB).forEach(v=>{
+    const b=document.createElement("button"); b.className="chip"; b.dataset.w=v.w;
+    b.innerHTML=`<span class="ic" aria-hidden="true">${v.ic}</span><span>${v.w}</span>`;
+    b.setAttribute("aria-pressed","false");
+    b.onclick=()=>{ document.querySelectorAll(".chip").forEach(c=>{c.classList.remove("sel");c.setAttribute("aria-pressed","false");});
+      if(sel===v.w){ sel=null; return; } sel=v.w; b.classList.add("sel"); b.setAttribute("aria-pressed","true"); };
+    $("words").appendChild(b);
+  });
+  shuffle(VOCAB).forEach(v=>{
+    const d=document.createElement("button"); d.className="def"; d.dataset.w=v.w; d.textContent=v.d;
+    d.onclick=()=>{
+      if(d.classList.contains("done")) return;
+      if(!sel){ $("words").querySelector(".chip:not(.done)")?.focus(); return; }
+      if(sel===v.w){
+        d.classList.add("done"); d.setAttribute("aria-disabled","true");
+        d.innerHTML=`<span class="got">${v.ic} ${v.w}</span>${v.d}<span class="chunk">→ ${v.c}</span>`;
+        const chip=$("words").querySelector(`[data-w="${CSS.escape(v.w)}"]`); chip.classList.remove("sel"); chip.classList.add("done"); chip.disabled=true;
+        sel=null; r1Done++;
+        $("r1count").textContent=`${r1Done} of 8 matched`; $("r1bar").style.width=(r1Done/8*100)+"%";
+        if(r1Done===8){ $("toR2").classList.remove("hide"); $("toR2").focus(); }
+      } else {
+        r1Miss++; missedWords.add(sel);
+        d.classList.remove("wrong"); void d.offsetWidth; d.classList.add("wrong");
+        setTimeout(()=>d.classList.remove("wrong"),600);
+      }
+    };
+    $("defs").appendChild(d);
+  });
+  $("r1count").textContent="0 of 8 matched"; $("r1bar").style.width="0%";
+  show("r1"); window.scrollTo(0,0);
+}
+
+function startR2(items){
+  queue=shuffle(items); qi=0; r2Right=0; r2Missed=[];
+  $("st2").classList.add("on");
+  show("r2"); window.scrollTo(0,0); renderQ();
+}
+function renderQ(){
+  const q=queue[qi];
+  $("r2count").textContent=`Sentence ${qi+1} of ${queue.length}`;
+  $("r2bar").style.width=(qi/queue.length*100)+"%";
+  $("qnum").textContent=`Sentence ${qi+1}`;
+  $("sentence").innerHTML=`${q.pre} <span class="blank" id="blank">&nbsp;?&nbsp;</span> ${q.post}`.replace(" .",".");
+  $("fb").textContent=""; $("next").classList.add("hide");
+  $("opts").innerHTML="";
+  shuffle(q.o).forEach(o=>{
+    const b=document.createElement("button"); b.className="opt"; b.textContent=o;
+    b.onclick=()=>answer(b,o,q); $("opts").appendChild(b);
+  });
+}
+function answer(btn,o,q){
+  const blank=$("blank");
+  document.querySelectorAll(".opt").forEach(b=>{ b.disabled=true; if(b.textContent===q.a) b.classList.add("right"); });
+  blank.textContent=q.a;
+  const v=byWord(q.v);
+  if(o===q.a){
+    r2Right++; blank.classList.add("ok");
+    $("fb").innerHTML=`Correct. Remember the chunk: <b>${v.c}</b>.`;
+  } else {
+    btn.classList.add("wrong"); blank.classList.add("no"); r2Missed.push(q); missedWords.add(q.v);
+    $("fb").innerHTML=`Not quite. The answer is <b>${q.a}</b>: ${v.d}.`;
+  }
+  $("next").textContent = qi===queue.length-1 ? "See results" : "Next sentence";
+  $("next").classList.remove("hide"); $("next").focus();
+}
+$("next").onclick=()=>{ qi++; if(qi<queue.length) renderQ(); else finish(); };
+
+function finish(){
+  $("r2bar").style.width="100%";
+  $("s1").textContent=r1Miss;
+  $("s2").textContent=`${r2Right} / ${queue.length}`;
+  const perfect = r1Miss===0 && r2Missed.length===0;
+  $("endmsg").textContent = perfect ? "Perfect on both rounds. Now use these words in your CEE paragraph today."
+    : "Good work. Review the words below, then try again to beat your score.";
+  const list=[...missedWords].map(byWord).filter(Boolean);
+  $("revwrap").classList.toggle("hide", list.length===0);
+  $("review").innerHTML=list.map(v=>`<li><b>${v.ic} ${v.w}</b> — ${v.d}<br><span style="color:var(--teal)">→ ${v.c}</span></li>`).join("");
+  $("retry").classList.toggle("hide", r2Missed.length===0);
+  show("end"); window.scrollTo(0,0);
+}
+$("go").onclick=startR1;
+$("toR2").onclick=()=>startR2(SENT);
+$("again").onclick=startR1;
+$("retry").onclick=()=>startR2(r2Missed);
+</script>
+</body>
+</html>
