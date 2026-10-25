@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Market Rollercoaster · Host</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 34px 48px 48px; }
+  header.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--line-d); padding-bottom: 14px; margin-bottom: 24px; }
+  .brand { font-family: var(--serif); color: var(--gold); font-size: 16px; }
+  .brand b { color: var(--cream); font-weight: 400; }
+  .top-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .roomtag { font-size: 15px; color: var(--muted-d); }
+  .roomtag b { color: var(--gold); letter-spacing: 3px; font-size: 18px; }
+  h1 { font-size: clamp(38px, 4.6vw, 60px); line-height: 1.05; margin-bottom: 10px; letter-spacing: -0.5px; }
+  h1 em { color: var(--gold); }
+  h2 { font-size: 28px; margin-bottom: 12px; }
+  .lead { font-family: var(--serif); font-style: italic; font-size: 20px; color: var(--muted-d); max-width: 70ch; margin: 0 0 24px; }
+  .note { font-size: 14px; color: var(--muted-d); }
+
+  /* setup */
+  .resume { border: 1px solid var(--gold); border-radius: 10px; padding: 18px 22px; margin-bottom: 26px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .resume h3 { font-size: 22px; }
+  .names { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin: 14px 0 22px; }
+  input[type=text], input[type=number], select { background: var(--navy-3); border: 1px solid var(--line-d); color: var(--cream); padding: 8px 10px; border-radius: 5px; font: inherit; }
+  input[type=number] { width: 72px; text-align: center; }
+  label.inline { display: flex; align-items: center; gap: 10px; }
+
+  /* lobby */
+  .lobby { display: grid; grid-template-columns: 380px 1fr; gap: 40px; align-items: start; }
+  .qrbox { border: 1px solid var(--gold); border-radius: 12px; padding: 22px; text-align: center; }
+  .qr { background: var(--cream); padding: 14px; border-radius: 8px; display: inline-block; line-height: 0; }
+  .code { font-family: var(--serif); font-size: 64px; letter-spacing: 10px; color: var(--gold); margin: 14px 0 0; }
+  .joinurl { font-size: 13px; color: var(--muted-d); word-break: break-all; margin-top: 6px; }
+  .assets-key { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 0 0 18px; }
+  .asset { border: 1px solid var(--line-d); border-radius: 8px; padding: 10px 12px; font-size: 14px; }
+  .asset .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 6px; }
+  .asset p { margin: 4px 0 0; font-size: 12.5px; color: var(--muted-d); line-height: 1.35; }
+  table.alloc { width: 100%; border-collapse: collapse; }
+  table.alloc th, table.alloc td { padding: 7px 6px; border-bottom: 1px solid var(--line-d); text-align: center; }
+  table.alloc th { font-size: 13px; color: var(--muted-d); font-weight: 600; }
+  table.alloc td:first-child, table.alloc th:first-child { text-align: left; }
+  .count { font-family: var(--serif); font-size: 22px; color: var(--gold); }
+  .ok { color: var(--up); font-weight: 700; }
+  .bad { color: var(--down); font-weight: 700; }
+  .scroll { overflow-x: auto; }
+  .actions { display: flex; gap: 12px; align-items: center; margin-top: 20px; flex-wrap: wrap; }
+
+  /* game */
+  .yearbar { display: flex; gap: 6px; margin-bottom: 18px; }
+  .yearbar span { flex: 1; height: 8px; border-radius: 4px; background: var(--line-d); }
+  .yearbar span.done { background: var(--gold); opacity: 0.6; }
+  .yearbar span.now { background: var(--gold); }
+  .game { display: grid; grid-template-columns: 1.1fr 1fr; gap: 30px; }
+  .event { border: 1px solid var(--gold); border-radius: 10px; padding: 22px 24px; min-height: 200px; }
+  .event .yr { font-family: var(--serif); font-style: italic; color: var(--gold); font-size: 18px; }
+  .event h3 { font-size: 36px; margin: 4px 0 8px; line-height: 1.1; }
+  .event p { margin: 0; font-size: 19px; max-width: 52ch; }
+  .event.crash { border-color: var(--down); }
+  .event.crash h3 { color: var(--down); }
+  .event.reveal { animation: rise 0.45s ease; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .returns { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 16px; }
+  .ret { border: 1px solid var(--line-d); border-radius: 6px; padding: 8px; text-align: center; }
+  .ret small { display: block; font-size: 12px; color: var(--muted-d); }
+  .ret b { font-size: 21px; }
+  .up { color: var(--up); } .down { color: var(--down); }
+  .track { margin-top: 20px; border: 1px solid var(--line-d); border-radius: 10px; padding: 14px 14px 8px; }
+  .track-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+  .track-head h4 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 18px; }
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--muted-d); }
+  .legend i { display: inline-block; width: 14px; height: 3px; vertical-align: middle; margin-right: 4px; }
+  svg.chart { width: 100%; height: auto; display: block; }
+  .board-head { display: flex; justify-content: space-between; align-items: baseline; }
+  .team { padding: 12px 0; border-bottom: 1px solid var(--line-d); }
+  .team-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .team-name { font-weight: 700; font-size: 19px; }
+  .team-name small { font-weight: 400; color: var(--muted-d); font-size: 13px; margin-left: 6px; }
+  .team-val { font-family: var(--serif); font-size: 26px; }
+  .team-val .chg { font-family: var(--sans); font-size: 14px; margin-left: 6px; }
+  .stack { display: flex; height: 14px; border-radius: 3px; overflow: hidden; margin-top: 6px; background: var(--navy-3); }
+  .stack div { height: 100%; transition: width 0.6s ease; }
+  .tag { display: inline-block; font-size: 12.5px; border: 1px solid var(--line-d); border-radius: 999px; padding: 1px 9px; margin: 6px 6px 0 0; color: var(--muted-d); }
+  .tag.rand { border-color: var(--gold); color: var(--gold); }
+
+  .decision { border: 1px dashed var(--gold); border-radius: 10px; padding: 18px 20px; margin-top: 20px; }
+  .decision h3 { font-size: 26px; color: var(--gold); margin-bottom: 6px; }
+  .decision p { margin: 0 0 12px; }
+  .vrow { display: grid; grid-template-columns: 150px 1fr 90px; gap: 12px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line-d); }
+  .vrow .tname { font-weight: 700; }
+  .vrow .meter { height: 10px; background: var(--navy-3); border-radius: 5px; overflow: hidden; }
+  .vrow .meter div { height: 100%; background: var(--gold); transition: width 0.3s ease; }
+  .vrow .num { text-align: right; font-size: 15px; color: var(--muted-d); }
+  .opts { display: flex; gap: 6px; flex-wrap: wrap; }
+  .opt { border: 1px solid var(--line-d); border-radius: 6px; padding: 5px 10px; font-size: 14px; color: var(--muted-d); }
+  .opt b { color: var(--cream); margin-left: 4px; }
+  .opt.win { background: var(--gold); border-color: var(--gold); color: var(--navy-3); font-weight: 700; }
+  .opt.win b { color: var(--navy-3); }
+  .opt.spin { border-color: var(--gold); color: var(--gold); }
+  .dice { color: var(--gold); font-size: 13px; }
+
+  .controls { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; align-items: center; }
+
+  /* final */
+  .final-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px; }
+  table.results { width: 100%; border-collapse: collapse; font-size: 17px; }
+  table.results th, table.results td { padding: 10px 8px; border-bottom: 1px solid var(--line-d); text-align: right; }
+  table.results th { font-size: 13px; color: var(--muted-d); }
+  table.results td:first-child, table.results th:first-child, table.results td:nth-child(2), table.results th:nth-child(2) { text-align: left; }
+  table.results tr.win td { color: var(--gold); font-weight: 700; }
+  table.results tr.ref td { color: var(--muted-d); font-style: italic; }
+  .tm { border: 1px solid var(--gold); border-radius: 10px; padding: 18px 20px; }
+  .tm-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line-d); font-size: 18px; }
+  .tm-row b { font-family: var(--serif); font-size: 26px; color: var(--gold); font-weight: 400; }
+  .debrief ol { padding-left: 22px; font-size: 19px; }
+  .debrief li { margin-bottom: 8px; }
+  .frame { font-family: var(--serif); font-style: italic; color: var(--gold); }
+
+  /* QR overlay */
+  .overlay { position: fixed; inset: 0; background: rgba(10, 24, 48, 0.94); display: flex; align-items: center; justify-content: center; z-index: 20; }
+  .overlay .qrbox { background: var(--navy); }
+
+  .msg { border: 1px solid var(--down); color: var(--down); border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; }
+  footer { margin-top: 36px; font-size: 12px; color: var(--muted-d); border-top: 1px solid var(--line-d); padding-top: 12px; }
+
+  @media (max-width: 980px) {
+    .wrap { padding: 28px 22px; }
+    .lobby, .game, .final-grid { grid-template-columns: 1fr; }
+    .assets-key, .returns { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body class="stage">
+<div class="brackets" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><b>Approach</b> International Student Center &nbsp;·&nbsp; Personal Finance</div>
+    <div class="top-right">
+      <span class="roomtag hidden" id="roomTag">Room <b id="roomCode"></b></span>
+      <button class="btn small hidden" id="qrBtn">Show join code</button>
+      <span class="conn wait hidden" id="conn" role="status">Connecting…</span>
+    </div>
+  </header>
+
+  <div class="msg hidden" id="cfgMsg">Add your Supabase URL and anon key to <b>config.js</b>, then reload this page.</div>
+
+  <!-- SETUP -->
+  <section id="setup">
+    <h1>Market <em>Rollercoaster</em></h1>
+    <p class="lead">Teams start with $10,000 of fictional money and ride ten years of market news. Students join on their phones, pick a team, and vote on the big decisions.</p>
+    <div class="resume hidden" id="resumeBox">
+      <div><h3 id="resumeTitle">Resume your game?</h3><div class="note" id="resumeInfo"></div></div>
+      <div class="actions" style="margin:0"><button class="btn primary" id="resumeBtn">Resume</button><button class="btn small" id="discardBtn">Discard and start over</button></div>
+    </div>
+    <h2>Teams</h2>
+    <label class="inline">Number of teams
+      <select id="teamCount"></select>
+    </label>
+    <div class="names" id="teamNames"></div>
+    <button class="btn primary" id="createBtn">Create room</button>
+  </section>
+
+  <!-- LOBBY -->
+  <section id="lobby" class="hidden">
+    <div class="lobby">
+      <div class="qrbox">
+        <div class="note">Scan to join</div>
+        <div class="qr" id="qrLobby" style="margin-top:10px"></div>
+        <div class="code" id="codeLobby"></div>
+        <div class="joinurl" id="urlLobby"></div>
+      </div>
+      <div>
+        <h1>Join, then <em>plan</em></h1>
+        <p class="lead" style="margin-bottom:16px">Pick your team on your phone. In your breakout room, agree on a split and send it to the teacher.</p>
+        <div class="assets-key" id="assetsKey"></div>
+        <div class="scroll"><table class="alloc" id="allocTable"></table></div>
+        <div class="actions">
+          <span class="note" id="joinedTotal">0 students joined</span>
+          <span style="flex:1"></span>
+          <button class="btn primary" id="startBtn">Start the ride</button>
+        </div>
+        <p class="note" id="lobbyMsg" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- GAME -->
+  <section id="game" class="hidden">
+    <div class="yearbar" id="yearbar" aria-hidden="true"></div>
+    <div class="game">
+      <div>
+        <div class="event" id="eventCard" aria-live="polite"></div>
+        <div class="decision hidden" id="decision"></div>
+        <div class="track">
+          <div class="track-head"><h4>What $1 became in each investment</h4><div class="legend" id="legend"></div></div>
+          <svg class="chart" id="chart" viewBox="0 0 600 250" role="img" aria-label="Line chart of each investment's value over the years"></svg>
+        </div>
+        <div class="controls">
+          <button class="btn primary" id="nextBtn">Reveal year 1</button>
+          <span class="note" id="gameMsg" role="status" aria-live="polite"></span>
+        </div>
+      </div>
+      <div>
+        <div class="board-head"><h2>Leaderboard</h2><span class="note" id="boardYear">Start</span></div>
+        <div id="board"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL -->
+  <section id="final" class="hidden">
+    <h1>Ten years <em>later</em></h1>
+    <p class="lead">Prices also went up over these ten years (about 34% in total). The last column shows what each team’s money can really buy in today’s dollars.</p>
+    <div class="final-grid">
+      <div>
+        <div class="scroll"><table class="results" id="results"></table></div>
+        <div class="debrief">
+          <h2 style="margin-top:24px">Talk about it</h2>
+          <ol>
+            <li>Which decision helped your team the most? Which one hurt?</li>
+            <li>Why did BlazeTech feel like a great idea in Year 2?</li>
+            <li>Why did savings “grow” but still lose buying power?</li>
+            <li>Your friend wants to sell everything during a crash. What would you tell them?<br>
+              <span class="frame">“We’d recommend… because…” · “The main advantage of… is that…”</span></li>
+          </ol>
+        </div>
+      </div>
+      <div>
+        <div class="tm">
+          <h2>The time machine</h2>
+          <p class="note">$10,000 in an index fund at the long-term average of about 8% a year (the number from the textbook):</p>
+          <div class="tm-row"><span>After 10 years</span><b>$21,589</b></div>
+          <div class="tm-row"><span>After 20 years</span><b>$46,610</b></div>
+          <div class="tm-row"><span>After 30 years</span><b>$100,627</b></div>
+          <p class="note" style="margin-top:12px">Same money, same investment. The only difference is time.</p>
+        </div>
+        <div class="actions">
+          <button class="btn" id="againBtn">Play again in this room</button>
+          <button class="btn small" id="endBtn">End room</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>Copyright © 2026 Approach International Student Center, Inc. · Revised on 10/25/2026 · Fictional money. Simplified returns for learning, not real market data. General financial education, not personal financial advice.</footer>
+</div>
+
+<div class="overlay hidden" id="overlay" role="dialog" aria-modal="true" aria-label="Join code">
+  <div class="qrbox">
+    <div class="note">Scan to join · Room</div>
+    <div class="qr" id="qrOverlay" style="margin-top:10px"></div>
+    <div class="code" id="codeOverlay"></div>
+    <div class="joinurl" id="urlOverlay"></div>
+    <div class="actions" style="justify-content:center"><button class="btn" id="closeOverlay">Close</button></div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function () {
+  "use strict";
+  var ACTIVITY = "market-rollercoaster";
+  var STORE = "mr-host-state-v1";
+  var START = 10000;
+
+  var ASSETS = [
+    { key: "savings", name: "Savings account", color: "var(--c-savings)", hex: "#81a7c1", desc: "Very safe. Small, steady interest." },
+    { key: "bonds",   name: "Bonds",           color: "var(--c-bonds)",   hex: "#c1cddd", desc: "You lend money and get interest." },
+    { key: "index",   name: "Index fund",      color: "var(--c-index)",   hex: "#c9a24b", desc: "Small pieces of hundreds of companies." },
+    { key: "stock",   name: "BlazeTech stock", color: "var(--c-stock)",   hex: "#e06a5a", desc: "One exciting (fictional) tech company." },
+    { key: "crypto",  name: "Crypto",          color: "var(--c-crypto)",  hex: "#b9a0e8", desc: "Digital currency. Huge ups and downs." }
+  ];
+  var YEARS = [
+    { title: "Steady start", text: "The economy grows slowly. Most investments go up a little.", r: [3, 4, 11, 25, 60], inf: 2.5 },
+    { title: "Tech boom", text: "Everyone is talking about BlazeTech. Its stock jumps 70%! Crypto more than doubles.", r: [3, 4, 19, 70, 120], inf: 2.5 },
+    { title: "Inflation spike", text: "Prices rise 7% this year. Groceries and rent cost more. Bonds and stocks fall.", r: [4, -4, -5, -10, -40], inf: 7 },
+    { title: "Market crash", text: "Panic! The stock market falls more than 30%. The news says it is the worst year in a decade.", r: [3, 6, -32, -55, -70], inf: 2, crash: true },
+    { title: "Recovery begins", text: "Quietly, the market starts to come back. People who sold last year missed the first big jump.", r: [2, 5, 30, 10, 40], inf: 2 },
+    { title: "Strong year", text: "Companies make record profits. Index funds rise 20%.", r: [2, 4, 20, 15, 80], inf: 2.5 },
+    { title: "Quiet year", text: "Not much happens. BlazeTech misses its sales targets.", r: [2, 4, 9, -20, -30], inf: 2.5 },
+    { title: "BlazeTech scandal", text: "BlazeTech lied about its sales. The company goes bankrupt. Its stock is now worth $0.", r: [2, 5, 13, -100, 15], inf: 3, crash: true },
+    { title: "Bull market", text: "A long, strong rise in prices. Index funds jump 22%.", r: [2, 3, 22, 0, 50], inf: 3 },
+    { title: "Small dip", text: "Stocks fall a little at the end of the year. Long-term investors don't worry.", r: [3, 5, -4, 0, -25], inf: 3 }
+  ];
+  var DECISIONS = {
+    2: { id: "fomo", title: "Chase the hot stock?",
+         text: "BlazeTech just went up 70%. Everyone is buying it. Should your team move half of its index fund into BlazeTech? (No index fund? Then half of your savings.)",
+         opts: [["stay", "Stick to the plan"], ["chase", "Chase BlazeTech"]] },
+    4: { id: "crash", title: "The crash",
+         text: "Your account just dropped. Headlines are scary. What does your team do?",
+         opts: [["hold", "Hold"], ["sell", "Sell everything (move to savings)"], ["buy", "Buy more (move savings and bonds into the index fund)"]] },
+    7: { id: "dip", title: "Buy the dip?",
+         text: "BlazeTech fell 20% this year. Some people say it is a bargain now. What does your team do? (No index fund? Then 20% of your savings.)",
+         opts: [["ignore", "Ignore it"], ["sellstock", "Sell all BlazeTech (move to savings)"], ["dip", "Buy the dip (move 20% of your index fund into BlazeTech)"]] },
+    9: { id: "cashout", title: "Cash out for a vacation?",
+         text: "Great year! Your account looks big. Do you take $2,000 out to spend on a vacation? Taking money out early costs a 10% penalty ($200).",
+         opts: [["keep", "Keep it invested"], ["cashout", "Take $2,000 for a vacation"]] }
+  };
+  var CHOICE_LABEL = { stay: "Stuck to plan", chase: "Chased BlazeTech", hold: "Held in crash", sell: "Sold in crash", buy: "Bought more in crash", ignore: "Ignored the dip", sellstock: "Sold BlazeTech", dip: "Bought the dip", keep: "Kept investing", cashout: "Cashed out $2,000" };
+  var INFLATION = YEARS.reduce(function (m, y) { return m * (1 + y.inf / 100); }, 1);
+
+  var $ = function (id) { return document.getElementById(id); };
+  var money = function (n) { return "$" + Math.round(n).toLocaleString("en-US"); };
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function total(t) { return t.hold ? ASSETS.reduce(function (s, a) { return s + t.hold[a.key]; }, 0) : START; }
+
+  // ---------------- State ----------------
+  var S = null;
+  function newState(names) {
+    return {
+      v: 1, room: makeCode(), phase: "lobby", year: 0,
+      teams: names.map(function (n) { return { name: n, pct: [20, 20, 20, 20, 20], hold: null, prev: START, choices: {} }; }),
+      members: {}, votes: {}, vote: null, results: {}, resultOrder: [],
+      paths: ASSETS.map(function () { return [1]; })
+    };
+  }
+  function makeCode() {
+    var A = "ABCDEFGHJKMNPQRSTUVWXYZ", c = "";
+    for (var i = 0; i < 4; i++) c += A[Math.floor(Math.random() * A.length)];
+    return c;
+  }
+  function save() { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {} }
+  function load() { try { return JSON.parse(localStorage.getItem(STORE) || "null"); } catch (e) { return null; } }
+
+  // ---------------- Realtime ----------------
+  var CFG = window.APP_CONFIG || {};
+  var configured = CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && CFG.SUPABASE_URL.indexOf("YOUR-") === -1 && CFG.SUPABASE_ANON_KEY.indexOf("YOUR-") === -1 && window.supabase;
+  var sb = null, ch = null, stateTimer = null, beat = null;
+
+  function connect() {
+    if (!configured) { $("cfgMsg").classList.remove("hidden"); return; }
+    if (!sb) sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY, { realtime: { params: { eventsPerSecond: 40 } } });
+    if (ch) { sb.removeChannel(ch); ch = null; }
+    setConn("wait", "Connecting…");
+    ch = sb.channel(ACTIVITY + "-" + S.room, { config: { broadcast: { self: false } } });
+    ch.on("broadcast", { event: "hello" }, function (m) { onHello(m.payload || {}); })
+      .on("broadcast", { event: "join" }, function (m) { onJoin(m.payload || {}); })
+      .on("broadcast", { event: "vote" }, function (m) { onVote(m.payload || {}); })
+      .subscribe(function (status) {
+        if (status === "SUBSCRIBED") { setConn("live", "Live"); pushState(true); }
+        else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") setConn("down", "Reconnecting…");
+        else if (status === "CLOSED") setConn("down", "Disconnected");
+      });
+    clearInterval(beat);
+    beat = setInterval(function () { pushState(true); }, 5000);
+  }
+  function setConn(cls, text) { var c = $("conn"); c.classList.remove("hidden", "live", "wait", "down"); c.classList.add(cls); c.textContent = text; }
+  function send(event, payload) { if (ch) ch.send({ type: "broadcast", event: event, payload: payload }); }
+  function ack(to, kind, ok, extra) { send("ack", Object.assign({ to: to, kind: kind, ok: ok }, extra || {})); }
+
+  function pushState(now) {
+    if (!S || !ch) return;
+    if (now) { clearTimeout(stateTimer); stateTimer = null; send("state", publicState()); return; }
+    if (stateTimer) return;
+    stateTimer = setTimeout(function () { stateTimer = null; send("state", publicState()); }, 250);
+  }
+
+  function ranks() {
+    var order = S.teams.map(function (t, i) { return i; }).sort(function (a, b) { return total(S.teams[b]) - total(S.teams[a]); });
+    var r = []; order.forEach(function (i, k) { r[i] = k + 1; }); return r;
+  }
+  function counts() {
+    var c = S.teams.map(function () { return 0; });
+    Object.keys(S.members).forEach(function (id) { c[S.members[id].team]++; });
+    return c;
+  }
+  function publicState() {
+    var rk = ranks(), cn = counts();
+    var y = S.year > 0 ? YEARS[S.year - 1] : null;
+    var last = S.resultOrder.length ? S.results[S.resultOrder[S.resultOrder.length - 1]] : null;
+    var d = S.vote ? DECISIONS[S.vote.year] : null;
+    return {
+      room: S.room, phase: S.phase, year: S.year, totalYears: YEARS.length,
+      headline: y ? { title: y.title, text: y.text, crash: !!y.crash } : null,
+      teams: S.teams.map(function (t, i) {
+        var v = total(t);
+        return { name: t.name, members: cn[i], value: Math.round(v), change: S.year ? Math.round((v - t.prev) / (t.prev || 1) * 100) : 0, rank: rk[i], real: Math.round(v / INFLATION) };
+      }),
+      vote: d ? { id: d.id, title: d.title, text: d.text, opts: d.opts } : null,
+      lastResult: last ? { id: last.id, title: last.title, year: last.year, perTeam: last.perTeam.map(function (p) { return { choice: p.choice, label: optLabel(last.id, p.choice), random: p.random }; }) } : null
+    };
+  }
+  function optLabel(id, val) {
+    var d = null; Object.keys(DECISIONS).forEach(function (k) { if (DECISIONS[k].id === id) d = DECISIONS[k]; });
+    var o = d ? d.opts.filter(function (x) { return x[0] === val; })[0] : null;
+    return o ? o[1] : val;
+  }
+
+  // ---------------- Incoming ----------------
+  function validCid(c) { return typeof c === "string" && c.length >= 6 && c.length <= 40 && /^[a-z0-9-]+$/i.test(c); }
+
+  function onHello(p) {
+    if (p.room !== S.room || !validCid(p.cid)) return;
+    pushState(true);
+    var m = S.members[p.cid];
+    var myVote = (m && S.vote && S.votes[S.vote.id]) ? (S.votes[S.vote.id][p.cid] || null) : null;
+    ack(p.cid, "hello", true, { member: m ? { name: m.name, team: m.team } : null, myVote: myVote });
+  }
+
+  function onJoin(p) {
+    if (p.room !== S.room || !validCid(p.cid)) return;
+    var name = typeof p.name === "string" ? p.name.trim().slice(0, 30) : "";
+    var team = Number(p.team);
+    if (!name) return ack(p.cid, "join", false, { msg: "Please type your name." });
+    if (!(team >= 0 && team < S.teams.length && Math.floor(team) === team)) return ack(p.cid, "join", false, { msg: "Choose a team." });
+    var m = S.members[p.cid];
+    if (m && m.team !== team && S.phase !== "lobby") {
+      m.name = name; save();
+      return ack(p.cid, "join", false, { msg: "Teams are locked now. You’re on " + S.teams[m.team].name + ".", member: { name: m.name, team: m.team } });
+    }
+    S.members[p.cid] = { name: name, team: team };
+    save(); updateCounts(); renderBoardIfGame();
+    ack(p.cid, "join", true, { member: { name: name, team: team } });
+    pushState(false);
+  }
+
+  function onVote(p) {
+    if (p.room !== S.room || !validCid(p.cid)) return;
+    if (!S.vote) return ack(p.cid, "vote", false, { msg: "Voting is closed." });
+    var d = DECISIONS[S.vote.year];
+    if (p.voteId !== d.id) return ack(p.cid, "vote", false, { msg: "That vote is closed." });
+    if (!S.members[p.cid]) return ack(p.cid, "vote", false, { msg: "Join a team first.", needJoin: true });
+    var okOpt = d.opts.some(function (o) { return o[0] === p.choice; });
+    if (!okOpt) return ack(p.cid, "vote", false, { msg: "Choose one of the options." });
+    S.votes[d.id] = S.votes[d.id] || {};
+    S.votes[d.id][p.cid] = p.choice;
+    save(); renderDecision();
+    ack(p.cid, "vote", true, { voteId: d.id, choice: p.choice });
+  }
+
+  // ---------------- Setup ----------------
+  var params = new URLSearchParams(location.search);
+  var defaultTeams = Math.min(8, Math.max(2, parseInt(params.get("teams"), 10) || 5));
+  var setupNames = [];
+  function renderSetup() {
+    var sel = $("teamCount"); sel.innerHTML = "";
+    for (var n = 2; n <= 8; n++) { var o = document.createElement("option"); o.value = n; o.textContent = n; if (n === setupNames.length) o.selected = true; sel.appendChild(o); }
+    $("teamNames").innerHTML = setupNames.map(function (n, i) {
+      return '<input type="text" maxlength="24" aria-label="Team ' + (i + 1) + ' name" data-i="' + i + '" value="' + esc(n) + '">';
+    }).join("");
+    var saved = load();
+    if (saved && saved.room) {
+      $("resumeBox").classList.remove("hidden");
+      $("resumeTitle").textContent = "Resume room " + saved.room + "?";
+      var where = saved.phase === "lobby" ? "Lobby" : saved.phase === "final" ? "Finished" : "After year " + saved.year;
+      $("resumeInfo").textContent = where + " · " + Object.keys(saved.members || {}).length + " students joined · " + saved.teams.length + " teams";
+    } else $("resumeBox").classList.add("hidden");
+  }
+  $("teamCount").addEventListener("change", function (e) {
+    var n = Number(e.target.value);
+    while (setupNames.length < n) setupNames.push("Team " + (setupNames.length + 1));
+    setupNames = setupNames.slice(0, n); renderSetup();
+  });
+  $("teamNames").addEventListener("input", function (e) { setupNames[Number(e.target.dataset.i)] = e.target.value; });
+  $("createBtn").addEventListener("click", function () {
+    S = newState(setupNames.map(function (n, i) { return (n || "").trim() || "Team " + (i + 1); }));
+    save(); connect(); showPhase();
+  });
+  $("resumeBtn").addEventListener("click", function () { S = load(); connect(); showPhase(); });
+  $("discardBtn").addEventListener("click", function () { try { localStorage.removeItem(STORE); } catch (e) {} renderSetup(); });
+
+  // ---------------- Lobby ----------------
+  function joinUrl() {
+    var u = new URL("join.html", location.href);
+    u.search = "?room=" + S.room + "&teams=" + S.teams.length;
+    u.hash = "";
+    return u.toString();
+  }
+  function drawQR(el) {
+    el.innerHTML = "";
+    if (window.QRCode) new QRCode(el, { text: joinUrl(), width: 280, height: 280, colorDark: "#0f2340", colorLight: "#faf6ee", correctLevel: QRCode.CorrectLevel.M });
+    else el.textContent = "QR unavailable";
+  }
+  function renderLobby() {
+    drawQR($("qrLobby"));
+    $("codeLobby").textContent = S.room;
+    $("urlLobby").textContent = joinUrl();
+    $("assetsKey").innerHTML = ASSETS.map(function (a) { return '<div class="asset"><span class="dot" style="background:' + a.color + '"></span><b>' + a.name + '</b><p>' + a.desc + '</p></div>'; }).join("");
+    renderLobbyTable();
+  }
+  function renderLobbyTable() {
+    if (S.phase !== "lobby") return;
+    var cn = counts();
+    var head = '<tr><th>Team</th><th>Joined</th>' + ASSETS.map(function (a) { return '<th>' + a.name + ' %</th>'; }).join("") + '<th>Total</th></tr>';
+    $("allocTable").innerHTML = head + S.teams.map(function (t, i) {
+      var sum = t.pct.reduce(function (s, v) { return s + v; }, 0);
+      return '<tr><td><b>' + esc(t.name) + '</b></td><td class="count" id="cnt' + i + '">' + cn[i] + '</td>' + t.pct.map(function (v, j) {
+        return '<td><input type="number" min="0" max="100" step="10" data-i="' + i + '" data-j="' + j + '" aria-label="' + esc(t.name) + ' ' + ASSETS[j].name + ' percent" value="' + v + '"></td>';
+      }).join("") + '<td class="' + (sum === 100 ? "ok" : "bad") + '" id="tot' + i + '">' + sum + '%</td></tr>';
+    }).join("");
+    updateCounts();
+  }
+  function updateCounts() {
+    if (S.phase !== "lobby") return;
+    var cn = counts();
+    cn.forEach(function (c, i) { var el = $("cnt" + i); if (el) el.textContent = c; });
+    var n = Object.keys(S.members).length;
+    $("joinedTotal").textContent = n + (n === 1 ? " student joined" : " students joined");
+  }
+  $("allocTable").addEventListener("input", function (e) {
+    var el = e.target; if (el.dataset.j === undefined) return;
+    var i = Number(el.dataset.i), j = Number(el.dataset.j);
+    S.teams[i].pct[j] = Math.max(0, Math.min(100, Number(el.value) || 0));
+    var sum = S.teams[i].pct.reduce(function (s, v) { return s + v; }, 0);
+    var c = $("tot" + i); c.textContent = sum + "%"; c.className = sum === 100 ? "ok" : "bad";
+    save();
+  });
+  $("startBtn").addEventListener("click", function () {
+    var bad = S.teams.filter(function (t) { return t.pct.reduce(function (s, v) { return s + v; }, 0) !== 100; });
+    if (bad.length) { $("lobbyMsg").textContent = "Check the totals: " + bad.map(function (t) { return t.name; }).join(", ") + " must add up to 100%."; return; }
+    $("lobbyMsg").textContent = "";
+    startRide();
+  });
+  function startRide() {
+    S.teams.forEach(function (t) {
+      t.hold = {}; ASSETS.forEach(function (a, j) { t.hold[a.key] = START * t.pct[j] / 100; });
+      t.prev = START; t.choices = {};
+    });
+    S.phase = "ride"; S.year = 0; S.vote = null; S.votes = {}; S.results = {}; S.resultOrder = [];
+    S.paths = ASSETS.map(function () { return [1]; });
+    save(); showPhase(); pushState(true);
+  }
+
+  // ---------------- Game ----------------
+  function decisionPending() {
+    var d = DECISIONS[S.year];
+    return d && !S.results[d.id];
+  }
+  function revealYear() {
+    var y = YEARS[S.year];
+    S.teams.forEach(function (t) {
+      t.prev = total(t);
+      ASSETS.forEach(function (a, j) { t.hold[a.key] = Math.max(0, t.hold[a.key] * (1 + y.r[j] / 100)); });
+    });
+    S.paths.forEach(function (p, j) { p.push(Math.max(0, p[p.length - 1] * (1 + y.r[j] / 100))); });
+    S.year++;
+    save(); renderGame(true); pushState(true);
+  }
+  function openVote() {
+    var d = DECISIONS[S.year];
+    S.vote = { year: S.year };
+    S.votes[d.id] = S.votes[d.id] || {};
+    save(); renderGame(false); pushState(true);
+  }
+  function closeVote() {
+    var d = DECISIONS[S.vote.year], votes = S.votes[d.id] || {};
+    var perTeam = S.teams.map(function (t, i) {
+      var tally = {}; d.opts.forEach(function (o) { tally[o[0]] = 0; });
+      Object.keys(votes).forEach(function (cid) { var m = S.members[cid]; if (m && m.team === i) tally[votes[cid]]++; });
+      var max = Math.max.apply(null, d.opts.map(function (o) { return tally[o[0]]; }));
+      var tied = d.opts.map(function (o) { return o[0]; }).filter(function (k) { return tally[k] === max; });
+      var choice = tied[Math.floor(Math.random() * tied.length)];
+      return { tally: tally, tied: tied, choice: choice, random: tied.length > 1, noVotes: max === 0 };
+    });
+    perTeam.forEach(function (p, i) { applyChoice(S.teams[i], p.choice); S.teams[i].choices[d.id] = p.choice; });
+    S.results[d.id] = { id: d.id, title: d.title, year: S.vote.year, perTeam: perTeam, revealedAt: Date.now() };
+    S.resultOrder.push(d.id);
+    S.vote = null;
+    save(); renderGame(false, d.id); pushState(true);
+  }
+  function applyChoice(t, c) {
+    var h = t.hold, amt;
+    if (c === "chase") {
+      if (h.index > 0) { amt = h.index / 2; h.index -= amt; } else { amt = h.savings / 2; h.savings -= amt; }
+      h.stock += amt;
+    } else if (c === "sell") {
+      var sum = total(t); ASSETS.forEach(function (a) { h[a.key] = 0; }); h.savings = sum;
+    } else if (c === "buy") {
+      h.index += h.savings + h.bonds; h.savings = 0; h.bonds = 0;
+    } else if (c === "dip") {
+      if (h.index > 0) { amt = h.index * 0.2; h.index -= amt; } else { amt = h.savings * 0.2; h.savings -= amt; }
+      h.stock += amt;
+    } else if (c === "sellstock") {
+      h.savings += h.stock; h.stock = 0;
+    } else if (c === "cashout") {
+      var all = total(t), cut = Math.min(2200, all), keep = all > 0 ? (all - cut) / all : 0;
+      ASSETS.forEach(function (a) { h[a.key] = h[a.key] * keep; });
+    }
+  }
+
+  $("nextBtn").addEventListener("click", function () {
+    if (S.phase !== "ride") return;
+    if (S.vote) { closeVote(); return; }
+    if (decisionPending()) { openVote(); return; }
+    if (S.year >= YEARS.length) { S.phase = "final"; save(); showPhase(); pushState(true); return; }
+    revealYear();
+  });
+
+  function renderGame(animate, spinId) {
+    var bar = "";
+    for (var i = 1; i <= YEARS.length; i++) bar += '<span class="' + (i < S.year ? "done" : i === S.year ? "now" : "") + '"></span>';
+    $("yearbar").innerHTML = bar;
+    var card = $("eventCard");
+    if (S.year === 0) {
+      card.className = "event";
+      card.innerHTML = '<div class="yr">Year 0</div><h3>Ready to ride?</h3><p>Every team has $10,000. Watch the news each year. When a big decision comes, vote on your phone.</p>';
+    } else {
+      var y = YEARS[S.year - 1];
+      card.className = "event" + (animate ? " reveal" : "") + (y.crash ? " crash" : "");
+      card.innerHTML = '<div class="yr">Year ' + S.year + ' of ' + YEARS.length + '</div><h3>' + y.title + '</h3><p>' + y.text + '</p>' +
+        '<div class="returns">' + ASSETS.map(function (a, j) {
+          var r = y.r[j], cls = r > 0 ? "up" : r < 0 ? "down" : "";
+          var label = (a.key === "stock" && S.year > 8) ? "gone" : (r > 0 ? "+" : "") + r + "%";
+          return '<div class="ret"><small>' + a.name + '</small><b class="' + cls + '">' + label + '</b></div>';
+        }).join("") + '</div><p class="note" style="margin-top:10px">Prices (inflation) this year: +' + y.inf + '%</p>';
+    }
+    $("legend").innerHTML = ASSETS.map(function (a) { return '<span><i style="background:' + a.color + '"></i>' + a.name + '</span>'; }).join("");
+    renderChart(); renderBoard(); renderDecision(spinId);
+
+    var btn = $("nextBtn");
+    if (S.vote) btn.textContent = "Close vote and reveal";
+    else if (decisionPending()) btn.textContent = "Open the vote";
+    else if (S.year >= YEARS.length) btn.textContent = "See the final results";
+    else btn.textContent = "Reveal year " + (S.year + 1);
+  }
+  function renderBoardIfGame() { if (S.phase === "ride") { renderBoard(); renderDecision(); } }
+
+  function renderBoard() {
+    $("boardYear").textContent = S.year === 0 ? "Start" : "After year " + S.year;
+    var cn = counts();
+    var order = S.teams.map(function (t, i) { return i; }).sort(function (a, b) { return total(S.teams[b]) - total(S.teams[a]); });
+    $("board").innerHTML = order.map(function (i) {
+      var t = S.teams[i], v = total(t), chg = S.year === 0 ? null : (v - t.prev) / (t.prev || 1) * 100;
+      var chgHtml = chg === null ? "" : '<span class="chg ' + (chg >= 0 ? "up" : "down") + '">' + (chg >= 0 ? "+" : "") + chg.toFixed(0) + '%</span>';
+      var stack = ASSETS.map(function (a) { var w = v > 0 ? t.hold[a.key] / v * 100 : 0; return '<div title="' + a.name + '" style="width:' + w + '%;background:' + a.color + '"></div>'; }).join("");
+      var tags = S.resultOrder.map(function (id) {
+        var r = S.results[id], p = r.perTeam[i];
+        return '<span class="tag' + (p.random ? " rand" : "") + '">' + CHOICE_LABEL[p.choice] + (p.random ? " · random pick" : "") + '</span>';
+      }).join("");
+      return '<div class="team"><div class="team-top"><span class="team-name">' + esc(t.name) + '<small>' + cn[i] + (cn[i] === 1 ? ' player' : ' players') + '</small></span><span class="team-val">' + money(v) + chgHtml + '</span></div><div class="stack">' + stack + '</div>' + tags + '</div>';
+    }).join("");
+  }
+
+  var spinTimer = null;
+  function renderDecision(spinId) {
+    var box = $("decision");
+    var d = DECISIONS[S.year];
+    if (!d) { box.classList.add("hidden"); return; }
+    box.classList.remove("hidden");
+    var res = S.results[d.id];
+    var votes = S.votes[d.id] || {};
+    var cn = counts();
+    var html = '<h3>Decision: ' + d.title + '</h3><p>' + d.text + '</p>';
+    if (!S.vote && !res) {
+      html += '<p class="note">Press “Open the vote.” Students vote on their phones; the most votes wins. Ties are decided by a random pick.</p>';
+    } else if (S.vote) {
+      var voted = S.teams.map(function () { return 0; });
+      Object.keys(votes).forEach(function (cid) { var m = S.members[cid]; if (m) voted[m.team]++; });
+      var all = voted.reduce(function (a, b) { return a + b; }, 0), tot = cn.reduce(function (a, b) { return a + b; }, 0);
+      html += '<p class="note" aria-live="polite">Voting is open · ' + all + ' of ' + tot + ' votes in</p>';
+      html += S.teams.map(function (t, i) {
+        var pct = cn[i] ? voted[i] / cn[i] * 100 : 0;
+        return '<div class="vrow"><span class="tname">' + esc(t.name) + '</span><div class="meter"><div style="width:' + pct + '%"></div></div><span class="num">' + voted[i] + ' / ' + cn[i] + '</span></div>';
+      }).join("");
+    } else {
+      html += S.teams.map(function (t, i) {
+        var p = res.perTeam[i];
+        var opts = d.opts.map(function (o) {
+          return '<span class="opt" data-team="' + i + '" data-val="' + o[0] + '">' + o[1] + '<b>' + p.tally[o[0]] + '</b></span>';
+        }).join("");
+        var note = p.noVotes ? '<span class="dice">no votes · random pick 🎲</span>' : p.random ? '<span class="dice">tie · random pick 🎲</span>' : '';
+        return '<div class="vrow" style="grid-template-columns:150px 1fr"><span class="tname">' + esc(t.name) + '</span><div><div class="opts">' + opts + '</div>' + note + '</div></div>';
+      }).join("");
+    }
+    box.innerHTML = html;
+    if (res && !S.vote) revealWinners(d, res, spinId === d.id);
+  }
+  function revealWinners(d, res, animate) {
+    clearInterval(spinTimer);
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    function finalize() {
+      res.perTeam.forEach(function (p, i) {
+        $("decision").querySelectorAll('.opt[data-team="' + i + '"]').forEach(function (el) {
+          el.classList.remove("spin"); el.classList.toggle("win", el.dataset.val === p.choice);
+        });
+      });
+    }
+    var spinning = res.perTeam.some(function (p) { return p.random; });
+    if (!animate || reduce || !spinning) { finalize(); return; }
+    // non-random winners show immediately; tied teams cycle through their tied options
+    res.perTeam.forEach(function (p, i) {
+      if (!p.random) $("decision").querySelectorAll('.opt[data-team="' + i + '"]').forEach(function (el) { el.classList.toggle("win", el.dataset.val === p.choice); });
+    });
+    var tick = 0;
+    spinTimer = setInterval(function () {
+      tick++;
+      res.perTeam.forEach(function (p, i) {
+        if (!p.random) return;
+        var show = p.tied[tick % p.tied.length];
+        $("decision").querySelectorAll('.opt[data-team="' + i + '"]').forEach(function (el) { el.classList.toggle("spin", el.dataset.val === show); });
+      });
+      if (tick >= 14) { clearInterval(spinTimer); finalize(); }
+    }, 130);
+  }
+
+  function renderChart() {
+    var W = 600, H = 250, pl = 44, pr = 12, pt = 12, pb = 28, maxV = 4;
+    S.paths.forEach(function (p) { p.forEach(function (v) { if (v > maxV) maxV = Math.ceil(v); }); });
+    var x = function (i) { return pl + i * (W - pl - pr) / YEARS.length; };
+    var yv = function (v) { return pt + (H - pt - pb) * (1 - v / maxV); };
+    var s = "";
+    for (var g = 0; g <= maxV; g++) {
+      s += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + yv(g) + '" y2="' + yv(g) + '" stroke="rgba(250,246,238,' + (g === 1 ? 0.45 : 0.1) + ')"' + (g === 1 ? ' stroke-dasharray="4 4"' : '') + '/>';
+      s += '<text x="' + (pl - 8) + '" y="' + (yv(g) + 4) + '" fill="#aab6c7" font-size="11" text-anchor="end" font-family="Calibri, Arial, sans-serif">$' + g + '</text>';
+    }
+    for (var k = 0; k <= YEARS.length; k++) s += '<text x="' + x(k) + '" y="' + (H - 8) + '" fill="#aab6c7" font-size="11" text-anchor="middle" font-family="Calibri, Arial, sans-serif">' + (k === 0 ? "Start" : "Y" + k) + '</text>';
+    S.paths.forEach(function (p, j) {
+      s += '<polyline points="' + p.map(function (v, i) { return x(i) + "," + yv(v); }).join(" ") + '" fill="none" stroke="' + ASSETS[j].hex + '" stroke-width="' + (ASSETS[j].key === "index" ? 4 : 2.5) + '" stroke-linejoin="round" stroke-linecap="round"/>';
+      s += '<circle cx="' + x(p.length - 1) + '" cy="' + yv(p[p.length - 1]) + '" r="4.5" fill="' + ASSETS[j].hex + '"/>';
+    });
+    $("chart").innerHTML = s;
+  }
+
+  // ---------------- Final ----------------
+  function renderFinal() {
+    var order = S.teams.map(function (t, i) { return i; }).sort(function (a, b) { return total(S.teams[b]) - total(S.teams[a]); });
+    var rows = order.map(function (i, rank) {
+      var t = S.teams[i], v = total(t);
+      var dd = S.resultOrder.map(function (id) { var p = S.results[id].perTeam[i]; return CHOICE_LABEL[p.choice] + (p.random ? " 🎲" : ""); }).join(", ");
+      return '<tr class="' + (rank === 0 ? "win" : "") + '"><td>' + esc(t.name) + '</td><td style="font-size:14px">' + dd + '</td><td>' + money(v) + '</td><td>' + money(v / INFLATION) + '</td></tr>';
+    }).join("");
+    var ref = YEARS.reduce(function (m, y) { return m * (1 + y.r[2] / 100); }, START);
+    rows += '<tr class="ref"><td>For comparison</td><td style="font-size:14px">100% index fund, no changes</td><td>' + money(ref) + '</td><td>' + money(ref / INFLATION) + '</td></tr>';
+    $("results").innerHTML = '<tr><th>Team</th><th>Decisions</th><th>Final amount</th><th>In today’s dollars</th></tr>' + rows;
+  }
+  $("againBtn").addEventListener("click", function () {
+    S.phase = "lobby"; S.year = 0; S.vote = null; S.votes = {}; S.results = {}; S.resultOrder = [];
+    S.teams.forEach(function (t) { t.hold = null; t.prev = START; t.choices = {}; });
+    save(); showPhase(); pushState(true);
+  });
+  $("endBtn").addEventListener("click", function () {
+    if (!confirm("End this room? Students will need a new code to play again.")) return;
+    S.phase = "ended"; pushState(true);
+    try { localStorage.removeItem(STORE); } catch (e) {}
+    setTimeout(function () { location.reload(); }, 400);
+  });
+
+  // ---------------- Overlay ----------------
+  $("qrBtn").addEventListener("click", function () {
+    drawQR($("qrOverlay")); $("codeOverlay").textContent = S.room; $("urlOverlay").textContent = joinUrl();
+    $("overlay").classList.remove("hidden"); $("closeOverlay").focus();
+  });
+  $("closeOverlay").addEventListener("click", function () { $("overlay").classList.add("hidden"); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") $("overlay").classList.add("hidden"); });
+
+  // ---------------- Phases ----------------
+  function showPhase() {
+    var p = S ? S.phase : "setup";
+    ["setup", "lobby", "game", "final"].forEach(function (id) {
+      var on = (id === "game" && p === "ride") || id === p;
+      $(id).classList.toggle("hidden", !on);
+    });
+    var inRoom = !!S;
+    $("roomTag").classList.toggle("hidden", !inRoom);
+    $("qrBtn").classList.toggle("hidden", !inRoom || p === "lobby");
+    if (inRoom) $("roomCode").textContent = S.room;
+    if (p === "lobby") renderLobby();
+    if (p === "ride") renderGame(false);
+    if (p === "final") renderFinal();
+    window.scrollTo(0, 0);
+  }
+
+  for (var i = 0; i < defaultTeams; i++) setupNames.push("Team " + (i + 1));
+  if (!configured) $("cfgMsg").classList.remove("hidden");
+  renderSetup();
+  showPhase();
+})();
+</script>
+</body>
+</html>

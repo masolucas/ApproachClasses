@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#faf6ee">
+<title>Market Rollercoaster · Join</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .wrap { max-width: 480px; margin: 0 auto; padding: 34px 26px 40px; min-height: 100vh; display: flex; flex-direction: column; }
+  header.top { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 22px; }
+  .brand { font-family: var(--serif); color: var(--navy); font-size: 15px; }
+  .brand em { color: var(--gold); }
+  h1 { font-size: 34px; line-height: 1.1; color: var(--navy); margin-bottom: 8px; }
+  h1 em { color: #9a7a2a; }
+  h2 { font-size: 22px; color: var(--navy); margin-bottom: 10px; }
+  .lead { font-family: var(--serif); font-style: italic; color: var(--muted-l); margin: 0 0 20px; }
+  .note { font-size: 14px; color: var(--muted-l); }
+  label.field { display: block; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+  input[type=text] { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border: 1.5px solid var(--line-l); border-radius: 8px; background: #fff; color: var(--ink); }
+  input[type=text]:focus { border-color: var(--gold); outline: none; }
+  .teams { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 8px 0 22px; }
+  .choice { border: 1.5px solid var(--line-l); background: #fff; color: var(--navy); border-radius: 10px; padding: 16px 12px; font-size: 17px; font-weight: 700; text-align: left; min-height: 56px; }
+  .choice small { display: block; font-weight: 400; color: var(--muted-l); font-size: 13px; margin-top: 2px; }
+  .choice[aria-pressed=true] { border-color: var(--navy); background: var(--navy); color: var(--cream); }
+  .choice[aria-pressed=true] small { color: var(--gold-2); }
+  .votes { display: grid; gap: 10px; margin: 14px 0 16px; }
+  .votes .choice { font-size: 19px; padding: 18px 16px; }
+  .btn.block { width: 100%; padding: 14px; font-size: 18px; }
+  .btn.primary { color: var(--navy-3); }
+  .status { min-height: 26px; margin-top: 12px; font-weight: 700; }
+  .status.ok { color: var(--up-l); }
+  .status.err { color: var(--down-l); }
+  .status.wait { color: var(--muted-l); }
+  .card { border: 1.5px solid var(--gold); border-radius: 12px; padding: 18px 18px; background: #fff; }
+  .teamline { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .teamline b { color: var(--navy); font-size: 18px; }
+  .big { font-family: var(--serif); font-size: 46px; color: var(--navy); line-height: 1.1; margin: 6px 0 2px; }
+  .chg.up { color: var(--up-l); font-weight: 700; } .chg.down { color: var(--down-l); font-weight: 700; }
+  .rank { font-family: var(--serif); font-style: italic; color: #9a7a2a; }
+  .news { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line-l); }
+  .news .yr { font-family: var(--serif); font-style: italic; color: #9a7a2a; font-size: 15px; }
+  .news h3 { font-size: 24px; color: var(--navy); margin: 2px 0 4px; }
+  .news.crash h3 { color: var(--down-l); }
+  .news p { margin: 0; }
+  .result { margin-top: 16px; border: 1px dashed var(--gold); border-radius: 10px; padding: 12px 14px; }
+  .result b { color: var(--navy); }
+  .linkbtn { background: none; border: none; color: var(--navy); text-decoration: underline; padding: 0; font-size: 15px; }
+  .center { text-align: center; }
+  .spinner { width: 34px; height: 34px; border: 3px solid var(--line-l); border-top-color: var(--gold); border-radius: 50%; margin: 30px auto 14px; animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  footer { margin-top: auto; padding-top: 28px; font-size: 11.5px; color: var(--muted-l); }
+</style>
+</head>
+<body class="paper">
+<div class="brackets" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">Market <em>Rollercoaster</em> <span id="roomLabel"></span></div>
+    <span class="conn wait" id="conn" role="status">Connecting…</span>
+  </header>
+
+  <main id="view" aria-live="polite"></main>
+
+  <footer>Approach International Student Center · Fictional money, for learning only.</footer>
+</div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+(function () {
+  "use strict";
+  var ACTIVITY = "market-rollercoaster";
+  var ACK_TIMEOUT = 5000;
+  var $ = function (id) { return document.getElementById(id); };
+  var money = function (n) { return "$" + Math.round(n).toLocaleString("en-US"); };
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+
+  var params = new URLSearchParams(location.search);
+  var room = (params.get("room") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+  var nTeams = Math.min(8, Math.max(2, parseInt(params.get("teams"), 10) || 5));
+
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  var cid = lsGet("mr-cid-" + room);
+  if (!cid) { cid = "p-" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4); lsSet("mr-cid-" + room, cid); }
+  var saved = {}; try { saved = JSON.parse(lsGet("mr-me-" + room) || "{}"); } catch (e) {}
+
+  var me = { name: saved.name || "", team: (typeof saved.team === "number") ? saved.team : null, confirmed: false };
+  var draft = { name: me.name, team: me.team };
+  var state = null, editing = false;
+  var myVotes = {}; try { myVotes = JSON.parse(lsGet("mr-votes-" + room) || "{}"); } catch (e) {}
+  var pending = null, status = { cls: "", text: "" };
+
+  function persistMe() { lsSet("mr-me-" + room, JSON.stringify({ name: me.name, team: me.team })); }
+  function persistVotes() { lsSet("mr-votes-" + room, JSON.stringify(myVotes)); }
+
+  // ---------- Realtime ----------
+  var CFG = window.APP_CONFIG || {};
+  var ch = null, helloTimer = null;
+  function setConn(cls, text) { var c = $("conn"); c.className = "conn " + cls; c.textContent = text; }
+
+  function connect() {
+    if (!room) { render(); return; }
+    $("roomLabel").textContent = "· " + room;
+    if (!window.supabase || !CFG.SUPABASE_URL || CFG.SUPABASE_URL.indexOf("YOUR-") !== -1) {
+      setConn("down", "Not set up"); renderMsg("This game isn’t set up yet", "Ask your teacher to check the game settings."); return;
+    }
+    var sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY, { realtime: { params: { eventsPerSecond: 10 } } });
+    ch = sb.channel(ACTIVITY + "-" + room, { config: { broadcast: { self: false } } });
+    ch.on("broadcast", { event: "state" }, function (m) { onState(m.payload); })
+      .on("broadcast", { event: "ack" }, function (m) { onAck(m.payload); })
+      .subscribe(function (s) {
+        if (s === "SUBSCRIBED") { setConn("wait", "Finding the screen…"); hello(); }
+        else if (s === "CHANNEL_ERROR" || s === "TIMED_OUT") setConn("down", "Reconnecting…");
+        else if (s === "CLOSED") setConn("down", "Offline");
+      });
+    helloTimer = setInterval(function () { if (!state) hello(); }, 3000);
+    document.addEventListener("visibilitychange", function () { if (!document.hidden) hello(); });
+  }
+  function send(event, payload) { if (ch) ch.send({ type: "broadcast", event: event, payload: Object.assign({ room: room, cid: cid }, payload) }); }
+  function hello() { send("hello", {}); }
+
+  function onState(p) {
+    if (!p || p.room !== room) return;
+    var first = !state;
+    state = p;
+    setConn("live", "Connected");
+    if (first) hello();
+    render();
+  }
+
+  function onAck(p) {
+    if (!p || p.to !== cid) return;
+    if (p.kind === "hello") {
+      if (p.member) { me.name = p.member.name; me.team = p.member.team; me.confirmed = true; persistMe(); }
+      else { me.confirmed = false; }
+      if (state && state.vote && p.myVote) myVotes[state.vote.id] = p.myVote, persistVotes();
+      render(); return;
+    }
+    if (!pending || pending.kind !== p.kind) {
+      if (p.kind === "join" && p.member) { me.name = p.member.name; me.team = p.member.team; me.confirmed = true; persistMe(); render(); }
+      return;
+    }
+    clearTimeout(pending.timer);
+    var kind = pending.kind; pending = null;
+    if (p.ok) {
+      if (kind === "join") { me.name = p.member.name; me.team = p.member.team; me.confirmed = true; editing = false; persistMe(); status = { cls: "ok", text: "Sent ✓" }; }
+      if (kind === "vote") { myVotes[p.voteId] = p.choice; persistVotes(); status = { cls: "ok", text: "Sent ✓ You can change your vote until voting closes." }; }
+    } else {
+      if (p.member) { me.name = p.member.name; me.team = p.member.team; me.confirmed = true; editing = false; persistMe(); }
+      if (p.needJoin) { me.confirmed = false; }
+      status = { cls: "err", text: p.msg || "Try again." };
+    }
+    render();
+  }
+
+  function submit(kind, payload) {
+    if (pending) clearTimeout(pending.timer);
+    status = { cls: "wait", text: "Sending…" };
+    pending = { kind: kind, payload: payload, timer: setTimeout(function () {
+      pending = null; status = { cls: "err", text: "Didn’t reach the screen.", retry: { kind: kind, payload: payload } }; render();
+    }, ACK_TIMEOUT) };
+    send(kind, payload);
+    render();
+  }
+
+  // ---------- Views ----------
+  function teamNames() {
+    if (state && state.teams) return state.teams.map(function (t) { return t.name; });
+    var a = []; for (var i = 0; i < nTeams; i++) a.push("Team " + (i + 1)); return a;
+  }
+  function statusHtml() {
+    var h = '<div class="status ' + (status.cls || "") + '" role="status">' + esc(status.text || "") + '</div>';
+    if (status.retry) h += '<button class="btn primary block" id="retryBtn" style="margin-top:8px">Try again</button>';
+    return h;
+  }
+  function renderMsg(title, text) {
+    $("view").innerHTML = '<h1>' + title + '</h1><p class="lead">' + text + '</p>';
+  }
+
+  function render() {
+    var v = $("view");
+    if (!room) { renderMsg("Scan the code", "Scan the QR code on the teacher’s screen to join the game."); return; }
+    if (!state) { v.innerHTML = '<div class="spinner" aria-hidden="true"></div><p class="center note">Looking for room ' + esc(room) + '…<br>Keep this page open.</p>'; return; }
+    if (state.phase === "ended") { renderMsg("Thanks for playing!", "This room has ended."); return; }
+
+    var lobby = state.phase === "lobby";
+    if (!me.confirmed || (editing && lobby)) { renderJoin(); return; }
+    if (lobby) { renderLobby(); return; }
+    if (state.phase === "ride" && state.vote) { renderVote(); return; }
+    if (state.phase === "final") { renderFinal(); return; }
+    renderTeam();
+  }
+
+  function renderJoin() {
+    var names = teamNames(), counts = state && state.teams ? state.teams.map(function (t) { return t.members; }) : [];
+    var nameIn = $("nameIn");
+    if (nameIn && document.activeElement === nameIn) {
+      // student is typing: update counts and status in place, keep the keyboard open
+      document.querySelectorAll(".teams .choice small").forEach(function (sm, i) { if (counts.length) sm.textContent = counts[i] + (counts[i] === 1 ? " player" : " players"); });
+      var st = document.querySelector(".status"); if (st) { st.className = "status " + (status.cls || ""); st.textContent = status.text || ""; }
+      return;
+    }
+    var locked = state && state.phase !== "lobby" && me.confirmed;
+    $("view").innerHTML =
+      '<h1>Join the <em>ride</em></h1><p class="lead">Type your name and choose your team.</p>' +
+      '<label class="field" for="nameIn">Your name</label>' +
+      '<input type="text" id="nameIn" maxlength="30" autocomplete="given-name" value="' + esc(draft.name) + '">' +
+      '<div class="field" style="font-weight:700;color:var(--navy);margin-top:18px">Your team</div>' +
+      '<div class="teams" role="group" aria-label="Team">' + names.map(function (n, i) {
+        return '<button class="choice" data-team="' + i + '" aria-pressed="' + (draft.team === i) + '"' + (locked && i !== me.team ? " disabled" : "") + '>' + esc(n) +
+          (counts.length ? '<small>' + counts[i] + (counts[i] === 1 ? " player" : " players") + '</small>' : "") + '</button>';
+      }).join("") + '</div>' +
+      '<button class="btn primary block" id="joinBtn">' + (me.confirmed ? "Save" : "Join") + '</button>' +
+      (me.confirmed ? '<p class="center"><button class="linkbtn" id="cancelEdit">Cancel</button></p>' : "") +
+      statusHtml();
+    $("nameIn").addEventListener("input", function (e) { draft.name = e.target.value; });
+    document.querySelectorAll(".teams .choice").forEach(function (b) {
+      b.addEventListener("click", function () { draft.team = Number(b.dataset.team); render(); });
+    });
+    $("joinBtn").addEventListener("click", function () {
+      var name = (draft.name || "").trim();
+      if (!name) { status = { cls: "err", text: "Please type your name." }; render(); $("nameIn").focus(); return; }
+      if (draft.team === null || draft.team === undefined) { status = { cls: "err", text: "Choose a team." }; render(); return; }
+      submit("join", { name: name, team: draft.team });
+    });
+    var c = $("cancelEdit"); if (c) c.addEventListener("click", function () { editing = false; status = {}; render(); });
+    bindRetry();
+  }
+
+  function teamCard(extra) {
+    var t = state.teams[me.team] || { name: "Your team", value: 10000, change: 0, rank: 1 };
+    var started = state.year > 0;
+    var h = '<div class="card"><div class="teamline"><b>' + esc(t.name) + '</b><span class="rank">' + (started ? "Rank " + t.rank + " of " + state.teams.length : "") + '</span></div>' +
+      '<div class="big">' + money(t.value) + '</div>' +
+      (started ? '<span class="chg ' + (t.change >= 0 ? "up" : "down") + '">' + (t.change >= 0 ? "+" : "") + t.change + '% this year</span>' : '<span class="note">Starting money (fictional)</span>');
+    if (state.headline) {
+      h += '<div class="news' + (state.headline.crash ? " crash" : "") + '"><div class="yr">Year ' + state.year + ' of ' + state.totalYears + '</div><h3>' + esc(state.headline.title) + '</h3><p>' + esc(state.headline.text) + '</p></div>';
+    }
+    if (state.lastResult) {
+      var r = state.lastResult.perTeam[me.team];
+      if (r) h += '<div class="result">Your team’s decision: <b>' + esc(r.label) + '</b>' + (r.random ? ' <span class="note">(random pick 🎲)</span>' : '') + '</div>';
+    }
+    return h + (extra || "") + '</div>';
+  }
+
+  function renderLobby() {
+    var t = state.teams[me.team];
+    $("view").innerHTML = '<h1>You’re <em>in</em>, ' + esc(me.name) + '</h1><p class="lead">You’re on <b>' + esc(t ? t.name : "your team") + '</b>. Go to your breakout room and agree on how to split your $10,000.</p>' +
+      teamCard() + '<p class="center" style="margin-top:18px"><button class="linkbtn" id="editBtn">Change name or team</button></p>' + statusHtml();
+    $("editBtn").addEventListener("click", function () { editing = true; draft = { name: me.name, team: me.team }; status = {}; render(); });
+    bindRetry();
+  }
+
+  function renderTeam() {
+    $("view").innerHTML = '<h2>Watch the screen</h2><p class="lead" style="margin-bottom:14px">' + (state.year === 0 ? "The ride is about to start." : "When a big decision comes, you’ll vote here.") + '</p>' + teamCard() + statusHtml();
+    bindRetry();
+  }
+
+  function renderVote() {
+    var vt = state.vote, mine = (pending && pending.kind === "vote") ? pending.payload.choice : myVotes[vt.id];
+    $("view").innerHTML = '<h1>Vote: <em>' + esc(vt.title) + '</em></h1><p class="lead" style="margin-bottom:6px">' + esc(vt.text) + '</p>' +
+      '<p class="note">' + esc((state.teams[me.team] || {}).name || "") + ' · the most votes wins. A tie is a random pick.</p>' +
+      '<div class="votes" role="group" aria-label="Your vote">' + vt.opts.map(function (o) {
+        return '<button class="choice" data-val="' + o[0] + '" aria-pressed="' + (mine === o[0]) + '">' + esc(o[1]) + '</button>';
+      }).join("") + '</div>' + statusHtml();
+    document.querySelectorAll(".votes .choice").forEach(function (b) {
+      b.addEventListener("click", function () {
+        document.querySelectorAll(".votes .choice").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+        submit("vote", { voteId: vt.id, choice: b.dataset.val });
+      });
+    });
+    bindRetry();
+  }
+
+  function renderFinal() {
+    var t = state.teams[me.team];
+    $("view").innerHTML = '<h1>Ten years <em>later</em></h1><p class="lead">Look at the big screen for the debrief.</p>' +
+      '<div class="card"><div class="teamline"><b>' + esc(t.name) + '</b><span class="rank">Rank ' + t.rank + ' of ' + state.teams.length + '</span></div>' +
+      '<div class="big">' + money(t.value) + '</div><span class="note">In today’s dollars (after inflation): <b>' + money(t.real) + '</b></span></div>';
+  }
+
+  function bindRetry() {
+    var r = $("retryBtn");
+    if (r) r.addEventListener("click", function () { var x = status.retry; status = {}; submit(x.kind, x.payload); });
+  }
+
+  // clear stale "Sent" messages when the screen moves on
+  var lastKey = "";
+  var _render = render;
+  render = function () {
+    var key = state ? state.phase + ":" + state.year + ":" + (state.vote ? state.vote.id : "-") : "";
+    if (key !== lastKey && !pending) { if (!status.retry) status = {}; }
+    lastKey = key;
+    _render();
+  };
+
+  render();
+  connect();
+})();
+</script>
+</body>
+</html>

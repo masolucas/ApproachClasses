@@ -1,0 +1,69 @@
+/* Market Rollercoaster · shared styles · ApproachUSA brand */
+:root {
+  --navy: #0f2340;
+  --navy-2: #17325a;
+  --navy-3: #0a1830;
+  --gold: #c9a24b;
+  --gold-2: #e2bf6c;
+  --cream: #faf6ee;
+  --ink: #1b2433;
+  --muted-d: #aab6c7;
+  --muted-l: #5d6778;
+  --line-d: rgba(250, 246, 238, 0.16);
+  --line-l: rgba(15, 35, 64, 0.16);
+  --up: #74d394;
+  --down: #f07f6f;
+  --up-l: #23780e;
+  --down-l: #b13a2b;
+  --c-savings: #81a7c1;
+  --c-bonds: #c1cddd;
+  --c-index: #c9a24b;
+  --c-stock: #e06a5a;
+  --c-crypto: #b9a0e8;
+  --serif: Cambria, Georgia, "Times New Roman", serif;
+  --sans: Calibri, Carlito, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+*, *::before, *::after { box-sizing: inherit; }
+html, body { margin: 0; min-height: 100%; }
+body { font-family: var(--sans); line-height: 1.45; -webkit-text-size-adjust: 100%; }
+body.stage { background: var(--navy); color: var(--cream); color-scheme: dark; font-size: 18px; }
+body.paper { background: var(--cream); color: var(--ink); color-scheme: light; font-size: 17px; }
+h1, h2, h3 { font-family: var(--serif); font-weight: 400; margin: 0; }
+button { font: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.hidden { display: none !important; }
+
+/* Gold corner brackets */
+.brackets span { position: fixed; width: 38px; height: 38px; pointer-events: none; z-index: 5; }
+.brackets span:nth-child(1) { top: calc(14px + env(safe-area-inset-top, 0px)); left: 14px; border-top: 2px solid var(--gold); border-left: 2px solid var(--gold); }
+.brackets span:nth-child(2) { top: calc(14px + env(safe-area-inset-top, 0px)); right: 14px; border-top: 2px solid var(--gold); border-right: 2px solid var(--gold); }
+.brackets span:nth-child(3) { bottom: calc(14px + env(safe-area-inset-bottom, 0px)); left: 14px; border-bottom: 2px solid var(--gold); border-left: 2px solid var(--gold); }
+.brackets span:nth-child(4) { bottom: calc(14px + env(safe-area-inset-bottom, 0px)); right: 14px; border-bottom: 2px solid var(--gold); border-right: 2px solid var(--gold); }
+body.paper .brackets span { width: 22px; height: 22px; }
+body.paper .brackets span:nth-child(1), body.paper .brackets span:nth-child(2) { top: calc(10px + env(safe-area-inset-top, 0px)); }
+body.paper .brackets span:nth-child(3), body.paper .brackets span:nth-child(4) { bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
+body.paper .brackets span:nth-child(1), body.paper .brackets span:nth-child(3) { left: 10px; }
+body.paper .brackets span:nth-child(2), body.paper .brackets span:nth-child(4) { right: 10px; }
+
+/* Buttons */
+.btn { border: 1px solid var(--gold); background: transparent; color: inherit; padding: 10px 20px; border-radius: 6px; font-weight: 700; }
+.btn:hover { background: rgba(201, 162, 75, 0.15); }
+.btn.primary { background: var(--gold); color: var(--navy-3); }
+.btn.primary:hover { background: var(--gold-2); }
+.btn.small { padding: 6px 12px; font-size: 15px; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Connection badge */
+.conn { font-size: 13px; border: 1px solid currentColor; border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
+.conn.live { color: var(--up); }
+.conn.wait { color: var(--gold); }
+.conn.down { color: var(--down); }
+body.paper .conn.live { color: var(--up-l); }
+body.paper .conn.down { color: var(--down-l); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
