@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Register Remix · Host</title>
+<link rel="stylesheet" href="../styles.css">
+<style>
+  .grid { display: grid; grid-template-columns: 1fr 1.25fr; gap: 20px; height: 100%; min-height: 0; }
+  .left { display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+  .casual { padding: 22px 26px; }
+  .casual .lbl { color: var(--reg-X); }
+  .casual .m { font-size: clamp(26px, 2.7vw, 40px); line-height: 1.3; margin: 8px 0 14px; font-family: "Comic Sans MS", "Chalkboard SE", var(--sans); color: var(--ink); }
+  .target { padding: 18px 26px; }
+  .target .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font-size: 22px; }
+  .target .aud { font-family: var(--serif); font-size: 22px; margin-top: 8px; color: var(--ink-s); }
+  .model { padding: 18px 26px; border: 2px solid var(--ok); }
+  .model .t { font-family: var(--serif); font-size: 22px; line-height: 1.4; margin-top: 6px; }
+  .subs { display: flex; flex-direction: column; min-height: 0; padding: 16px; }
+  .subs-b { flex: 1; overflow: auto; display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+  .sub { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; background: #fff; }
+  .sub-h { display: flex; align-items: center; gap: 10px; }
+  .sub-h .pos { font-family: var(--serif); font-size: 26px; color: var(--gold); width: 34px; }
+  .sub-h .tm { font-weight: 700; font-size: 18px; }
+  .sub-h .sec { color: var(--muted); font-size: 14px; }
+  .sub-h .pts { margin-left: auto; font-family: var(--serif); font-size: 26px; color: var(--navy); }
+  .sub .tx { font-family: var(--serif); font-size: 18px; line-height: 1.35; margin: 6px 0 8px 44px; cursor: pointer; color: var(--ink); }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-left: 44px; }
+  .chip { border: 1.5px solid var(--navy); background: transparent; color: var(--navy); border-radius: 999px; padding: 4px 10px; font-size: 13px; font-weight: 700; }
+  .chip.on { background: var(--navy); color: #fff; }
+  .chip.bonus.on { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+  .board { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+  .tb { background: rgba(250,246,238,.08); border: 1px solid rgba(201,162,75,.45); border-radius: 10px; padding: 8px 10px; text-align: center; }
+  .tb .n { font-size: 13px; letter-spacing: .12em; color: var(--gold); font-weight: 700; }
+  .tb .p { font-family: var(--serif); font-size: 30px; }
+  .tb .d { font-size: 12px; opacity: .8; }
+  .tb.lead { border-color: var(--gold); background: rgba(201,162,75,.18); }
+  .spot .chips { margin: 18px 0 0; }
+  .spot .chip { font-size: 16px; padding: 7px 14px; }
+</style>
+</head>
+<body class="host">
+<div class="brackets"><span class="b1"></span><span class="b2"></span></div>
+<div class="h-wrap">
+  <div class="h-top">
+    <div class="mono">A</div>
+    <div class="h-title"><div class="kick">AI SPRINT · WEEK 4 · TEAM RACE</div><h1>Register <em>Remix</em></h1></div>
+    <div class="h-spacer"></div>
+    <div class="count"><span class="dot" id="dot"></span><span id="conn">Offline</span> · <b id="nDev">0</b> devices · Round <b id="roundNo">–</b> of 4</div>
+    <button class="room-pill" id="roomPill"><small>ROOM</small><b id="roomCode">----</b></button>
+  </div>
+  <div class="h-top">
+    <div class="btn-row">
+      <button class="btn solid" id="bOpen">Start round 1</button>
+      <button class="btn" id="bClose" disabled>Stop &amp; show model</button>
+    </div>
+    <div class="h-spacer"></div>
+    <div id="timer"></div>
+  </div>
+  <div class="h-main">
+    <div class="grid">
+      <div class="left">
+        <div class="panel casual"><div class="lbl">🧢 TOO CASUAL · FIX THIS MESSAGE</div><div class="m" id="msg">Students choose their team on their device.</div></div>
+        <div class="panel target" id="targetP"><div class="lbl">TARGET</div><div class="row" id="target">—</div><div class="aud" id="aud"></div></div>
+        <div class="panel model" id="modelP" hidden><div class="lbl" style="color:var(--ok)">✓ ONE GOOD ANSWER</div><div class="t" id="model"></div></div>
+      </div>
+      <div class="panel subs">
+        <div class="lbl">ANSWERS · IN ORDER OF ARRIVAL · CLICK TO ENLARGE</div>
+        <div class="small" id="crit"></div>
+        <div class="subs-b" id="subs"></div>
+      </div>
+    </div>
+  </div>
+  <div class="board" id="board"></div>
+</div>
+
+<div class="overlay" id="startOv">
+  <div class="start-card">
+    <div class="mono" style="margin:0 auto 18px;width:56px;height:56px;font-size:30px">A</div>
+    <h2>Register <em>Remix</em></h2>
+    <p>Six teams race to rewrite a too-casual message in the right register. One device per team sends the answer.</p>
+    <div id="cfgWarn"></div>
+    <div class="btn-row" style="justify-content:center;margin-top:22px">
+      <button class="btn solid" id="bNew">New room</button>
+      <button class="btn" id="bResume" hidden></button>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="joinOv" hidden>
+  <div class="join-card">
+    <div class="qr" id="qr"></div>
+    <div>
+      <h2>Join Register Remix</h2>
+      <div class="lbl" style="color:var(--gold)">ROOM CODE</div>
+      <div class="code" id="jCode">----</div>
+      <div class="url" id="jUrl"></div>
+      <div class="count" style="font-size:22px;margin-bottom:22px" id="jTeams"></div>
+      <button class="btn solid" id="bHideJoin">Show the race</button>
+    </div>
+  </div>
+</div>
+<div class="spot" id="spot" hidden><button class="btn spot-close" id="bSpotX">Close (Esc)</button><div class="spot-card" id="spotCard"></div></div>
+
+<script src="../config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="../live.js"></script>
+<script src="../data.js"></script>
+<script>
+(function () {
+  const { $, $$, esc, store } = Live;
+  const D = window.W4; const REG = D.registers; const R = D.remix; const CRIT = D.remixScore; const KEY = "w4-remix-host";
+  const TEAMS = [1, 2, 3, 4, 5, 6];
+  let S = null, conn = null, spotIdx = -1;
+  const save = () => store.set(KEY, S);
+  const fresh = () => ({ room: Live.roomCode(), round: 0, phase: "lobby", openedAt: 0, devices: {}, subs: { 1: [], 2: [], 3: [], 4: [] } });
+
+  function pts(s) { let p = CRIT.reduce((a, c) => a + (s.sc[c.k] ? c.pts : 0), 0); if (s.bonus) p += 1; return p; }
+  function eligibleBonus(s) { return CRIT.reduce((a, c) => a + (s.sc[c.k] ? c.pts : 0), 0) >= 2; }
+  function totals() {
+    const t = {}; TEAMS.forEach((n) => (t[n] = 0));
+    Object.values(S.subs).forEach((list) => list.forEach((s) => (t[s.team] += pts(s))));
+    return t;
+  }
+  function publicState() {
+    const r = R[S.round - 1];
+    return { round: S.round, phase: S.phase, msg: r ? r.msg : "", target: r ? r.target : "", audience: r ? r.audience : "",
+      sent: (S.subs[S.round] || []).map((s, i) => ({ team: s.team, pos: i + 1 })), model: S.phase === "closed" && r ? r.model : "" };
+  }
+  const push = () => conn && conn.send("state", publicState());
+
+  const events = {
+    hello(p) { if (p.id) { S.devices[p.id] = p.team || 0; save(); render(); } conn.send("state", publicState()); },
+    answer(p) {
+      const no = (reason) => conn.send("ack", { to: p.id, mid: p.mid, ok: false, reason });
+      const team = +p.team; const text = String(p.text || "").trim().slice(0, 1200);
+      if (!TEAMS.includes(team)) return no("Choose your team first.");
+      if (S.phase !== "open" || p.round !== S.round) return no(S.phase === "closed" ? "Time's up for this round." : "The round is not open yet.");
+      if (text.length < 10) return no("Your answer is too short.");
+      const list = S.subs[S.round];
+      const mine = list.findIndex((s) => s.team === team);
+      if (mine >= 0) return conn.send("ack", { to: p.id, mid: p.mid, ok: false, reason: "Your team already sent an answer (#" + (mine + 1) + ")." });
+      list.push({ team, text, sec: Math.round((Date.now() - S.openedAt) / 1000), sc: {}, bonus: false });
+      S.devices[p.id] = team; save(); render();
+      conn.send("ack", { to: p.id, mid: p.mid, ok: true, pos: list.length }); push();
+    }
+  };
+  function connect() {
+    if (conn) conn.close();
+    conn = Live.connect("register-remix", S.room, { events, onStatus: (s) => {
+      $("#conn").textContent = Live.statusText(s); $("#dot").className = "dot " + (s === "SUBSCRIBED" ? "on" : "off");
+      if (s === "SUBSCRIBED") push();
+    } });
+  }
+
+  function openRound() { if (S.round >= 4) return; S.round++; S.phase = "open"; S.openedAt = Date.now(); save(); render(); push(); }
+  function closeRound() { S.phase = "closed"; save(); render(); push(); }
+
+  function scoreChips(s, i) {
+    return CRIT.map((c) => '<button class="chip' + (s.sc[c.k] ? " on" : "") + '" data-i="' + i + '" data-k="' + c.k + '">' + (s.sc[c.k] ? "\u2713 " : "") + esc(c.label) + "</button>").join("") +
+      (i === 0 ? '<button class="chip bonus' + (s.bonus ? " on" : "") + '" data-i="0" data-k="bonus"' + (eligibleBonus(s) ? "" : " disabled") + ">\u26A1 Speed +1</button>" : "");
+  }
+  function onChip(e) {
+    const b = e.target.closest(".chip"); if (!b || b.disabled) return;
+    const s = S.subs[S.round][+b.dataset.i]; const k = b.dataset.k;
+    if (k === "bonus") s.bonus = !s.bonus; else { s.sc[k] = !s.sc[k]; if (!eligibleBonus(s)) s.bonus = false; }
+    save(); render(); if (spotIdx >= 0) spot(spotIdx);
+  }
+  function spot(i) {
+    const s = S.subs[S.round][i]; if (!s) return; spotIdx = i;
+    $("#spotCard").innerHTML = '<div class="meta"><b>Team ' + s.team + "</b> · #" + (i + 1) + " · " + s.sec + "s · <span class='reg reg-" + R[S.round - 1].target + "'>" + REG[R[S.round - 1].target].icon + " " + REG[R[S.round - 1].target].name + "</span></div>" +
+      '<div class="big">' + esc(s.text) + '</div><div class="chips">' + scoreChips(s, i) + "</div>";
+    $("#spot").hidden = false;
+  }
+
+  function render() {
+    $("#roomCode").textContent = S.room; $("#jCode").textContent = S.room; $("#roundNo").textContent = S.round || "–";
+    const devs = Object.values(S.devices); $("#nDev").textContent = devs.length;
+    const byTeam = TEAMS.map((n) => devs.filter((t) => t === n).length);
+    $("#jTeams").innerHTML = TEAMS.map((n, i) => "Team " + n + ": <b>" + byTeam[i] + "</b>").join(" &nbsp; ");
+    const r = R[S.round - 1];
+    $("#bOpen").textContent = S.round >= 4 ? "All rounds done" : "Start round " + (S.round + 1) + (S.round + 1 === 4 ? " (bonus)" : "");
+    $("#bOpen").disabled = S.phase === "open" || S.round >= 4; $("#bClose").disabled = S.phase !== "open";
+    if (r) {
+      $("#msg").textContent = r.msg;
+      $("#target").innerHTML = "Rewrite it as <span class='reg reg-" + r.target + "'>" + REG[r.target].icon + " " + REG[r.target].name + "</span>";
+      $("#aud").textContent = "Reader: " + r.audience;
+      $("#modelP").hidden = S.phase !== "closed"; $("#model").textContent = r.model;
+    }
+    $("#crit").textContent = "1 point each: " + CRIT.map((c) => c.label).join(" · ") + ". " + D.remixBonus;
+    const list = S.subs[S.round] || [];
+    $("#subs").innerHTML = list.map((s, i) => '<div class="sub"><div class="sub-h"><span class="pos">' + (i + 1) + '</span><span class="tm">Team ' + s.team +
+      '</span><span class="sec">' + s.sec + 's</span><span class="pts">' + pts(s) + '</span></div><div class="tx" data-spot="' + i + '">' + esc(s.text) +
+      '</div><div class="chips">' + scoreChips(s, i) + "</div></div>").join("") ||
+      '<div class="empty">' + (S.phase === "open" ? "Waiting for the first team\u2026" : "Answers appear here.") + "</div>";
+    const t = totals(); const max = Math.max(...TEAMS.map((n) => t[n]));
+    $("#board").innerHTML = TEAMS.map((n, i) => '<div class="tb' + (max > 0 && t[n] === max ? " lead" : "") + '"><div class="n">TEAM ' + n + '</div><div class="p">' + t[n] +
+      '</div><div class="d">' + byTeam[i] + " device" + (byTeam[i] === 1 ? "" : "s") + "</div></div>").join("");
+  }
+
+  function showJoin() { Live.qr($("#qr"), Live.joinUrl(S.room)); $("#jUrl").textContent = Live.joinUrl(S.room); $("#joinOv").hidden = false; }
+  function begin(st) { S = st; save(); $("#startOv").hidden = true; connect(); render(); showJoin(); }
+
+  Live.timer($("#timer"), [2, 3, 5]);
+  if (!Live.configured()) { $("#cfgWarn").innerHTML = Live.notConfiguredHtml; $("#bNew").disabled = true; }
+  const old = store.get(KEY, null);
+  if (old && old.room && Live.configured()) { const b = $("#bResume"); b.hidden = false; b.textContent = "Resume room " + old.room + " (round " + old.round + ")"; b.onclick = () => begin(old); }
+  $("#bNew").onclick = () => begin(fresh());
+  $("#bOpen").onclick = openRound; $("#bClose").onclick = closeRound;
+  $("#roomPill").onclick = showJoin; $("#bHideJoin").onclick = () => { $("#joinOv").hidden = true; };
+  $("#subs").addEventListener("click", (e) => { const t = e.target.closest("[data-spot]"); if (t) spot(+t.dataset.spot); else onChip(e); });
+  $("#spotCard").addEventListener("click", onChip);
+  $("#bSpotX").onclick = () => { $("#spot").hidden = true; spotIdx = -1; };
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { $("#spot").hidden = true; spotIdx = -1; $("#joinOv").hidden = true; } });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Register Corners · Host</title>
+<link rel="stylesheet" href="../styles.css">
+<script src="../config.js"></script>
+<style>
+  .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; height: 100%; min-height: 0; }
+  .col { display: flex; flex-direction: column; min-height: 0; background: var(--cream); color: var(--ink); border-radius: 14px; overflow: hidden; }
+  .col-h { padding: 14px 18px 10px; display: flex; align-items: baseline; gap: 10px; border-bottom: 3px solid currentColor; }
+  .col-h .ico { font-size: 34px; }
+  .col-h .nm { font-family: var(--serif); font-size: 32px; }
+  .col-h .n { margin-left: auto; font-family: var(--serif); font-size: 34px; }
+  .col-b { flex: 1; overflow: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .pc { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-family: var(--serif); font-size: 19px; line-height: 1.3; color: var(--ink); }
+  .pc .fn { display: block; font-family: var(--sans); font-size: 11px; letter-spacing: .14em; color: var(--muted); font-weight: 700; }
+  .pc.right { border: 2px solid var(--ok); }
+  .pc.wrong { border: 2px solid var(--bad); background: #fff6f5; }
+  .pc .res { font-family: var(--sans); font-size: 14px; margin-top: 6px; }
+  .pc .res b { font-size: 16px; }
+  .undecided { text-align: center; font-size: 18px; opacity: .9; }
+  .score { font-family: var(--serif); font-size: 22px; }
+  .score b { color: var(--gold); }
+</style>
+</head>
+<body class="host">
+<div class="brackets"><span class="b1"></span><span class="b2"></span></div>
+<div class="h-wrap">
+  <div class="h-top">
+    <div class="mono">A</div>
+    <div class="h-title"><div class="kick">AI SPRINT · WEEK 4 · WARM-UP</div><h1>Register <em>Corners</em></h1></div>
+    <div class="h-spacer"></div>
+    <div class="count"><span class="dot" id="dot"></span><span id="conn">Offline</span> · <b id="nPlayers">0</b> joined · Round <b id="roundNo">0</b></div>
+    <button class="room-pill" id="roomPill" title="Show the join screen"><small>ROOM</small><b id="roomCode">----</b></button>
+  </div>
+  <div class="h-top">
+    <div class="btn-row">
+      <button class="btn solid" id="bStart">Deal cards</button>
+      <button class="btn" id="bReveal" disabled>Reveal answers</button>
+      <button class="btn" id="bNext" disabled>New round</button>
+    </div>
+    <div class="h-spacer"></div>
+    <div class="undecided" id="undecided"></div>
+    <div id="timer"></div>
+  </div>
+  <div class="h-main"><div class="cols" id="cols"></div></div>
+</div>
+
+<div class="overlay" id="startOv">
+  <div class="start-card">
+    <div class="mono" style="margin:0 auto 18px;width:56px;height:56px;font-size:30px">A</div>
+    <h2>Register <em>Corners</em></h2>
+    <p>Each student gets one phrase. They choose Formal, Neutral, or Persuasive on their device and walk to that corner of the room.</p>
+    <div id="cfgWarn"></div>
+    <div class="btn-row" style="justify-content:center;margin-top:22px">
+      <button class="btn solid" id="bNew">New room</button>
+      <button class="btn" id="bResume" hidden></button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="joinOv" hidden>
+  <div class="join-card">
+    <div class="qr" id="qr"></div>
+    <div>
+      <h2>Join Register Corners</h2>
+      <div class="lbl" style="color:var(--gold)">ROOM CODE</div>
+      <div class="code" id="jCode">----</div>
+      <div class="url" id="jUrl"></div>
+      <div class="count" style="font-size:22px;margin-bottom:22px"><b id="jCount">0</b> joined</div>
+      <button class="btn solid" id="bHideJoin">Show the corners</button>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="../live.js"></script>
+<script src="../data.js"></script>
+<script>
+(function () {
+  const { $, esc, store } = Live;
+  const D = window.W4; const REG = D.registers; const KEY = "w4-corners-host";
+  const CORNERS = ["F", "N", "P"];
+  // Deck: 18 cards {i, fn, reg, text, clue}
+  const DECK = [];
+  D.phrases.forEach((p) => CORNERS.forEach((r) => DECK.push({ i: DECK.length, fn: p.fn, reg: r, text: p[r], clue: p.clue[r] })));
+
+  let S = null, conn = null;
+  const save = () => store.set(KEY, S);
+
+  function fresh() { return { room: Live.roomCode(), round: 0, phase: "lobby", players: {}, deck: [], ptr: 0 }; }
+
+  // ----- Dealing: each player gets a card they have not had before when possible -----
+  function nextCard(p) {
+    if (S.ptr >= S.deck.length) { S.deck = Live.shuffle(DECK.map((c) => c.i)); S.ptr = 0; }
+    let k = S.ptr;
+    while (k < S.deck.length && p.seen.includes(S.deck[k])) k++;
+    if (k < S.deck.length) { const t = S.deck[S.ptr]; S.deck[S.ptr] = S.deck[k]; S.deck[k] = t; }
+    return S.deck[S.ptr++];
+  }
+  function deal(id) {
+    const p = S.players[id];
+    if (p.round !== S.round) { p.card = nextCard(p); p.seen.push(p.card); p.round = S.round; p.pick = null; }
+  }
+  function sendDeal(id) {
+    const p = S.players[id]; const c = DECK[p.card];
+    conn.send("deal", { to: id, round: S.round, phase: S.phase, fn: c.fn, text: c.text, pick: p.pick,
+      result: S.phase === "reveal" ? { reg: c.reg, clue: c.clue } : null });
+  }
+  function sendPhase(id) { conn.send("phase", { to: id || "*", round: S.round, phase: S.phase }); }
+
+  // ----- Events from phones -----
+  const events = {
+    hello(p) {
+      if (!p.id) return;
+      if (!S.players[p.id]) S.players[p.id] = { seen: [], round: -1, card: null, pick: null };
+      if (S.phase === "lobby") sendPhase(p.id);
+      else { deal(p.id); sendDeal(p.id); }
+      save(); render();
+    },
+    pick(p) {
+      const pl = S.players[p.id];
+      const no = (reason) => conn.send("ack", { to: p.id, mid: p.mid, ok: false, reason });
+      if (!pl) return no("Please reload the page.");
+      if (S.phase !== "play" || p.round !== S.round) return no(S.phase === "reveal" ? "Answers are already revealed." : "This round is not open.");
+      if (!CORNERS.includes(p.reg)) return no("Choose a corner.");
+      pl.pick = p.reg; save(); render();
+      conn.send("ack", { to: p.id, mid: p.mid, ok: true, reg: p.reg });
+    }
+  };
+
+  function connect() {
+    if (conn) conn.close();
+    conn = Live.connect("register-corners", S.room, { events, onStatus: (s) => {
+      $("#conn").textContent = Live.statusText(s);
+      $("#dot").className = "dot " + (s === "SUBSCRIBED" ? "on" : "off");
+      if (s === "SUBSCRIBED" && S.phase !== "lobby") Object.keys(S.players).forEach(sendDeal);
+    } });
+  }
+
+  // ----- Host actions -----
+  function startRound() {
+    S.round++; S.phase = "play";
+    Object.keys(S.players).forEach((id) => { deal(id); sendDeal(id); });
+    save(); render();
+  }
+  function reveal() {
+    S.phase = "reveal";
+    Object.keys(S.players).forEach(sendDeal);
+    save(); render();
+  }
+
+  // ----- Render -----
+  function render() {
+    const ids = Object.keys(S.players);
+    $("#roomCode").textContent = S.room; $("#jCode").textContent = S.room;
+    $("#nPlayers").textContent = ids.length; $("#jCount").textContent = ids.length; $("#roundNo").textContent = S.round;
+    $("#bStart").hidden = S.round > 0; $("#bReveal").disabled = S.phase !== "play"; $("#bNext").disabled = S.phase !== "reveal";
+    $("#bNext").hidden = S.round === 0;
+    const inRound = ids.filter((id) => S.players[id].round === S.round && S.phase !== "lobby");
+    const undecided = inRound.filter((id) => !S.players[id].pick).length;
+    let right = 0;
+    const cols = CORNERS.map((r) => {
+      const cards = inRound.filter((id) => S.players[id].pick === r).map((id) => {
+        const c = DECK[S.players[id].card];
+        let cls = "pc", res = "";
+        if (S.phase === "reveal") {
+          if (c.reg === r) { cls += " right"; right++; res = '<div class="res" style="color:var(--ok)"><b>\u2713</b> ' + esc(c.clue) + "</div>"; }
+          else { cls += " wrong"; res = '<div class="res"><b class="t-' + c.reg + '">\u2717 ' + REG[c.reg].icon + " " + REG[c.reg].name + "</b> \u00B7 " + esc(c.clue) + "</div>"; }
+        }
+        return '<div class="' + cls + '"><span class="fn">' + esc(c.fn.toUpperCase()) + "</span>" + esc(c.text) + res + "</div>";
+      });
+      return '<section class="col"><div class="col-h t-' + r + '"><span class="ico">' + REG[r].icon + '</span><span class="nm">' + REG[r].name +
+        '</span><span class="n">' + cards.length + '</span></div><div class="col-b">' + (cards.join("") || '<div class="empty">No one here yet.</div>') + "</div></section>";
+    });
+    $("#cols").innerHTML = cols.join("");
+    const picked = inRound.length - undecided;
+    $("#undecided").innerHTML = S.phase === "lobby" ? "Students join, then click <b>Deal cards</b>."
+      : S.phase === "reveal" ? '<span class="score"><b>' + right + "</b> of " + picked + " in the right corner</span>"
+      : "Still deciding: <b>" + undecided + "</b>";
+  }
+
+  function showJoin() { Live.qr($("#qr"), Live.joinUrl(S.room)); $("#jUrl").textContent = Live.joinUrl(S.room); $("#joinOv").hidden = false; }
+  function begin(state) { S = state; save(); $("#startOv").hidden = true; connect(); render(); showJoin(); }
+
+  // ----- Boot -----
+  Live.timer($("#timer"), [2, 3, 5]);
+  if (!Live.configured()) { $("#cfgWarn").innerHTML = Live.notConfiguredHtml; $("#bNew").disabled = true; }
+  const old = store.get(KEY, null);
+  if (old && old.room && Live.configured()) { const b = $("#bResume"); b.hidden = false; b.textContent = "Resume room " + old.room + " (" + Object.keys(old.players).length + " joined)"; b.onclick = () => begin(old); }
+  $("#bNew").onclick = () => begin(fresh());
+  $("#bStart").onclick = startRound; $("#bReveal").onclick = reveal; $("#bNext").onclick = startRound;
+  $("#roomPill").onclick = showJoin; $("#bHideJoin").onclick = () => { $("#joinOv").hidden = true; };
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("#joinOv").hidden = true; });
+})();
+</script>
+</body>
+</html>

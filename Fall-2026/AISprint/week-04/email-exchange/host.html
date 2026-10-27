@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Email Exchange · Host</title>
+<link rel="stylesheet" href="../styles.css">
+<style>
+  .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; height: 100%; min-height: 0; }
+  .col { display: flex; flex-direction: column; min-height: 0; background: var(--cream); color: var(--ink); border-radius: 14px; overflow: hidden; }
+  .col-h { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  .col-h .pr { font-size: 12px; letter-spacing: .16em; font-weight: 700; color: var(--gold); }
+  .col-h .vs { font-family: var(--serif); font-size: 19px; line-height: 1.25; margin-top: 2px; }
+  .col-h .vs small { font-family: var(--sans); color: var(--muted); font-size: 13px; }
+  .stat { padding: 8px 16px; font-size: 15px; background: #fff; border-bottom: 1px solid var(--line); min-height: 38px; }
+  .col-b { flex: 1; overflow: auto; padding: 12px; display: flex; flex-direction: column; gap: 9px; }
+  .em { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; cursor: pointer; }
+  .em:hover { border-color: var(--gold); }
+  .em .top { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+  .em .top .reg { font-size: 12px; }
+  .em .fr { font-weight: 700; color: var(--ink); font-size: 14px; }
+  .em .sj { font-family: var(--serif); font-weight: 700; font-size: 17px; margin: 3px 0 2px; }
+  .em .pv { font-family: var(--serif); font-size: 15px; color: var(--ink-s); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .em.c { margin-right: 26px; } .em.k { margin-left: 26px; }
+  .noms { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .nom { background: var(--cream); color: var(--ink); border-radius: 14px; padding: 16px 18px; cursor: pointer; border: 3px solid transparent; }
+  .nom.win { border-color: var(--gold-b); }
+  .nom .who { font-size: 13px; letter-spacing: .12em; font-weight: 700; color: var(--muted); }
+  .nom .ln { font-family: var(--serif); font-size: 22px; line-height: 1.35; margin: 6px 0; }
+  .nom .src { font-size: 13px; color: var(--muted); }
+  .hint { font-size: 15px; opacity: .85; }
+</style>
+</head>
+<body class="host">
+<div class="brackets"><span class="b1"></span><span class="b2"></span></div>
+<div class="h-wrap">
+  <div class="h-top">
+    <div class="mono">A</div>
+    <div class="h-title"><div class="kick">AI SPRINT · WEEK 4 · ROLE-PLAY</div><h1>Client &amp; Company <em>Email Exchange</em></h1></div>
+    <div class="h-spacer"></div>
+    <div class="count"><span class="dot" id="dot"></span><span id="conn">Offline</span> · <b id="nDev">0</b> devices · <b id="phaseLbl">Lobby</b></div>
+    <button class="room-pill" id="roomPill"><small>ROOM</small><b id="roomCode">----</b></button>
+  </div>
+  <div class="h-top">
+    <div class="btn-row">
+      <button class="btn solid" id="bNext">Open round 1</button>
+      <button class="btn" id="bView" hidden>Show threads</button>
+    </div>
+    <div class="hint" id="hint"></div>
+    <div class="h-spacer"></div>
+    <div id="timer"></div>
+  </div>
+  <div class="h-main" id="main"></div>
+</div>
+
+<div class="overlay" id="startOv">
+  <div class="start-card">
+    <div class="mono" style="margin:0 auto 18px;width:56px;height:56px;font-size:30px">A</div>
+    <h2>Client &amp; Company <em>Email Exchange</em></h2>
+    <p>Six teams, three client–company pairings, three rounds: inquiry, complaint, and proposal. Then teams review another pairing's thread.</p>
+    <div id="cfgWarn"></div>
+    <div class="btn-row" style="justify-content:center;margin-top:22px">
+      <button class="btn solid" id="bNew">New room</button>
+      <button class="btn" id="bResume" hidden></button>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="joinOv" hidden>
+  <div class="join-card">
+    <div class="qr" id="qr"></div>
+    <div>
+      <h2>Join the Email Exchange</h2>
+      <div class="lbl" style="color:var(--gold)">ROOM CODE</div>
+      <div class="code" id="jCode">----</div>
+      <div class="url" id="jUrl"></div>
+      <div class="count" style="font-size:19px;margin-bottom:22px;line-height:1.6" id="jTeams"></div>
+      <button class="btn solid" id="bHideJoin">Show the threads</button>
+    </div>
+  </div>
+</div>
+<div class="spot" id="spot" hidden><button class="btn spot-close" id="bSpotX">Close (Esc)</button><div class="spot-card" id="spotCard"></div></div>
+
+<script src="../config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="../live.js"></script>
+<script src="../data.js"></script>
+<script>
+(function () {
+  const { $, esc, store } = Live;
+  const D = window.W4; const REG = D.registers; const P = D.pairings; const KEY = "w4-exchange-host";
+  const RLBL = ["Inquiry", "Complaint", "Proposal"];
+  const ROLE_ICON = { client: "\uD83E\uDDD1\u200D\uD83D\uDCBC", company: "\uD83C\uDFE2" };
+  let S = null, conn = null, view = "threads";
+  const save = () => store.set(KEY, S);
+  const fresh = () => ({ room: Live.roomCode(), round: 0, review: false, threads: { A: [], B: [], C: [] }, noms: {}, winner: null, devices: {} });
+
+  const pairOf = (team) => { for (const p of P) { if (p.client.team === team) return { p, role: "client" }; if (p.company.team === team) return { p, role: "company" }; } return null; };
+  const other = (role) => (role === "client" ? "company" : "client");
+  function turn(p, round) {
+    if (round < 1 || round > 3) return null;
+    const r = p.rounds[round - 1]; const list = S.threads[p.id].filter((e) => e.round === round);
+    const f = list.find((e) => e.move === "first"), rp = list.find((e) => e.move === "reply");
+    if (!f) return { role: r.first, move: "first", reg: r.reg };
+    if (!rp) return { role: other(r.first), move: "reply", reg: r.replyReg };
+    return { done: true };
+  }
+  function publicState() { return { round: S.round, review: S.review, threads: S.threads, noms: S.noms, winner: S.winner }; }
+  const push = () => conn && conn.send("state", publicState());
+
+  const events = {
+    hello(p) { if (p.id) { S.devices[p.id] = p.team || 0; save(); render(); } conn.send("state", publicState()); },
+    email(p) {
+      const no = (reason) => conn.send("ack", { to: p.id, mid: p.mid, ok: false, reason });
+      const team = +p.team; const pr = pairOf(team);
+      if (!pr) return no("Choose your team first.");
+      if (S.review) return no("The rounds are over. It's time for peer review.");
+      if (p.round !== S.round || S.round < 1) return no("This round is closed.");
+      const t = turn(pr.p, S.round);
+      if (!t || t.done) return no("Your pairing has finished this round. Wait for the next round.");
+      if (t.role !== pr.role) return no("It's not your turn yet. Wait for the other team's email.");
+      const subject = String(p.subject || "").trim().slice(0, 120); const body = String(p.body || "").trim().slice(0, 3000);
+      if (!subject) return no("Add a subject line.");
+      if (body.length < 40) return no("Your email is too short.");
+      S.threads[pr.p.id].push({ id: Live.uid(), round: S.round, move: t.move, role: pr.role, team, reg: t.reg, subject, body, t: Date.now() });
+      S.devices[p.id] = team; save(); render();
+      conn.send("ack", { to: p.id, mid: p.mid, ok: true }); push();
+    },
+    nominate(p) {
+      const no = (reason) => conn.send("ack", { to: p.id, mid: p.mid, ok: false, reason });
+      const team = +p.team; if (!pairOf(team)) return no("Choose your team first.");
+      if (!S.review) return no("Peer review has not started.");
+      const text = String(p.text || "").trim().slice(0, 300); if (text.length < 5) return no("Type the line first.");
+      S.noms[team] = { text, ref: String(p.ref || "").slice(0, 80), t: Date.now() }; save(); render();
+      conn.send("ack", { to: p.id, mid: p.mid, ok: true }); push();
+    }
+  };
+  function connect() {
+    if (conn) conn.close();
+    conn = Live.connect("email-exchange", S.room, { events, onStatus: (s) => {
+      $("#conn").textContent = Live.statusText(s); $("#dot").className = "dot " + (s === "SUBSCRIBED" ? "on" : "off");
+      if (s === "SUBSCRIBED") push();
+    } });
+  }
+
+  function next() {
+    if (S.review) return;
+    if (S.round >= 1) {
+      const open = P.filter((p) => !(turn(p, S.round) || {}).done).map((p) => p.id);
+      if (open.length && !confirm("Pairing " + open.join(", ") + " has not finished round " + S.round + ". Continue anyway?")) return;
+    }
+    if (S.round < 3) S.round++; else { S.review = true; view = "noms"; }
+    save(); render(); push();
+  }
+
+  function nameOf(p, role) { return p[role].name; }
+  function emailCard(p, e) {
+    return '<div class="em ' + (e.role === "client" ? "c" : "k") + '" data-p="' + p.id + '" data-e="' + e.id + '"><div class="top"><span>R' + e.round + " · " + RLBL[e.round - 1] +
+      '</span><span class="reg reg-' + e.reg + '">' + REG[e.reg].icon + " " + REG[e.reg].name + '</span></div><div class="fr">' + ROLE_ICON[e.role] + " " + esc(nameOf(p, e.role)) +
+      ' <span class="muted" style="font-weight:400">(Team ' + e.team + ')</span></div><div class="sj">' + esc(e.subject) + '</div><div class="pv">' + esc(e.body) + "</div></div>";
+  }
+  function statusLine(p) {
+    if (S.review) return "\u2713 Rounds finished \u00B7 reviewed by Pairing " + Object.keys(D.reviewOf).find((k) => D.reviewOf[k] === p.id);
+    if (S.round === 0) return "Waiting for round 1";
+    const t = turn(p, S.round);
+    if (t.done) return "\u2713 Round " + S.round + " done";
+    return "\u270E <b>" + esc(nameOf(p, t.role)) + "</b> is writing " + (t.move === "first" ? "" : "a reply ") + "<span class='reg reg-" + t.reg + "'>" + REG[t.reg].icon + " " + REG[t.reg].name + "</span>";
+  }
+  function renderThreads() {
+    return '<div class="cols">' + P.map((p) => '<section class="col"><div class="col-h"><div class="pr">PAIRING ' + p.id + '</div><div class="vs">' + ROLE_ICON.client + " " + esc(p.client.name) +
+      " <small>Team " + p.client.team + "</small><br>" + ROLE_ICON.company + " " + esc(p.company.name) + " <small>Team " + p.company.team + '</small></div></div><div class="stat">' + statusLine(p) +
+      '</div><div class="col-b">' + (S.threads[p.id].map((e) => emailCard(p, e)).join("") || '<div class="empty">No emails yet.</div>') + "</div></section>").join("") + "</div>";
+  }
+  function renderNoms() {
+    const teams = [1, 2, 3, 4, 5, 6];
+    return '<div class="noms">' + teams.map((t) => {
+      const n = S.noms[t]; const pr = pairOf(t); const rev = D.reviewOf[pr.p.id];
+      return '<div class="nom' + (S.winner === t ? " win" : "") + '" data-nom="' + t + '"><div class="who">' + (S.winner === t ? "\u2B50 BEST LINE \u00B7 " : "") + "TEAM " + t + " \u00B7 REVIEWED PAIRING " + rev + "</div>" +
+        (n ? '<div class="ln">\u201C' + esc(n.text) + '\u201D</div><div class="src">' + esc(n.ref) + "</div>" : '<div class="empty">Waiting for a nomination\u2026</div>') + "</div>";
+    }).join("") + "</div>";
+  }
+
+  function spotEmail(pid, eid) {
+    const p = P.find((x) => x.id === pid); const e = S.threads[pid].find((x) => x.id === eid); if (!e) return;
+    $("#spotCard").innerHTML = '<div class="meta"><span>Pairing ' + pid + " · Round " + e.round + " · " + RLBL[e.round - 1] + "</span><span class='reg reg-" + e.reg + "'>" + REG[e.reg].icon + " Target: " + REG[e.reg].name + "</span></div>" +
+      '<div class="meta"><b>From:</b> ' + esc(nameOf(p, e.role)) + " (Team " + e.team + ") &nbsp; <b>To:</b> " + esc(nameOf(p, other(e.role))) + "</div>" +
+      '<div class="subj">' + esc(e.subject) + '</div><div class="big">' + esc(e.body) + "</div>";
+    $("#spot").hidden = false;
+  }
+  function spotNom(t) {
+    const n = S.noms[t]; if (!n) return;
+    $("#spotCard").innerHTML = '<div class="meta"><b>Team ' + t + "</b> · " + esc(n.ref) + '</div><div class="big">\u201C' + esc(n.text) + '\u201D</div><div class="btn-row" style="margin-top:20px"><button class="btn solid" id="bCrown" style="color:var(--navy)">\u2B50 Best Line of the Day</button></div>';
+    $("#bCrown").onclick = () => { S.winner = t; save(); render(); push(); $("#spot").hidden = true; };
+    $("#spot").hidden = false;
+  }
+
+  function render() {
+    $("#roomCode").textContent = S.room; $("#jCode").textContent = S.room;
+    const devs = Object.values(S.devices); $("#nDev").textContent = devs.length;
+    $("#jTeams").innerHTML = P.map((p) => [p.client, p.company].map((s) => "Team " + s.team + " \u00B7 " + esc(s.name) + ": <b>" + devs.filter((t) => t === s.team).length + "</b>").join("<br>")).join("<br>");
+    $("#phaseLbl").textContent = S.review ? "Peer review" : S.round ? "Round " + S.round + " \u00B7 " + RLBL[S.round - 1] : "Lobby";
+    $("#bNext").textContent = S.review ? "Review in progress" : S.round < 3 ? "Open round " + (S.round + 1) + " \u00B7 " + RLBL[S.round] : "Start peer review";
+    $("#bNext").disabled = S.review;
+    $("#bView").hidden = !S.review; $("#bView").textContent = view === "noms" ? "Show threads" : "Show best lines";
+    $("#hint").textContent = S.review ? "Click a line to enlarge it, then crown the class winner." : "Click any email to enlarge it.";
+    $("#main").innerHTML = S.review && view === "noms" ? renderNoms() : renderThreads();
+  }
+
+  function showJoin() { Live.qr($("#qr"), Live.joinUrl(S.room)); $("#jUrl").textContent = Live.joinUrl(S.room); $("#joinOv").hidden = false; }
+  function begin(st) { S = st; view = S.review ? "noms" : "threads"; save(); $("#startOv").hidden = true; connect(); render(); showJoin(); }
+
+  Live.timer($("#timer"), [6, 7, 12, 13]);
+  if (!Live.configured()) { $("#cfgWarn").innerHTML = Live.notConfiguredHtml; $("#bNew").disabled = true; }
+  const old = store.get(KEY, null);
+  if (old && old.room && Live.configured()) { const b = $("#bResume"); b.hidden = false; const n = Object.values(old.threads).reduce((a, l) => a + l.length, 0); b.textContent = "Resume room " + old.room + " (" + n + " emails)"; b.onclick = () => begin(old); }
+  $("#bNew").onclick = () => begin(fresh());
+  $("#bNext").onclick = next;
+  $("#bView").onclick = () => { view = view === "noms" ? "threads" : "noms"; render(); };
+  $("#roomPill").onclick = showJoin; $("#bHideJoin").onclick = () => { $("#joinOv").hidden = true; };
+  $("#main").addEventListener("click", (e) => {
+    const em = e.target.closest(".em"); if (em) return spotEmail(em.dataset.p, em.dataset.e);
+    const nm = e.target.closest("[data-nom]"); if (nm) spotNom(+nm.dataset.nom);
+  });
+  $("#bSpotX").onclick = () => { $("#spot").hidden = true; };
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { $("#spot").hidden = true; $("#joinOv").hidden = true; } });
+})();
+</script>
+</body>
+</html>

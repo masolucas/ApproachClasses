@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Register Corners</title>
+<link rel="stylesheet" href="../styles.css">
+<style>
+  .phrase { font-family: var(--serif); font-size: 26px; line-height: 1.35; color: var(--ink); margin: 6px 0 4px; }
+  .picks { display: grid; gap: 10px; margin-top: 14px; }
+  .pick { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; border-radius: 12px; border: 2px solid currentColor; background: transparent; font-size: 20px; font-weight: 700; text-align: left; }
+  .pick .ico { font-size: 28px; }
+  .pick.on { color: #fff !important; }
+  .pick.t-F.on { background: var(--reg-F); border-color: var(--reg-F); }
+  .pick.t-N.on { background: var(--reg-N); border-color: var(--reg-N); }
+  .pick.t-P.on { background: var(--reg-P); border-color: var(--reg-P); }
+  .go { text-align: center; font-family: var(--serif); font-size: 22px; margin-top: 12px; }
+  .result { border-radius: 12px; padding: 14px; margin-top: 12px; font-size: 18px; border: 2px solid; }
+  .result.ok { border-color: var(--ok); } .result.no { border-color: var(--bad); }
+  @media (prefers-color-scheme: dark) { .pick.t-F { color: #8fb3ea; } .pick.t-N { color: #5fd0c8; } .pick.t-P { color: #f0a35a; } }
+</style>
+</head>
+<body class="join">
+<div class="j-wrap">
+  <div class="j-head"><div class="mono">A</div><div class="ttl"><b>AI SPRINT · WEEK 4</b><span>Register Corners</span></div><div class="st" id="st">Connecting…</div></div>
+
+  <div id="vRoom" class="card" hidden>
+    <h2>Enter the room code</h2>
+    <div class="field"><input class="txt" id="roomIn" maxlength="4" autocomplete="off" autocapitalize="characters" placeholder="ABCD" aria-label="Room code"></div>
+    <button class="jbtn" id="bRoom">Join</button>
+  </div>
+
+  <div id="vWait" class="card wait" hidden><span class="big-ico">🎩 🤝 🚀</span><span id="waitTxt">You're in! Wait for your teacher to deal the cards.</span></div>
+
+  <div id="vCard" hidden>
+    <div class="card">
+      <div class="lbl">ROUND <span id="rNo"></span> · YOUR PHRASE · <span id="fn"></span></div>
+      <div class="phrase" id="phrase"></div>
+    </div>
+    <div class="card">
+      <h3>WHICH REGISTER IS IT?</h3>
+      <div class="picks" id="picks"></div>
+      <div class="go" id="go"></div>
+      <div class="msg" id="msg"></div>
+      <div id="result"></div>
+    </div>
+  </div>
+  <div id="cfg"></div>
+</div>
+
+<script src="../config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="../live.js"></script>
+<script src="../data.js"></script>
+<script>
+(function () {
+  const { $, esc, store } = Live; const REG = window.W4.registers;
+  if (!Live.configured()) { $("#cfg").innerHTML = Live.notConfiguredHtml; $("#st").textContent = "Not set up"; return; }
+  let room = (Live.param("room") || "").toUpperCase();
+  if (!/^[A-Z]{4}$/.test(room)) {
+    $("#vRoom").hidden = false; $("#st").textContent = "";
+    $("#bRoom").onclick = () => { const r = $("#roomIn").value.trim().toUpperCase(); if (/^[A-Z]{4}$/.test(r)) location.search = "?room=" + r; };
+    return;
+  }
+  const KEY = "w4-corners-" + room;
+  const me = store.get(KEY, null) || { id: Live.uid() }; store.set(KEY, me);
+  const ack = Live.acker();
+  let cur = null, conn = null, gotState = false;
+
+  function view(v) { ["vWait", "vCard"].forEach((x) => { $("#" + x).hidden = x !== v; }); }
+
+  function renderCard() {
+    view("vCard");
+    $("#rNo").textContent = cur.round; $("#fn").textContent = cur.fn.toUpperCase(); $("#phrase").textContent = "\u201C" + cur.text + "\u201D";
+    const locked = cur.phase !== "play";
+    $("#picks").innerHTML = ["F", "N", "P"].map((r) =>
+      '<button class="pick t-' + r + (cur.pick === r ? " on" : "") + '" data-r="' + r + '"' + (locked ? " disabled" : "") + '><span class="ico">' + REG[r].icon + "</span>" + REG[r].name + "</button>").join("");
+    $("#go").innerHTML = cur.pick && !cur.result ? "Walk to the <b class='t-" + cur.pick + "'>" + REG[cur.pick].name + "</b> corner. Explain your clue to the group." : "";
+    if (cur.result) {
+      const ok = cur.pick === cur.result.reg;
+      $("#result").innerHTML = '<div class="result ' + (ok ? "ok" : "no") + '">' +
+        (ok ? "<b>\u2713 Correct!</b> " : "<b>\u2717 Not quite.</b> It's <b class='t-" + cur.result.reg + "'>" + REG[cur.result.reg].icon + " " + REG[cur.result.reg].name + "</b>. ") +
+        "<br><span class='small'>Clue: " + esc(cur.result.clue) + "</span></div>" + (cur.pick ? "" : "<p class='small'>You didn't choose a corner this round.</p>");
+    } else $("#result").innerHTML = "";
+  }
+
+  $("#picks").addEventListener("click", async (e) => {
+    const b = e.target.closest("button[data-r]"); if (!b || !cur || cur.phase !== "play") return;
+    const r = b.dataset.r; const prev = cur.pick; cur.pick = r; renderCard();
+    $("#msg").className = "msg"; $("#msg").textContent = "Sending…";
+    const res = await ack.send(conn, "pick", { id: me.id, round: cur.round, reg: r });
+    if (res.ok) { $("#msg").className = "msg ok"; $("#msg").textContent = "Saved \u2713"; }
+    else { cur.pick = prev; renderCard(); $("#msg").className = "msg bad"; $("#msg").textContent = res.reason || "Try again."; }
+  });
+
+  conn = Live.connect("register-corners", room, {
+    events: {
+      deal(p) { if (p.to !== me.id) return; gotState = true; const same = cur && cur.round === p.round; cur = p; if (!same) $("#msg").textContent = ""; renderCard(); },
+      phase(p) { if (p.to !== "*" && p.to !== me.id) return; gotState = true;
+        if (p.phase === "lobby") { view("vWait"); return; }
+        if (!cur || cur.round !== p.round) conn.send("hello", { id: me.id }); },
+      ack(p) { if (p.to === me.id) ack.onAck(p); }
+    },
+    onStatus(s) {
+      $("#st").textContent = s === "SUBSCRIBED" ? "Room " + room : Live.statusText(s);
+      if (s === "SUBSCRIBED") { view("vWait"); hello(); }
+    }
+  });
+  function hello() { conn.send("hello", { id: me.id }); setTimeout(() => { if (!gotState) { $("#waitTxt").textContent = "Waiting for the teacher's screen…"; hello(); } }, 3000); }
+})();
+</script>
+</body>
+</html>

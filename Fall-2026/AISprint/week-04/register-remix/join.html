@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Register Remix</title>
+<link rel="stylesheet" href="../styles.css">
+<style>
+  .teams { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .teams .jbtn { font-size: 20px; padding: 18px 8px; }
+  .casual { font-size: 22px; line-height: 1.35; font-family: "Comic Sans MS", "Chalkboard SE", var(--sans); margin: 6px 0; }
+  .tgt { font-size: 18px; margin: 4px 0 2px; }
+  .done { border: 2px solid var(--ok); border-radius: 12px; padding: 14px; font-size: 18px; }
+  .done.miss { border-color: var(--line); }
+  .model { font-family: var(--serif); font-size: 19px; line-height: 1.4; margin-top: 6px; }
+</style>
+</head>
+<body class="join">
+<div class="j-wrap">
+  <div class="j-head"><div class="mono">A</div><div class="ttl"><b>AI SPRINT · WEEK 4</b><span>Register Remix</span></div><div class="st" id="st">Connecting…</div></div>
+
+  <div id="vRoom" class="card" hidden>
+    <h2>Enter the room code</h2>
+    <div class="field"><input class="txt" id="roomIn" maxlength="4" autocomplete="off" autocapitalize="characters" placeholder="ABCD" aria-label="Room code"></div>
+    <button class="jbtn" id="bRoom">Join</button>
+  </div>
+
+  <div id="vTeam" class="card" hidden>
+    <h2>Choose your team</h2>
+    <p class="small">Your teacher will tell you your team number.</p>
+    <div class="teams" id="teams"></div>
+  </div>
+
+  <div id="vMain" hidden>
+    <div class="card" style="display:flex;align-items:center;gap:10px">
+      <b style="font-size:20px">Team <span id="tNo"></span></b><span class="small" id="roundLbl"></span>
+      <button class="link" id="bChange" style="margin-left:auto">Change team</button>
+    </div>
+    <div class="card wait" id="wait"><span class="big-ico">🧢 ➜ 🎩</span>Get ready! The race starts when your teacher opens the round.</div>
+    <div id="play" hidden>
+      <div class="card">
+        <div class="lbl" style="color:var(--reg-X)">🧢 TOO CASUAL</div>
+        <div class="casual" id="msg"></div>
+        <div class="tgt" id="tgt"></div>
+        <div class="small" id="aud"></div>
+      </div>
+      <div class="card" id="compose">
+        <h3>YOUR TEAM'S REWRITE</h3>
+        <p class="small">Draft with AI if you want, then edit. Keep all the key information. Do not add new facts. One answer per team.</p>
+        <div class="field"><textarea class="txt" id="ans" maxlength="1200" aria-label="Your rewrite"></textarea></div>
+        <button class="jbtn" id="bSend">Send for my team</button>
+        <div class="msg" id="sMsg"></div>
+      </div>
+      <div class="card" id="sent" hidden><div class="done" id="sentTxt"></div></div>
+      <div class="card" id="modelC" hidden><div class="lbl" style="color:var(--ok)">✓ ONE GOOD ANSWER</div><div class="model" id="model"></div><p class="small">Compare: what did your team do differently?</p></div>
+    </div>
+  </div>
+  <div id="cfg"></div>
+</div>
+
+<script src="../config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="../live.js"></script>
+<script src="../data.js"></script>
+<script>
+(function () {
+  const { $, store } = Live; const REG = window.W4.registers;
+  if (!Live.configured()) { $("#cfg").innerHTML = Live.notConfiguredHtml; $("#st").textContent = "Not set up"; return; }
+  let room = (Live.param("room") || "").toUpperCase();
+  if (!/^[A-Z]{4}$/.test(room)) {
+    $("#vRoom").hidden = false; $("#st").textContent = "";
+    $("#bRoom").onclick = () => { const r = $("#roomIn").value.trim().toUpperCase(); if (/^[A-Z]{4}$/.test(r)) location.search = "?room=" + r; };
+    return;
+  }
+  const KEY = "w4-remix-" + room;
+  const me = store.get(KEY, null) || { id: Live.uid(), team: 0 }; store.set(KEY, me);
+  const ack = Live.acker(); let st = null, conn = null, got = false;
+
+  $("#teams").innerHTML = [1, 2, 3, 4, 5, 6].map((n) => '<button class="jbtn ghost" data-t="' + n + '">' + n + "</button>").join("");
+  $("#teams").onclick = (e) => { const b = e.target.closest("[data-t]"); if (!b) return; me.team = +b.dataset.t; store.set(KEY, me); conn.send("hello", { id: me.id, team: me.team }); render(); };
+  $("#bChange").onclick = () => { me.team = 0; store.set(KEY, me); render(); };
+  const DKEY = () => KEY + "-draft-" + (st ? st.round : 0);
+  $("#ans").addEventListener("input", () => store.set(DKEY(), $("#ans").value));
+
+  function render() {
+    $("#vTeam").hidden = !!me.team; $("#vMain").hidden = !me.team;
+    if (!me.team) return;
+    $("#tNo").textContent = me.team;
+    const open = st && st.round > 0;
+    $("#wait").hidden = open; $("#play").hidden = !open;
+    if (!open) { $("#roundLbl").textContent = ""; return; }
+    $("#roundLbl").textContent = "· Round " + st.round + " of 4" + (st.phase === "closed" ? " · time's up" : "");
+    $("#msg").textContent = st.msg;
+    $("#tgt").innerHTML = "Rewrite it as <span class='reg reg-" + st.target + "'>" + REG[st.target].icon + " " + REG[st.target].name + "</span>";
+    $("#aud").textContent = "Reader: " + st.audience;
+    const mine = (st.sent || []).find((s) => s.team === me.team);
+    $("#compose").hidden = !!mine || st.phase === "closed";
+    $("#sent").hidden = !mine;
+    if (mine) $("#sentTxt").innerHTML = "<b>\u2713 Sent!</b> Your team was <b>#" + mine.pos + "</b> this round. Wait for your score.";
+    if (!mine && st.phase === "closed") { $("#sent").hidden = false; $("#sentTxt").innerHTML = "Time's up. Your team did not send an answer this round."; }
+    $("#sentTxt").classList.toggle("miss", !mine);
+    $("#modelC").hidden = !st.model; $("#model").textContent = st.model || "";
+  }
+
+  $("#bSend").onclick = async () => {
+    const text = $("#ans").value.trim(); const m = $("#sMsg");
+    if (text.length < 10) { m.className = "msg bad"; m.textContent = "Write your full answer first."; return; }
+    $("#bSend").disabled = true; m.className = "msg"; m.textContent = "Sending…";
+    const res = await ack.send(conn, "answer", { id: me.id, team: me.team, round: st.round, text });
+    $("#bSend").disabled = false;
+    if (res.ok) { m.textContent = ""; store.del(DKEY()); } else { m.className = "msg bad"; m.textContent = res.reason || "Try again."; }
+  };
+
+  conn = Live.connect("register-remix", room, {
+    events: {
+      state(p) { const newRound = !st || st.round !== p.round; st = p; got = true; if (newRound) $("#ans").value = store.get(DKEY(), ""); render(); },
+      ack(p) { if (p.to === me.id) ack.onAck(p); }
+    },
+    onStatus(s) { $("#st").textContent = s === "SUBSCRIBED" ? "Room " + room : Live.statusText(s); if (s === "SUBSCRIBED") hello(); }
+  });
+  function hello() { conn.send("hello", { id: me.id, team: me.team }); setTimeout(() => { if (!got) hello(); }, 3000); }
+  render();
+})();
+</script>
+</body>
+</html>

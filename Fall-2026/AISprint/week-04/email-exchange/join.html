@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Email Exchange</title>
+<link rel="stylesheet" href="../styles.css">
+<style>
+  .tlist { display: grid; gap: 8px; }
+  .tlist .jbtn { text-align: left; font-size: 17px; }
+  .tlist .jbtn small { display: block; font-weight: 400; font-size: 14px; opacity: .85; }
+  .me-h { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .me-h .nm { font-family: var(--serif); font-size: 22px; color: var(--navy); }
+  details.cardinfo summary { cursor: pointer; font-weight: 700; color: var(--navy); margin-top: 8px; }
+  ul.facts { margin: 8px 0; padding-left: 20px; line-height: 1.45; }
+  .secret { border: 1.5px dashed var(--gold); border-radius: 10px; padding: 10px 12px; font-size: 15px; margin-top: 8px; }
+  .task { font-family: var(--serif); font-size: 19px; line-height: 1.4; margin: 6px 0; }
+  .turn { font-weight: 700; font-size: 17px; margin-bottom: 6px; }
+  .turn.go { color: var(--ok); } .turn.wait { color: var(--muted); }
+  .mail { border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-bottom: 10px; background: var(--paper); }
+  .mail.mine { border-color: var(--gold); }
+  .mail .top { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+  .mail .sj { font-family: var(--serif); font-weight: 700; font-size: 18px; margin: 4px 0; }
+  .mail .bd { font-family: var(--serif); font-size: 16px; line-height: 1.45; white-space: pre-wrap; }
+  ol.tips { margin: 6px 0 0; padding-left: 20px; font-size: 14px; color: var(--ink-s); line-height: 1.45; }
+  @media (prefers-color-scheme: dark) { .me-h .nm, details.cardinfo summary { color: #f1ece0; } }
+</style>
+</head>
+<body class="join">
+<div class="j-wrap">
+  <div class="j-head"><div class="mono">A</div><div class="ttl"><b>AI SPRINT · WEEK 4</b><span>Email Exchange</span></div><div class="st" id="st">Connecting…</div></div>
+
+  <div id="vRoom" class="card" hidden>
+    <h2>Enter the room code</h2>
+    <div class="field"><input class="txt" id="roomIn" maxlength="4" autocomplete="off" autocapitalize="characters" placeholder="ABCD" aria-label="Room code"></div>
+    <button class="jbtn" id="bRoom">Join</button>
+  </div>
+
+  <div id="vTeam" class="card" hidden>
+    <h2>Choose your team</h2>
+    <p class="small">Your teacher will tell you your team number. Every device in your team can read the inbox. Only the Sender sends.</p>
+    <div class="tlist" id="teams"></div>
+  </div>
+
+  <div id="vMain" hidden>
+    <div class="card">
+      <div class="me-h"><span style="font-size:26px" id="meIco"></span><span class="nm" id="meName"></span><span class="small" id="meRole"></span>
+        <button class="link" id="bChange" style="margin-left:auto">Change team</button></div>
+      <details class="cardinfo"><summary>Our role card</summary><div id="meCard"></div></details>
+    </div>
+    <div class="card" id="taskC"></div>
+    <div class="card" id="compose" hidden>
+      <h3>WRITE YOUR EMAIL</h3>
+      <div class="small" id="toLine"></div>
+      <div class="field" style="margin-top:8px"><label class="lbl" for="subj">SUBJECT</label><input class="txt" id="subj" maxlength="120" autocomplete="off"></div>
+      <div class="field"><label class="lbl" for="body">EMAIL</label><textarea class="txt" id="body" maxlength="3000" style="min-height:230px"></textarea></div>
+      <button class="jbtn" id="bSend">Send email</button>
+      <div class="msg" id="sMsg"></div>
+      <ol class="tips" id="tips"></ol>
+    </div>
+    <div class="card" id="nomC" hidden>
+      <h3>NOMINATE THE BEST LINE</h3>
+      <p class="small">Choose one email from the thread above, then type its best line. You can change your nomination.</p>
+      <div class="field"><select class="txt" id="nomRef" aria-label="Email"></select></div>
+      <div class="field"><textarea class="txt" id="nomTxt" maxlength="300" style="min-height:90px" aria-label="Best line"></textarea></div>
+      <button class="jbtn" id="bNom">Send nomination</button>
+      <div class="msg" id="nMsg"></div>
+    </div>
+    <div class="card"><h3 id="inboxH">INBOX</h3><div id="inbox"></div></div>
+  </div>
+  <div id="cfg"></div>
+</div>
+
+<script src="../config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="../live.js"></script>
+<script src="../data.js"></script>
+<script>
+(function () {
+  const { $, esc, store } = Live; const D = window.W4; const REG = D.registers; const P = D.pairings;
+  const RLBL = ["Inquiry", "Complaint", "Proposal"];
+  const ROLE_ICON = { client: "\uD83E\uDDD1\u200D\uD83D\uDCBC", company: "\uD83C\uDFE2" };
+  if (!Live.configured()) { $("#cfg").innerHTML = Live.notConfiguredHtml; $("#st").textContent = "Not set up"; return; }
+  let room = (Live.param("room") || "").toUpperCase();
+  if (!/^[A-Z]{4}$/.test(room)) {
+    $("#vRoom").hidden = false; $("#st").textContent = "";
+    $("#bRoom").onclick = () => { const r = $("#roomIn").value.trim().toUpperCase(); if (/^[A-Z]{4}$/.test(r)) location.search = "?room=" + r; };
+    return;
+  }
+  const KEY = "w4-exchange-" + room;
+  const me = store.get(KEY, null) || { id: Live.uid(), team: 0 }; store.set(KEY, me);
+  const ack = Live.acker(); let st = null, conn = null, got = false, lastTask = "";
+
+  const pairOf = (team) => { for (const p of P) { if (p.client.team === team) return { p, role: "client" }; if (p.company.team === team) return { p, role: "company" }; } return null; };
+  const other = (role) => (role === "client" ? "company" : "client");
+  function turn(p, round) {
+    if (!st || round < 1 || round > 3) return null;
+    const r = p.rounds[round - 1]; const list = st.threads[p.id].filter((e) => e.round === round);
+    const f = list.find((e) => e.move === "first"), rp = list.find((e) => e.move === "reply");
+    if (!f) return { role: r.first, move: "first", reg: r.reg };
+    if (!rp) return { role: other(r.first), move: "reply", reg: r.replyReg };
+    return { done: true };
+  }
+
+  $("#teams").innerHTML = P.map((p) => ["client", "company"].map((role) => { const s = p[role];
+    return '<button class="jbtn ghost" data-t="' + s.team + '">Team ' + s.team + " \u00B7 " + ROLE_ICON[role] + " " + esc(s.name) + "<small>" + (role === "client" ? "Client" : "Company") + " \u00B7 Pairing " + p.id + "</small></button>"; }).join("")).join("");
+  $("#teams").onclick = (e) => { const b = e.target.closest("[data-t]"); if (!b) return; me.team = +b.dataset.t; store.set(KEY, me); conn.send("hello", { id: me.id, team: me.team }); lastTask = ""; render(); };
+  $("#bChange").onclick = () => { me.team = 0; store.set(KEY, me); render(); };
+
+  const DK = () => KEY + "-t" + me.team + "-r" + (st ? st.round : 0);
+  ["subj", "body"].forEach((f) => $("#" + f).addEventListener("input", () => store.set(DK(), { subj: $("#subj").value, body: $("#body").value })));
+
+  function mailHtml(p, e, mineTeam) {
+    return '<div class="mail' + (e.team === mineTeam ? " mine" : "") + '"><div class="top"><span>R' + e.round + " \u00B7 " + RLBL[e.round - 1] + '</span><span class="reg reg-' + e.reg + '">' + REG[e.reg].icon + " " + REG[e.reg].name +
+      "</span>" + (e.team === mineTeam ? "<b>Sent by your team</b>" : "") + '</div><div class="small"><b>From:</b> ' + esc(p[e.role].name) + " &nbsp; <b>To:</b> " + esc(p[other(e.role)].name) +
+      '</div><div class="sj">' + esc(e.subject) + '</div><div class="bd">' + esc(e.body) + "</div></div>";
+  }
+
+  function render() {
+    $("#vTeam").hidden = !!me.team; $("#vMain").hidden = !me.team;
+    if (!me.team) return;
+    const { p, role } = pairOf(me.team); const mine = p[role];
+    $("#meIco").textContent = ROLE_ICON[role]; $("#meName").textContent = mine.name; $("#meRole").textContent = "Team " + me.team + " \u00B7 " + (role === "client" ? "Client" : "Company") + " \u00B7 Pairing " + p.id;
+    $("#meCard").innerHTML = "<p style='margin:8px 0 4px'>You are <b>" + esc(mine.who) + "</b>. " + esc(mine.person) + ".</p><p style='margin:4px 0'><b>You want:</b> " + esc(mine.wants) + "</p><ul class='facts'>" +
+      mine.facts.map((f) => "<li>" + esc(f) + "</li>").join("") + "</ul><div class='secret'><b>\uD83D\uDD12 Secret (don't show the other team):</b> " + esc(mine.secret) + "</div>";
+
+    // Task + composer
+    let taskHtml = "", canWrite = false;
+    if (!st || st.round === 0) taskHtml = '<div class="wait"><span class="big-ico">\uD83D\uDCE8</span>Read your role card. Round 1 starts soon.</div>';
+    else if (st.review) {
+      taskHtml = "<h3>PEER REVIEW</h3><div class='task'>Read Pairing " + D.reviewOf[p.id] + "'s thread below. Rate each email on Handout D. Then nominate the best line.</div>" +
+        (st.winner ? "<p><b>\u2B50 Best Line of the Day:</b> Team " + st.winner + (st.winner === me.team ? " \u2014 that's you!" : "") + "</p>" : "");
+    } else {
+      const r = p.rounds[st.round - 1]; const t = turn(p, st.round);
+      const myMove = r.first === role ? "first" : "reply";
+      const myReg = myMove === "first" ? r.reg : r.replyReg; const myTask = myMove === "first" ? r.task : r.reply;
+      let turnTxt;
+      if (t.done) turnTxt = '<div class="turn wait">\u2713 Round ' + st.round + " is done for your pairing. Wait for the next round.</div>";
+      else if (t.role === role) { canWrite = true; turnTxt = '<div class="turn go">\u270E Your turn: ' + (myMove === "first" ? "write the first email." : "write your reply.") + "</div>"; }
+      else turnTxt = '<div class="turn wait">\u23F3 Wait: ' + esc(p[other(role)].name) + " is writing" + (myMove === "reply" ? " first" : " their reply") + ". Fact-check and plan your next email.</div>";
+      taskHtml = "<h3>ROUND " + st.round + " \u00B7 " + RLBL[st.round - 1].toUpperCase() + "</h3>" + turnTxt +
+        "<div class='lbl'>YOUR TASK \u00B7 <span class='reg reg-" + myReg + "'>" + REG[myReg].icon + " " + REG[myReg].name + "</span></div><div class='task'>" + esc(myTask) + "</div>";
+      $("#toLine").innerHTML = "<b>From:</b> " + esc(mine.name) + " &nbsp; <b>To:</b> " + esc(p[other(role)].name) + " &nbsp; <span class='reg reg-" + myReg + "'>" + REG[myReg].icon + " " + REG[myReg].name + "</span>";
+    }
+    $("#taskC").innerHTML = taskHtml;
+    $("#compose").hidden = !canWrite;
+    const taskKey = me.team + "-" + (st ? st.round : 0) + "-" + canWrite;
+    if (canWrite && taskKey !== lastTask) { const d = store.get(DK(), null); $("#subj").value = d ? d.subj : ""; $("#body").value = d ? d.body : ""; $("#sMsg").textContent = ""; }
+    lastTask = taskKey;
+    $("#tips").innerHTML = D.exchangeTips.map((t) => "<li>" + esc(t) + "</li>").join("");
+
+    // Inbox / review thread
+    const showP = st && st.review ? P.find((x) => x.id === D.reviewOf[p.id]) : p;
+    $("#inboxH").textContent = st && st.review ? "PAIRING " + showP.id + "'S THREAD (FOR REVIEW)" : "YOUR PAIRING'S INBOX";
+    const list = st ? st.threads[showP.id] : [];
+    $("#inbox").innerHTML = list.length ? list.map((e) => mailHtml(showP, e, st.review ? -1 : me.team)).join("") : '<div class="empty">No emails yet.</div>';
+
+    $("#nomC").hidden = !(st && st.review);
+    if (st && st.review) {
+      const cur = $("#nomRef").value;
+      $("#nomRef").innerHTML = list.map((e) => { const v = "R" + e.round + " " + RLBL[e.round - 1] + " \u00B7 " + showP[e.role].name; return '<option value="' + esc(v) + '">' + esc(v) + "</option>"; }).join("");
+      if (cur) $("#nomRef").value = cur;
+      const n = st.noms[me.team];
+      if (n && !$("#nomTxt").value) $("#nomTxt").value = n.text;
+    }
+  }
+
+  $("#bSend").onclick = async () => {
+    const m = $("#sMsg"); const subject = $("#subj").value.trim(); const body = $("#body").value.trim();
+    if (!subject) { m.className = "msg bad"; m.textContent = "Add a subject line."; return; }
+    if (body.length < 40) { m.className = "msg bad"; m.textContent = "Your email is too short."; return; }
+    $("#bSend").disabled = true; m.className = "msg"; m.textContent = "Sending…";
+    const res = await ack.send(conn, "email", { id: me.id, team: me.team, round: st.round, subject, body });
+    $("#bSend").disabled = false;
+    if (res.ok) { store.del(DK()); m.className = "msg ok"; m.textContent = "Sent \u2713"; } else { m.className = "msg bad"; m.textContent = res.reason || "Try again."; }
+  };
+  $("#bNom").onclick = async () => {
+    const m = $("#nMsg"); const text = $("#nomTxt").value.trim();
+    if (text.length < 5) { m.className = "msg bad"; m.textContent = "Type the line first."; return; }
+    $("#bNom").disabled = true; m.className = "msg"; m.textContent = "Sending…";
+    const res = await ack.send(conn, "nominate", { id: me.id, team: me.team, ref: $("#nomRef").value, text });
+    $("#bNom").disabled = false;
+    m.className = "msg " + (res.ok ? "ok" : "bad"); m.textContent = res.ok ? "Nomination saved \u2713" : res.reason || "Try again.";
+  };
+
+  conn = Live.connect("email-exchange", room, {
+    events: {
+      state(p) { st = p; got = true; render(); },
+      ack(p) { if (p.to === me.id) ack.onAck(p); }
+    },
+    onStatus(s) { $("#st").textContent = s === "SUBSCRIBED" ? "Room " + room : Live.statusText(s); if (s === "SUBSCRIBED") hello(); }
+  });
+  function hello() { conn.send("hello", { id: me.id, team: me.team }); setTimeout(() => { if (!got) hello(); }, 3000); }
+  render();
+})();
+</script>
+</body>
+</html>
