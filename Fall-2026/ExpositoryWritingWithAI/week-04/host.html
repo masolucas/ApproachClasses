@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Host · Week 4 · AI Enters the Workshop</title>
+<link rel="stylesheet" href="styles.css">
+<script src="config.js"></script>
+<script src="content.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.79.0/dist/umd/supabase.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="monogram" aria-hidden="true">A</div>
+  <div class="brand-lines">
+    <span class="course">EXPOSITORY WRITING WITH AI</span>
+    <span class="session" id="sessionLine">WEEK 04 · HOST</span>
+  </div>
+  <div class="spacer"></div>
+  <span class="status wait" id="status" role="status">Connecting…</span>
+</header>
+
+<section class="pin-gate brackets" id="gate">
+  <span class="bk"></span>
+  <form class="pin-card" id="pinForm" autocomplete="off">
+    <p class="eyebrow">TEACHER ONLY</p>
+    <h1>Host <em>view.</em></h1>
+    <p>Enter the host PIN to control the missions.</p>
+    <label class="sr-only" for="pin">Host PIN</label>
+    <input type="password" id="pin" inputmode="numeric" placeholder="••••">
+    <button class="btn gold" type="submit">Open host view</button>
+    <p class="err hidden" id="pinErr" style="color:#F1A59C">That PIN is not correct.</p>
+  </form>
+</section>
+
+<div class="host-wrap hidden" id="app">
+  <section class="control brackets">
+    <span class="bk"></span>
+    <div>
+      <p class="eyebrow" id="codeLine"></p>
+      <p class="now" id="now"></p>
+      <p class="sub" id="sub"></p>
+    </div>
+    <div class="actions">
+      <button class="btn gold" id="openNext" type="button"></button>
+      <button class="btn ghost" id="undo" type="button"></button>
+    </div>
+  </section>
+
+  <div class="roster-head">
+    <h2>Who has finished</h2>
+    <span class="legend"><span class="dot on"></span>online now <span class="dot" style="margin-left:14px"></span>offline</span>
+  </div>
+  <div class="table-wrap">
+    <table class="roster" id="roster"></table>
+  </div>
+
+  <div class="danger-zone">
+    <p>Finished with this class? <b>Clean session</b> clears this table, closes every mission, and deletes saved work on every student laptop connected right now. Make sure everyone has downloaded their files first.</p>
+    <button class="btn danger" id="clean" type="button">Clean session</button>
+  </div>
+  <p class="page-footer" id="copy"></p>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  const CFG = window.APP_CONFIG || {};
+  const WEEK = window.WEEK;
+  const M = window.MISSIONS;
+  const CODE = String(CFG.CLASS_CODE || "CLASS").replace(/[^A-Za-z0-9-]/g, "");
+  const KEY = "ewai.w4." + CODE + ".host";
+  const PINKEY = "ewai.w4." + CODE + ".pin";
+  const CHANNEL = "ewai-w4-" + CODE;
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const fmtTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+
+  /* ------------------------------------------------ state (localStorage) */
+  const fresh = () => ({ active: 0, roster: {} });
+  function load() { try { const v = JSON.parse(localStorage.getItem(KEY)); if (v && typeof v.active === "number") return Object.assign(fresh(), v); } catch (e) {} return fresh(); }
+  let H = load();
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(H)); } catch (e) {} }
+  let online = new Set();
+
+  /* ------------------------------------------------ PIN gate */
+  function unlock() { $("gate").classList.add("hidden"); $("app").classList.remove("hidden"); render(); connect(); }
+  let pinOk = false;
+  try { pinOk = sessionStorage.getItem(PINKEY) === "ok"; } catch (e) {}
+  if (pinOk || !CFG.HOST_PIN) unlock();
+  else $("pin").focus();
+  $("pinForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    if ($("pin").value === String(CFG.HOST_PIN)) { try { sessionStorage.setItem(PINKEY, "ok"); } catch (x) {} unlock(); }
+    else { $("pinErr").classList.remove("hidden"); $("pin").select(); }
+  });
+
+  /* ------------------------------------------------ render */
+  function students() {
+    return Object.keys(H.roster).map((id) => Object.assign({ id }, H.roster[id]))
+      .sort((a, b) => (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" }));
+  }
+  function render() {
+    const a = H.active, cur = M[a], next = M[a + 1];
+    const list = students();
+    $("sessionLine").textContent = "WEEK 04 · HOST · " + WEEK.title.toUpperCase();
+    $("codeLine").textContent = "CLASS CODE " + CODE + " · " + list.length + " SIGNED IN · " + list.filter((s) => online.has(s.id)).length + " ONLINE";
+    $("now").innerHTML = a === 0 ? "Students are signing the <em>contract.</em>" : "<em>" + esc(cur.tab) + "</em> is open.";
+    const doneCount = list.filter((s) => s.completed && s.completed[cur.key]).length;
+    $("sub").innerHTML = "<b>" + doneCount + "/" + list.length + "</b> finished " + (a === 0 ? "signing" : esc(cur.tab));
+    $("openNext").textContent = next ? "Open " + next.tab : "All missions are open";
+    $("openNext").disabled = !next;
+    $("undo").textContent = a > 0 ? "Undo: close " + cur.tab : "Undo";
+    $("undo").disabled = a === 0;
+    $("copy").textContent = WEEK.copyright;
+
+    let h = "<thead><tr><th>Student</th>" + M.map((m, i) => '<th class="' + (i <= a ? "open-col" : "closed-col") + '">' + (i <= a ? "" : "🔒 ") + esc(m.tab) + "</th>").join("") + "</tr></thead><tbody>";
+    if (!list.length) h += '<tr><td class="empty-roster" colspan="' + (M.length + 1) + '">No students yet. They appear here when they sign the contract.</td></tr>';
+    list.forEach((s) => {
+      h += '<tr><td class="name"><span class="dot' + (online.has(s.id) ? " on" : "") + '" title="' + (online.has(s.id) ? "Online" : "Offline") + '"></span>' + esc(s.name || "(no name)") + "</td>";
+      M.forEach((m) => {
+        const t = s.completed && s.completed[m.key];
+        h += t ? '<td><span class="tick">✓<small>' + esc(fmtTime(t)) + "</small></span></td>" : '<td><span class="pending" aria-label="not yet">–</span></td>';
+      });
+      h += "</tr>";
+    });
+    $("roster").innerHTML = h + "</tbody>";
+  }
+
+  /* ------------------------------------------------ controls */
+  $("openNext").onclick = () => { if (H.active < M.length - 1) { H.active++; save(); sendState(); render(); } };
+  $("undo").onclick = () => { if (H.active > 0) { H.active--; save(); sendState(); render(); } };
+  $("clean").onclick = () => confirmModal();
+
+  function confirmModal() {
+    const back = document.createElement("div"); back.className = "modal-back";
+    back.innerHTML = '<div class="modal" role="dialog" aria-modal="true" aria-label="Clean session">' +
+      "<h3>Clean this session?</h3>" +
+      "<p>This deletes the table, closes every mission, and erases saved work on every student laptop that is connected now. Laptops that are offline keep their work until the student clears it.</p>" +
+      '<label for="confirmTxt" class="fine" style="display:block;margin:0 0 6px">Type <b>CLEAN</b> to confirm.</label>' +
+      '<input type="text" id="confirmTxt" autocomplete="off">' +
+      '<div class="row"><button class="btn" type="button" id="cCancel">Cancel</button><button class="btn danger" type="button" id="cGo" disabled>Delete everything</button></div></div>';
+    document.body.appendChild(back);
+    const inp = back.querySelector("#confirmTxt"), go = back.querySelector("#cGo");
+    inp.focus();
+    inp.addEventListener("input", () => { go.disabled = inp.value.trim().toUpperCase() !== "CLEAN"; });
+    back.querySelector("#cCancel").onclick = () => back.remove();
+    back.addEventListener("click", (e) => { if (e.target === back) back.remove(); });
+    go.onclick = () => { back.remove(); cleanSession(); };
+  }
+  function cleanSession() {
+    if (channel) channel.send({ type: "broadcast", event: "reset", payload: {} });
+    H = fresh(); online = new Set();
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    save();
+    setTimeout(sendState, 800);
+    render();
+  }
+
+  /* ------------------------------------------------ realtime (Supabase Broadcast + Presence, no tables) */
+  let channel = null, ready = false;
+  function setStatus(kind, text) { const s = $("status"); s.className = "status " + kind; s.textContent = text; }
+  function sendState() { if (channel && ready) channel.send({ type: "broadcast", event: "state", payload: { active: H.active } }); }
+  function mergePresence() {
+    const st = channel.presenceState();
+    online = new Set();
+    Object.keys(st).forEach((key) => {
+      (st[key] || []).forEach((p) => {
+        if (!p || p.role !== "student" || !p.id) return;
+        online.add(p.id);
+        const r = H.roster[p.id] || { name: "", completed: {} };
+        r.name = p.name || r.name;
+        r.completed = Object.assign({}, r.completed || {});
+        Object.keys(p.completed || {}).forEach((k) => { r.completed[k] = r.completed[k] || p.completed[k]; });
+        r.lastSeen = Date.now();
+        H.roster[p.id] = r;
+      });
+    });
+    save(); render();
+  }
+  function connect() {
+    const url = CFG.SUPABASE_URL || "", key = CFG.SUPABASE_ANON_KEY || "";
+    if (!window.supabase || !url || /YOUR-/.test(url + key)) { setStatus("off", "Not connected"); $("status").title = "Add your Supabase keys in config.js"; return; }
+    const client = window.supabase.createClient(url, key);
+    channel = client.channel(CHANNEL, { config: { broadcast: { self: false }, presence: { key: "host" } } });
+    channel
+      .on("presence", { event: "sync" }, mergePresence)
+      .on("broadcast", { event: "hello" }, () => sendState())
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") { ready = true; setStatus("on", "Connected"); channel.track({ role: "host" }).catch(() => {}); sendState(); }
+        else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") { ready = false; setStatus("wait", "Reconnecting…"); }
+        else if (status === "CLOSED") { ready = false; setStatus("off", "Offline"); }
+      });
+    setInterval(sendState, 15000);   // safety net for anyone who missed an update
+  }
+  window.addEventListener("offline", () => setStatus("off", "Offline"));
+})();
+</script>
+</body>
+</html>

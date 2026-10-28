@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Week 4 · AI Enters the Workshop</title>
+<link rel="stylesheet" href="styles.css">
+<script src="config.js"></script>
+<script src="content.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.79.0/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@9.5.0/dist/index.iife.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="monogram" aria-hidden="true">A</div>
+  <div class="brand-lines">
+    <span class="course">EXPOSITORY WRITING WITH AI</span>
+    <span class="session">WEEK 04 · AI ENTERS THE WORKSHOP</span>
+  </div>
+  <div class="spacer"></div>
+  <span class="who" id="who"></span>
+  <span class="status wait" id="status" role="status">Connecting…</span>
+</header>
+
+<nav class="stepper" aria-label="Missions"><ol id="stepper"></ol></nav>
+
+<main id="main"></main>
+
+<div class="actionbar hidden" id="actionbar">
+  <div class="inner">
+    <span class="state" id="abState"></span>
+    <button class="btn" id="abWord" type="button">Download Word</button>
+    <button class="btn" id="abPdf" type="button">Download PDF</button>
+    <button class="btn primary" id="abDone" type="button">I'm done</button>
+    <button class="btn gold hidden" id="abNext" type="button">Next mission</button>
+  </div>
+</div>
+
+<div id="print-root" aria-hidden="true"></div>
+
+<script>
+(function () {
+  "use strict";
+  const CFG = window.APP_CONFIG || {};
+  const WEEK = window.WEEK;
+  const M = window.MISSIONS;
+  const CODE = String(CFG.CLASS_CODE || "CLASS").replace(/[^A-Za-z0-9-]/g, "");
+  const KEY = "ewai.w4." + CODE + ".student";
+  const CHANNEL = "ewai-w4-" + CODE;
+  const $ = (id) => document.getElementById(id);
+
+  /* ------------------------------------------------ state (localStorage) */
+  const uid = () => (crypto.randomUUID ? crypto.randomUUID() : "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8));
+  const today = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+  function fresh() { return { id: uid(), name: "", date: today(), fields: {}, completed: {}, active: 0, view: 0 }; }
+  function load() {
+    try { const v = JSON.parse(localStorage.getItem(KEY)); if (v && v.id) return Object.assign(fresh(), v); } catch (e) {}
+    return fresh();
+  }
+  let S = load();
+  let saveWarned = false;
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(S)); }
+    catch (e) { if (!saveWarned) { saveWarned = true; toast("This browser is not saving your work. Download your file often.", "warn"); } }
+  }
+  function wipe() { try { localStorage.removeItem(KEY); } catch (e) {} location.reload(); }
+
+  const signed = () => !!S.completed.contract;
+  function isOpen(i) {
+    if (i === 0) return true;
+    if (!signed()) return false;
+    return i <= S.active || !!S.completed[M[i].key];
+  }
+
+  /* ------------------------------------------------ helpers */
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const words = (t) => (String(t || "").trim().match(/\S+/g) || []).length;
+  const fmtTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const lastName = () => { const p = (S.name || "").trim().split(/\s+/); const l = (p[p.length - 1] || "Student").normalize("NFD").replace(/[^A-Za-z0-9-]/g, ""); return l || "Student"; };
+  const fileBase = (i) => "Week4_" + M[i].fileTag + "_" + lastName();
+  function el(tag, attrs, html) {
+    const e = document.createElement(tag);
+    if (attrs) for (const k in attrs) { if (k === "class") e.className = attrs[k]; else e.setAttribute(k, attrs[k]); }
+    if (html != null) e.innerHTML = html;
+    return e;
+  }
+
+  /* ------------------------------------------------ toast + modal */
+  let toastTimer = null;
+  function toast(msg, kind, action) {
+    document.querySelectorAll(".toast").forEach((t) => t.remove());
+    const t = el("div", { class: "toast" + (kind === "warn" ? " warn" : ""), role: "status" });
+    t.appendChild(el("span", null, esc(msg)));
+    if (action) { const b = el("button", { class: "btn gold", type: "button" }, esc(action.label)); b.onclick = () => { t.remove(); action.fn(); }; t.appendChild(b); }
+    document.body.appendChild(t);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.remove(), action ? 12000 : 5000);
+  }
+  function modal(title, text, buttons, fine) {
+    const back = el("div", { class: "modal-back" });
+    const m = el("div", { class: "modal", role: "dialog", "aria-modal": "true", "aria-label": title });
+    m.appendChild(el("h3", null, esc(title)));
+    m.appendChild(el("p", null, esc(text)));
+    const row = el("div", { class: "row" });
+    buttons.forEach((b) => { const x = el("button", { class: "btn " + (b.cls || ""), type: "button" }, esc(b.label)); x.onclick = () => { back.remove(); b.fn && b.fn(); }; row.appendChild(x); });
+    m.appendChild(row);
+    if (fine) m.appendChild(el("p", { class: "fine" }, esc(fine)));
+    back.appendChild(m);
+    back.addEventListener("click", (e) => { if (e.target === back) back.remove(); });
+    document.addEventListener("keydown", function k(e) { if (e.key === "Escape") { back.remove(); document.removeEventListener("keydown", k); } });
+    document.body.appendChild(back);
+    const first = m.querySelector("button"); first && first.focus();
+  }
+
+  /* ------------------------------------------------ stepper */
+  function renderStepper() {
+    const ol = $("stepper"); ol.innerHTML = "";
+    M.forEach((m, i) => {
+      const open = isOpen(i), done = !!S.completed[m.key];
+      const b = el("button", { type: "button", class: (open ? "" : "locked ") + (done ? "done " : "") + (S.view === i ? "current" : "") });
+      b.innerHTML = '<span class="ico" aria-hidden="true">' + (done ? "✓" : open ? "" : "🔒") + "</span>" + esc(m.tab) +
+        '<span class="sr-only">' + (done ? " (completed)" : open ? " (open)" : " (locked)") + "</span>";
+      if (S.view === i) b.setAttribute("aria-current", "page");
+      b.onclick = () => go(i);
+      const li = el("li"); li.appendChild(b); ol.appendChild(li);
+    });
+    $("who").textContent = S.name || "";
+  }
+  function go(i) { document.querySelectorAll(".toast").forEach((t) => t.remove()); S.view = i; save(); render(); window.scrollTo({ top: 0 }); }
+
+  /* ------------------------------------------------ page render */
+  function render() {
+    renderStepper();
+    const i = S.view, m = M[i], main = $("main");
+    main.innerHTML = "";
+    if (!isOpen(i)) {
+      $("actionbar").classList.add("hidden");
+      const msg = !signed() ? "Sign the AI Writing Contract first. Then your teacher will open the missions one at a time."
+                            : "Your teacher will open this mission when the class is ready. Keep working on the open ones.";
+      main.innerHTML = '<div class="locked-page"><div class="lock" aria-hidden="true">🔒</div><h2>' + esc(m.tab) + ": " + esc(m.title.join("")) +
+        "</h2><p>" + esc(msg) + "</p></div>";
+      return;
+    }
+
+    const hero = el("section", { class: "hero brackets" });
+    hero.appendChild(el("span", { class: "bk" }));
+    hero.appendChild(el("div", { class: "hero-inner" },
+      '<p class="eyebrow">' + esc(m.eyebrow) + "</p>" +
+      "<h1>" + esc(m.title[0]) + "<em>" + esc(m.title[1]) + "</em></h1>" +
+      '<p class="intro">' + esc(m.intro) + "</p>" +
+      '<p class="meta">' + esc(m.meta) + "</p>"));
+    main.appendChild(hero);
+
+    const c = el("div", { class: "content" });
+    m.sections.forEach((s) => c.appendChild(renderSection(s)));
+    main.appendChild(c);
+
+    renderActionbar();
+  }
+
+  function bindInput(input, id, onChange) {
+    input.id = "f_" + id;
+    input.value = S.fields[id] || "";
+    input.addEventListener("input", () => {
+      S.fields[id] = input.value; save();
+      input.classList.remove("invalid");
+      const w = input.closest(".field"); if (w) { w.classList.remove("invalid"); const e = w.querySelector(".err"); e && e.remove(); }
+      onChange && onChange();
+    });
+  }
+
+  function renderSection(s) {
+    switch (s.type) {
+      case "heading": return el("h2", null, esc(s.text));
+      case "text": return el("p", { class: "text" }, esc(s.body));
+      case "steps": return el("ol", { class: "steps" }, s.items.map((t) => "<li>" + esc(t) + "</li>").join(""));
+      case "note": return el("div", { class: "note" + (s.strong ? " strong" : "") }, '<p class="label">' + esc(s.label) + "</p><p>" + esc(s.body) + "</p>");
+      case "rules": return el("ol", { class: "rules" }, s.items.map((r) => "<li><strong>" + esc(r[0]) + "</strong><p>" + esc(r[1]) + "</p></li>").join(""));
+      case "example": return el("div", { class: "example" }, '<p class="label">EXAMPLE</p>' + s.lines.map((l) => "<p><b>[" + esc(l[0]) + "]</b> " + esc(l[1]) + "</p>").join(""));
+      case "prompt": {
+        const box = el("div", { class: "prompt" });
+        box.innerHTML = '<span class="tag">PASTE INTO CLAUDE</span><p>' + esc(s.text) + "</p>";
+        const b = el("button", { class: "copy-btn", type: "button" }, "Copy prompt");
+        b.onclick = () => copyText(s.text, b);
+        box.appendChild(b);
+        return box;
+      }
+      case "field": {
+        const w = el("div", { class: "field" });
+        w.dataset.fid = s.id;
+        w.appendChild(el("label", { for: "f_" + s.id }, esc(s.label)));
+        if (s.help) w.appendChild(el("span", { class: "help" }, esc(s.help)));
+        const input = s.rows === 1 ? el("input", { type: "text" }) : el("textarea", { rows: s.rows || 4 });
+        if (s.placeholder) input.placeholder = s.placeholder;
+        let counter = null;
+        if (s.showCount) counter = el("div", { class: "counter", "aria-live": "polite" });
+        const upd = () => { if (counter) updateCounter(counter, s, input.value); };
+        bindInput(input, s.id, () => { upd(); renderActionbar(); });
+        w.appendChild(input);
+        if (counter) { w.appendChild(counter); upd(); }
+        return w;
+      }
+      case "list": {
+        const w = el("div", { class: "field" });
+        w.dataset.fid = s.id;
+        w.appendChild(el("span", { class: "list-label" }, esc(s.label)));
+        const ol = el("ol", { class: "list-inputs" });
+        for (let k = 1; k <= s.count; k++) {
+          const li = el("li"); const inp = el("input", { type: "text", "aria-label": s.label + " " + k });
+          bindInput(inp, s.id + "_" + k); li.appendChild(inp); ol.appendChild(li);
+        }
+        w.appendChild(ol);
+        return w;
+      }
+      case "grid": {
+        const w = el("div", { class: "field" });
+        w.dataset.fid = s.id;
+        const wrap = el("div", { class: "grid-wrap" });
+        const t = el("table", { class: "eval" });
+        t.innerHTML = "<thead><tr><th>Prompt</th>" + s.cols.map((x) => "<th>" + esc(x) + "</th>").join("") + "</tr></thead>";
+        const tb = el("tbody");
+        s.rows.forEach((r, ri) => {
+          const tr = el("tr"); tr.appendChild(el("td", null, esc(r)));
+          s.cols.forEach((col, ci) => {
+            const td = el("td"); const ta = el("textarea", { rows: 3, "aria-label": r + ": " + col });
+            bindInput(ta, s.id + "_" + ri + "_" + ci); td.appendChild(ta); tr.appendChild(td);
+          });
+          tb.appendChild(tr);
+        });
+        t.appendChild(tb); wrap.appendChild(t); w.appendChild(wrap);
+        return w;
+      }
+      case "signature": {
+        const w = el("div");
+        const box = el("div", { class: "signature field" });
+        box.dataset.fid = "__sign";
+        const n = el("div"); n.appendChild(el("label", { for: "sig_name" }, "Type your full name"));
+        const ni = el("input", { type: "text", id: "sig_name", autocomplete: "name", placeholder: "First and last name" });
+        ni.value = S.name;
+        const d = el("div"); d.appendChild(el("label", { for: "sig_date" }, "Date"));
+        const di = el("input", { type: "date", id: "sig_date" });
+        di.value = S.date || today();
+        if (signed()) { ni.readOnly = true; di.readOnly = true; }
+        ni.addEventListener("input", () => { S.name = ni.value; save(); ni.classList.remove("invalid"); const e = box.querySelector(".err"); e && e.remove(); renderActionbar(); });
+        di.addEventListener("input", () => { S.date = di.value; save(); });
+        n.appendChild(ni); d.appendChild(di); box.appendChild(n); box.appendChild(d);
+        w.appendChild(box);
+        if (signed()) {
+          const p = el("p", { class: "signed-as" }, "Signed as " + esc(S.name) + " at " + esc(fmtTime(S.completed.contract)) + ". ");
+          const lk = el("button", { class: "linkish", type: "button" }, "Not you? Clear this laptop");
+          lk.onclick = () => modal("Clear this laptop?", "This deletes everything saved on this page for " + (S.name || "this student") + ". Download any files you need first.",
+            [{ label: "Keep my work" }, { label: "Delete and start over", cls: "danger", fn: wipe }]);
+          p.appendChild(lk); w.appendChild(p);
+        }
+        return w;
+      }
+    }
+    return el("div");
+  }
+
+  function updateCounter(node, s, val) {
+    const n = words(val);
+    let ok = true, txt = n + (n === 1 ? " word" : " words");
+    if (s.minWords && s.maxWords) { ok = n >= s.minWords && n <= s.maxWords; txt += " · needs " + s.minWords + "–" + s.maxWords; }
+    else if (s.target) { ok = n >= s.minWords; txt += " · aim for about " + s.target; }
+    else if (s.minWords) { ok = n >= s.minWords; txt += " · at least " + s.minWords; }
+    node.textContent = txt;
+    node.className = "counter " + (n === 0 ? "" : ok ? "ok" : "bad");
+  }
+
+  function copyText(text, btn) {
+    const done = () => { btn.textContent = "Copied"; btn.classList.add("ok"); setTimeout(() => { btn.textContent = "Copy prompt"; btn.classList.remove("ok"); }, 1800); };
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
+    function fallback() { const ta = el("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); done(); } catch (e) { toast("Select the prompt text and copy it by hand.", "warn"); } ta.remove(); }
+  }
+
+  /* ------------------------------------------------ validation */
+  function validate(i) {
+    const errs = [];
+    const add = (fid, msg, inputId) => errs.push({ fid, msg, inputId });
+    M[i].sections.forEach((s) => {
+      if (s.type === "signature") {
+        if ((S.name || "").trim().length < 3) add("__sign", "Type your full name to sign.", "sig_name");
+      } else if (s.type === "field" && s.required) {
+        const v = (S.fields[s.id] || "").trim(), n = words(v);
+        if (!v) add(s.id, "This box is empty.", "f_" + s.id);
+        else if (s.minWords && s.maxWords && (n < s.minWords || n > s.maxWords)) add(s.id, "Your essay has " + n + " words. It needs " + s.minWords + "–" + s.maxWords + ".", "f_" + s.id);
+        else if (s.minWords && !s.maxWords && n < s.minWords) add(s.id, "Write at least " + s.minWords + " words (now " + n + ").", "f_" + s.id);
+      } else if (s.type === "list" && s.required) {
+        for (let k = 1; k <= s.count; k++) if (!(S.fields[s.id + "_" + k] || "").trim()) { add(s.id, "Write all " + s.count + " points.", "f_" + s.id + "_" + k); break; }
+      } else if (s.type === "grid" && s.required) {
+        let missing = null;
+        s.rows.forEach((r, ri) => s.cols.forEach((c, ci) => { const id = s.id + "_" + ri + "_" + ci; if (!missing && !(S.fields[id] || "").trim()) missing = id; }));
+        if (missing) add(s.id, "Fill in every box in the grid.", "f_" + missing);
+      }
+    });
+    return errs;
+  }
+  function showErrors(errs) {
+    document.querySelectorAll(".field .err").forEach((e) => e.remove());
+    errs.forEach((e) => {
+      const w = document.querySelector('[data-fid="' + e.fid + '"]');
+      if (w) { w.classList.add("invalid"); w.appendChild(el("div", { class: "err" }, esc(e.msg))); }
+    });
+    const first = errs[0] && document.getElementById(errs[0].inputId);
+    if (first) { first.scrollIntoView({ behavior: "smooth", block: "center" }); setTimeout(() => first.focus({ preventScroll: true }), 300); }
+  }
+
+  /* ------------------------------------------------ action bar */
+  function nextOpenIndex(i) { for (let k = i + 1; k < M.length; k++) if (isOpen(k)) return k; return -1; }
+  function renderActionbar() {
+    const i = S.view, m = M[i], bar = $("actionbar");
+    if (!isOpen(i)) { bar.classList.add("hidden"); return; }
+    bar.classList.remove("hidden");
+    const done = S.completed[m.key];
+    const st = $("abState");
+    if (done) { st.textContent = "✓ Completed at " + fmtTime(done) + ". You can still edit and download again."; st.className = "state done"; }
+    else { st.textContent = i === 0 ? "Sign to unlock Mission 1." : "Your work saves on this laptop as you type."; st.className = "state"; }
+    $("abDone").textContent = i === 0 ? (signed() ? "Signed" : m.doneLabel) : (done ? "Completed" : "I'm done");
+    $("abDone").disabled = !!done;
+    $("abDone").classList.toggle("hidden", !!done && nextOpenIndex(i) > -1);
+    const nx = nextOpenIndex(i);
+    $("abNext").classList.toggle("hidden", !(done && nx > -1));
+    if (nx > -1) $("abNext").textContent = "Go to " + M[nx].tab;
+    const canDownload = i === 0 ? signed() || (S.name || "").trim().length >= 3 : true;
+    $("abWord").disabled = !canDownload; $("abPdf").disabled = !canDownload;
+  }
+  $("abWord").onclick = () => downloadDocx(S.view);
+  $("abPdf").onclick = () => downloadPdf(S.view);
+  $("abNext").onclick = () => { const nx = nextOpenIndex(S.view); if (nx > -1) go(nx); };
+  $("abDone").onclick = () => {
+    const i = S.view, errs = validate(i);
+    if (errs.length) { showErrors(errs); toast(errs.length === 1 ? "One box still needs your work." : errs.length + " boxes still need your work.", "warn"); return; }
+    const isContract = i === 0;
+    modal(isContract ? "Sign and save your contract" : "Save your " + M[i].tab + " file",
+      "Choose a format. Your file downloads first, then your teacher sees that you're done. This is the file you will submit.",
+      [{ label: "Word (.docx)", cls: "primary", fn: () => finish(i, "docx") }, { label: "PDF", fn: () => finish(i, "pdf") }],
+      "File name: " + fileBase(i) + (isContract ? "" : "  ·  You can download again later."));
+  };
+
+  async function finish(i, fmt) {
+    if (i === 0 && !S.date) S.date = today();
+    S.completed[M[i].key] = Date.now();                 // set first so the file shows the completion time
+    try { if (fmt === "docx") await downloadDocx(i, true); else downloadPdf(i, true); }
+    catch (e) { console.error(e); delete S.completed[M[i].key]; toast("The file did not download. Try the other format.", "warn"); return; }
+    save(); track(); render();
+    const nx = nextOpenIndex(i);
+    if (nx > -1) toast(M[i].tab + " complete.", null, { label: "Go to " + M[nx].tab, fn: () => go(nx) });
+    else toast(i === M.length - 1 ? "Closing reflection complete. You've finished Week 4." : M[i].tab + " complete. Wait for your teacher to open the next mission.");
+  }
+
+  /* ------------------------------------------------ export model (shared by Word + PDF) */
+  function exportBlocks(i) {
+    const out = [];
+    M[i].sections.forEach((s) => {
+      switch (s.type) {
+        case "heading": out.push({ t: "h2", text: s.text }); break;
+        case "prompt": out.push({ t: "prompt", text: s.text }); break;
+        case "note": out.push({ t: "note", label: s.label, text: s.body }); break;
+        case "rules": s.items.forEach((r, k) => out.push({ t: "rule", n: k + 1, title: r[0], text: r[1] })); break;
+        case "example": out.push({ t: "note", label: "Example", text: s.lines.map((l) => "[" + l[0] + "] " + l[1]).join("\n") }); break;
+        case "field": {
+          const v = S.fields[s.id] || "";
+          out.push({ t: "field", label: s.label, value: v, count: s.showCount ? words(v) : null });
+          break;
+        }
+        case "list": {
+          const lines = []; for (let k = 1; k <= s.count; k++) lines.push(k + ". " + (S.fields[s.id + "_" + k] || ""));
+          out.push({ t: "field", label: s.label, value: lines.join("\n") }); break;
+        }
+        case "grid": out.push({ t: "grid", head: ["Prompt"].concat(s.cols), rows: s.rows.map((r, ri) => [r].concat(s.cols.map((c, ci) => S.fields[s.id + "_" + ri + "_" + ci] || ""))) }); break;
+        case "signature": out.push({ t: "sign", name: S.name, date: S.date, at: S.completed.contract ? new Date(S.completed.contract).toLocaleString() : "" }); break;
+      }
+    });
+    return out;
+  }
+  const niceDate = () => { const d = S.date ? new Date(S.date + "T12:00:00") : new Date(); return d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }); };
+
+  /* ------------------------------------------------ Word (.docx) */
+  function saveBlob(blob, name) {
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  }
+  async function downloadDocx(i, strict) {
+    if (!window.docx) { const e = new Error("docx library missing"); if (strict) throw e; toast("Word download is not available right now. Use PDF.", "warn"); return; }
+    const D = window.docx, m = M[i];
+    const NAVY = "0C2340", GOLD = "AE9142", GOLDK = "8C7535", INKS = "3D3D3D";
+    const run = (text, o) => new D.TextRun(Object.assign({ text, font: "Calibri", size: 22, color: "1A1A1A" }, o || {}));
+    const P = (children, o) => new D.Paragraph(Object.assign({ children, spacing: { after: 100 } }, o || {}));
+    const linesToRuns = (text, o) => { const parts = String(text).split("\n"); const r = []; parts.forEach((p, k) => r.push(run(p, Object.assign(k ? { break: 1 } : {}, o)))); return r; };
+    const none = { style: D.BorderStyle.NONE, size: 0, color: "FFFFFF" };
+    const thin = (c) => ({ style: D.BorderStyle.SINGLE, size: 6, color: c || "9AA3AF" });
+    const pad = (c) => ({ style: D.BorderStyle.SINGLE, size: 6, color: c, space: 6 });
+    const kids = [];
+
+    kids.push(P([run("PROCESS JOURNAL · ENTRY 4 · " + m.eyebrow, { bold: true, size: 18, color: GOLDK, characterSpacing: 40 })], { spacing: { after: 60 } }));
+    kids.push(P([run(m.title.join(""), { font: "Cambria", size: 48, color: NAVY })], { spacing: { after: 60 } }));
+    kids.push(P([run("Week 4 · " + WEEK.title, { font: "Cambria", italics: true, size: 22, color: INKS })], { spacing: { after: 200 } }));
+    const done = S.completed[m.key];
+    kids.push(P([run("Name: ", { bold: true, color: NAVY }), run(S.name || ""), run("     Date: ", { bold: true, color: NAVY }), run(niceDate()),
+                 run(done && i ? "     Completed: " : "", { bold: true, color: NAVY }), run(done && i ? fmtTime(done) : "")],
+      { border: { top: thin(NAVY), bottom: thin(NAVY) }, spacing: { before: 60, after: 280 } }));
+
+    exportBlocks(i).forEach((b) => {
+      if (b.t === "h2") kids.push(P([run(b.text, { font: "Cambria", size: 28, color: NAVY })], { spacing: { before: 280, after: 80 }, keepNext: true }));
+      else if (b.t === "prompt") kids.push(P([run("Prompt sent to Claude: ", { bold: true, size: 20, color: GOLDK }), run(b.text, { font: "Cambria", italics: true, size: 20, color: INKS })], { spacing: { after: 120 } }));
+      else if (b.t === "note") kids.push(P([run(b.label.toUpperCase(), { bold: true, size: 17, color: GOLDK, characterSpacing: 30 }), new D.TextRun({ break: 1 })].concat(linesToRuns(b.text, { font: "Cambria", size: 21 })),
+        { border: { top: pad(GOLD), bottom: pad(GOLD), left: pad(GOLD), right: pad(GOLD) }, indent: { left: 140, right: 140 }, spacing: { before: 160, after: 200 } }));
+      else if (b.t === "rule") {
+        kids.push(P([run("Rule " + b.n + ".  ", { font: "Cambria", italics: true, color: GOLDK }), run(b.title, { font: "Cambria", bold: true, color: NAVY })], { spacing: { before: 140, after: 40 }, keepNext: true }));
+        kids.push(P([run(b.text, { font: "Cambria", size: 21, color: INKS })], { indent: { left: 360 } }));
+      }
+      else if (b.t === "field") {
+        kids.push(P([run(b.label, { bold: true, color: NAVY })], { spacing: { before: 180, after: 60 }, keepNext: true }));
+        const paras = String(b.value || "").split("\n");
+        paras.forEach((p) => kids.push(P([run(p)], { border: { left: { style: D.BorderStyle.SINGLE, size: 12, color: GOLD, space: 8 } }, indent: { left: 200 }, spacing: { after: 40, line: 300 } })));
+        if (b.count != null) kids.push(P([run("Word count: " + b.count, { font: "Consolas", size: 18, color: INKS })], { spacing: { before: 60, after: 120 } }));
+      }
+      else if (b.t === "grid") {
+        const mk = (text, head, first) => new D.TableCell({
+          children: String(text || "").split("\n").map((ln) => P([run(ln, { bold: head || first, color: head || first ? NAVY : "1A1A1A", size: 20 })], { spacing: { after: 20 } })),
+          borders: { top: thin(), bottom: head ? thin(NAVY) : thin(), left: thin(), right: thin() },
+          margins: { top: 80, bottom: 80, left: 100, right: 100 },
+          width: { size: first ? 2400 : 3480, type: D.WidthType.DXA }
+        });
+        kids.push(new D.Table({
+          width: { size: 9360, type: D.WidthType.DXA }, columnWidths: [2400, 3480, 3480],
+          rows: [new D.TableRow({ tableHeader: true, children: b.head.map((h, k) => mk(h, true, k === 0)) })]
+            .concat(b.rows.map((r) => new D.TableRow({ children: r.map((v, k) => mk(v, false, k === 0)) })))
+        }));
+        kids.push(P([run("")]));
+      }
+      else if (b.t === "sign") {
+        const cell = (label, val) => new D.TableCell({
+          children: [P([run(label, { bold: true, size: 17, color: GOLDK, characterSpacing: 30 })], { spacing: { after: 40 } }), P([run(val || "", { font: "Cambria", italics: true, size: 28, color: NAVY })])],
+          borders: { top: thin(NAVY), bottom: thin(NAVY), left: thin(NAVY), right: thin(NAVY) }, margins: { top: 120, bottom: 120, left: 140, right: 140 },
+          width: { size: 4680, type: D.WidthType.DXA }
+        });
+        kids.push(new D.Table({ width: { size: 9360, type: D.WidthType.DXA }, columnWidths: [4680, 4680],
+          rows: [new D.TableRow({ children: [cell("SIGNED (FULL NAME)", b.name), cell("DATE", niceDate())] })] }));
+        if (b.at) kids.push(P([run("Signed in class: " + b.at, { font: "Consolas", size: 17, color: INKS })], { spacing: { before: 80 } }));
+      }
+    });
+
+    const doc = new D.Document({
+      creator: "Expository Writing with AI", title: fileBase(i),
+      styles: { default: { document: { run: { font: "Calibri", size: 22 } } } },
+      sections: [{
+        properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 1080, bottom: 1080, left: 1260, right: 1260 } } },
+        headers: { default: new D.Header({ children: [P([run("APPROACH INTERNATIONAL STUDENT CENTER", { bold: true, size: 16, color: NAVY, characterSpacing: 40 }), run("     " + WEEK.course + " · " + WEEK.term, { font: "Cambria", italics: true, size: 18, color: INKS })],
+          { border: { bottom: { style: D.BorderStyle.SINGLE, size: 8, color: GOLD, space: 4 } } })] }) },
+        footers: { default: new D.Footer({ children: [P([run(WEEK.copyright, { size: 15, color: "666B73" }), run("     Page ", { size: 15, color: "666B73" }), new D.TextRun({ children: [D.PageNumber.CURRENT], size: 15, color: "666B73", font: "Calibri" })],
+          { border: { top: { style: D.BorderStyle.SINGLE, size: 6, color: GOLD, space: 4 } } })] }) },
+        children: kids
+      }]
+    });
+    const blob = await D.Packer.toBlob(doc);
+    saveBlob(blob, fileBase(i) + ".docx");
+  }
+
+  /* ------------------------------------------------ PDF (print view) */
+  function downloadPdf(i) {
+    const m = M[i], done = S.completed[m.key];
+    const val = (v) => '<div class="p-value' + (v ? "" : " empty") + '">' + (v ? esc(v) : "(empty)") + "</div>";
+    let h = '<div class="p-head"><span class="org">APPROACH INTERNATIONAL STUDENT CENTER</span><span class="crs">' + esc(WEEK.course + " · " + WEEK.term) + "</span></div>" +
+      '<p class="p-eyebrow">PROCESS JOURNAL · ENTRY 4 · ' + esc(m.eyebrow) + "</p>" +
+      '<h1 class="p-title">' + esc(m.title[0]) + "<em>" + esc(m.title[1]) + "</em></h1>" +
+      '<p class="p-sub">Week 4 · ' + esc(WEEK.title) + "</p>" +
+      '<div class="p-id"><span><b>Name:</b> ' + esc(S.name) + "</span><span><b>Date:</b> " + esc(niceDate()) + "</span>" +
+      (done && i ? "<span><b>Completed:</b> " + esc(fmtTime(done)) + "</span>" : "") + "</div>";
+    exportBlocks(i).forEach((b) => {
+      if (b.t === "h2") h += '<h2 class="p-h2">' + esc(b.text) + "</h2>";
+      else if (b.t === "prompt") h += '<p class="p-asked"><b>Prompt sent to Claude:</b> ' + esc(b.text) + "</p>";
+      else if (b.t === "note") h += '<div class="p-note"><b>' + esc(b.label) + "</b>" + esc(b.text).replace(/\n/g, "<br>") + "</div>";
+      else if (b.t === "rule") h += '<p class="p-rule"><b>Rule ' + b.n + ". " + esc(b.title) + "</b><br>" + esc(b.text) + "</p>";
+      else if (b.t === "field") h += '<p class="p-label">' + esc(b.label) + "</p>" + val(b.value) + (b.count != null ? '<p class="p-meta">Word count: ' + b.count + "</p>" : "");
+      else if (b.t === "grid") h += '<table class="p-grid"><thead><tr>' + b.head.map((x) => "<th>" + esc(x) + "</th>").join("") + "</tr></thead><tbody>" +
+        b.rows.map((r) => "<tr>" + r.map((x) => "<td>" + esc(x) + "</td>").join("") + "</tr>").join("") + "</tbody></table>";
+      else if (b.t === "sign") h += '<div class="p-sign"><div><b>SIGNED (FULL NAME)</b><div class="v">' + esc(b.name) + '</div></div><div><b>DATE</b><div class="v">' + esc(niceDate()) + "</div></div></div>" +
+        (b.at ? '<p class="p-meta">Signed in class: ' + esc(b.at) + "</p>" : "");
+    });
+    h += '<div class="p-foot"><span>' + esc(WEEK.copyright) + "</span><span>" + esc(fileBase(i)) + "</span></div>";
+    $("print-root").innerHTML = h;
+    const oldTitle = document.title;
+    document.title = fileBase(i);            // becomes the PDF file name
+    document.body.classList.add("printing");
+    const restore = () => { document.body.classList.remove("printing"); document.title = oldTitle; window.removeEventListener("afterprint", restore); };
+    window.addEventListener("afterprint", restore);
+    window.print();
+    setTimeout(restore, 500);
+  }
+
+  /* ------------------------------------------------ realtime (Supabase Broadcast + Presence, no tables) */
+  let channel = null;
+  function setStatus(kind, text) { const s = $("status"); s.className = "status " + kind; s.textContent = text; }
+  function track() {
+    if (!channel || !signed()) return;
+    channel.track({ role: "student", id: S.id, name: S.name, completed: S.completed }).catch(() => {});
+  }
+  function applyState(p) {
+    if (!p || typeof p.active !== "number") return;
+    const prev = S.active, wasOpen = isOpen(S.view);
+    S.active = Math.max(0, Math.min(M.length - 1, p.active));
+    save();
+    if (wasOpen !== isOpen(S.view)) render(); else { renderStepper(); renderActionbar(); }
+    if (S.active > prev && signed()) {
+      const m = M[S.active];
+      if (S.view !== S.active) toast(m.tab + " is open.", null, { label: "Go to " + m.tab, fn: () => go(S.active) });
+    }
+  }
+  function connect() {
+    const url = CFG.SUPABASE_URL || "", key = CFG.SUPABASE_ANON_KEY || "";
+    if (!window.supabase || !url || /YOUR-/.test(url + key)) { setStatus("off", "Not connected"); $("status").title = "Add your Supabase keys in config.js"; return; }
+    const client = window.supabase.createClient(url, key);
+    channel = client.channel(CHANNEL, { config: { broadcast: { self: false }, presence: { key: S.id } } });
+    channel
+      .on("broadcast", { event: "state" }, ({ payload }) => applyState(payload))
+      .on("broadcast", { event: "reset" }, () => wipe())
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          setStatus("on", "Connected");
+          track();
+          channel.send({ type: "broadcast", event: "hello", payload: { id: S.id } });
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") setStatus("wait", "Reconnecting…");
+        else if (status === "CLOSED") setStatus("off", "Offline");
+      });
+  }
+  window.addEventListener("online", () => { if (channel) setStatus("wait", "Reconnecting…"); });
+  window.addEventListener("offline", () => setStatus("off", "Offline · work still saves"));
+
+  /* ------------------------------------------------ go */
+  if (!isOpen(S.view)) S.view = 0;
+  render();
+  connect();
+})();
+</script>
+</body>
+</html>
