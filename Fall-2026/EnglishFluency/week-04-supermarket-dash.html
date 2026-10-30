@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Supermarket Dash – English Fluency, Week 4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: light;
+  --navy: #0C2340;
+  --navy-l: #143865;
+  --gold: #AE9142;
+  --gold-b: #D39F10;
+  --gold-text: #7A6326;
+  --paper: #FFFFFF;
+  --floor: #F8F4EC;
+  --ink: #1A1A1A;
+  --ink-s: #3D3D3D;
+  --muted: #6B6B6B;
+  --line: #E2DCCB;
+  --rem: #1C4F8F;
+  --shop: #D39F10;
+  --shop-text: #7A5A00;
+  --talk: #26890C;
+  --all: #AB100B;
+  --ok: #26890C;
+  --ok-s: #D4EDDA;
+  --bad: #C0392B;
+  --bad-s: #F8D7DA;
+  --sans: "Montserrat", "Segoe UI", Arial, sans-serif;
+  --serif: Cambria, Georgia, "Times New Roman", serif;
+  --receipt: "Courier New", Courier, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #16263F;
+    --floor: #0A1628;
+    --ink: #EFE9D9;
+    --ink-s: #D8D2C2;
+    --muted: #A8A69E;
+    --line: #2A3A55;
+    --gold-text: #D6BC6E;
+    --shop-text: #E8C04A;
+    --rem: #6FA0E0;
+    --talk: #5CC243;
+    --all: #E5574F;
+    --ok-s: #1E3B22;
+    --bad-s: #44201F;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #16263F;
+  --floor: #0A1628;
+  --ink: #EFE9D9;
+  --ink-s: #D8D2C2;
+  --muted: #A8A69E;
+  --line: #2A3A55;
+  --gold-text: #D6BC6E;
+  --shop-text: #E8C04A;
+  --rem: #6FA0E0;
+  --talk: #5CC243;
+  --all: #E5574F;
+  --ok-s: #1E3B22;
+  --bad-s: #44201F;
+}
+:root {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+*, *::before, *::after { box-sizing: inherit; }
+html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); }
+body {
+  margin: 0; height: 100%; min-height: 100%;
+  background: var(--floor); color: var(--ink);
+  font-family: var(--sans);
+  display: flex; flex-direction: column;
+}
+button { font-family: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--gold-b); outline-offset: 2px; }
+
+/* Header */
+header {
+  background: var(--navy); color: #EFE9D9;
+  display: flex; align-items: center; gap: 16px;
+  padding: 10px 20px; flex: 0 0 auto;
+}
+.mono {
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 2px solid var(--gold); color: var(--gold);
+  display: grid; place-items: center;
+  font-family: var(--serif); font-style: italic; font-weight: 700; font-size: 22px;
+}
+.title-wrap h1 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 28px; line-height: 1; }
+.title-wrap h1 em { color: var(--gold); }
+.title-wrap p { margin: 3px 0 0; font-size: 12px; color: #C9C2AE; }
+.spacer { flex: 1; }
+.clock { font-variant-numeric: tabular-nums; font-size: 28px; font-weight: 700; color: var(--gold); min-width: 92px; text-align: right; }
+.clock.low { color: #FF8A80; }
+.hbtn {
+  background: transparent; color: #EFE9D9; border: 1px solid #3A5170;
+  padding: 8px 14px; border-radius: 6px; font-size: 14px; font-weight: 600;
+}
+.hbtn:hover { border-color: var(--gold); color: var(--gold); }
+.hbtn:disabled { opacity: .4; cursor: default; }
+
+/* Main layout */
+main {
+  flex: 1 1 auto; min-height: 0;
+  display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 18px;
+  padding: 18px 20px;
+}
+.board {
+  display: grid;
+  grid-template-columns: 128px repeat(6, minmax(0, 1fr));
+  grid-template-rows: repeat(5, minmax(84px, 1fr));
+  gap: 8px; min-height: 0;
+}
+.sign {
+  background: var(--navy); color: #EFE9D9; border-radius: 8px;
+  border-left: 5px solid var(--gold);
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 6px 10px;
+}
+.sign b { font-size: 13px; color: var(--gold); }
+.sign span { font-size: 13px; line-height: 1.2; margin-top: 2px; }
+.sq {
+  position: relative; background: var(--paper);
+  border: 1px solid var(--line); border-top: 8px solid var(--c, var(--line));
+  border-radius: 6px; padding: 6px 8px;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  text-align: center; min-width: 0;
+}
+.sq .n { position: absolute; top: 4px; left: 7px; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.sq .lab { font-weight: 800; font-size: clamp(13px, 1.25vw, 19px); color: var(--ct, var(--c)); line-height: 1.1; }
+.sq .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.sq.special { border-style: dashed; border-top-style: solid; border-color: var(--gold); border-top-color: var(--gold); }
+.sq.special .lab { color: var(--gold-text); }
+.sq.endpoint { background: var(--navy); border-color: var(--navy); border-top-color: var(--gold); }
+.sq.endpoint .lab { color: var(--gold); }
+.sq.endpoint .sub, .sq.endpoint .n { color: #C9C2AE; }
+.tokens { position: absolute; bottom: 5px; left: 0; right: 0; display: flex; justify-content: center; gap: 3px; flex-wrap: wrap; }
+.tok {
+  width: 24px; height: 24px; border-radius: 50%; color: #fff;
+  font-size: 12px; font-weight: 800; display: grid; place-items: center;
+  border: 2px solid #fff; box-shadow: 0 1px 2px rgba(0,0,0,.3);
+}
+.tok.now { outline: 3px solid var(--gold-b); outline-offset: 1px; }
+
+/* Side panel */
+aside { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+.turnbox {
+  background: var(--paper); border: 1px solid var(--line); border-radius: 10px;
+  padding: 14px 16px; border-left: 8px solid var(--tc, var(--gold));
+}
+.turnbox .who { font-size: 14px; color: var(--muted); }
+.turnbox .name { font-family: var(--serif); font-size: 30px; line-height: 1.1; color: var(--tc, var(--ink)); margin: 2px 0 10px; }
+.rollrow { display: flex; align-items: center; gap: 12px; }
+.roll {
+  flex: 1; background: var(--navy); color: #EFE9D9; border: 2px solid var(--gold);
+  border-radius: 8px; padding: 14px 10px; font-size: 20px; font-weight: 800;
+}
+.roll:hover:not(:disabled) { background: var(--navy-l); }
+.roll:disabled { opacity: .5; cursor: default; }
+.die {
+  width: 66px; height: 66px; border-radius: 12px; background: var(--paper);
+  border: 2px solid var(--ink); display: grid; place-items: center;
+  font-size: 36px; font-weight: 800; font-variant-numeric: tabular-nums;
+}
+.die.spin { animation: wob .12s linear infinite; }
+@keyframes wob { 0% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } 100% { transform: rotate(-8deg); } }
+
+.receipt {
+  background: #FFFFFF; color: #1A1A1A; font-family: var(--receipt);
+  padding: 16px 16px 20px; border-radius: 2px;
+  box-shadow: 0 2px 8px rgba(12,35,64,.18);
+  position: relative;
+}
+.receipt::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -8px; height: 8px;
+  background: linear-gradient(-45deg, transparent 6px, #fff 0) 0 0 / 12px 8px repeat-x,
+              linear-gradient(45deg, transparent 6px, #fff 0) 0 0 / 12px 8px repeat-x;
+}
+.receipt h2 { margin: 0; text-align: center; font-size: 16px; letter-spacing: 1px; }
+.receipt .rsub { text-align: center; font-size: 12px; margin: 2px 0 8px; }
+.receipt hr { border: 0; border-top: 2px dashed #9A9A9A; margin: 8px 0; }
+.rline { display: flex; align-items: baseline; gap: 6px; font-size: 18px; padding: 4px 0; }
+.rline .dot { width: 12px; height: 12px; border-radius: 50%; flex: 0 0 auto; align-self: center; }
+.rline .tn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rline .fill { flex: 1; border-bottom: 2px dotted #B0B0B0; transform: translateY(-4px); min-width: 10px; }
+.rline .amt { font-weight: 700; font-variant-numeric: tabular-nums; }
+.rline.now { font-weight: 700; }
+.rline.now .tn::before { content: "▸ "; }
+.legend { font-size: 13px; color: var(--ink-s); background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+.legend div { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+.legend i { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+
+/* Overlay + card */
+.overlay {
+  position: fixed; inset: 0; background: rgba(8,22,41,.72);
+  display: grid; place-items: center; padding: 20px; z-index: 20;
+}
+.overlay[hidden] { display: none; }
+.card {
+  background: var(--paper); color: var(--ink); width: min(980px, 100%);
+  max-height: 100%; overflow: auto;
+  border-radius: 14px; border-top: 14px solid var(--cc, var(--gold));
+  padding: 22px 30px 26px; box-shadow: 0 12px 40px rgba(0,0,0,.35);
+}
+.card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.tag { font-weight: 800; font-size: 18px; color: var(--cct, var(--cc)); }
+.tag small { font-weight: 600; color: var(--muted); font-size: 14px; margin-left: 8px; }
+.teamchip { padding: 4px 12px; border-radius: 999px; color: #fff; font-weight: 700; font-size: 15px; }
+.timer {
+  margin-left: auto; font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums;
+  min-width: 70px; text-align: right; color: var(--ink);
+}
+.timer.low { color: var(--bad); }
+.q { font-family: var(--serif); font-size: clamp(26px, 3vw, 40px); line-height: 1.25; margin: 4px 0 16px; font-weight: 400; }
+.media { display: flex; justify-content: center; margin: 0 0 16px; }
+.media img { max-height: 240px; max-width: 100%; border-radius: 8px; }
+.ph {
+  border: 3px dashed var(--gold); border-radius: 10px; padding: 18px 22px;
+  color: var(--gold-text); font-size: 18px; max-width: 620px; text-align: center; background: transparent;
+}
+.ph b { display: block; font-size: 13px; margin-bottom: 4px; }
+.clocksvg { width: 210px; height: 210px; }
+.opts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.opt {
+  text-align: left; background: var(--paper); color: var(--ink);
+  border: 3px solid var(--line); border-radius: 10px;
+  padding: 16px 16px; font-size: clamp(18px, 1.7vw, 24px); font-weight: 600; line-height: 1.25;
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.opt .L {
+  flex: 0 0 auto; width: 36px; height: 36px; border-radius: 50%;
+  background: var(--navy); color: var(--gold); display: grid; place-items: center; font-weight: 800; font-size: 18px;
+}
+.opt:hover:not(:disabled) { border-color: var(--gold); }
+.opt:disabled { cursor: default; }
+.opt.right { border-color: var(--ok); background: var(--ok-s); }
+.opt.wrong { border-color: var(--bad); background: var(--bad-s); }
+.opt.chosen { border-color: var(--talk); background: var(--ok-s); }
+.opt.dim { opacity: .55; }
+.feedback { margin-top: 16px; font-size: 20px; line-height: 1.4; min-height: 0; }
+.feedback .big { font-size: 26px; font-weight: 800; }
+.feedback .big.ok { color: var(--ok); }
+.feedback .big.no { color: var(--bad); }
+.feedback .note { font-family: var(--serif); font-style: italic; color: var(--ink-s); }
+.frame { font-family: var(--serif); font-size: 26px; border-left: 6px solid var(--talk); padding: 6px 14px; margin-top: 6px; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; margin-top: 18px; align-items: center; }
+.btn {
+  background: var(--navy); color: #EFE9D9; border: 2px solid var(--navy);
+  padding: 12px 22px; border-radius: 8px; font-size: 18px; font-weight: 700;
+}
+.btn.gold { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn:disabled { opacity: .45; cursor: default; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-right: auto; align-items: center; }
+.chips .lbl { font-size: 16px; color: var(--muted); margin-right: 4px; }
+.chip {
+  border: 3px solid var(--tcol); color: var(--ink); background: transparent;
+  padding: 8px 14px; border-radius: 999px; font-weight: 700; font-size: 16px;
+}
+.chip[aria-pressed="true"] { background: var(--tcol); color: #fff; }
+
+/* Setup + end screens */
+.panel { background: var(--paper); color: var(--ink); width: min(760px, 100%); border-radius: 14px; border-top: 14px solid var(--gold); padding: 26px 32px; max-height: 100%; overflow: auto; }
+.panel h2 { font-family: var(--serif); font-weight: 400; font-size: 40px; margin: 0 0 4px; }
+.panel h2 em { color: var(--gold-text); }
+.panel .lead { color: var(--ink-s); margin: 0 0 18px; font-size: 16px; }
+.field { margin: 14px 0; }
+.field > label, .field > span { display: block; font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+.seg { display: inline-flex; border: 2px solid var(--navy); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: transparent; color: var(--ink); padding: 8px 18px; font-size: 16px; font-weight: 700; }
+.seg button[aria-pressed="true"] { background: var(--navy); color: var(--gold); }
+.names { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.names .nm { display: flex; align-items: center; gap: 8px; }
+.names input { flex: 1; min-width: 0; padding: 9px 10px; font-size: 16px; border: 2px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--ink); font-family: inherit; }
+.row2 { display: flex; gap: 24px; flex-wrap: wrap; }
+.row2 select, .row2 input[type=number] { padding: 8px 10px; font-size: 16px; border: 2px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--ink); font-family: inherit; }
+.panel .actions { justify-content: space-between; }
+.endlist { font-family: var(--receipt); font-size: 22px; margin: 14px 0; }
+.endlist .rline { font-size: 22px; }
+.banner {
+  position: fixed; left: 50%; top: 84px; transform: translateX(-50%);
+  background: var(--all); color: #fff; padding: 12px 22px; border-radius: 8px;
+  font-weight: 700; font-size: 18px; z-index: 15; box-shadow: 0 4px 14px rgba(0,0,0,.3);
+}
+.banner[hidden] { display: none; }
+
+@media (max-width: 1000px) {
+  main { grid-template-columns: 1fr; }
+  .board { grid-template-columns: 90px repeat(6, minmax(0, 1fr)); grid-template-rows: repeat(5, 80px); }
+  .opts { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .die.spin { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<script>
+/* =====================================================================
+   QUESTION BANK — edit here to reuse the game in other weeks.
+
+   Each question:
+   { type: "remember" | "shop" | "talk" | "everybody",
+     q: "Question text",
+     options: ["option 1", "option 2", "option 3"],   // always 3
+     answer: 0,          // index of the correct option (0, 1 or 2). Talk cards: any answer is OK.
+     note: "",           // example sentence shown after the answer
+     image: "",          // paste a picture URL here (optional)
+     imageNote: "",      // description of the picture you need (shown until you add an image)
+     clock: "" }         // e.g. "7:15" draws a clock for time questions
+
+   The game shuffles the options, so the correct answer is not always A.
+   ===================================================================== */
+const QUESTIONS = [
+  /* ---------- REMEMBER (Weeks 1–3) ---------- */
+  { type:"remember", q:"How do you spell the day after Wednesday?", options:["T-H-U-R-S-D-A-Y","T-U-R-S-D-A-Y","T-H-U-S-D-A-Y"], answer:0, note:"Thursday: T-H-U-R-S-D-A-Y." },
+  { type:"remember", q:"Which number is “fifteen”?", options:["15","50","5"], answer:0, note:"Fifteen = 15. Fifty = 50." },
+  { type:"remember", q:"How do you say the year 2026?", options:["twenty twenty-six","two hundred twenty-six","twenty-six twenty"], answer:0, note:"2026 = twenty twenty-six." },
+  { type:"remember", q:"How do you say the year 1998?", options:["nineteen ninety-eight","ninety-eight nineteen","one hundred ninety-eight"], answer:0, note:"1998 = nineteen ninety-eight." },
+  { type:"remember", q:"Maria is my mother’s daughter. She is my…", options:["sister","brother","son"], answer:0, note:"My mother’s daughter is my sister." },
+  { type:"remember", q:"This is my brother. ___ name is Tom.", options:["His","Her","He"], answer:0, note:"His name is Tom." },
+  { type:"remember", q:"Ana and I are students. ___ are in English class.", options:["We","They","She"], answer:0, note:"Ana and I = we." },
+  { type:"remember", q:"“What’s your phone number?” The best answer is:", options:["It’s 555-0142.","I’m 30.","On Main Street."], answer:0, note:"My phone number is 555-0142." },
+  { type:"remember", q:"“Where are you from?” The best answer is:", options:["I’m from Brazil.","I’m fine, thanks.","At 8 o’clock."], answer:0, note:"I’m from Brazil." },
+  { type:"remember", q:"What time is it?", options:["It’s seven fifteen.","It’s seven fifty.","It’s three fifteen."], answer:0, clock:"7:15", note:"It’s 7:15 — seven fifteen." },
+  { type:"remember", q:"What time is it?", options:["It’s eight thirty.","It’s eight thirteen.","It’s six forty."], answer:0, clock:"8:30", note:"It’s 8:30 — eight thirty." },
+  { type:"remember", q:"What time is it?", options:["It’s twelve forty-five.","It’s nine twelve.","It’s twelve fourteen."], answer:0, clock:"12:45", note:"It’s 12:45 — twelve forty-five." },
+  { type:"remember", q:"She ___ work on Sunday.", options:["doesn’t","don’t","isn’t"], answer:0, note:"She doesn’t work on Sunday." },
+  { type:"remember", q:"I ___ like coffee. I drink tea.", options:["don’t","doesn’t","not"], answer:0, note:"I don’t like coffee." },
+  { type:"remember", q:"He ___ up at 6:00 every day.", options:["gets","get","getting"], answer:0, note:"He gets up at 6:00 every day." },
+  { type:"remember", q:"“What time do you have lunch?” The best answer is:", options:["At 12:30.","On Monday.","In the kitchen."], answer:0, note:"I have lunch at 12:30." },
+  { type:"remember", q:"Where is the cat?", options:["under the table","on the table","next to the table"], answer:0, imageNote:"A cat sitting under a table.", image: "./week-04-supermarket-dash-img/cat_under_table.jpg", note:"The cat is under the table." },
+  { type:"remember", q:"The bank is ___ the pharmacy and the supermarket.", options:["between","behind","across from"], answer:0, imageNote:"A street with three buildings in a row: pharmacy, bank, supermarket. The bank is in the middle.", image: "./week-04-supermarket-dash-img/bank_between_pharmacy_supermarket.jpg", note:"The bank is between the pharmacy and the supermarket." },
+  { type:"remember", q:"Look at the sign. What do you do?", options:["Turn left.","Turn right.","Go straight."], answer:0, imageNote:"A simple road sign with an arrow pointing LEFT.", image: "./week-04-supermarket-dash-img/road_sign_left.jpg", note:"Turn left." },
+  { type:"remember", q:"The school is ___ the park.", options:["across from","under","between"], answer:0, imageNote:"A street map: a school on one side of the street, a park on the other side, facing each other.", image: "./week-04-supermarket-dash-img/school_across_from_park.jpg", note:"The school is across from the park." },
+  { type:"remember", q:"“Sorry? Can you ___ that, please?”", options:["repeat","sleep","turn"], answer:0, note:"Sorry? Can you repeat that, please?" },
+  { type:"remember", q:"“How do you ___ your last name?”", options:["spell","eat","turn"], answer:0, note:"How do you spell your last name?" },
+  { type:"remember", q:"My father’s son is my…", options:["brother","sister","mother"], answer:0, note:"My father’s son is my brother." },
+  { type:"remember", q:"“What do you do on Saturday?” The best answer is:", options:["I play soccer with my friends.","At 9 o’clock.","Next to the bank."], answer:0, note:"On Saturday, I play soccer with my friends." },
+
+  /* ---------- SHOP (preview of Week 4) ---------- */
+  { type:"shop", q:"How much is a gallon of milk in the U.S.? (about)", options:["$4","$1","$20"], answer:0, imageNote:"A gallon of milk.", image: "./week-04-supermarket-dash-img/gallon_of_milk.jpg", note:"A gallon of milk is about $4. Prices are different in every store." },
+  { type:"shop", q:"How much is a cup of coffee at a café? (about)", options:["$3","50 cents","$15"], answer:0, imageNote:"A paper cup of coffee.", image: "./week-04-supermarket-dash-img/paper_cup_of_coffee.jpg", note:"A cup of coffee is about $3." },
+  { type:"shop", q:"Which is cheaper? Bread: $3.49. Rice: $4.29.", options:["the bread","the rice","the same price"], answer:0, imageNote:"A loaf of bread with a $3.49 price tag and a bag of rice with a $4.29 price tag.", image:"./week-04-supermarket-dash-img/bread_and_rice_prices.jpg", note:"The bread is cheaper." },
+  { type:"shop", q:"How do you say $12.50?", options:["twelve dollars and fifty cents","twelve fifty dollars cents","one two five zero"], answer:0, note:"$12.50 = twelve dollars and fifty cents (or “twelve fifty”)." },
+  { type:"shop", q:"How do you say $3.99?", options:["three ninety-nine","three hundred ninety-nine","thirty-nine"], answer:0, note:"$3.99 = three ninety-nine." },
+  { type:"shop", q:"You want to know the price. You say:", options:["How much is this?","How many is this?","What time is this?"], answer:0, note:"Excuse me, how much is this?" },
+  { type:"shop", q:"Two shirts. “How much ___ they?”", options:["are","is","am"], answer:0, imageNote:"Two shirts on a table.", image:"./week-04-supermarket-dash-img/two_shirts_on_table.jpg", note:"How much are they? (two shirts = they)" },
+  { type:"shop", q:"Where do you pay in a store?", options:["at the checkout","in the parking lot","in the restroom"], answer:0, imageNote:"The checkout area of a supermarket with a cashier.", image:"./week-04-supermarket-dash-img/checkout_area_supermarket.jpg", note:"You pay at the checkout." },
+  { type:"shop", q:"The cashier asks: “Cash or card?” You say:", options:["Card, please.","Yes, please.","I’m fine, thanks."], answer:0, note:"Card, please. / Cash, please." },
+  { type:"shop", q:"The sign says “ON SALE.” This means:", options:["It’s cheaper today.","It’s very expensive.","The store is closed."], answer:0, imageNote:"A red “SALE” sign on a shelf.", image:"./week-04-supermarket-dash-img/red_sale_sign_shelf.jpg", note:"On sale = cheaper than the normal price." },
+  { type:"shop", q:"After you pay, you get a paper with the prices. It’s a…", options:["receipt","coupon","bag"], answer:0, imageNote:"A long store receipt.", image:"./week-04-supermarket-dash-img/long_store_receipt.jpg", note:"Here’s your receipt." },
+  { type:"shop", q:"A coupon gives you…", options:["money off","a new size","a receipt"], answer:0, imageNote:"A paper coupon: “$1 OFF eggs.”", image:"./week-04-supermarket-dash-img/paper_coupon_eggs.jpg", note:"With this coupon, the eggs are $1 cheaper." },
+  { type:"shop", q:"“Do you need a ___?” (for your things)", options:["bag","size","price"], answer:0, imageNote:"A shopping bag with groceries.", image:"./week-04-supermarket-dash-img/shopping_bag.jpg", note:"Do you need a bag? — Yes, please." },
+  { type:"shop", q:"The shirt is too small. You ask:", options:["Do you have a bigger size?","Do you have a smaller size?","Where is the checkout?"], answer:0, note:"Excuse me, do you have a bigger size?" },
+  { type:"shop", q:"You want to put on the jacket in the store. “Can I ___ it on?”", options:["try","take","buy"], answer:0, imageNote:"A person putting on a jacket in a clothing store, in front of a mirror.", image:"./week-04-supermarket-dash-img/try_on_jacket.jpg", note:"Can I try it on?" },
+  { type:"shop", q:"How much is a dozen eggs (12 eggs) in the U.S.? (about)", options:["$4","25 cents","$40"], answer:0, imageNote:"A carton of 12 eggs.", image:"./week-04-supermarket-dash-img/carton_of_12_eggs.jpg", note:"A dozen eggs is about $3–$5. Prices change a lot." },
+  { type:"shop", q:"Where can you buy medicine?", options:["at the pharmacy","at the bakery","at the laundromat"], answer:0, imageNote:"A pharmacy counter with medicine on the shelves.", image:"./week-04-supermarket-dash-img/pharmacy_counter.jpg", note:"You can buy medicine at the pharmacy." },
+  { type:"shop", q:"Jeans are $40. Today they are half price. The new price is…", options:["$20","$4","$80"], answer:0, imageNote:"Jeans with a tag: $40, “HALF PRICE TODAY.”", image:"./week-04-supermarket-dash-img/jeans_half_price.jpg", note:"Half of $40 is $20." },
+
+  /* ---------- TALK (Choose & tell — every answer is OK) ---------- */
+  { type:"talk", q:"Where do you usually shop?", options:["a big supermarket","online","a small store"], answer:-1, note:"I usually shop at ___ because ___." },
+  { type:"talk", q:"How do you usually pay?", options:["cash","card","phone"], answer:-1, note:"I usually pay with ___ because ___." },
+  { type:"talk", q:"What do you buy every week?", options:["fruit","bread","rice"], answer:-1, note:"I buy ___ every week. I eat it ___." },
+  { type:"talk", q:"When do you go shopping?", options:["on weekdays","on the weekend","at night"], answer:-1, note:"I go shopping ___ because ___." },
+  { type:"talk", q:"For me, food in the U.S. is…", options:["cheap","expensive","OK"], answer:-1, note:"For me, food in the U.S. is ___. For example, ___ is $___." },
+  { type:"talk", q:"What do you like to buy?", options:["clothes","food","things for my home"], answer:-1, note:"I like to buy ___. My favorite store is ___." },
+  { type:"talk", q:"Who do you go shopping with?", options:["alone","with my family","with friends"], answer:-1, note:"I go shopping ___. We usually buy ___." },
+  { type:"talk", q:"What is your favorite store here?", options:["a supermarket","a clothes store","a dollar store"], answer:-1, note:"My favorite store is ___. It’s on ___ Street." },
+
+  /* ---------- EVERYBODY (all teams write A, B or C) ---------- */
+  { type:"everybody", q:"Which word is R-E-C-E-I-P-T?", options:["receipt","recipe","record"], answer:0, note:"R-E-C-E-I-P-T = receipt." },
+  { type:"everybody", q:"What time is it?", options:["It’s three forty-five.","It’s four fifteen.","It’s nine fifteen."], answer:0, clock:"3:45", note:"It’s 3:45 — three forty-five." },
+  { type:"everybody", q:"He ___ to work by bus.", options:["goes","go","going"], answer:0, note:"He goes to work by bus." },
+  { type:"everybody", q:"Where is the pharmacy?", options:["behind the bank","in the bank","on the bank"], answer:0, imageNote:"A pharmacy building behind a bank building.", image:"./week-04-supermarket-dash-img/pharmacy_behind_bank.jpg", note:"The pharmacy is behind the bank." },
+  { type:"everybody", q:"Which word is a family word?", options:["daughter","Thursday","doctor"], answer:0, note:"Daughter is a family word." },
+  { type:"everybody", q:"How do you say $20.00?", options:["twenty dollars","twelve dollars","two dollars"], answer:0, note:"$20 = twenty dollars." },
+  { type:"everybody", q:"One hundred and twenty is…", options:["120","102","1,200"], answer:0, note:"One hundred and twenty = 120." },
+  { type:"everybody", q:"“Can I pay ___ card?”", options:["by","in","at"], answer:0, note:"Can I pay by card?" },
+  { type:"everybody", q:"Which is NOT a place in a supermarket?", options:["a bedroom","the checkout","the bakery"], answer:0, note:"There is no bedroom in a supermarket!" },
+  { type:"everybody", q:"I’m from Mexico. ___ country is beautiful.", options:["My","I","Me"], answer:0, note:"My country is beautiful." }
+];
+</script>
+
+<header>
+  <div class="mono" aria-hidden="true">A</div>
+  <div class="title-wrap">
+    <h1>Supermarket <em>Dash</em></h1>
+    <p>English Fluency, Week 4: Shopping</p>
+  </div>
+  <div class="spacer"></div>
+  <div class="clock" id="clock" aria-label="Game time left">40:00</div>
+  <button class="hbtn" id="pauseBtn" type="button">Pause</button>
+  <button class="hbtn" id="undoBtn" type="button" disabled>Undo</button>
+  <button class="hbtn" id="endBtn" type="button">End game</button>
+</header>
+
+<main>
+  <div class="board" id="board" aria-label="Game board"></div>
+  <aside>
+    <div class="turnbox" id="turnbox">
+      <div class="who">It’s your turn:</div>
+      <div class="name" id="turnName">—</div>
+      <div class="rollrow">
+        <button class="roll" id="rollBtn" type="button">Roll the die</button>
+        <div class="die" id="die" aria-live="polite">–</div>
+      </div>
+    </div>
+    <div class="receipt" aria-label="Team money">
+      <h2>APPROACH MARKET</h2>
+      <div class="rsub">Team money</div>
+      <hr>
+      <div id="rlines"></div>
+      <hr>
+      <div class="rsub">Thank you for shopping!</div>
+    </div>
+    <div class="legend">
+      <div><i style="background:var(--rem)"></i>Remember: answer, +$5</div>
+      <div><i style="background:var(--shop)"></i>Shop: answer, +$5</div>
+      <div><i style="background:var(--talk)"></i>Talk: choose and tell, +$3</div>
+      <div><i style="background:var(--all)"></i>Everybody: all teams, +$5</div>
+      <div><i style="background:var(--navy)"></i>Checkout: +$10, start again</div>
+    </div>
+  </aside>
+</main>
+
+<div class="banner" id="banner" hidden>Time is up! Finish this turn, then press “End game.”</div>
+
+<div class="overlay" id="overlay" hidden>
+  <div id="overlayInner"></div>
+</div>
+
+<script>
+(() => {
+  /* ---------- Board ---------- */
+  // 0 = Entrance, 29 = Checkout. Codes: R remember, S shop, T talk, E everybody.
+  const LAYOUT = ["start",
+    "R","S","T","R","E","S","sale","R","S","R","T","E","S","R",
+    "lost","S","R","T","E","S","R","coupon","S","R","T","E","R","S",
+    "checkout"];
+  const CODE = { R:"remember", S:"shop", T:"talk", E:"everybody" };
+  const BOARD = LAYOUT.map(c => CODE[c] || c);
+  const LAST = BOARD.length - 1;
+  const AISLES = ["Fruit and vegetables", "Bread and snacks", "Milk and eggs", "Clothes", "Home"];
+  const MONEY = { remember:5, shop:5, talk:3, everybody:5, coupon:5, checkout:10 };
+  const SQ = {
+    start:    { lab:"Entrance", sub:"Start here" },
+    remember: { lab:"Remember", sub:"+$5", c:"var(--rem)" },
+    shop:     { lab:"Shop", sub:"+$5", c:"var(--shop)", ct:"var(--shop-text)" },
+    talk:     { lab:"Talk", sub:"+$3", c:"var(--talk)" },
+    everybody:{ lab:"Everybody!", sub:"All teams", c:"var(--all)" },
+    sale:     { lab:"Sale!", sub:"Go ahead 2" },
+    lost:     { lab:"Lost!", sub:"Go back 2" },
+    coupon:   { lab:"Coupon", sub:"+$5" },
+    checkout: { lab:"Checkout", sub:"+$10" }
+  };
+  const CARD = {
+    remember: { tag:"Remember", sub:"Answer as a team", c:"var(--rem)" },
+    shop:     { tag:"Shop", sub:"Answer as a team", c:"var(--shop)", ct:"var(--shop-text)" },
+    talk:     { tag:"Talk", sub:"Choose, then tell your partner why", c:"var(--talk)" },
+    everybody:{ tag:"Everybody!", sub:"All teams: write A, B or C", c:"var(--all)" }
+  };
+  const TEAM_COLORS = ["#0E6B6B", "#B45309", "#6B3FA0", "#C2185B"];
+  const DEFAULT_NAMES = ["Apples", "Bananas", "Carrots", "Donuts"];
+  const KEY = "supermarketDash.week4";
+
+  /* ---------- State ---------- */
+  let S = null;         // game state (saved)
+  let H = [];           // undo history (snapshots)
+  let busy = false;     // die rolling / token moving
+  let paused = false;
+  let cardTimer = null, cardLeft = 0;
+  let clockTimer = null;
+  let setup = { n: 3, names: DEFAULT_NAMES.slice(), minutes: 40, answerTime: 60 };
+
+  const $ = id => document.getElementById(id);
+  const shuffle = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+  const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[ch]));
+  const fmt = sec => { sec = Math.max(0, sec); return String(Math.floor(sec / 60)).padStart(2, "0") + ":" + String(sec % 60).padStart(2, "0"); };
+
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function loadSaved() { try { const v = localStorage.getItem(KEY); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
+  function clearSaved() { try { localStorage.removeItem(KEY); } catch (e) {} }
+
+  function snapshot() {
+    H.push(JSON.stringify(S));
+    if (H.length > 60) H.shift();
+    $("undoBtn").disabled = false;
+  }
+  function undo() {
+    if (!H.length || busy) return;
+    const clock = S.clockLeft;
+    S = JSON.parse(H.pop());
+    S.clockLeft = clock;
+    stopCardTimer();
+    $("undoBtn").disabled = !H.length;
+    save();
+    renderAll();
+    if (S.card) openCard(S.card);
+    else closeOverlay();
+  }
+
+  function draw(type) {
+    if (!S.decks[type] || !S.decks[type].length) {
+      S.decks[type] = shuffle(QUESTIONS.map((q, i) => q.type === type ? i : -1).filter(i => i >= 0));
+    }
+    return S.decks[type].pop();
+  }
+
+  /* ---------- Rendering ---------- */
+  function cellPos(i) {
+    const row = Math.floor(i / 6);              // 0 = bottom aisle
+    const col = row % 2 === 0 ? i % 6 : 5 - (i % 6);
+    return { r: 5 - row, c: col + 2 };
+  }
+  function buildBoard() {
+    const b = $("board");
+    b.innerHTML = "";
+    for (let row = 0; row < 5; row++) {
+      const s = document.createElement("div");
+      s.className = "sign";
+      s.style.gridRow = 5 - row;
+      s.style.gridColumn = 1;
+      s.innerHTML = "<b>Aisle " + (row + 1) + "</b><span>" + AISLES[row] + "</span>";
+      b.appendChild(s);
+    }
+    BOARD.forEach((t, i) => {
+      const d = document.createElement("div");
+      const info = SQ[t];
+      const p = cellPos(i);
+      d.className = "sq" + (["sale","lost","coupon"].includes(t) ? " special" : "") + (t === "start" || t === "checkout" ? " endpoint" : "");
+      d.style.gridRow = p.r; d.style.gridColumn = p.c;
+      if (info.c) d.style.setProperty("--c", info.c);
+      if (info.ct) d.style.setProperty("--ct", info.ct);
+      d.innerHTML = '<span class="n">' + i + '</span><span class="lab">' + info.lab + '</span><span class="sub">' + info.sub + '</span><div class="tokens" id="tk' + i + '"></div>';
+      b.appendChild(d);
+    });
+  }
+  function renderTokens() {
+    for (let i = 0; i < BOARD.length; i++) $("tk" + i).innerHTML = "";
+    if (!S) return;
+    S.teams.forEach((t, ti) => {
+      const el = document.createElement("div");
+      el.className = "tok" + (ti === S.turn ? " now" : "");
+      el.style.background = t.color;
+      el.textContent = t.name.trim().charAt(0).toUpperCase() || (ti + 1);
+      el.title = t.name;
+      $("tk" + t.pos).appendChild(el);
+    });
+  }
+  function renderSide() {
+    if (!S) return;
+    const t = S.teams[S.turn];
+    $("turnbox").style.setProperty("--tc", t.color);
+    $("turnName").textContent = "Team " + t.name;
+    $("rlines").innerHTML = S.teams.map((tm, i) =>
+      '<div class="rline' + (i === S.turn ? " now" : "") + '"><span class="dot" style="background:' + tm.color + '"></span><span class="tn">' + esc(tm.name) + '</span><span class="fill"></span><span class="amt">$' + tm.money + '</span></div>'
+    ).join("");
+    $("rollBtn").disabled = busy || S.phase !== "play";
+  }
+  function renderClock() {
+    if (!S) return;
+    const c = $("clock");
+    c.textContent = fmt(S.clockLeft);
+    c.classList.toggle("low", S.clockLeft <= 120);
+    $("banner").hidden = !(S.phase === "play" && S.clockLeft <= 0);
+    $("pauseBtn").textContent = paused ? "Resume" : "Pause";
+  }
+  function renderAll() { renderTokens(); renderSide(); renderClock(); }
+
+  /* ---------- Overlay helpers ---------- */
+  function showOverlay(html) { $("overlayInner").innerHTML = html; $("overlay").hidden = false; }
+  function closeOverlay() { $("overlay").hidden = true; $("overlayInner").innerHTML = ""; }
+
+  function clockSVG(t) {
+    const [h, m] = t.split(":").map(Number);
+    const ha = ((h % 12) + m / 60) * 30, ma = m * 6;
+    let ticks = "";
+    for (let i = 0; i < 12; i++) {
+      const a = i * 30 * Math.PI / 180;
+      ticks += '<line x1="' + (100 + 78 * Math.sin(a)).toFixed(1) + '" y1="' + (100 - 78 * Math.cos(a)).toFixed(1) + '" x2="' + (100 + 88 * Math.sin(a)).toFixed(1) + '" y2="' + (100 - 88 * Math.cos(a)).toFixed(1) + '" stroke="currentColor" stroke-width="' + (i % 3 === 0 ? 5 : 2.5) + '"/>';
+      const n = i === 0 ? 12 : i;
+      ticks += '<text x="' + (100 + 64 * Math.sin(a)).toFixed(1) + '" y="' + (100 - 64 * Math.cos(a) + 6).toFixed(1) + '" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor" font-family="Montserrat, Arial, sans-serif">' + n + '</text>';
+    }
+    return '<svg class="clocksvg" viewBox="0 0 200 200" role="img" aria-label="A clock"><circle cx="100" cy="100" r="94" fill="none" stroke="currentColor" stroke-width="5"/>' + ticks +
+      '<line x1="100" y1="100" x2="100" y2="52" stroke="currentColor" stroke-width="8" stroke-linecap="round" transform="rotate(' + ha + ' 100 100)"/>' +
+      '<line x1="100" y1="100" x2="100" y2="28" stroke="#AE9142" stroke-width="5" stroke-linecap="round" transform="rotate(' + ma + ' 100 100)"/>' +
+      '<circle cx="100" cy="100" r="6" fill="currentColor"/></svg>';
+  }
+  function mediaHTML(q) {
+    if (q.image) return '<div class="media"><img src="' + esc(q.image) + '" alt="' + esc(q.imageNote || "") + '"></div>';
+    if (q.clock) return '<div class="media">' + clockSVG(q.clock) + '</div>';
+    if (q.imageNote) return '<div class="media"><div class="ph"><b>Picture</b>' + esc(q.imageNote) + '</div></div>';
+    return "";
+  }
+
+  /* ---------- Cards ---------- */
+  function openCard(card) {
+    S.card = card;
+    save();
+    renderCard();
+    if (card.status === "open" && card.type !== "talk") startCardTimer(S.answerTime, onCardTimeout);
+    if (card.status === "talking") startCardTimer(60, () => { renderTimer(0); });
+  }
+
+  function renderCard() {
+    const c = S.card, q = QUESTIONS[c.qi], info = CARD[c.type], team = S.teams[S.turn];
+    const letters = "ABC";
+    let opts = "";
+    c.order.forEach((oi, k) => {
+      let cls = "opt";
+      const reveal = (c.status === "answered" || c.status === "timeout" || c.status === "revealed");
+      if (c.type === "talk" && c.status !== "open") cls += oi === c.chosen ? " chosen" : " dim";
+      if (c.type !== "talk" && reveal) {
+        if (oi === q.answer) cls += " right";
+        else if (oi === c.chosen) cls += " wrong";
+        else cls += " dim";
+      }
+      const clickable = c.status === "open" && c.type !== "everybody";
+      opts += '<button type="button" class="' + cls + '" data-oi="' + oi + '"' + (clickable ? "" : " disabled") + '><span class="L">' + letters[k] + '</span><span>' + esc(q.options[oi]) + '</span></button>';
+    });
+
+    let fb = "", actions = "";
+    const correctLetter = letters[c.order.indexOf(q.answer)];
+    if (c.type === "remember" || c.type === "shop") {
+      if (c.status === "answered") {
+        fb = c.chosen === q.answer
+          ? '<div class="big ok">Correct! +$' + MONEY[c.type] + '</div><div class="note">' + esc(q.note || "") + '</div>'
+          : '<div class="big no">Not this time.</div><div>The answer is <b>' + correctLetter + '</b>.</div><div class="note">' + esc(q.note || "") + '</div>';
+        actions = '<button type="button" class="btn gold" data-act="next">Next team</button>';
+      } else if (c.status === "timeout") {
+        fb = '<div class="big no">Time’s up!</div><div>The answer is <b>' + correctLetter + '</b>.</div><div class="note">' + esc(q.note || "") + '</div>';
+        actions = '<button type="button" class="btn gold" data-act="next">Next team</button>';
+      }
+    } else if (c.type === "talk") {
+      if (c.status === "open") {
+        fb = '<div>Choose your answer as a team.</div>';
+      } else {
+        fb = '<div class="big ok">Now talk! Tell your partner why.</div><div class="frame">' + esc(q.note) + '</div>';
+        actions = '<button type="button" class="btn gold" data-act="talkdone">Done talking: +$' + MONEY.talk + '</button>';
+      }
+    } else if (c.type === "everybody") {
+      if (c.status === "open") {
+        fb = '<div>Every team: write <b>A</b>, <b>B</b> or <b>C</b> on your paper. Then hold it up.</div>';
+        actions = '<button type="button" class="btn gold" data-act="reveal">Show the answer</button>';
+      } else {
+        fb = '<div class="big ok">The answer is ' + correctLetter + '.</div><div class="note">' + esc(q.note || "") + '</div>';
+        const chips = S.teams.map((t, i) => '<button type="button" class="chip" style="--tcol:' + t.color + '" data-team="' + i + '" aria-pressed="' + (c.winners.includes(i) ? "true" : "false") + '">' + esc(t.name) + '</button>').join("");
+        actions = '<div class="chips"><span class="lbl">Who was right?</span>' + chips + '</div><button type="button" class="btn gold" data-act="givemoney">Give +$' + MONEY.everybody + ' and continue</button>';
+      }
+    }
+
+    showOverlay(
+      '<div class="card" role="dialog" aria-modal="true" aria-labelledby="cq" style="--cc:' + info.c + (info.ct ? ';--cct:' + info.ct : '') + '">' +
+        '<div class="card-top"><span class="tag">' + info.tag + '<small>' + info.sub + '</small></span>' +
+        (c.type === "everybody" ? "" : '<span class="teamchip" style="background:' + team.color + '">Team ' + esc(team.name) + '</span>') +
+        '<span class="timer" id="cTimer"></span></div>' +
+        '<h2 class="q" id="cq">' + esc(q.q) + '</h2>' +
+        mediaHTML(q) +
+        '<div class="opts">' + opts + '</div>' +
+        '<div class="feedback" aria-live="polite">' + fb + '</div>' +
+        '<div class="actions">' + actions + '</div>' +
+      '</div>'
+    );
+    renderTimer(cardTimer ? cardLeft : null);
+  }
+
+  function renderTimer(v) {
+    const el = $("cTimer");
+    if (!el) return;
+    if (v === null || v === undefined) { el.textContent = ""; return; }
+    el.textContent = v > 0 ? v : "0";
+    el.classList.toggle("low", v <= 10);
+  }
+  function startCardTimer(sec, onEnd) {
+    stopCardTimer();
+    cardLeft = sec;
+    renderTimer(cardLeft);
+    cardTimer = setInterval(() => {
+      if (paused) return;
+      cardLeft--;
+      renderTimer(cardLeft);
+      if (cardLeft <= 0) { stopCardTimer(); renderTimer(0); onEnd(); }
+    }, 1000);
+  }
+  function stopCardTimer() { if (cardTimer) clearInterval(cardTimer); cardTimer = null; }
+
+  function onCardTimeout() {
+    const c = S.card;
+    if (!c || c.status !== "open") return;
+    if (c.type === "remember" || c.type === "shop") {
+      snapshot();
+      c.status = "timeout";
+      save();
+      renderCard();
+    }
+    // Everybody: the teacher still presses "Show the answer".
+  }
+
+  function choose(oi) {
+    const c = S.card;
+    if (!c || c.status !== "open") return;
+    if (c.type === "remember" || c.type === "shop") {
+      snapshot();
+      stopCardTimer();
+      c.chosen = oi;
+      c.status = "answered";
+      if (oi === QUESTIONS[c.qi].answer) S.teams[S.turn].money += MONEY[c.type];
+      save();
+      renderCard();
+      renderSide();
+    } else if (c.type === "talk") {
+      snapshot();
+      c.chosen = oi;
+      c.status = "talking";
+      save();
+      renderCard();
+      startCardTimer(60, () => { renderTimer(0); });
+    }
+  }
+
+  function onCardAction(act, el) {
+    const c = S.card;
+    if (!c) return;
+    if (act === "next") endTurn();
+    else if (act === "talkdone") {
+      snapshot();
+      S.teams[S.turn].money += MONEY.talk;
+      endTurn();
+    } else if (act === "reveal") {
+      stopCardTimer();
+      renderTimer(null);
+      c.status = "revealed";
+      save();
+      renderCard();
+    } else if (act === "givemoney") {
+      snapshot();
+      c.winners.forEach(i => { S.teams[i].money += MONEY.everybody; });
+      endTurn();
+    }
+  }
+
+  /* ---------- Specials ---------- */
+  function showSpecial(title, text, btn, onOk) {
+    showOverlay(
+      '<div class="card" role="dialog" aria-modal="true" style="--cc:var(--gold)">' +
+        '<h2 class="q" style="font-size:48px;margin-top:10px">' + title + '</h2>' +
+        '<div class="feedback">' + text + '</div>' +
+        '<div class="actions"><button type="button" class="btn gold" id="specialOk">' + btn + '</button></div>' +
+      '</div>'
+    );
+    const b = $("specialOk");
+    b.focus();
+    b.addEventListener("click", () => { closeOverlay(); onOk(); }, { once: true });
+  }
+
+  /* ---------- Turn flow ---------- */
+  function roll() {
+    if (busy || !S || S.phase !== "play" || S.card || !$("overlay").hidden) return;
+    snapshot();
+    busy = true;
+    renderSide();
+    const die = $("die");
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    die.classList.add("spin");
+    let spins = 0;
+    const iv = setInterval(() => {
+      die.textContent = 1 + Math.floor(Math.random() * 6);
+      if (++spins >= (reduce ? 1 : 8)) {
+        clearInterval(iv);
+        die.classList.remove("spin");
+        const n = 1 + Math.floor(Math.random() * 6);
+        die.textContent = n;
+        move(n, land);
+      }
+    }, 80);
+  }
+
+  function move(steps, done) {
+    const t = S.teams[S.turn];
+    const dir = steps < 0 ? -1 : 1;
+    let left = Math.abs(steps);
+    busy = true;
+    renderSide();
+    const iv = setInterval(() => {
+      if (left <= 0 || (dir > 0 && t.pos >= LAST) || (dir < 0 && t.pos <= 0)) {
+        clearInterval(iv);
+        busy = false;
+        save();
+        renderAll();
+        done();
+        return;
+      }
+      t.pos += dir;
+      left--;
+      renderTokens();
+    }, 220);
+  }
+
+  function land() {
+    const t = S.teams[S.turn];
+    const sq = BOARD[t.pos];
+    if (sq === "checkout") return doCheckout();
+    if (sq === "sale") {
+      return showSpecial("Sale!", "Team " + esc(t.name) + ": go ahead 2 squares.", "Go ahead 2", () => move(2, () => { if (BOARD[t.pos] === "checkout") doCheckout(); else endTurn(); }));
+    }
+    if (sq === "lost") {
+      return showSpecial("Lost in the store!", "Team " + esc(t.name) + ": go back 2 squares.", "Go back 2", () => move(-2, endTurn));
+    }
+    if (sq === "coupon") {
+      return showSpecial("Coupon!", "Team " + esc(t.name) + " gets +$" + MONEY.coupon + ".", "Take the coupon", () => { snapshot(); t.money += MONEY.coupon; endTurn(); });
+    }
+    if (CARD[sq]) {
+      openCard({ type: sq, qi: draw(sq), order: shuffle([0, 1, 2]), status: "open", chosen: null, winners: [] });
+      return;
+    }
+    endTurn();
+  }
+
+  function doCheckout() {
+    const t = S.teams[S.turn];
+    showSpecial("Checkout!", "Great shopping, Team " + esc(t.name) + "! +$" + MONEY.checkout + ". Go back to the entrance and shop again.", "Take $" + MONEY.checkout, () => {
+      snapshot();
+      t.money += MONEY.checkout;
+      t.pos = 0;
+      endTurn();
+    });
+  }
+
+  function endTurn() {
+    stopCardTimer();
+    S.card = null;
+    S.turn = (S.turn + 1) % S.teams.length;
+    closeOverlay();
+    save();
+    renderAll();
+    $("rollBtn").focus();
+  }
+
+  /* ---------- Game clock ---------- */
+  function startClock() {
+    if (clockTimer) clearInterval(clockTimer);
+    clockTimer = setInterval(() => {
+      if (!S || S.phase !== "play" || paused) return;
+      if (S.clockLeft > 0) { S.clockLeft--; if (S.clockLeft % 10 === 0) save(); }
+      renderClock();
+    }, 1000);
+  }
+
+  /* ---------- Setup ---------- */
+  function renderSetup(saved) {
+    const names = setup.names.slice(0, setup.n).map((n, i) =>
+      '<div class="nm"><span class="tok" style="background:' + TEAM_COLORS[i] + ';border-color:transparent">' + (i + 1) + '</span><input type="text" maxlength="14" data-name="' + i + '" value="' + esc(n) + '" aria-label="Team ' + (i + 1) + ' name"></div>'
+    ).join("");
+    showOverlay(
+      '<div class="panel" role="dialog" aria-modal="true" aria-labelledby="setupTitle">' +
+        '<h2 id="setupTitle">Supermarket <em>Dash</em></h2>' +
+        '<p class="lead">Teams take turns. Roll the die, move, and answer the card. Collect the most money to win!</p>' +
+        '<div class="field"><span>Number of teams</span><div class="seg" role="group" aria-label="Number of teams">' +
+          [2, 3, 4].map(n => '<button type="button" data-n="' + n + '" aria-pressed="' + (setup.n === n) + '">' + n + '</button>').join("") +
+        '</div></div>' +
+        '<div class="field"><span>Team names</span><div class="names">' + names + '</div></div>' +
+        '<div class="row2">' +
+          '<div class="field"><label for="minIn">Game time (minutes)</label><input id="minIn" type="number" min="5" max="90" value="' + setup.minutes + '"></div>' +
+          '<div class="field"><label for="ansIn">Time to answer a card</label><select id="ansIn">' +
+            [30, 45, 60, 90].map(v => '<option value="' + v + '"' + (setup.answerTime === v ? " selected" : "") + '>' + v + ' seconds</option>').join("") +
+          '</select></div>' +
+        '</div>' +
+        '<div class="actions">' +
+          (saved ? '<button type="button" class="btn ghost" id="contBtn">Continue last game</button>' : '<span></span>') +
+          '<button type="button" class="btn gold" id="startBtn">Start the game</button>' +
+        '</div>' +
+      '</div>'
+    );
+    $("overlayInner").querySelectorAll("[data-n]").forEach(b => b.addEventListener("click", () => { readNames(); setup.n = +b.dataset.n; renderSetup(saved); }));
+    $("startBtn").addEventListener("click", startGame);
+    if (saved) $("contBtn").addEventListener("click", () => continueGame(saved));
+  }
+  function readNames() {
+    $("overlayInner").querySelectorAll("[data-name]").forEach(inp => { setup.names[+inp.dataset.name] = inp.value.trim() || DEFAULT_NAMES[+inp.dataset.name]; });
+    const m = $("minIn"), a = $("ansIn");
+    if (m) setup.minutes = Math.max(1, Math.min(180, parseInt(m.value, 10) || 40));
+    if (a) setup.answerTime = parseInt(a.value, 10) || 60;
+  }
+  function startGame() {
+    readNames();
+    S = {
+      phase: "play",
+      teams: setup.names.slice(0, setup.n).map((name, i) => ({ name, color: TEAM_COLORS[i], pos: 0, money: 0 })),
+      turn: 0,
+      decks: {},
+      card: null,
+      clockLeft: setup.minutes * 60,
+      answerTime: setup.answerTime
+    };
+    H = [];
+    $("undoBtn").disabled = true;
+    paused = false;
+    $("die").textContent = "–";
+    closeOverlay();
+    save();
+    renderAll();
+    startClock();
+    $("rollBtn").focus();
+  }
+  function continueGame(saved) {
+    S = saved;
+    H = [];
+    $("undoBtn").disabled = true;
+    paused = false;
+    closeOverlay();
+    renderAll();
+    startClock();
+    if (S.card) openCard(S.card);
+  }
+
+  /* ---------- End ---------- */
+  function endGame() {
+    if (!S || S.phase !== "play") return;
+    if (!confirm("End the game now?")) return;
+    stopCardTimer();
+    S.phase = "end";
+    S.card = null;
+    save();
+    renderAll();
+    const sorted = S.teams.slice().sort((a, b) => b.money - a.money);
+    const top = sorted[0].money;
+    const winners = sorted.filter(t => t.money === top).map(t => "Team " + esc(t.name));
+    showOverlay(
+      '<div class="panel" role="dialog" aria-modal="true" aria-labelledby="endTitle">' +
+        '<h2 id="endTitle">' + (winners.length > 1 ? "It’s a tie!" : "The winner is…") + '</h2>' +
+        '<p class="lead" style="font-size:28px;font-family:var(--serif);color:var(--ink)">' + winners.join(" and ") + '</p>' +
+        '<div class="endlist">' + sorted.map(t => '<div class="rline"><span class="dot" style="background:' + t.color + '"></span><span class="tn">' + esc(t.name) + '</span><span class="fill"></span><span class="amt">$' + t.money + '</span></div>').join("") + '</div>' +
+        '<div class="actions"><span></span><button type="button" class="btn gold" id="newBtn">New game</button></div>' +
+      '</div>'
+    );
+    $("newBtn").addEventListener("click", () => { clearSaved(); S = null; renderSetup(null); });
+  }
+
+  /* ---------- Events ---------- */
+  $("rollBtn").addEventListener("click", roll);
+  $("undoBtn").addEventListener("click", undo);
+  $("endBtn").addEventListener("click", endGame);
+  $("pauseBtn").addEventListener("click", () => { paused = !paused; renderClock(); });
+  $("overlayInner").addEventListener("click", e => {
+    if (!S || !S.card) return;
+    const opt = e.target.closest(".opt");
+    if (opt && !opt.disabled) return choose(+opt.dataset.oi);
+    const chip = e.target.closest(".chip");
+    if (chip) {
+      const i = +chip.dataset.team;
+      const w = S.card.winners;
+      const k = w.indexOf(i);
+      if (k >= 0) w.splice(k, 1); else w.push(i);
+      chip.setAttribute("aria-pressed", k >= 0 ? "false" : "true");
+      save();
+      return;
+    }
+    const act = e.target.closest("[data-act]");
+    if (act) onCardAction(act.dataset.act, act);
+  });
+  document.addEventListener("keydown", e => {
+    if (!S || S.phase !== "play") return;
+    if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+    if (S.card && S.card.status === "open" && S.card.type !== "everybody") {
+      const k = { a:0, b:1, c:2, "1":0, "2":1, "3":2 }[e.key.toLowerCase()];
+      if (k !== undefined) { e.preventDefault(); choose(S.card.order[k]); }
+      return;
+    }
+    if (e.key === " " && $("overlay").hidden && document.activeElement === document.body) { e.preventDefault(); roll(); }
+  });
+
+  /* ---------- Start ---------- */
+  buildBoard();
+  const saved = loadSaved();
+  renderSetup(saved && saved.phase === "play" ? saved : null);
+})();
+</script>
+</body>
+</html>
