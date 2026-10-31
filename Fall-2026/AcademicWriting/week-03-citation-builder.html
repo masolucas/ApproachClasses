@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Citation Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0C2340; --gold:#AE9142; --gold-b:#D39F10;
+  --bg:#FFFFFF; --surface:#EDF2F9; --ink:#1A1A1A; --ink-s:#3D3D3D; --muted:#6B6B6B;
+  --line:#C1CDDD; --accent:#0E6B6B; --accent-s:#D0EDED;
+  --ok:#26890C; --ok-s:#D4EDDA; --bad:#C0392B; --bad-s:#F8D7DA;
+  --btn-bg:#0C2340; --btn-ink:#EFE9D9; --chip-on:#0C2340; --chip-on-ink:#FFFFFF;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#081629; --surface:#12294A; --ink:#EFE9D9; --ink-s:#D6D0C2; --muted:#A9B4C4;
+    --line:#2B4570; --accent:#5FC2C2; --accent-s:#0F3A3E;
+    --ok:#6CCB52; --ok-s:#173A1C; --bad:#F07467; --bad-s:#47181A;
+    --btn-bg:#AE9142; --btn-ink:#081629; --chip-on:#AE9142; --chip-on-ink:#081629;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#081629; --surface:#12294A; --ink:#EFE9D9; --ink-s:#D6D0C2; --muted:#A9B4C4;
+  --line:#2B4570; --accent:#5FC2C2; --accent-s:#0F3A3E;
+  --ok:#6CCB52; --ok-s:#173A1C; --bad:#F07467; --bad-s:#47181A;
+  --btn-bg:#AE9142; --btn-ink:#081629; --chip-on:#AE9142; --chip-on-ink:#081629;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--ink);font-family:"Source Serif 4",Cambria,Georgia,serif;font-size:17px;line-height:1.5;-webkit-text-size-adjust:100%}
+main{max-width:640px;margin:0 auto;padding:20px 18px 40px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.mono{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--gold);display:grid;place-items:center;font-style:italic;font-weight:600;color:var(--gold);font-size:16px;flex:none}
+.brand small{font-family:Montserrat,Calibri,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gold);line-height:1.3}
+.brand small span{display:block;font-weight:400;color:var(--muted);letter-spacing:.06em}
+h1{font-weight:400;font-size:clamp(34px,9vw,48px);line-height:1.05;margin:6px 0 12px;letter-spacing:-.01em}
+h1 em{color:var(--gold);font-style:italic}
+h2{font-weight:600;font-size:22px;line-height:1.25;margin:4px 0 6px}
+.lede{color:var(--ink-s);font-style:italic;margin:0 0 18px}
+.ui{font-family:Montserrat,Calibri,Arial,sans-serif}
+.progress{display:flex;justify-content:space-between;align-items:center;font-family:Montserrat,Calibri,Arial,sans-serif;font-size:13px;color:var(--muted);margin-bottom:10px}
+.bar{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-bottom:18px}
+.bar i{display:block;height:100%;background:var(--gold);width:0;transition:width .3s}
+.claim{border:1.5px solid var(--accent);border-radius:10px;padding:12px 14px;margin:0 0 14px}
+.claim b{display:block;font-family:Montserrat,Calibri,Arial,sans-serif;font-size:11px;letter-spacing:.1em;color:var(--accent);margin-bottom:2px}
+.hint{font-family:Montserrat,Calibri,Arial,sans-serif;font-size:14px;color:var(--ink-s);margin:0 0 12px}
+.scale{display:flex;justify-content:space-between;font-family:Montserrat,Calibri,Arial,sans-serif;font-size:12px;color:var(--muted);margin:0 2px 6px}
+.cards{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.card{all:unset;box-sizing:border-box;display:flex;gap:12px;align-items:flex-start;width:100%;padding:12px 14px;background:var(--surface);border:1.5px solid transparent;border-radius:10px;cursor:pointer;font-family:"Source Serif 4",Cambria,Georgia,serif;font-size:16px;line-height:1.4;color:var(--ink)}
+.card:focus-visible,.btn:focus-visible,.chip:focus-visible{outline:3px solid var(--gold-b);outline-offset:2px}
+.num{flex:none;width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--line);display:grid;place-items:center;font-family:Montserrat,Calibri,Arial,sans-serif;font-weight:700;font-size:14px;color:var(--muted)}
+.card.on{border-color:var(--navy)}
+:root[data-theme="dark"] .card.on{border-color:var(--gold)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .card.on{border-color:var(--gold)}}
+.card.on .num{background:var(--chip-on);color:var(--chip-on-ink);border:1.5px solid var(--chip-on)}
+.card.right{background:var(--ok-s);border-color:var(--ok)}
+.card.wrong{background:var(--bad-s);border-color:var(--bad)}
+.card.right .num{background:var(--ok);border-color:var(--ok);color:#fff}
+.card.wrong .num{background:var(--bad);border-color:var(--bad);color:#fff}
+.card .fix{display:block;font-family:Montserrat,Calibri,Arial,sans-serif;font-size:12px;font-weight:600;color:var(--bad);margin-top:4px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{all:unset;box-sizing:border-box;font-family:Montserrat,Calibri,Arial,sans-serif;font-weight:700;font-size:15px;padding:13px 20px;border-radius:999px;background:var(--btn-bg);color:var(--btn-ink);cursor:pointer;text-align:center;min-height:48px}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.btn.wide{flex:1}
+.why{border-left:3px solid var(--gold);padding:6px 0 6px 12px;margin:0 0 16px;font-style:italic;color:var(--ink-s)}
+.why strong{font-style:normal;font-family:Montserrat,Calibri,Arial,sans-serif;font-size:13px;color:var(--ink)}
+.preview{font-size:20px;line-height:1.45;padding:14px;border:1.5px solid var(--line);border-radius:10px;margin:0 0 16px;min-height:96px}
+.preview .slot{border-bottom:2px solid var(--gold);padding:0 2px}
+.preview .slot.empty{color:var(--muted)}
+.preview .slot.right{border-color:var(--ok);background:var(--ok-s)}
+.preview .slot.wrong{border-color:var(--bad);background:var(--bad-s)}
+.slotgroup{margin-bottom:14px}
+.slotgroup .lab{font-family:Montserrat,Calibri,Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--accent);margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{all:unset;box-sizing:border-box;padding:9px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--bg);font-size:15px;cursor:pointer;color:var(--ink);min-height:42px;display:inline-flex;align-items:center}
+.chip.on{background:var(--chip-on);color:var(--chip-on-ink);border-color:var(--chip-on)}
+.chip.right{background:var(--ok);border-color:var(--ok);color:#fff}
+.chip.wrongpick{background:var(--bad);border-color:var(--bad);color:#fff;text-decoration:line-through}
+.chip.answer{border-color:var(--ok);border-width:2px}
+.chip[disabled]{cursor:default}
+.score{font-size:64px;line-height:1;font-weight:400;margin:10px 0 4px}
+.score em{color:var(--gold);font-style:italic}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.split div{background:var(--surface);border-radius:10px;padding:12px}
+.split b{display:block;font-family:Montserrat,Calibri,Arial,sans-serif;font-size:12px;color:var(--muted);font-weight:600}
+.split span{font-size:26px}
+.talk{border:1.5px solid var(--gold);border-radius:10px;padding:14px;margin:16px 0}
+.talk b{font-family:Montserrat,Calibri,Arial,sans-serif;font-size:12px;letter-spacing:.1em;color:var(--gold);display:block;margin-bottom:4px}
+.note{font-family:Montserrat,Calibri,Arial,sans-serif;font-size:12px;color:var(--muted);margin-top:22px}
+.steps{padding-left:0;list-style:none;margin:0 0 20px;counter-reset:s}
+.steps li{counter-increment:s;display:flex;gap:12px;margin-bottom:12px}
+.steps li::before{content:counter(s);font-style:italic;color:var(--gold);font-size:26px;line-height:1;flex:none;width:22px}
+.hidden{display:none !important}
+@media (prefers-reduced-motion: reduce){.bar i{transition:none}}
+
+.tag{display:inline-block;font-family:Montserrat,Calibri,Arial,sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;padding:4px 10px;border-radius:999px;color:#fff;margin-right:8px}
+.tag.mla{background:#0C2340}.tag.apa{background:#0E6B6B}
+:root[data-theme="dark"] .tag.mla{background:#2B4570}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .tag.mla{background:#2B4570}}
+.task{border:1.5px solid var(--accent);border-radius:10px;padding:12px 14px;margin:0 0 14px}
+.task .type{font-family:Montserrat,Calibri,Arial,sans-serif;font-size:14px;font-weight:600;color:var(--ink)}
+.task .info{font-size:19px;margin-top:6px}
+.stem{font-style:italic;color:var(--ink-s);margin:0 0 6px}
+.tray{min-height:64px;border:2px dashed var(--line);border-radius:10px;padding:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+.tray.right{border-style:solid;border-color:var(--ok);background:var(--ok-s)}
+.tray.wrong{border-style:solid;border-color:var(--bad);background:var(--bad-s)}
+.tray .empty{font-family:Montserrat,Calibri,Arial,sans-serif;font-size:13px;color:var(--muted)}
+.built{font-size:22px;line-height:1.3;min-height:30px;margin:0 0 14px;padding:0 2px}
+.built .lbl{display:block;font-family:Montserrat,Calibri,Arial,sans-serif;font-size:11px;letter-spacing:.1em;color:var(--muted);font-weight:700}
+.pool{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.tok{all:unset;box-sizing:border-box;min-width:44px;min-height:44px;padding:8px 13px;border-radius:8px;border:1.5px solid var(--gold);background:var(--bg);color:var(--ink);font-family:"Source Serif 4",Cambria,Georgia,serif;font-size:19px;text-align:center;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.tok:focus-visible{outline:3px solid var(--gold-b);outline-offset:2px}
+.tok.used{visibility:hidden}
+.tray .tok{border-color:var(--navy);background:var(--surface)}
+:root[data-theme="dark"] .tray .tok{border-color:var(--gold)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .tray .tok{border-color:var(--gold)}}
+.tok[disabled]{cursor:default}
+.correct{font-size:20px;font-weight:600;color:var(--ok)}
+</style>
+</head>
+<body>
+<main>
+  <div class="brand"><div class="mono">A</div><small>ACADEMIC WRITING · ADVANCED<span>Week 03 · Block 2</span></small></div>
+
+  <section id="start">
+    <h1>Citation<br><em>Builder.</em></h1>
+    <p class="lede">Build each citation from chips. Watch the commas, the periods, and the traps.</p>
+    <ol class="steps">
+      <li><div><strong>Read the task.</strong> Style, type, author, year, page.</div></li>
+      <li><div><strong>Tap chips in order.</strong> Tap a chip in your answer to send it back.</div></li>
+      <li><div><strong>Check.</strong> Right the first time = 2 points. Right the second time = 1 point.</div></li>
+    </ol>
+    <button class="btn wide" id="go" style="width:100%">Start</button>
+    <p class="note">Some chips are traps. Not every chip is used. All authors and sources are fictional practice examples.</p>
+  </section>
+
+  <section id="play" class="hidden">
+    <div class="progress"><span id="lab"></span><span id="pts"></span></div>
+    <div class="bar"><i id="bar"></i></div>
+    <div class="task">
+      <div><span class="tag" id="style"></span><span class="type" id="type"></span></div>
+      <div class="info" id="info"></div>
+    </div>
+    <p class="stem hidden" id="stem"></p>
+    <div class="tray" id="tray" aria-label="Your citation"></div>
+    <div class="built"><span class="lbl">YOUR CITATION</span><span id="built"></span></div>
+    <div class="pool" id="pool" aria-label="Chips"></div>
+    <div class="why hidden" id="why"></div>
+    <div class="row">
+      <button class="btn ghost" id="clear">Clear</button>
+      <button class="btn wide" id="check" disabled>Check</button>
+      <button class="btn wide hidden" id="next">Next</button>
+    </div>
+  </section>
+
+  <section id="done" class="hidden">
+    <h1>All <em>built.</em></h1>
+    <p class="score" id="total"></p>
+    <p id="msg" class="lede"></p>
+    <div class="talk"><b>STAND UP · FIND A PARTNER FROM ANOTHER TABLE</b>Compare scores. Show one citation you got wrong the first time and explain the rule.</div>
+    <button class="btn ghost" id="again" style="width:100%">Play again</button>
+    <p class="note">All authors and sources are fictional practice examples.</p>
+  </section>
+</main>
+<script>
+const ROUNDS = [{"st":"MLA","type":"Parenthetical","info":"Raman · page 7","ans":["(","Raman","7",")"],"extra":[",","p.","2023"],"why":"MLA: name + page, no comma, no \"p.\""},{"st":"APA","type":"Parenthetical · quote","info":"Raman · 2023 · page 7","ans":["(","Raman",",","2023",",","p.","7",")"],"extra":["pg."],"why":"APA: name, year, page — with commas and \"p.\""},{"st":"APA","type":"Parenthetical · paraphrase · no page","info":"Whitfield · 2024","ans":["(","Whitfield",",","2024",")"],"extra":["p.","31"],"why":"For an APA paraphrase the page is optional. Name, comma, year."},{"st":"MLA","type":"Parenthetical · two authors","info":"Okafor and Brandt · page 12","ans":["(","Okafor and Brandt","12",")"],"extra":["Okafor & Brandt",","],"why":"MLA writes \"and\" — never \"&\"."},{"st":"APA","type":"Parenthetical · quote · two authors","info":"Okafor and Brandt · 2025 · page 12","ans":["(","Okafor & Brandt",",","2025",",","p.","12",")"],"extra":["Okafor and Brandt"],"why":"APA uses \"&\" inside parentheses."},{"st":"APA","type":"Narrative · start of sentence","info":"Kessler · 2025","ans":["Kessler","(","2025",")"],"extra":[",","p."],"why":"APA narrative: the year goes right after the name."},{"st":"MLA","type":"Parenthetical","info":"Ortiz · page 18","ans":["(","Ortiz","18",")"],"extra":["pg.",","],"why":"\"pg.\" is never correct in MLA or APA."},{"st":"APA","type":"Narrative · two authors","info":"Okafor and Brandt · 2025","ans":["Okafor and Brandt","(","2025",")"],"extra":["Okafor & Brandt",","],"why":"APA uses \"and\" in the sentence, \"&\" only inside parentheses."},{"st":"MLA","type":"End of a quote sentence","info":"Lopez · page 9","stem":"Students who read at bedtime “learn new vocabulary almost twice as fast”","ans":["(","Lopez","9",")","."],"extra":[".",","],"why":"The period goes AFTER the parentheses."},{"st":"APA","type":"End of a quote sentence","info":"Lopez · 2024 · page 9","stem":"Students who read at bedtime “learn new vocabulary almost twice as fast”","ans":["(","Lopez",",","2024",",","p.","9",")","."],"extra":["."],"why":"Full APA citation, then the period."},{"st":"MLA","type":"Name already in the sentence","info":"Whitfield · page 31","stem":"Whitfield argues that community colleges are “the smartest first step”","ans":["(","31",")","."],"extra":["Whitfield","p."],"why":"You named Whitfield already, so only the page goes in the parentheses."},{"st":"APA","type":"Name and year already in the sentence","info":"Kessler (2025) · page 42","stem":"Kessler (2025) states that AI tools “can support, but not replace, student thinking”","ans":["(","p.","42",")","."],"extra":["Kessler","2025",","],"why":"Name and year are already given, so only the page goes at the end."}];
+const $=id=>document.getElementById(id);
+const show=id=>["start","play","done"].forEach(s=>$(s).classList.toggle("hidden",s!==id));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+function fmt(toks){ let s=""; toks.forEach((t,i)=>{ if(i===0){s=t;return;} const prev=toks[i-1]; if([")",",","."].includes(t)||prev==="(") s+=t; else s+=" "+t; }); return s; }
+let ri=0, score=0, tries=0, pool=[], picked=[], locked=false;
+
+function start(){ ri=0; score=0; show("play"); load(); window.scrollTo(0,0); }
+function load(){
+  const R=ROUNDS[ri]; tries=0; picked=[]; locked=false;
+  pool=shuffle(R.ans.concat(R.extra).map((t,i)=>({t,id:i})));
+  $("lab").textContent="Citation "+(ri+1)+" of "+ROUNDS.length;
+  $("pts").textContent=score+" pts";
+  $("bar").style.width=(ri/ROUNDS.length*100)+"%";
+  $("style").textContent=R.st; $("style").className="tag "+R.st.toLowerCase();
+  $("type").textContent=R.type; $("info").textContent=R.info;
+  $("stem").classList.toggle("hidden",!R.stem); $("stem").textContent=R.stem?R.stem+" …":"";
+  $("why").classList.add("hidden"); $("tray").className="tray";
+  $("check").classList.remove("hidden"); $("clear").classList.remove("hidden"); $("next").classList.add("hidden");
+  $("check").textContent="Check";
+  render();
+}
+function render(){
+  const tray=$("tray"); tray.innerHTML="";
+  if(!picked.length){ const e=document.createElement("span"); e.className="empty"; e.textContent="Tap chips below to build your citation."; tray.appendChild(e); }
+  picked.forEach((p,k)=>{
+    const b=document.createElement("button"); b.type="button"; b.className="tok"; b.textContent=p.t;
+    b.setAttribute("aria-label","Remove "+p.t);
+    if(locked) b.disabled=true; else b.addEventListener("click",()=>{ picked.splice(k,1); render(); });
+    tray.appendChild(b);
+  });
+  const pl=$("pool"); pl.innerHTML="";
+  pool.forEach(p=>{
+    const b=document.createElement("button"); b.type="button"; b.className="tok"; b.textContent=p.t;
+    const used=picked.includes(p);
+    if(used) b.classList.add("used");
+    b.setAttribute("aria-label","Add "+p.t);
+    if(locked||used) b.disabled=true; else b.addEventListener("click",()=>{ picked.push(p); render(); });
+    pl.appendChild(b);
+  });
+  const R=ROUNDS[ri];
+  $("built").textContent=(R.stem?"… ":"")+fmt(picked.map(p=>p.t));
+  $("check").disabled=!picked.length||locked;
+}
+$("clear").addEventListener("click",()=>{ picked=[]; $("tray").className="tray"; render(); });
+$("check").addEventListener("click",()=>{
+  const R=ROUNDS[ri]; tries++;
+  const ok=picked.length===R.ans.length && picked.every((p,i)=>p.t===R.ans[i]);
+  const why=$("why");
+  if(ok){
+    const g=tries===1?2:1; score+=g; locked=true;
+    $("tray").className="tray right";
+    why.innerHTML="<strong>Correct! +"+g+"</strong> "+R.why;
+  } else if(tries===1){
+    $("tray").className="tray wrong";
+    why.innerHTML="<strong>Not yet.</strong> Look again at the order and the punctuation, then try once more. Tap a chip in your answer to send it back.";
+    $("check").textContent="Check again";
+  } else {
+    locked=true; $("tray").className="tray wrong";
+    why.innerHTML="<strong>Correct answer:</strong> <span class=\"correct\">"+fmt(R.ans)+"</span><br>"+R.why;
+  }
+  why.classList.remove("hidden");
+  $("pts").textContent=score+" pts";
+  if(locked){
+    $("check").classList.add("hidden"); $("clear").classList.add("hidden");
+    $("next").classList.remove("hidden"); $("next").textContent=ri===ROUNDS.length-1?"See my score":"Next";
+  }
+  render(); if(locked) $("next").focus();
+});
+$("next").addEventListener("click",()=>{ ri++; if(ri<ROUNDS.length){ load(); } else finish(); window.scrollTo(0,0); });
+function finish(){
+  const max=ROUNDS.length*2;
+  $("total").innerHTML=score+" <em>/ "+max+"</em>";
+  const pct=score/max;
+  $("msg").textContent= pct>=0.85?"Excellent. You know where every comma, \u201Cp.\u201D, and period goes.":
+    pct>=0.6?"Good work. Check Handout B, Part 1 for the rows you missed.":"Keep practicing. Use Handout B, Part 1 next to you and play again.";
+  show("done"); $("again").focus();
+}
+$("go").addEventListener("click",start);
+$("again").addEventListener("click",start);
+</script>
+</body>
+</html>
