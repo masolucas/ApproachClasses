@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f2340">
+<title>Haunted Four</title>
+<link rel="stylesheet" href="haunted-four.css">
+</head>
+<body class="play">
+<div class="wrap">
+  <header>
+    <div class="brand"><span class="moon" aria-hidden="true"></span>Haunted Four</div>
+    <div class="me" id="me"></div>
+  </header>
+  <main id="main"></main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script>
+/* Supabase key, emojis and colors live in config.js. */
+const LETTERS = ['A','B','C','D'];
+const ownerOf = e => st && st.teams[e] ? st.teams[e].id : null;
+const colorOf = e => (st && st.teams[e] && st.teams[e].color) || '#8a8a8a';
+const nameOf = e => (EMOJI[e] && EMOJI[e].name) || 'Group';
+const teamInfo = e => ({ e, name: nameOf(e), c: colorOf(e) });
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem('h4-' + k)); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem('h4-' + k, JSON.stringify(v)); } catch {} },
+};
+const brackets = '<span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>';
+
+let clientId = store.get('client');
+if (!clientId) { clientId = Math.random().toString(36).slice(2) + Date.now().toString(36); store.set('client', clientId); }
+
+let room = (new URLSearchParams(location.search).get('room') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
+let myEmoji = null, st = null, localEnds = 0, channel = null, sb = null;
+let pendingClaim = null, myAnswer = null, resendTimer = null, lastTurnBuzz = 0, notFoundTimer = null, notFound = false;
+
+/* ===== Realtime ===== */
+function connect() {
+  if (!sb) sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  if (channel) sb.removeChannel(channel);
+  myEmoji = store.get('team-' + room);
+  myAnswer = store.get('answer-' + room);
+  st = null; notFound = false;
+  channel = sb.channel('haunted4-' + room, { config: { broadcast: { self: false } } });
+  channel.on('broadcast', { event: 'msg' }, ({ payload }) => { if (payload && payload.t === 'state') onState(payload); });
+  channel.subscribe(status => { if (status === 'SUBSCRIBED') send({ t: 'hello' }); });
+  clearTimeout(notFoundTimer);
+  notFoundTimer = setTimeout(() => { if (!st) { notFound = true; render(); } }, 6000);
+  render();
+}
+function send(p) { if (channel) channel.send({ type: 'broadcast', event: 'msg', payload: { ...p, clientId } }).catch(() => {}); }
+
+setInterval(() => { if (channel && !st) send({ t: 'hello' }); }, 2500);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && channel) send({ t: 'hello' }); });
+
+function onState(s) {
+  const prevPhase = st && st.phase, prevQn = st && st.qn;
+  st = s; notFound = false;
+  if (s.phase === 'question' && (s.qn !== prevQn || prevPhase !== 'question')) localEnds = Date.now() + s.remaining;
+  else if (s.phase === 'question' && Math.abs((Date.now() + s.remaining) - localEnds) > 1500) localEnds = Date.now() + s.remaining;
+
+  // Is my group still mine?
+  if (myEmoji && ownerOf(myEmoji) !== clientId) {
+    if (pendingClaim !== myEmoji) { myEmoji = null; store.set('team-' + room, null); }
+  }
+  if (pendingClaim && ownerOf(pendingClaim) === clientId) {
+    myEmoji = pendingClaim; pendingClaim = null; store.set('team-' + room, myEmoji);
+  } else if (pendingClaim && ownerOf(pendingClaim) && ownerOf(pendingClaim) !== clientId) {
+    pendingClaim = null; myEmoji = null;
+  }
+  // Answer bookkeeping
+  if (myAnswer && myAnswer.qn !== s.qn) { myAnswer = null; store.set('answer-' + room, null); }
+  if (myAnswer && (s.answered.includes(myEmoji) || s.phase !== 'question')) stopResend();
+
+  if (s.phase === 'reveal' && s.queue[0] === myEmoji && myEmoji && lastTurnBuzz !== s.qn) {
+    lastTurnBuzz = s.qn;
+    if (navigator.vibrate) navigator.vibrate([150, 80, 150]);
+  }
+  render();
+}
+
+function claim(e) {
+  pendingClaim = e; myEmoji = e;
+  send({ t: 'claim', emoji: e });
+  render();
+  setTimeout(() => { if (pendingClaim === e) send({ t: 'claim', emoji: e }); }, 2000);
+}
+function leave() {
+  if (myEmoji) send({ t: 'leave', emoji: myEmoji });
+  myEmoji = null; pendingClaim = null; store.set('team-' + room, null); render();
+}
+function answer(choice) {
+  if (!st || st.phase !== 'question' || myAnswer || !myEmoji) return;
+  myAnswer = { qn: st.qn, choice };
+  store.set('answer-' + room, myAnswer);
+  const msg = { t: 'answer', emoji: myEmoji, qn: st.qn, choice };
+  send(msg);
+  stopResend();
+  resendTimer = setInterval(() => send(msg), 1500);
+  render();
+}
+function stopResend() { clearInterval(resendTimer); resendTimer = null; }
+
+/* ===== Screens ===== */
+function render() {
+  const t = myEmoji && !pendingClaim && st ? teamInfo(myEmoji) : null;
+  $('me').innerHTML = t ? `<span>${esc(t.name)}</span><span class="mini" style="--c:${t.c}">${t.e}</span>` : (room ? `Room ${esc(room)}` : '');
+  $('main').innerHTML = screen();
+  tick();
+}
+
+function screen() {
+  if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.startsWith('PASTE')) {
+    return `<div class="center"><h1>Not set up yet</h1><p class="sub">Ask your teacher to add the Supabase key to config.js.</p></div>`;
+  }
+  if (!room || room.length < 4) {
+    return `<div class="center">
+      <h1>Join the game</h1>
+      <p class="sub">Type the room code on the big screen.</p>
+      <form class="field" onsubmit="event.preventDefault();joinRoom()">
+        <input id="codeIn" maxlength="4" autocomplete="off" autocapitalize="characters" placeholder="ABCD" aria-label="Room code">
+        <button class="btn primary" type="submit">Join</button>
+      </form></div>`;
+  }
+  if (!st) {
+    return notFound
+      ? `<div class="center"><h1>Room ${esc(room)} isn’t answering</h1><p class="sub">Check that the code matches the big screen.</p><button class="btn" onclick="changeRoom()">Enter a different code</button></div>`
+      : `<div class="center"><h1>Connecting…</h1><p class="sub">Room ${esc(room)}</p></div>`;
+  }
+  if (!myEmoji || pendingClaim) return pickScreen();
+
+  const t = teamInfo(myEmoji);
+  const placed = st.places.indexOf(myEmoji);
+
+  if (st.phase === 'over') {
+    if (st.overReason === 'full') {
+      const top = st.fullScores && st.fullScores[0];
+      return `<div class="center"><div class="big" style="--c:${top ? colorOf(top.e) : t.c}">${top ? top.e : t.e}</div>
+        <h1>The board is full</h1><p class="sub">${top ? `The ${esc(nameOf(top.e))} have the most three-in-a-rows.` : ''}</p></div>`;
+    }
+    const w = st.places[st.places.length - 1];
+    return `<div class="center"><div class="big" style="--c:${colorOf(w)}">${w}</div>
+      <h1>${w === myEmoji ? 'You got four in a row!' : `The ${esc(nameOf(w))} got four in a row`}</h1>
+      <p class="sub">Watch the big screen.</p></div>`;
+  }
+
+  if (placed >= 0) {
+    return `<div class="center"><div class="big" style="--c:${t.c}">${t.e}</div>
+      <h1>You finished in ${['1st','2nd','3rd','4th','5th'][placed] || 'a top'} place</h1>
+      <p class="sub">Watch the other groups play for the next places.</p></div>`;
+  }
+
+  if (st.phase === 'lobby') {
+    return `<div class="center framed">${brackets}
+      <div class="big" style="--c:${t.c}">${t.e}</div>
+      <h1>You’re the ${esc(t.name)}</h1>
+      <p class="sub">Wait for the first question. Answer fast: faster groups drop first.</p>
+      <button class="textlink" onclick="leave()">Pick a different group</button></div>`;
+  }
+
+  if (st.phase === 'question' && st.q) {
+    const done = myAnswer && myAnswer.qn === st.qn;
+    return `<div>
+      <div class="qhead"><span>Question ${st.qn}</span><span id="secs"></span></div>
+      <div class="timer"><i id="bar"></i></div>
+      ${st.q.pic ? `<div class="qpic">${esc(st.q.pic)}</div>` : ''}
+      <p class="qtext">${esc(st.q.text)}</p>
+      <div class="answers">${st.q.options.map((o, i) => `
+        <button class="ans ${done && myAnswer.choice === i ? 'mine' : ''} ${done && myAnswer.choice !== i ? 'dim' : ''}" ${done ? 'disabled' : ''} onclick="answer(${i})">
+          <span class="l">${LETTERS[i]}</span><span>${esc(o)}</span></button>`).join('')}</div>
+      ${done ? `<p class="locked">${st.answered.includes(myEmoji) ? 'Answer locked in' : 'Sending…'}</p>` : ''}
+    </div>`;
+  }
+
+  if (st.phase === 'reveal' && st.q) {
+    const ok = st.results && st.results[myEmoji];
+    const answered = st.results && myEmoji in st.results;
+    const pos = st.queue.indexOf(myEmoji);
+    const rightText = st.q.options[st.correct];
+    let head, line, extra = '';
+    if (pos === 0) {
+      head = `<div class="big turn" style="--c:${t.c}">${t.e}</div><h1>Your turn!</h1>`;
+      line = 'Tell your teacher which column to drop in.';
+    } else if (ok && pos > 0) {
+      head = `<p class="result ok">Correct!</p>`;
+      line = `You drop ${pos === 1 ? 'next' : `after ${pos} other groups`}. Get your column ready.`;
+    } else if (ok) {
+      head = `<p class="result ok">Correct!</p>`; line = 'Your piece is on the board.';
+    } else {
+      head = `<p class="result bad">${answered ? 'Not this time' : 'Time’s up'}</p>`;
+      line = 'No drop this round.';
+      extra = `<p class="sub">The answer was <b>${LETTERS[st.correct]}: ${esc(rightText)}</b></p>`;
+    }
+    return `<div class="center">${head}<p>${line}</p>${extra}</div>`;
+  }
+
+  return `<div class="center"><p class="sub">Watch the big screen.</p></div>`;
+}
+
+function pickScreen() {
+  const joined = Object.keys(st.teams).length;
+  const full = joined >= GAME.maxGroups && !Object.values(st.teams).some(v => v.id === clientId);
+  return `<div>
+    <h1>Choose your group</h1>
+    <p class="sub">Pick an emoji. Each group plays with one phone.</p>
+    ${full ? `<p class="note">All ${GAME.maxGroups} groups are taken. Ask your teacher to free up a spot.</p>` : ''}
+    <div class="pick">${EMOJIS.map((x, i) => {
+      const owner = ownerOf(x.e);
+      const taken = owner && owner !== clientId;
+      const waiting = pendingClaim === x.e;
+      return `<button ${taken || pendingClaim || full ? 'disabled' : ''} onclick="claim(EMOJIS[${i}].e)" aria-label="${esc(x.name)}${taken ? ', taken' : ''}">
+        <span class="e">${x.e}</span>
+        <span>${esc(x.name)}</span>
+        ${taken ? '<span class="taken">Taken</span>' : waiting ? '<span class="taken">Joining…</span>' : ''}
+      </button>`;
+    }).join('')}</div>
+    <p style="text-align:center;margin-top:18px"><button class="textlink" onclick="changeRoom()">Wrong room? Enter a different code</button></p>
+  </div>`;
+}
+
+function joinRoom() {
+  const v = ($('codeIn').value || '').toUpperCase().replace(/[^A-Z]/g, '');
+  if (v.length !== 4) return;
+  room = v;
+  history.replaceState(null, '', '?room=' + room);
+  connect();
+}
+function changeRoom() {
+  if (channel && sb) sb.removeChannel(channel);
+  channel = null; room = ''; st = null; myEmoji = null;
+  history.replaceState(null, '', location.pathname);
+  render();
+}
+
+function tick() {
+  if (!st || st.phase !== 'question') return;
+  const left = Math.max(0, localEnds - Date.now());
+  const bar = $('bar'); if (bar) bar.style.transform = `scaleX(${left / (GAME.seconds * 1000)})`;
+  const s = $('secs'); if (s) s.textContent = Math.ceil(left / 1000) + 's';
+}
+setInterval(tick, 200);
+
+/* ===== Start ===== */
+if (room && room.length === 4 && SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.startsWith('PASTE')) connect();
+else render();
+</script>
+</body>
+</html>

@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Haunted Four: Host</title>
+<link rel="stylesheet" href="haunted-four.css">
+</head>
+<body class="host">
+
+<div id="setup" class="setup hidden">
+  <h1>Add your Supabase key</h1>
+  <p>Open <code>config.js</code>, find <code>SUPABASE_ANON_KEY</code>, and paste your project’s anon public key there.</p>
+  <p>You’ll find it in Supabase under Project Settings, API.</p>
+</div>
+
+<div id="app" class="app hidden">
+  <header>
+    <div class="brand"><div class="moon" aria-hidden="true"></div><h1>Haunted Four</h1></div>
+    <div class="room">
+      <span>Room <b id="roomCode">----</b></span>
+      <span class="dot" id="conn" title="Connection"></span>
+      <button class="link" id="showJoin">Show join code</button>
+    </div>
+  </header>
+
+  <main class="stage">
+    <div class="prompt" id="prompt"></div>
+    <div class="frame">
+      <span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>
+      <div class="colnums" id="colnums"></div>
+      <div class="board" id="board"></div>
+    </div>
+    <div class="banner hidden" id="banner"></div>
+  </main>
+
+  <aside id="side"></aside>
+</div>
+
+<div class="modal hidden" id="joinModal">
+  <div class="panel join">
+    <h2>Join on your phone</h2>
+    <div class="qrbox" id="qrModal"></div>
+    <div class="code" id="codeModal"></div>
+    <p class="url" id="urlModal"></p>
+    <p style="margin-top:14px"><button class="btn" id="closeJoin">Close</button></p>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="config.js"></script>
+<script src="questions.js"></script>
+<script>
+/* Settings, emojis and colors live in config.js; questions live in questions.js. */
+const COLS = GAME.cols, ROWS = GAME.rows, SECONDS = GAME.seconds;
+const STORE = 'haunted-four-host-v2';
+document.documentElement.style.setProperty('--cols', COLS);
+
+/* ===== Helpers ===== */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const shuffle = arr => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+const makeCode = () => Array.from({ length: 4 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random() * 24)]).join('');
+const LETTERS = ['A','B','C','D'];
+const sec = ms => (ms / 1000).toFixed(1) + 's';
+const nameOf = e => EMOJI[e]?.name || 'Group';
+const colorOf = e => S.teams[e]?.color || S.colors?.[e] || '#8a8a8a';
+const teamLabel = e => `${e} ${nameOf(e)}`;
+
+function fresh(code, teams) {
+  return {
+    code: code || makeCode(), teams: teams || {},
+    colors: Object.fromEntries(Object.entries(teams || {}).map(([e, v]) => [e, v.color])),
+    board: Array(COLS * ROWS).fill(null),
+    order: shuffle([...QUESTIONS.keys()]), pos: -1, asked: 0,
+    q: null, phase: 'lobby', startedAt: 0, endsAt: 0,
+    answers: {}, queue: [], places: [], winLines: [], history: [],
+    overReason: null, fullScores: null,
+  };
+}
+function load() { try { const raw = localStorage.getItem(STORE); return raw ? JSON.parse(raw) : null; } catch { return null; } }
+function save() { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch {} }
+
+let S = load() || fresh();
+let justDropped = -1, hoverCol = -1, channel = null, toastTimer = null;
+
+/* ===== Realtime ===== */
+function connect() {
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  channel = sb.channel('haunted4-' + S.code, { config: { broadcast: { self: false } } });
+  channel.on('broadcast', { event: 'msg' }, ({ payload }) => onMessage(payload || {}));
+  channel.subscribe(status => {
+    $('conn').classList.toggle('on', status === 'SUBSCRIBED');
+    if (status === 'SUBSCRIBED') push();
+  });
+}
+function send(payload) { if (channel) channel.send({ type: 'broadcast', event: 'msg', payload }).catch(() => {}); }
+
+function publicState() {
+  const showQ = S.q && S.phase !== 'lobby';
+  const revealed = S.phase === 'reveal' || S.phase === 'over';
+  return {
+    t: 'state', code: S.code, phase: S.phase,
+    teams: Object.fromEntries(Object.entries(S.teams).map(([e, v]) => [e, { id: v.clientId, color: v.color }])),
+    qn: S.q ? S.q.n : 0,
+    q: showQ ? { text: S.q.text, pic: S.q.pic, options: S.q.options } : null,
+    remaining: S.phase === 'question' ? Math.max(0, S.endsAt - Date.now()) : 0,
+    answered: Object.keys(S.answers),
+    correct: revealed && S.q ? S.q.correct : null,
+    results: revealed && S.q ? Object.fromEntries(Object.entries(S.answers).map(([e, a]) => [e, a.choice === S.q.correct])) : null,
+    queue: S.queue, places: S.places, overReason: S.overReason, fullScores: S.fullScores,
+  };
+}
+function push() { send(publicState()); }
+
+function onMessage(m) {
+  if (m.t === 'hello') { push(); return; }
+  if (m.t === 'claim') {
+    const owner = S.teams[m.emoji];
+    if (!EMOJI[m.emoji] || (owner && owner.clientId !== m.clientId)) { push(); return; }
+    if (owner) { push(); return; }
+    // A phone switching emojis keeps its color; a new phone gets the next free color.
+    const prev = Object.entries(S.teams).find(([, v]) => v.clientId === m.clientId);
+    if (!prev && Object.keys(S.teams).length >= GAME.maxGroups) { push(); return; }
+    let color;
+    if (prev) { color = prev[1].color; delete S.teams[prev[0]]; }
+    else {
+      const used = new Set(Object.values(S.teams).map(v => v.color));
+      color = COLORS.find(c => !used.has(c)) || COLORS[Object.keys(S.teams).length % COLORS.length];
+    }
+    S.teams[m.emoji] = { clientId: m.clientId, color };
+    S.colors[m.emoji] = color;
+    commit(); return;
+  }
+  if (m.t === 'leave') {
+    if (S.teams[m.emoji] && S.teams[m.emoji].clientId === m.clientId) { delete S.teams[m.emoji]; if (!S.board.includes(m.emoji)) delete S.colors[m.emoji]; commit(); }
+    return;
+  }
+  if (m.t === 'answer') {
+    const owner = S.teams[m.emoji];
+    if (S.phase !== 'question' || !S.q || m.qn !== S.q.n || !owner || owner.clientId !== m.clientId) { push(); return; }
+    if (!S.answers[m.emoji] && Number.isInteger(m.choice) && m.choice >= 0 && m.choice < 4) {
+      S.answers[m.emoji] = { choice: m.choice, ms: Date.now() - S.startedAt };
+      const active = Object.keys(S.teams).filter(e => !S.places.includes(e));
+      if (active.length && active.every(e => S.answers[e])) { reveal(); return; }
+      commit();
+    } else push();
+  }
+}
+
+/* ===== Game flow ===== */
+function commit() { save(); render(); push(); }
+
+function askNext() {
+  S.pos++;
+  if (S.pos >= S.order.length) { S.order = shuffle([...QUESTIONS.keys()]); S.pos = 0; }
+  const src = QUESTIONS[S.order[S.pos]];
+  const opts = shuffle(src.a.map((t, i) => ({ t, ok: i === 0 })));
+  S.asked++;
+  S.q = { n: S.asked, text: src.q, pic: src.pic || '', options: opts.map(o => o.t), correct: opts.findIndex(o => o.ok) };
+  S.phase = 'question'; S.answers = {}; S.queue = [];
+  S.startedAt = Date.now(); S.endsAt = S.startedAt + SECONDS * 1000;
+  commit();
+}
+
+function reveal() {
+  S.phase = 'reveal';
+  S.queue = Object.entries(S.answers)
+    .filter(([e, a]) => a.choice === S.q.correct && S.teams[e] && !S.places.includes(e))
+    .sort((a, b) => a[1].ms - b[1].ms).map(([e]) => e);
+  commit();
+}
+
+function lowestEmpty(col) {
+  for (let r = ROWS - 1; r >= 0; r--) if (!S.board[r * COLS + col]) return r * COLS + col;
+  return -1;
+}
+
+function drop(col) {
+  if (S.phase !== 'reveal' || !S.queue.length) return;
+  const i = lowestEmpty(col);
+  if (i < 0) { toast(`Column ${col + 1} is full. Pick another column.`); return; }
+  const e = S.queue.shift();
+  S.board[i] = e;
+  S.history.push({ i, e, n: S.q.n });
+  justDropped = i;
+  const line = winAt(i);
+  if (line) { S.places.push(e); S.winLines.push(line); S.phase = 'over'; S.overReason = 'win'; }
+  else if (S.board.every(Boolean)) finishFull();
+  commit();
+  setTimeout(() => { justDropped = -1; renderBoard(); }, 650);
+}
+
+function winAt(i) {
+  const e = S.board[i], r = Math.floor(i / COLS), c = i % COLS;
+  for (const [dr, dc] of [[0, 1], [1, 0], [1, 1], [1, -1]]) {
+    const cells = [i];
+    for (const s of [1, -1]) {
+      let rr = r + dr * s, cc = c + dc * s;
+      while (rr >= 0 && rr < ROWS && cc >= 0 && cc < COLS && S.board[rr * COLS + cc] === e) {
+        cells.push(rr * COLS + cc); rr += dr * s; cc += dc * s;
+      }
+    }
+    if (cells.length >= 4) return cells;
+  }
+  return null;
+}
+
+function finishFull() {
+  const counts = {};
+  for (let i = 0; i < S.board.length; i++) {
+    const e = S.board[i]; if (!e) continue;
+    const r = Math.floor(i / COLS), c = i % COLS;
+    for (const [dr, dc] of [[0, 1], [1, 0], [1, 1], [1, -1]]) {
+      const r2 = r + dr * 2, c2 = c + dc * 2;
+      if (r2 < 0 || r2 >= ROWS || c2 < 0 || c2 >= COLS) continue;
+      if (S.board[(r + dr) * COLS + c + dc] === e && S.board[r2 * COLS + c2] === e) counts[e] = (counts[e] || 0) + 1;
+    }
+  }
+  S.fullScores = Object.keys(S.teams).filter(e => !S.places.includes(e))
+    .map(e => ({ e, n: counts[e] || 0 })).sort((a, b) => b.n - a.n);
+  S.phase = 'over'; S.overReason = 'full';
+}
+
+function undo() {
+  const last = S.history[S.history.length - 1];
+  if (!last || !S.q || last.n !== S.q.n) { toast('Only drops from this round can be undone.'); return; }
+  S.history.pop();
+  S.board[last.i] = null;
+  const lastLine = S.winLines[S.winLines.length - 1];
+  if (lastLine && lastLine.includes(last.i) && S.places[S.places.length - 1] === last.e) { S.places.pop(); S.winLines.pop(); }
+  S.queue.unshift(last.e);
+  S.phase = 'reveal'; S.overReason = null; S.fullScores = null;
+  commit();
+}
+
+function skip() { if (S.queue.length) { S.queue.shift(); commit(); } }
+function keepPlaying() { S.phase = 'reveal'; S.overReason = null; commit(); }
+function newGame() {
+  if (!confirm('Start a new game? The board will be cleared. Groups stay connected.')) return;
+  S = fresh(S.code, S.teams); justDropped = -1; commit();
+}
+function release(e) {
+  if (!confirm(`Free up ${teamLabel(e)} so another phone can join as that group?`)) return;
+  delete S.teams[e]; if (!S.board.includes(e)) delete S.colors[e]; commit();
+}
+
+/* ===== Rendering ===== */
+function buildBoard() {
+  $('colnums').innerHTML = Array.from({ length: COLS }, (_, c) => `<span data-col="${c}">${c + 1}</span>`).join('');
+  $('board').innerHTML = Array.from({ length: COLS * ROWS }, (_, i) => `<div class="cell" data-i="${i}" data-col="${i % COLS}"></div>`).join('');
+  const board = $('board');
+  board.addEventListener('click', ev => { const cell = ev.target.closest('.cell'); if (cell) drop(+cell.dataset.col); });
+  board.addEventListener('mouseover', ev => { const cell = ev.target.closest('.cell'); if (cell && +cell.dataset.col !== hoverCol) { hoverCol = +cell.dataset.col; renderHover(); } });
+  board.addEventListener('mouseleave', () => { hoverCol = -1; renderHover(); });
+}
+
+function renderBoard() {
+  const wins = new Set(S.winLines.flat());
+  const cells = $('board').children;
+  for (let i = 0; i < cells.length; i++) {
+    const e = S.board[i], cell = cells[i];
+    if (!e) { if (cell.dataset.k) { cell.innerHTML = ''; delete cell.dataset.k; } continue; }
+    const cls = ['disc'];
+    if (i === justDropped) cls.push('drop'); else if (wins.has(i)) cls.push('win');
+    const key = e + colorOf(e) + cls.join(' ');
+    if (cell.dataset.k === key) continue;
+    cell.dataset.k = key;
+    const fall = Math.floor(i / COLS) + 1;
+    cell.innerHTML = `<div class="${cls.join(' ')}" style="--c:${colorOf(e)};--fall:${fall}">${e}</div>`;
+  }
+  $('board').classList.toggle('armed', S.phase === 'reveal' && S.queue.length > 0);
+  renderHover();
+}
+
+function renderHover() {
+  const armed = S.phase === 'reveal' && S.queue.length > 0;
+  const target = armed && hoverCol >= 0 ? lowestEmpty(hoverCol) : -1;
+  for (const cell of $('board').children) {
+    const i = +cell.dataset.i;
+    cell.classList.toggle('hot', armed && +cell.dataset.col === hoverCol);
+    cell.classList.toggle('preview', i === target);
+    if (i === target) cell.dataset.ghost = S.queue[0]; else delete cell.dataset.ghost;
+  }
+  for (const n of $('colnums').children) n.classList.toggle('hot', armed && +n.dataset.col === hoverCol);
+}
+
+function joinUrl() { const u = new URL('play.html', location.href); u.search = '?room=' + S.code; return u.toString(); }
+function drawQR(el, size) {
+  el.innerHTML = '';
+  if (window.QRCode) new QRCode(el, { text: joinUrl(), width: size, height: size, colorDark: '#0f2340', colorLight: '#faf6ee' });
+  else el.textContent = 'QR unavailable';
+}
+
+function teamStatus(e) {
+  const joined = !!S.teams[e];
+  if (!joined) return { cls: '', text: 'Open' };
+  const place = S.places.indexOf(e);
+  if (place >= 0) return { cls: 'ok', text: ['1st place', '2nd place', '3rd place', '4th place', '5th place'][place] || 'Finished' };
+  const a = S.answers[e];
+  if (S.phase === 'question') return a ? { cls: 'ok', text: 'Answered' } : { cls: '', text: 'Thinking…' };
+  if (S.phase === 'reveal' || S.phase === 'over') {
+    const qi = S.queue.indexOf(e);
+    if (qi === 0 && S.phase === 'reveal') return { cls: 'now', text: 'Drops now' };
+    if (qi > 0) return { cls: 'ok', text: `Correct, ${sec(a.ms)}. Drops #${qi + 1}` };
+    if (!a) return { cls: 'bad', text: 'No answer' };
+    if (a.choice === S.q.correct) return { cls: 'ok', text: `Correct, ${sec(a.ms)}` };
+    return { cls: 'bad', text: 'Wrong' };
+  }
+  return { cls: 'ok', text: 'Ready' };
+}
+
+function renderSide() {
+  const parts = [];
+  if (S.phase === 'lobby') {
+    parts.push(`<section class="panel join">
+      <h2>Join on your phone</h2>
+      <p class="sub">One phone per group. Scan the code or open the link.</p>
+      <div class="qrbox" id="qrSide"></div>
+      <div class="code">${esc(S.code)}</div>
+      <p class="url">${esc(joinUrl())}</p>
+    </section>`);
+  }
+  if (S.q && S.phase !== 'lobby') {
+    const revealed = S.phase !== 'question';
+    parts.push(`<section class="panel">
+      <div class="qmeta"><span>Question ${S.q.n}</span><span id="secs"></span></div>
+      ${S.q.pic ? `<div class="qpic">${esc(S.q.pic)}</div>` : ''}
+      <p class="qtext">${esc(S.q.text)}</p>
+      ${S.phase === 'question' ? '<div class="timer"><i id="bar"></i></div>' : ''}
+      <ol class="opts">${S.q.options.map((o, i) => `<li class="opt ${revealed ? (i === S.q.correct ? 'right' : 'dim') : ''}"><span class="l">${LETTERS[i]}</span><span>${esc(o)}</span></li>`).join('')}</ol>
+    </section>`);
+  }
+  const current = S.phase === 'reveal' ? S.queue[0] : null;
+  parts.push(`<section class="panel">
+    <h2>Groups</h2>
+    <ul class="teams">${Object.keys(S.teams).map(e => {
+      const st = teamStatus(e);
+      const now = current === e;
+      return `<li class="team ${now ? 'now' : ''}">
+        <span class="mini" style="--c:${colorOf(e)}">${e}</span>
+        <span class="name">${esc(nameOf(e))}</span>
+        <span class="st ${st.cls === 'ok' || st.cls === 'bad' ? st.cls : ''}">${st.text}${S.phase === 'lobby' ? `<button class="release" data-release="${e}">free up</button>` : ''}</span>
+      </li>`;
+    }).join('')}${Array.from({ length: Math.max(0, GAME.maxGroups - Object.keys(S.teams).length) }, () =>
+      `<li class="team open"><span class="mini"></span><span class="name">Open spot</span></li>`).join('')}</ul>
+  </section>`);
+
+  let primary = '';
+  if (S.phase === 'lobby') primary = `<button class="btn primary" data-act="ask">Ask the first question</button>`;
+  else if (S.phase === 'question') primary = `<button class="btn primary" data-act="reveal">Show the answer now</button>`;
+  else if (S.phase === 'reveal') primary = S.queue.length
+    ? `<button class="btn primary" disabled>Click a column for ${teamLabel(S.queue[0])}</button>`
+    : `<button class="btn primary" data-act="ask">Next question</button>`;
+  else primary = `<button class="btn primary" disabled>Game over</button>`;
+
+  const canUndo = S.q && S.history.length && S.history[S.history.length - 1].n === S.q.n;
+  parts.push(`<div class="controls">
+    ${primary}
+    <button class="btn" data-act="skip" ${S.phase === 'reveal' && S.queue.length ? '' : 'disabled'}>Skip this drop</button>
+    <button class="btn" data-act="undo" ${canUndo ? '' : 'disabled'}>Undo last drop</button>
+    <button class="btn" data-act="new">New game</button>
+  </div>`);
+
+  $('side').innerHTML = parts.join('');
+  if (S.phase === 'lobby') drawQR($('qrSide'), 190);
+  tick();
+}
+
+function renderPrompt() {
+  let text = '';
+  if (S.phase === 'lobby') text = Object.keys(S.teams).length ? `${Object.keys(S.teams).length} of ${GAME.maxGroups} groups joined` : 'Scan the code to join';
+  else if (S.phase === 'question') text = 'Answer on your phones';
+  else if (S.phase === 'reveal') text = S.queue.length ? `${teamLabel(S.queue[0])}: which column?` : (Object.values(S.answers).some(a => a.choice === S.q.correct) ? 'All drops done' : 'Nobody got that one');
+  $('prompt').textContent = text;
+}
+
+function renderBanner() {
+  const b = $('banner');
+  if (S.phase !== 'over') { b.classList.add('hidden'); return; }
+  b.classList.remove('hidden');
+  if (S.overReason === 'full') {
+    const top = S.fullScores && S.fullScores[0];
+    b.innerHTML = `<div class="card"><span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>
+      <div class="big">${top ? top.e : '🌕'}</div>
+      <h2>The board is full</h2>
+      <p>Most three-in-a-rows wins.</p>
+      <ul class="scores">${(S.fullScores || []).map(s => `<li><span>${teamLabel(s.e)}</span><b>${s.n}</b></li>`).join('')}</ul>
+      <div class="row"><button class="btn primary" data-act="new" style="flex:0 1 auto">New game</button></div></div>`;
+    return;
+  }
+  const e = S.places[S.places.length - 1];
+  const nth = ['', '2nd place', '3rd place', '4th place', '5th place'][S.places.length - 1] || '';
+  const others = Object.keys(S.teams).filter(x => !S.places.includes(x)).length;
+  b.innerHTML = `<div class="card"><span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>
+    <div class="big">${e}</div>
+    <h2>${S.places.length === 1 ? `The ${esc(nameOf(e))} win!` : `${esc(nameOf(e))}: ${nth}`}</h2>
+    <p>Four in a row.</p>
+    <div class="row">
+      ${others > 1 ? `<button class="btn" data-act="keep">Keep playing for ${S.places.length === 1 ? '2nd' : 'the next'} place</button>` : ''}
+      <button class="btn primary" data-act="new" style="flex:0 1 auto">New game</button>
+    </div></div>`;
+}
+
+function render() {
+  $('roomCode').textContent = S.code;
+  renderBoard(); renderSide(); renderPrompt(); renderBanner();
+}
+
+function tick() {
+  if (S.phase !== 'question') return;
+  const left = Math.max(0, S.endsAt - Date.now());
+  const bar = $('bar'); if (bar) bar.style.transform = `scaleX(${left / (SECONDS * 1000)})`;
+  const s = $('secs'); if (s) s.textContent = Math.ceil(left / 1000) + 's';
+  if (left <= 0) reveal();
+}
+
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.classList.remove('hidden');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.add('hidden'), 2600);
+}
+
+/* ===== Events ===== */
+document.addEventListener('click', ev => {
+  const rel = ev.target.closest('[data-release]'); if (rel) { release(rel.dataset.release); return; }
+  const btn = ev.target.closest('[data-act]'); if (!btn || btn.disabled) return;
+  ({ ask: askNext, reveal, skip, undo, new: newGame, keep: keepPlaying })[btn.dataset.act]?.();
+});
+$('showJoin').onclick = () => { $('codeModal').textContent = S.code; $('urlModal').textContent = joinUrl(); drawQR($('qrModal'), 240); $('joinModal').classList.remove('hidden'); };
+$('closeJoin').onclick = () => $('joinModal').classList.add('hidden');
+$('joinModal').onclick = ev => { if (ev.target.id === 'joinModal') $('joinModal').classList.add('hidden'); };
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape') $('joinModal').classList.add('hidden');
+  if (S.phase === 'reveal' && S.queue.length && /^[0-9]$/.test(ev.key)) drop(ev.key === '0' ? 9 : +ev.key - 1);
+});
+
+/* ===== Start ===== */
+if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.startsWith('PASTE')) {
+  $('setup').classList.remove('hidden');
+} else {
+  $('app').classList.remove('hidden');
+  buildBoard(); render(); connect();
+  setInterval(tick, 200);
+  setInterval(push, 3000);
+}
+</script>
+</body>
+</html>
