@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Evidence Line-Up · Round 2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0C2340; --gold:#AE9142; --gold-b:#D39F10;
+  --bg:#FFFFFF; --surface:#EDF2F9; --ink:#1A1A1A; --ink-s:#3D3D3D; --muted:#6B6B6B;
+  --line:#C1CDDD; --accent:#0E6B6B; --accent-s:#D0EDED;
+  --ok:#26890C; --ok-s:#D4EDDA; --bad:#C0392B; --bad-s:#F8D7DA;
+  --btn-bg:#0C2340; --btn-ink:#EFE9D9; --chip-on:#0C2340; --chip-on-ink:#FFFFFF;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#081629; --surface:#12294A; --ink:#EFE9D9; --ink-s:#D6D0C2; --muted:#A9B4C4;
+    --line:#2B4570; --accent:#5FC2C2; --accent-s:#0F3A3E;
+    --ok:#6CCB52; --ok-s:#173A1C; --bad:#F07467; --bad-s:#47181A;
+    --btn-bg:#AE9142; --btn-ink:#081629; --chip-on:#AE9142; --chip-on-ink:#081629;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#081629; --surface:#12294A; --ink:#EFE9D9; --ink-s:#D6D0C2; --muted:#A9B4C4;
+  --line:#2B4570; --accent:#5FC2C2; --accent-s:#0F3A3E;
+  --ok:#6CCB52; --ok-s:#173A1C; --bad:#F07467; --bad-s:#47181A;
+  --btn-bg:#AE9142; --btn-ink:#081629; --chip-on:#AE9142; --chip-on-ink:#081629;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--ink);font-family:"Source Serif 4",Cambria,Georgia,serif;font-size:17px;line-height:1.5;-webkit-text-size-adjust:100%}
+main{max-width:640px;margin:0 auto;padding:20px 18px 40px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.mono{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--gold);display:grid;place-items:center;font-style:italic;font-weight:600;color:var(--gold);font-size:16px;flex:none}
+.brand small{font-family:Montserrat,Calibri,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gold);line-height:1.3}
+.brand small span{display:block;font-weight:400;color:var(--muted);letter-spacing:.06em}
+h1{font-weight:400;font-size:clamp(34px,9vw,48px);line-height:1.05;margin:6px 0 12px;letter-spacing:-.01em}
+h1 em{color:var(--gold);font-style:italic}
+h2{font-weight:600;font-size:22px;line-height:1.25;margin:4px 0 6px}
+.lede{color:var(--ink-s);font-style:italic;margin:0 0 18px}
+.ui{font-family:Montserrat,Calibri,Arial,sans-serif}
+.progress{display:flex;justify-content:space-between;align-items:center;font-family:Montserrat,Calibri,Arial,sans-serif;font-size:13px;color:var(--muted);margin-bottom:10px}
+.bar{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-bottom:18px}
+.bar i{display:block;height:100%;background:var(--gold);width:0;transition:width .3s}
+.claim{border:1.5px solid var(--accent);border-radius:10px;padding:12px 14px;margin:0 0 14px}
+.claim b{display:block;font-family:Montserrat,Calibri,Arial,sans-serif;font-size:11px;letter-spacing:.1em;color:var(--accent);margin-bottom:2px}
+.hint{font-family:Montserrat,Calibri,Arial,sans-serif;font-size:14px;color:var(--ink-s);margin:0 0 12px}
+.scale{display:flex;justify-content:space-between;font-family:Montserrat,Calibri,Arial,sans-serif;font-size:12px;color:var(--muted);margin:0 2px 6px}
+.cards{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.card{all:unset;box-sizing:border-box;display:flex;gap:12px;align-items:flex-start;width:100%;padding:12px 14px;background:var(--surface);border:1.5px solid transparent;border-radius:10px;cursor:pointer;font-family:"Source Serif 4",Cambria,Georgia,serif;font-size:16px;line-height:1.4;color:var(--ink)}
+.card:focus-visible,.btn:focus-visible,.chip:focus-visible{outline:3px solid var(--gold-b);outline-offset:2px}
+.num{flex:none;width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--line);display:grid;place-items:center;font-family:Montserrat,Calibri,Arial,sans-serif;font-weight:700;font-size:14px;color:var(--muted)}
+.card.on{border-color:var(--navy)}
+:root[data-theme="dark"] .card.on{border-color:var(--gold)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .card.on{border-color:var(--gold)}}
+.card.on .num{background:var(--chip-on);color:var(--chip-on-ink);border:1.5px solid var(--chip-on)}
+.card.right{background:var(--ok-s);border-color:var(--ok)}
+.card.wrong{background:var(--bad-s);border-color:var(--bad)}
+.card.right .num{background:var(--ok);border-color:var(--ok);color:#fff}
+.card.wrong .num{background:var(--bad);border-color:var(--bad);color:#fff}
+.card .fix{display:block;font-family:Montserrat,Calibri,Arial,sans-serif;font-size:12px;font-weight:600;color:var(--bad);margin-top:4px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{all:unset;box-sizing:border-box;font-family:Montserrat,Calibri,Arial,sans-serif;font-weight:700;font-size:15px;padding:13px 20px;border-radius:999px;background:var(--btn-bg);color:var(--btn-ink);cursor:pointer;text-align:center;min-height:48px}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.btn.wide{flex:1}
+.why{border-left:3px solid var(--gold);padding:6px 0 6px 12px;margin:0 0 16px;font-style:italic;color:var(--ink-s)}
+.why strong{font-style:normal;font-family:Montserrat,Calibri,Arial,sans-serif;font-size:13px;color:var(--ink)}
+.preview{font-size:20px;line-height:1.45;padding:14px;border:1.5px solid var(--line);border-radius:10px;margin:0 0 16px;min-height:96px}
+.preview .slot{border-bottom:2px solid var(--gold);padding:0 2px}
+.preview .slot.empty{color:var(--muted)}
+.preview .slot.right{border-color:var(--ok);background:var(--ok-s)}
+.preview .slot.wrong{border-color:var(--bad);background:var(--bad-s)}
+.slotgroup{margin-bottom:14px}
+.slotgroup .lab{font-family:Montserrat,Calibri,Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--accent);margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{all:unset;box-sizing:border-box;padding:9px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--bg);font-size:15px;cursor:pointer;color:var(--ink);min-height:42px;display:inline-flex;align-items:center}
+.chip.on{background:var(--chip-on);color:var(--chip-on-ink);border-color:var(--chip-on)}
+.chip.right{background:var(--ok);border-color:var(--ok);color:#fff}
+.chip.wrongpick{background:var(--bad);border-color:var(--bad);color:#fff;text-decoration:line-through}
+.chip.answer{border-color:var(--ok);border-width:2px}
+.chip[disabled]{cursor:default}
+.score{font-size:64px;line-height:1;font-weight:400;margin:10px 0 4px}
+.score em{color:var(--gold);font-style:italic}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.split div{background:var(--surface);border-radius:10px;padding:12px}
+.split b{display:block;font-family:Montserrat,Calibri,Arial,sans-serif;font-size:12px;color:var(--muted);font-weight:600}
+.split span{font-size:26px}
+.talk{border:1.5px solid var(--gold);border-radius:10px;padding:14px;margin:16px 0}
+.talk b{font-family:Montserrat,Calibri,Arial,sans-serif;font-size:12px;letter-spacing:.1em;color:var(--gold);display:block;margin-bottom:4px}
+.note{font-family:Montserrat,Calibri,Arial,sans-serif;font-size:12px;color:var(--muted);margin-top:22px}
+.steps{padding-left:0;list-style:none;margin:0 0 20px;counter-reset:s}
+.steps li{counter-increment:s;display:flex;gap:12px;margin-bottom:12px}
+.steps li::before{content:counter(s);font-style:italic;color:var(--gold);font-size:26px;line-height:1;flex:none;width:22px}
+.hidden{display:none !important}
+@media (prefers-reduced-motion: reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <div class="brand"><div class="mono">A</div><small>ACADEMIC WRITING · ADVANCED<span>Week 03 · Warm-up</span></small></div>
+
+  <!-- START -->
+  <section id="start">
+    <h1>Evidence<br><em>Line-Up.</em></h1>
+    <p class="lede">Round 2. Last week you put evidence in order. Today, do it on your own, then make vague sentences specific.</p>
+    <ol class="steps">
+      <li><div><strong>Line it up.</strong> Tap four pieces of evidence in order, from most general to most specific.</div></li>
+      <li><div><strong>Make it specific.</strong> Build a strong sentence. Choose details that are specific <em>and</em> fit the topic.</div></li>
+      <li><div><strong>Compare.</strong> Show your partner your score and the item that was hardest for you.</div></li>
+    </ol>
+    <button class="btn wide" id="go" style="width:100%">Start</button>
+    <p class="note">All facts and numbers in this activity are fictional practice examples.</p>
+  </section>
+
+  <!-- ROUND 1 -->
+  <section id="r1" class="hidden">
+    <div class="progress"><span id="r1lab">Line it up · 1 of 4</span><span id="r1pts"></span></div>
+    <div class="bar"><i id="r1bar"></i></div>
+    <div class="claim"><b>CLAIM</b><span id="r1claim"></span></div>
+    <p class="hint" id="r1hint">Tap the most <strong>general</strong> evidence first.</p>
+    <div class="scale" aria-hidden="true"><span>1 = most general</span><span>4 = most specific</span></div>
+    <div class="cards" id="r1cards"></div>
+    <div class="why hidden" id="r1why"></div>
+    <div class="row">
+      <button class="btn ghost" id="r1reset">Clear</button>
+      <button class="btn wide" id="r1check" disabled>Check</button>
+      <button class="btn wide hidden" id="r1next">Next</button>
+    </div>
+  </section>
+
+  <!-- ROUND 2 -->
+  <section id="r2" class="hidden">
+    <div class="progress"><span id="r2lab">Make it specific · 1 of 4</span><span id="r2pts"></span></div>
+    <div class="bar"><i id="r2bar"></i></div>
+    <div class="claim"><b>CLAIM</b><span id="r2claim"></span></div>
+    <p class="hint">Pick one detail in each group. Choose details that are specific <strong>and</strong> support the claim.</p>
+    <div class="preview" id="r2preview" aria-live="polite"></div>
+    <div id="r2slots"></div>
+    <div class="why hidden" id="r2why"></div>
+    <div class="row">
+      <button class="btn wide" id="r2check" disabled>Check</button>
+      <button class="btn wide hidden" id="r2next">Next</button>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="done" class="hidden">
+    <h1>Nice <em>work.</em></h1>
+    <p class="score" id="total"></p>
+    <div class="split">
+      <div><b>Line it up</b><span id="s1"></span></div>
+      <div><b>Make it specific</b><span id="s2"></span></div>
+    </div>
+    <p id="msg" class="lede"></p>
+    <div class="talk"><b>TALK WITH YOUR PARTNER</b>Which item was the hardest for you? Explain why the correct answer is more specific.</div>
+    <button class="btn ghost" id="again" style="width:100%">Play again</button>
+    <p class="note">All facts and numbers in this activity are fictional practice examples.</p>
+  </section>
+</main>
+
+<script>
+const R1 = [
+  { claim:"Public libraries are still important in the digital age.",
+    items:[
+      "Libraries are useful for a lot of people.",
+      "Many adults use libraries for classes and internet access.",
+      "Libraries in Queens offer free English classes and computer access to adult learners.",
+      "In 2024, the Queens Public Library offered more than 600 free English classes to adult learners."
+    ],
+    why:"The last one names a place, a year, a number, and a group of people. The first one could be about anything." },
+  { claim:"Learning to cook at home saves money.",
+    items:[
+      "Cooking at home is cheaper.",
+      "Many families save money when they cook at home.",
+      "A family of four that cooks dinner at home most nights spends less on food each month.",
+      "A family of four that cooks dinner at home five nights a week saves about $300 a month."
+    ],
+    why:"\u201CMost nights\u201D and \u201Cspends less\u201D are better than \u201Ccheaper,\u201D but \u201Cfive nights\u201D and \u201C$300\u201D are exact." },
+  { claim:"Cities should plant more trees.",
+    items:[
+      "Trees are good for cities.",
+      "Trees make city streets cooler in summer.",
+      "Streets with many trees in Phoenix are cooler than streets without trees.",
+      "On a July afternoon in Phoenix, a tree-lined street was 9\u00B0F cooler than a nearby street with no trees."
+    ],
+    why:"Each step adds something: what trees do, then where, then when and how much." },
+  { claim:"Online classes need more student interaction.",
+    items:[
+      "Some online students have problems.",
+      "Many online students feel alone during their classes.",
+      "In one college survey, many online students said they rarely talked to classmates.",
+      "In a 2023 survey of 1,200 online students at one college, 64% said they spoke to a classmate less than once a month."
+    ],
+    why:"\u201CMany\u201D is vague. \u201C64% of 1,200 students\u201D tells the reader exactly how many." }
+];
+
+const R2 = [
+  { claim:"Public libraries are still important in the digital age.",
+    parts:["", 0, " study English ", 1, " ", 2, "."],
+    slots:[
+      { lab:"WHO", opts:["Lots of people","About 300 adult learners","Two famous movie stars"], ans:1 },
+      { lab:"WHERE", opts:["somewhere in the city","at the Flushing library branch","at a shopping mall in New Jersey"], ans:1 },
+      { lab:"WHEN", opts:["sometimes","every Saturday morning","on the night of the Super Bowl"], ans:1 }
+    ],
+    why:"\u201CTwo famous movie stars\u201D is specific, but it does not show that the library is important for the community. Specific evidence must also fit the claim." },
+  { claim:"Learning to cook at home saves money.",
+    parts:["", 0, " saved ", 1, " ", 2, " by cooking at home."],
+    slots:[
+      { lab:"WHO", opts:["People","The Garcia family","A famous TV chef"], ans:1 },
+      { lab:"HOW MUCH", opts:["some money","$1,200","three new recipes"], ans:1 },
+      { lab:"WHEN", opts:["recently","between January and June 2025","in the 1800s"], ans:1 }
+    ],
+    why:"A TV chef cooks for work, so that example does not prove anything about saving money. Real, relevant details make the claim stronger." },
+  { claim:"Cities should plant more trees.",
+    parts:["", 0, " measured ", 1, " ", 2, "."],
+    slots:[
+      { lab:"WHO", opts:["Experts","City researchers","Tourists"], ans:1 },
+      { lab:"WHAT", opts:["a difference","a 9\u00B0F drop in temperature","1,000 birds"], ans:1 },
+      { lab:"WHERE", opts:["in some places","on tree-lined streets in Phoenix","in a forest in Canada"], ans:1 }
+    ],
+    why:"A forest in Canada is specific, but the claim is about cities. Birds are interesting, but the evidence needs to match the point you are making." },
+  { claim:"Online classes need more student interaction.",
+    parts:["", 0, " ", 1, " said they felt lonely ", 2, "."],
+    slots:[
+      { lab:"HOW MANY", opts:["Many","64% of","Seven famous"], ans:1 },
+      { lab:"WHO", opts:["students","first-year online students","professors"], ans:1 },
+      { lab:"WHEN", opts:["sometimes","during their first semester","on summer vacation"], ans:1 }
+    ],
+    why:"The claim is about students in online classes, so professors or vacation time do not support it." }
+];
+
+const $ = id => document.getElementById(id);
+const show = id => ["start","r1","r2","done"].forEach(s => $(s).classList.toggle("hidden", s!==id));
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+
+let r1i=0, r1score=0, r1order=[], r1shuffled=[], r1checked=false;
+let r2i=0, r2score=0, r2pick=[], r2checked=false, r2opts=[];
+
+function startGame(){
+  r1i=0; r1score=0; r2i=0; r2score=0;
+  show("r1"); loadR1(); window.scrollTo(0,0);
+}
+
+/* ---------- Round 1 ---------- */
+function loadR1(){
+  const t=R1[r1i];
+  r1order=[]; r1checked=false;
+  r1shuffled = shuffle(t.items.map((txt,idx)=>({txt,idx})));
+  // never start already in the right order
+  while(r1shuffled.every((c,i)=>c.idx===i)) r1shuffled=shuffle(r1shuffled);
+  $("r1lab").textContent="Line it up \u00B7 "+(r1i+1)+" of "+R1.length;
+  $("r1pts").textContent=r1score+" pts";
+  $("r1bar").style.width=(r1i/R1.length*100)+"%";
+  $("r1claim").textContent=t.claim;
+  $("r1why").classList.add("hidden");
+  $("r1check").classList.remove("hidden"); $("r1reset").classList.remove("hidden");
+  $("r1next").classList.add("hidden");
+  renderR1();
+}
+function renderR1(){
+  const box=$("r1cards"); box.innerHTML="";
+  r1shuffled.forEach((c,pos)=>{
+    const b=document.createElement("button");
+    b.className="card"; b.type="button";
+    const n=r1order.indexOf(pos);
+    const num=document.createElement("span"); num.className="num";
+    num.textContent = n>=0 ? (n+1) : "";
+    const tx=document.createElement("span"); tx.textContent=c.txt;
+    if(n>=0) b.classList.add("on");
+    if(r1checked){
+      const right = n===c.idx;
+      b.classList.add(right?"right":"wrong");
+      if(!right){ const f=document.createElement("span"); f.className="fix"; f.textContent="Correct position: "+(c.idx+1); tx.appendChild(f); }
+      b.disabled=true;
+      b.setAttribute("aria-label",(right?"Correct. ":"Not correct. ")+"Your number "+(n+1)+". Correct number "+(c.idx+1)+". "+c.txt);
+    } else {
+      b.setAttribute("aria-label",(n>=0?"Number "+(n+1)+". ":"Not numbered. ")+c.txt);
+      b.addEventListener("click",()=>{
+        if(n>=0){ r1order=r1order.slice(0,n); } else { r1order.push(pos); }
+        renderR1();
+      });
+    }
+    b.append(num,tx); box.appendChild(b);
+  });
+  $("r1check").disabled = r1order.length!==4;
+  const left=4-r1order.length;
+  $("r1hint").innerHTML = r1checked ? "Green = correct position. Red = check the correct number." :
+     left===4 ? "Tap the most <strong>general</strong> evidence first." :
+     left===0 ? "Ready? Tap <strong>Check</strong>. Tap a numbered card to change it." :
+     "Now tap the next one. "+left+" left.";
+}
+$("r1reset").addEventListener("click",()=>{ r1order=[]; renderR1(); });
+$("r1check").addEventListener("click",()=>{
+  r1checked=true;
+  r1shuffled.forEach((c,pos)=>{ if(r1order.indexOf(pos)===c.idx) r1score++; });
+  $("r1pts").textContent=r1score+" pts";
+  $("r1why").innerHTML="<strong>Why?</strong> "+R1[r1i].why;
+  $("r1why").classList.remove("hidden");
+  $("r1check").classList.add("hidden"); $("r1reset").classList.add("hidden");
+  $("r1next").classList.remove("hidden");
+  $("r1next").textContent = r1i===R1.length-1 ? "Go to Make it specific" : "Next";
+  renderR1(); $("r1next").focus();
+});
+$("r1next").addEventListener("click",()=>{
+  r1i++;
+  if(r1i<R1.length){ loadR1(); } else { show("r2"); loadR2(); }
+  window.scrollTo(0,0);
+});
+
+/* ---------- Round 2 ---------- */
+function loadR2(){
+  const t=R2[r2i];
+  r2pick=t.slots.map(()=>null); r2checked=false;
+  r2opts=t.slots.map(s=>shuffle(s.opts.map((txt,idx)=>({txt,idx}))));
+  $("r2lab").textContent="Make it specific \u00B7 "+(r2i+1)+" of "+R2.length;
+  $("r2pts").textContent=r2score+" pts";
+  $("r2bar").style.width=(r2i/R2.length*100)+"%";
+  $("r2claim").textContent=t.claim;
+  $("r2why").classList.add("hidden");
+  $("r2check").classList.remove("hidden"); $("r2next").classList.add("hidden");
+  renderR2();
+}
+function renderR2(){
+  const t=R2[r2i];
+  // preview
+  const pv=$("r2preview"); pv.innerHTML="";
+  let first=true;
+  t.parts.forEach(p=>{
+    if(typeof p==="number"){
+      const s=document.createElement("span"); s.className="slot";
+      const pick=r2pick[p];
+      let txt = pick===null ? "["+t.slots[p].lab.toLowerCase()+"]" : t.slots[p].opts[pick];
+      if(first && pick!==null) txt=txt.charAt(0).toUpperCase()+txt.slice(1);
+      if(pick===null) s.classList.add("empty");
+      if(r2checked) s.classList.add(pick===t.slots[p].ans?"right":"wrong");
+      s.textContent=txt; pv.appendChild(s);
+    } else { pv.appendChild(document.createTextNode(p)); }
+    if(p!=="") first=false;
+  });
+  // slots
+  const box=$("r2slots"); box.innerHTML="";
+  t.slots.forEach((sl,si)=>{
+    const g=document.createElement("div"); g.className="slotgroup";
+    const l=document.createElement("div"); l.className="lab"; l.textContent=sl.lab; g.appendChild(l);
+    const cw=document.createElement("div"); cw.className="chips"; cw.setAttribute("role","group"); cw.setAttribute("aria-label",sl.lab);
+    r2opts[si].forEach(o=>{
+      const c=document.createElement("button"); c.type="button"; c.className="chip"; c.textContent=o.txt;
+      const picked = r2pick[si]===o.idx;
+      c.setAttribute("aria-pressed",picked?"true":"false");
+      if(r2checked){
+        c.disabled=true;
+        if(o.idx===sl.ans) c.classList.add(picked?"right":"answer");
+        else if(picked) c.classList.add("wrongpick");
+      } else {
+        if(picked) c.classList.add("on");
+        c.addEventListener("click",()=>{ r2pick[si]=o.idx; renderR2(); });
+      }
+      cw.appendChild(c);
+    });
+    g.appendChild(cw); box.appendChild(g);
+  });
+  $("r2check").disabled = r2pick.some(p=>p===null);
+}
+$("r2check").addEventListener("click",()=>{
+  r2checked=true;
+  const t=R2[r2i];
+  t.slots.forEach((s,i)=>{ if(r2pick[i]===s.ans) r2score++; });
+  $("r2pts").textContent=r2score+" pts";
+  $("r2why").innerHTML="<strong>Why?</strong> "+t.why;
+  $("r2why").classList.remove("hidden");
+  $("r2check").classList.add("hidden"); $("r2next").classList.remove("hidden");
+  $("r2next").textContent = r2i===R2.length-1 ? "See my score" : "Next";
+  renderR2(); $("r2next").focus();
+});
+$("r2next").addEventListener("click",()=>{
+  r2i++;
+  if(r2i<R2.length){ loadR2(); } else { finish(); }
+  window.scrollTo(0,0);
+});
+
+function finish(){
+  const max1=R1.length*4, max2=R2.reduce((a,t)=>a+t.slots.length,0);
+  const tot=r1score+r2score, max=max1+max2;
+  $("total").innerHTML=tot+" <em>/ "+max+"</em>";
+  $("s1").textContent=r1score+" / "+max1;
+  $("s2").textContent=r2score+" / "+max2;
+  const pct=tot/max;
+  $("msg").textContent = pct>=0.85 ? "Excellent. You can see the difference between general and specific evidence, and you know that evidence must fit the claim."
+    : pct>=0.6 ? "Good work. Look again at the red items: what detail made the correct answer more specific or more relevant?"
+    : "Keep practicing. Specific evidence answers who, where, when, and how many, and it must support the claim.";
+  show("done"); $("again").focus();
+}
+$("go").addEventListener("click",startGame);
+$("again").addEventListener("click",startGame);
+</script>
+</body>
+</html>
