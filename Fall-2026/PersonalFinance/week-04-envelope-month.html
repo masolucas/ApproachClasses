@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Envelope Month · Personal Finance Week 4</title>
+<!--
+  ENVELOPE MONTH — Personal Finance, Week 4 (Conscious Spending)
+  Approach International Student Center · Fall 2026
+  Standalone file: no frameworks, no build step, no external requests unless the class wall is turned on.
+
+  TEACHER OPTIONS (add to the URL)
+    ?char=lucia|omar|priya|tomas|mei|kwame   force a character (for a demo)
+    ?wall                                     show the class wall (needs Supabase, see below)
+
+  OPTIONAL CLASS WALL (Supabase). Leave SUPABASE_URL empty to turn it off.
+  Run once in the Supabase SQL editor:
+
+    create table if not exists envelope_month_results (
+      id bigint generated always as identity primary key,
+      created_at timestamptz default now(),
+      class_code text, student text, character text, profile text,
+      big_wins int, english int, review int, invest_protected boolean, loved boolean
+    );
+    alter table envelope_month_results enable row level security;
+    create policy "anon insert" on envelope_month_results for insert to anon with check (true);
+    create policy "anon read"   on envelope_month_results for select to anon using (true);
+-->
+<style>
+:root{
+  --navy:#0C2340; --navy-2:#143865; --gold:#AE9142; --gold-b:#D39F10; --warm:#EFE9D9; --paper:#F8F4EC;
+  --white:#FFFFFF; --ink:#1A1A1A; --ink-s:#3D3D3D; --muted:#6B6B6B; --line:#D9D2BF;
+  --teal:#0E6B6B; --teal-s:#D0EDED; --amber:#B45309; --amber-s:#FEF3C7; --red:#AB100B; --red-s:#F8D7DA; --green:#26890C;
+  --serif: Cambria, Caladea, Georgia, "Times New Roman", serif;
+  --sans: Calibri, Carlito, "Segoe UI", system-ui, -apple-system, sans-serif;
+  --radius: 4px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper); color:var(--ink); font-family:var(--sans); font-size:17px; line-height:1.5}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid var(--gold-b); outline-offset:2px}
+.hidden{display:none !important}
+
+/* ── Masthead ── */
+.mast{background:var(--navy); color:var(--warm); position:relative; padding:22px 24px 20px}
+.mast-inner{max-width:980px; margin:0 auto; display:flex; align-items:center; gap:14px}
+.mono{width:38px; height:38px; border:1.5px solid var(--gold); border-radius:50%; display:grid; place-items:center;
+  font-family:var(--serif); font-style:italic; font-weight:700; color:var(--gold); font-size:19px; flex:none}
+.mast-course{font-size:12px; font-weight:700; letter-spacing:.18em; color:var(--gold)}
+.mast-title{font-family:var(--serif); font-size:26px; line-height:1.1}
+.mast-title em{color:var(--gold)}
+.mast-right{margin-left:auto; text-align:right; font-size:14px; color:var(--warm)}
+.brackets{position:relative}
+.brackets::before,.brackets::after{content:""; position:absolute; width:26px; height:26px; border-color:var(--gold); border-style:solid; pointer-events:none}
+.brackets::before{top:10px; left:10px; border-width:1.5px 0 0 1.5px}
+.brackets::after{bottom:10px; right:10px; border-width:0 1.5px 1.5px 0}
+
+main{max-width:980px; margin:0 auto; padding:28px 20px 60px}
+h1,h2,h3{font-family:var(--serif); font-weight:400; color:var(--navy); margin:0 0 .4em; line-height:1.15}
+h1{font-size:44px} h2{font-size:30px} h3{font-size:22px}
+h1 em,h2 em{color:var(--gold)}
+.lede{font-family:var(--serif); font-style:italic; font-size:19px; color:var(--ink-s); max-width:62ch}
+.small{font-size:14px; color:var(--muted)}
+.panel{background:var(--white); border:1px solid var(--line); border-radius:var(--radius); padding:24px}
+.stack>*+*{margin-top:18px}
+
+.btn{background:var(--navy); color:var(--warm); border:0; border-radius:var(--radius); padding:12px 22px; font-weight:700; cursor:pointer; font-size:17px}
+.btn:hover{background:var(--navy-2)}
+.btn.gold{background:var(--gold); color:var(--navy)}
+.btn.ghost{background:transparent; color:var(--navy); border:1.5px solid var(--navy)}
+.btn:disabled{opacity:.45; cursor:not-allowed}
+.field{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+.field input[type=text]{padding:11px 14px; border:1.5px solid var(--line); border-radius:var(--radius); min-width:240px; background:var(--white)}
+
+/* ── Character card ── */
+.who{display:grid; grid-template-columns:auto 1fr; gap:18px; align-items:center}
+.avatar{width:72px; height:72px; border-radius:50%; background:var(--navy); color:var(--gold); display:grid; place-items:center;
+  font-family:var(--serif); font-size:34px; font-style:italic}
+.who-name{font-family:var(--serif); font-size:28px; color:var(--navy); line-height:1.1}
+.facts{display:flex; flex-wrap:wrap; gap:8px 22px; margin-top:6px; font-size:15px; color:var(--ink-s)}
+.facts b{color:var(--navy)}
+.fictional{font-size:13px; color:var(--muted); font-style:italic}
+
+/* ── Plan ── */
+.bar{display:flex; height:44px; border-radius:var(--radius); overflow:hidden; border:1px solid var(--line)}
+.bar>div{display:flex; align-items:center; justify-content:center; color:var(--white); font-weight:700; font-size:14px; white-space:nowrap; overflow:hidden; transition:flex-basis .25s}
+.b-fixed{background:var(--navy)} .b-invest{background:var(--teal)} .b-save{background:var(--gold)} .b-gf{background:var(--amber)}
+.bucket-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:14px}
+.bucket{border:1px solid var(--line); border-top:4px solid var(--c); border-radius:var(--radius); padding:12px; background:var(--white)}
+.bucket .name{font-weight:700; color:var(--navy)}
+.bucket .amt{font-family:var(--serif); font-size:26px; color:var(--navy)}
+.bucket .pct{font-size:14px; color:var(--ink-s)}
+.chip{display:inline-block; font-size:13px; font-weight:700; padding:2px 8px; border-radius:20px; margin-top:6px}
+.chip.ok{background:var(--teal-s); color:var(--teal)} .chip.warn{background:var(--amber-s); color:var(--amber)}
+.slider-row{display:grid; grid-template-columns:200px 1fr 90px; gap:14px; align-items:center; margin-top:12px}
+.slider-row label{font-weight:700; color:var(--navy)}
+.slider-row output{font-family:var(--serif); font-size:20px; color:var(--navy); text-align:right}
+input[type=range]{width:100%; accent-color:var(--gold)}
+.hint{border-left:3px solid var(--gold); padding:8px 14px; font-family:var(--serif); font-style:italic; color:var(--ink-s); background:var(--white)}
+
+/* ── Envelopes (the memorable element) ── */
+.envelopes{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+.env{position:relative; background:var(--white); border:2px solid var(--c); border-radius:3px; aspect-ratio: 1.6 / 1; overflow:hidden}
+.env svg.flap{position:absolute; inset:0 0 auto 0; width:100%; height:48%}
+.env svg.flap polygon{fill:var(--c); opacity:.10}
+.env svg.flap polyline{fill:none; stroke:var(--c); stroke-width:1.5; vector-effect:non-scaling-stroke}
+.env .fill{position:absolute; left:0; bottom:0; height:6px; background:var(--c); transition:width .4s ease}
+.env .val{position:absolute; left:0; right:0; bottom:12%; text-align:center; font-family:var(--serif); font-size:30px; font-weight:700; color:var(--navy)}
+.env .val.neg{color:var(--red)}
+.env-label{text-align:center; font-weight:700; color:var(--c); margin-top:6px; font-size:15px; letter-spacing:.06em}
+.env-wrap{--c:var(--navy)}
+.env-wrap.eat{--c:var(--amber)} .env-wrap.fun{--c:var(--teal)} .env-wrap.shop{--c:var(--navy)}
+.pulse{animation:pulse .5s ease}
+@keyframes pulse{0%{transform:scale(1)}40%{transform:scale(1.04)}100%{transform:scale(1)}}
+
+.pots{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:14px}
+.pot{border:1px solid var(--line); background:var(--white); border-radius:var(--radius); padding:8px 12px}
+.pot .k{font-size:13px; color:var(--muted)} .pot .v{font-family:var(--serif); font-size:21px; color:var(--navy)}
+.pot .v.neg{color:var(--red)}
+
+/* ── Month ── */
+.days{display:grid; grid-template-columns:repeat(30,1fr); gap:2px; margin-bottom:18px}
+.days span{height:26px; display:grid; place-items:center; font-size:11px; color:var(--muted); background:var(--white); border:1px solid var(--line)}
+.days span.ev{border-color:var(--gold); color:var(--navy); font-weight:700}
+.days span.done{background:var(--navy); color:var(--warm); border-color:var(--navy)}
+.days span.now{background:var(--gold); color:var(--navy); border-color:var(--gold)}
+.month{display:grid; grid-template-columns: 1.15fr 1fr; gap:22px; align-items:start}
+.card{background:var(--white); border:1px solid var(--line); border-radius:var(--radius); padding:24px; position:relative}
+.card .kind{font-size:13px; font-weight:700; color:var(--gold); letter-spacing:.08em}
+.card .daynum{position:absolute; top:18px; right:22px; font-family:var(--serif); font-style:italic; color:var(--gold); font-size:20px}
+.card p.text{font-family:var(--serif); font-size:19px; color:var(--ink)}
+.opts{display:grid; gap:10px; margin-top:14px}
+.opt{text-align:left; background:var(--white); border:1.5px solid var(--line); border-radius:var(--radius); padding:12px 14px; cursor:pointer; color:var(--ink); line-height:1.4}
+.opt:hover:not(:disabled){border-color:var(--navy)}
+.opt:disabled{cursor:default}
+.opt.picked{border-color:var(--navy); border-width:2px; background:var(--paper)}
+.opt.faded{opacity:.5}
+.feedback{margin-top:16px; border-top:1px solid var(--line); padding-top:14px}
+.badge{display:inline-block; font-weight:700; font-size:13px; padding:3px 10px; border-radius:20px; margin-right:6px}
+.badge.conscious{background:var(--teal-s); color:var(--teal)}
+.badge.cheap{background:var(--amber-s); color:var(--amber)}
+.badge.unconscious{background:var(--red-s); color:var(--red)}
+.badge.neutral{background:#ECECEC; color:var(--ink-s)}
+.badge.win{background:var(--navy); color:var(--gold)}
+.note{font-size:15px; color:var(--red); margin-top:6px}
+.move{margin-top:16px; border:1px dashed var(--line); padding:12px; border-radius:var(--radius); background:var(--white)}
+.move summary{cursor:pointer; font-weight:700; color:var(--navy)}
+.move .field{margin-top:10px; font-size:15px}
+.move select{padding:6px; border:1px solid var(--line); border-radius:var(--radius); background:var(--white)}
+
+/* ── Results ── */
+.profile{text-align:center; padding:34px 20px}
+.profile .label{font-size:14px; font-weight:700; letter-spacing:.14em; color:var(--gold)}
+.profile h1{font-size:52px; margin-top:6px}
+.stats{display:grid; grid-template-columns:repeat(4,1fr); gap:12px}
+.stat{background:var(--white); border:1px solid var(--line); border-radius:var(--radius); padding:14px; text-align:center}
+.stat .v{font-family:var(--serif); font-size:30px; color:var(--navy)}
+.stat .k{font-size:14px; color:var(--ink-s)}
+table.recap{width:100%; border-collapse:collapse; font-size:15px; background:var(--white)}
+table.recap th,table.recap td{border-bottom:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top}
+table.recap th{color:var(--navy)}
+table.recap td:first-child{white-space:nowrap}
+.debrief{background:var(--navy); color:var(--warm); border-radius:var(--radius); padding:22px}
+.debrief h3{color:var(--gold)}
+.debrief ol{margin:0; padding-left:20px}
+
+.print-only{display:none}
+.pdf-tip{font-size:14px; color:var(--muted); flex-basis:100%}
+
+/* ── Print / Save as PDF ── */
+@media print{
+  @page{size:letter; margin:0.5in}
+  *{-webkit-print-color-adjust:exact; print-color-adjust:exact}
+  body{background:#fff; font-size:12px}
+  .mast,.no-print,.debrief{display:none !important}
+  .print-only{display:block}
+  main{padding:0; max-width:none}
+  .print-head{border-bottom:2px solid var(--gold); padding-bottom:8px; margin-bottom:12px}
+  .print-head .t{font-family:var(--serif); font-size:20px; color:var(--navy)}
+  .print-head .m{font-size:12px; color:var(--ink-s)}
+  .profile{padding:12px} .profile h1{font-size:32px}
+  .stats{grid-template-columns:repeat(4,1fr) !important; gap:6px}
+  .stat{padding:6px} .stat .v{font-size:20px}
+  .stack>*+*{margin-top:10px}
+  .panel{padding:12px}
+  .panel,.stat,table.recap tr{break-inside:avoid}
+  table.recap{font-size:11px}
+  table.recap th,table.recap td{padding:4px 6px}
+}
+
+/* ── Wall ── */
+.wall-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px}
+
+@media (max-width:760px){
+  h1{font-size:34px} .profile h1{font-size:38px}
+  .bucket-grid,.stats,.pots,.wall-grid{grid-template-columns:repeat(2,1fr)}
+  .month{grid-template-columns:1fr}
+  .month>div:last-child{order:-1}
+  .slider-row{grid-template-columns:1fr 70px} .slider-row label{grid-column:1/-1}
+  .env .val{font-size:22px}
+  .days{grid-template-columns:repeat(15,1fr)}
+  .mast-right{display:none}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none !important; animation:none !important} }
+</style>
+</head>
+<body>
+<header class="mast brackets">
+  <div class="mast-inner">
+    <div class="mono" aria-hidden="true">A</div>
+    <div>
+      <div class="mast-course">PERSONAL FINANCE · WEEK 4</div>
+      <div class="mast-title">Envelope <em>Month</em></div>
+    </div>
+    <div class="mast-right" id="mastRight">Approach International Student Center</div>
+  </div>
+</header>
+
+<main id="app">
+  <!-- 0 · Welcome -->
+  <section id="s-welcome" class="stack">
+    <h1>One month. <em>Four buckets.</em> Three envelopes.</h1>
+    <p class="lede">You’ll get a fictional character and one month of their money. First you make a plan. Then life happens — and every choice takes money out of an envelope.</p>
+    <div class="panel stack">
+      <label for="studentName"><b>Your first name</b></label>
+      <div class="field">
+        <input type="text" id="studentName" maxlength="30" autocomplete="given-name" placeholder="First name only">
+        <button class="btn" id="btnStart">Meet my character</button>
+      </div>
+      <p class="small">Only your first name is used. Your character is fictional — you never share your own money information.</p>
+    </div>
+  </section>
+
+  <!-- 1 · Plan -->
+  <section id="s-plan" class="stack hidden">
+    <div class="panel who" id="whoCard"></div>
+
+    <div class="panel stack">
+      <h2>Step 1 · Split the <em>take-home pay</em></h2>
+      <p class="small">Fixed costs are already set: the bills plus 15% for surprises. You choose how much goes to investments and savings goals. Guilt-free spending is what’s left.</p>
+      <div class="bar" id="bar" aria-hidden="true"></div>
+      <div class="bucket-grid" id="buckets"></div>
+      <div class="slider-row">
+        <label for="rInvest">Investments (401(k), Roth IRA)</label>
+        <input type="range" id="rInvest" min="0" max="20" step="1" value="10">
+        <output id="oInvest">10%</output>
+      </div>
+      <div class="slider-row">
+        <label for="rSave">Savings goals (gifts, trips, emergencies)</label>
+        <input type="range" id="rSave" min="0" max="20" step="1" value="5">
+        <output id="oSave">5%</output>
+      </div>
+    </div>
+
+    <div class="panel stack">
+      <h2>Step 2 · Fill your <em>envelopes</em></h2>
+      <p class="hint" id="loveHint"></p>
+      <div class="envelopes" id="planEnvs"></div>
+      <div class="slider-row">
+        <label for="rEat">Eating out</label>
+        <input type="range" id="rEat" min="0" max="100" step="5" value="0">
+        <output id="oEat">$0</output>
+      </div>
+      <div class="slider-row">
+        <label for="rFun">Fun</label>
+        <input type="range" id="rFun" min="0" max="100" step="5" value="0">
+        <output id="oFun">$0</output>
+      </div>
+      <p class="small">Shopping gets whatever is left.</p>
+      <div class="field"><button class="btn gold" id="btnMonth">Start the month</button><span class="small" id="planWarn"></span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Month -->
+  <section id="s-month" class="hidden">
+    <div class="days" id="days" aria-hidden="true"></div>
+    <div class="month">
+      <div>
+        <div class="card" id="eventCard" aria-live="polite"></div>
+      </div>
+      <div>
+        <div class="envelopes" id="monthEnvs"></div>
+        <div class="pots" id="pots"></div>
+        <details class="move">
+          <summary>Move money between envelopes</summary>
+          <div class="field">
+            Move $<select id="mvAmt"><option>10</option><option selected>20</option><option>50</option><option>100</option></select>
+            from <select id="mvFrom"></select> to <select id="mvTo"></select>
+            <button class="btn ghost" id="btnMove">Move</button>
+          </div>
+          <p class="small" id="mvMsg">Your total doesn’t change — the money just changes envelopes.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · Results -->
+  <section id="s-results" class="stack hidden"></section>
+
+  <!-- Wall -->
+  <section id="s-wall" class="stack hidden"></section>
+</main>
+
+<script>
+/* ══════ CONFIG ══════ */
+const CONFIG = {
+  SUPABASE_URL: "",          // e.g. "https://xxxx.supabase.co" — leave empty to turn the class wall off
+  SUPABASE_ANON_KEY: "",
+  TABLE: "envelope_month_results",
+  CLASS_CODE: "PF-FALL26-W4",
+};
+
+/* ══════ DATA ══════ */
+// Envelope Month — characters and event cards. All characters are fictional.
+// pots: eat, fun, shop (guilt-free envelopes) · savings · invest · buffer (the 15% added to fixed costs)
+// tags: conscious | cheap | unconscious | neutral
+const DATA = {
+  characters: [
+    { id: "lucia", name: "Lucía", age: 27, job: "graphic designer", city: "San Diego, CA", pay: 3400, fixed: 1700,
+      loves: ["travel", "coffee shops"], nocare: "cars", loveEnv: ["fun"],
+      loveItem: { text: "Your friends are planning a weekend camping trip to Joshua Tree", short: "camping trips", cost: 140, env: "fun" } },
+    { id: "omar", name: "Omar", age: 38, job: "warehouse supervisor", city: "Chicago, IL", pay: 3900, fixed: 2000,
+      loves: ["soccer games", "cooking"], nocare: "new clothes", loveEnv: ["fun"],
+      loveItem: { text: "Your favorite soccer team has a big home game on Saturday", short: "soccer tickets", cost: 95, env: "fun" } },
+    { id: "priya", name: "Priya", age: 31, job: "nurse", city: "Phoenix, AZ", pay: 4600, fixed: 2300,
+      loves: ["concerts", "yoga"], nocare: "eating out", loveEnv: ["fun"],
+      loveItem: { text: "Your favorite singer just announced a show in Phoenix — front-row seats are available", short: "concerts", cost: 150, env: "fun" } },
+    { id: "tomas", name: "Tomás", age: 25, job: "rideshare driver", city: "Miami, FL", pay: 2800, fixed: 1440,
+      loves: ["sneakers", "eating out with friends"], nocare: "streaming services", loveEnv: ["shop", "eat"],
+      loveItem: { text: "A limited-edition pair of sneakers drops online today", short: "sneakers", cost: 130, env: "shop" } },
+    { id: "mei", name: "Mei", age: 45, job: "bank teller", city: "Seattle, WA", pay: 3300, fixed: 1680,
+      loves: ["books", "trying new restaurants"], nocare: "fashion", loveEnv: ["eat"],
+      loveItem: { text: "A new Korean restaurant opened in your neighborhood and everyone is talking about it", short: "new restaurants", cost: 85, env: "eat" } },
+    { id: "kwame", name: "Kwame", age: 22, job: "electrician apprentice", city: "Dallas, TX", pay: 2600, fixed: 1320,
+      loves: ["video games", "live music"], nocare: "fancy dinners", loveEnv: ["fun"],
+      loveItem: { text: "The new game in your favorite series comes out today, with an online pass", short: "video games", cost: 90, env: "fun" } },
+  ],
+
+  events: [
+    { day: 2, kind: "À la carte", title: "Subscriptions renew today",
+      text: "Your gym ($70/month) and four streaming services ($52/month) all come out of your Fun envelope today. Last month you went to the gym three times and watched only one service.",
+      options: [
+        { t: "Keep everything. It’s automatic and easy.", fx: { fun: -122 }, tag: "unconscious",
+          fb: "That’s $122 for three gym visits and one show. Most people overpay for subscriptions without noticing." },
+        { t: "Cancel the gym and three services. Buy $10 day passes and keep one service ($13).", fx: { fun: -43 }, tag: "conscious", win: "À la carte: $79 saved this month",
+          fb: "Big Win. Three day passes plus one service is $43 instead of $122 — and you still go to the gym." },
+        { t: "Cancel everything. No gym and no TV — money is for saving.", fx: {}, tag: "cheap",
+          fb: "You saved money, but cutting everything rarely lasts. Conscious spending keeps the things you actually use." },
+      ] },
+    { day: 4, kind: "English", title: "An invitation", lang: true,
+      text: "Your coworkers invite you to a fancy dinner on Friday — about $90 per person. Choose your answer.",
+      options: [
+        { t: "“Sorry, it’s not in my plan this month — but I’d love to join you for lunch next week!”", fx: { eat: -20 }, tag: "conscious", correct: true,
+          fb: "Polite, honest, and the friendship stays strong. It’s not personal — it’s your system. (Lunch next week: $20.)" },
+        { t: "“I can’t afford it. I’m too poor for things like that.”", fx: {}, tag: "neutral",
+          fb: "It works, but it sounds negative. Try “I choose not to spend on that” or “It’s not in my plan this month.”" },
+        { t: "“Sure, count me in!”", fx: { eat: -90 }, tag: "unconscious", loveTag: "eat",
+          fb: "If eating out is something you love and it’s in your envelope, great. If not, that’s $90 on something you don’t care about.",
+          fbLove: "Eating out is one of your loves, so this is a conscious choice — as long as your envelope can pay for it." },
+      ] },
+    { day: 6, kind: "Week 2 review", title: "An overdraft fee", recall: "Week 2",
+      text: "Your bank charged you a $35 overdraft fee. Your debit card let you spend $8 more than you had.",
+      options: [
+        { t: "Call the bank. Ask them to waive the fee and to decline purchases I can’t cover.", fx: {}, tag: "conscious", win: "No more overdraft fees",
+          fb: "Week 2: banks often waive a first fee if you ask politely. Turning off overdrafts stops the next one." },
+        { t: "Pay it. That’s just how banks work.", fx: { buffer: -35 }, tag: "unconscious",
+          fb: "In the book, one teacher paid $1,300 in overdraft fees in one year — and guessed it was only $100–200." },
+        { t: "Close the account today and keep all my money in cash at home.", fx: {}, tag: "neutral",
+          fb: "Too extreme. Cash at home earns nothing and is easy to lose. Week 2: look for a no-fee, high-interest account instead." },
+      ] },
+    { day: 8, kind: "Surprise cost", title: "A cracked phone",
+      text: "You drop your phone and the screen cracks. The repair costs $180.",
+      options: [
+        { t: "Pay for it with my Unexpected buffer (the extra 15%).", fx: { buffer: -180 }, tag: "conscious",
+          fb: "Exactly what the buffer is for. Unknown irregular costs come from the 15% you added to fixed costs." },
+        { t: "Put it on my credit card and pay only the minimum.", fx: { debt: 180 }, tag: "unconscious",
+          fb: "At 24% APR, a $180 repair keeps growing. Week 1: pay your card in full every month." },
+        { t: "Take $180 out of my investments.", fx: { invest: -180 }, tag: "unconscious",
+          fb: "Investments are for the long term. Don’t use them for surprises — that’s what the buffer is for." },
+      ] },
+    { day: 10, kind: "Your Rich Life", title: "LOVE", love: true,
+      text: "LOVE_TEXT",
+      options: [
+        { t: "Buy it. This is exactly what my guilt-free money is for.", fx: { LOVE: -1 }, tag: "conscious", loved: true,
+          fb: "Spend extravagantly on the things you love — when they’re in the plan. No guilt." },
+        { t: "Skip it. Spending money on fun is always a bad idea.", fx: {}, tag: "cheap",
+          fb: "That’s the cheap mindset. You planned guilt-free money so you could say yes to things like this." },
+        { t: "Buy it — and buy one for a friend too, on my credit card.", fx: { LOVE: -1, debtLove: 1 }, tag: "unconscious", loved: true,
+          fb: "Generous, but it wasn’t in the plan, and now it’s credit card debt." },
+      ] },
+    { day: 13, kind: "Cheap or conscious?", title: "Group lunch",
+      text: "You have lunch with classmates. Your meal is $12.95. With tax and tip it’s about $17. What do you put in?",
+      options: [
+        { t: "$13. Close enough.", fx: { eat: -13 }, tag: "cheap",
+          fb: "This is the classic cheap move from the book: your friends pay your tax and tip." },
+        { t: "$17 — my fair share.", fx: { eat: -17 }, tag: "conscious",
+          fb: "Fair to your friends. A conscious spender’s frugality affects only them." },
+        { t: "$17 — and next time I’ll order water instead of soda to stay in my envelope.", fx: { eat: -17 }, tag: "conscious",
+          fb: "Fair to your friends and careful with yourself. That’s conscious spending." },
+      ] },
+    { day: 15, kind: "English", title: "A friend’s comment", lang: true,
+      text: "A friend says: “Why do you spend so much on LOVE_SHORT? That’s crazy!” Choose the best reply.",
+      options: [
+        { t: "“I plan for it. I spend extravagantly on LOVE_SHORT, whereas I cut costs on NOCARE.”", fx: {}, tag: "conscious", correct: true,
+          fb: "Clear and confident, and the grammar is right: “whereas” shows the contrast." },
+        { t: "“Unlike to you, I am more smart with money.”", fx: {}, tag: "neutral",
+          fb: "Two mistakes: “unlike you” (no “to”) and “smarter.” Also, not very kind!" },
+        { t: "“You’re right. I’m so bad with money.”", fx: {}, tag: "neutral",
+          fb: "Conscious spenders don’t feel guilty about planned spending. You chose this on purpose." },
+      ] },
+    { day: 18, kind: "Known cost", title: "A wedding gift",
+      text: "Your cousin’s wedding is next month. You want to give a $100 gift. You have known about this wedding for three months.",
+      options: [
+        { t: "Take it from my Savings goals. Gifts are part of my plan.", fx: { savings: -100 }, tag: "conscious",
+          fb: "Known irregular costs come from savings goals. You planned it, so there’s no stress." },
+        { t: "Take it from my Shopping envelope.", fx: { shop: -100 }, tag: "neutral",
+          fb: "It works this month, but now you have less fun money. Next time, break it into monthly chunks." },
+        { t: "Skip the gift and don’t go to the wedding.", fx: {}, tag: "cheap",
+          fb: "Cheap people’s choices affect the people around them. A planned gift was the better choice." },
+      ] },
+    { day: 21, kind: "Week 1 review", title: "Credit card APR", recall: "Week 1",
+      text: "You have a $1,200 balance on a credit card with a 24% APR.",
+      options: [
+        { t: "Call the card company and ask for a lower rate: “I’ve been a good customer, and I’d like a lower APR.”", fx: {}, tag: "conscious", win: "Lower APR",
+          fb: "Week 1 negotiation. Brian’s 3-point cut saved $1,357 over the life of his debt." },
+        { t: "Pay the minimum. It’s only $35.", fx: {}, tag: "unconscious",
+          fb: "Paying only the minimum at 24% can take years and cost hundreds in interest." },
+        { t: "Open a new store card to get 10% off a jacket.", fx: {}, tag: "unconscious",
+          fb: "A new card doesn’t fix the debt, and store cards often have even higher APRs." },
+      ] },
+    { day: 24, kind: "Week 3 review", title: "Surprise money", recall: "Week 3",
+      text: "Surprise! Your aunt sends you $300 for your birthday.",
+      options: [
+        { t: "Spend half on something fun and put half in my Roth IRA.", fx: { fun: 150, invest: 150 }, tag: "conscious",
+          fb: "Sethi’s rule for unexpected money: 50% for fun, 50% for investing. Week 3: Roth IRA money grows tax-free." },
+        { t: "Spend all $300 at the mall this weekend.", fx: {}, tag: "unconscious",
+          fb: "Fun for a weekend — but nothing for your future self." },
+        { t: "Put all $300 in savings. Fun is a waste.", fx: { savings: 300 }, tag: "neutral",
+          fb: "Responsible, but Sethi spends half of surprise money on fun so he stays motivated." },
+      ] },
+    { day: 28, kind: "Envelopes", title: "A jacket sale",
+      text: "Your favorite jacket brand has a sale: $60. You have SHOP_LEFT left in your Shopping envelope.",
+      options: [
+        { t: "SHOP_OPTION", fx: { SHOP60: -60 }, tag: "conscious",
+          fb: "Moving money between envelopes is fine — your total spending doesn’t go up." },
+        { t: "Buy it with money from my Savings goals.", fx: { savings: -60 }, tag: "unconscious",
+          fb: "Savings goals are for planned goals, not sales. That’s how plans break." },
+        { t: "Wait until next month and plan for it.", fx: {}, tag: "conscious",
+          fb: "When the envelope is empty, that’s it for the month. Nice discipline." },
+      ] },
+  ],
+};
+
+/* ══════ HELPERS ══════ */
+const $ = id => document.getElementById(id);
+const money = v => (v < 0 ? "−$" : "$") + Math.abs(Math.round(v)).toLocaleString("en-US");
+const ENV = { eat: "Eating out", fun: "Fun", shop: "Shopping" };
+const POT = { savings: "Savings goals", invest: "Investments", buffer: "Unexpected buffer" };
+function show(id){ ["s-welcome","s-plan","s-month","s-results","s-wall"].forEach(s => $(s).classList.toggle("hidden", s !== id)); window.scrollTo(0,0); }
+function shuffle(a){ a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
+
+/* ══════ STATE ══════ */
+let S = null;
+function newState(name, ch){
+  const buffer = Math.round(ch.fixed * 0.15);
+  return { student:name, ch, buffer, investPct:10, savePct:5, plan:{}, pots:{}, start:{},
+    debt:0, tags:{conscious:0,cheap:0,unconscious:0,neutral:0}, wins:[], lang:0, review:0, loved:false,
+    overspent:0, raided:false, moves:0, idx:0, log:[], planOk:0 };
+}
+
+/* ══════ WELCOME ══════ */
+$("btnStart").addEventListener("click", () => {
+  const name = $("studentName").value.trim();
+  if (!name){ $("studentName").focus(); $("studentName").placeholder = "Please type your first name"; return; }
+  const forced = new URLSearchParams(location.search).get("char");
+  const ch = DATA.characters.find(c => c.id === forced) || DATA.characters[Math.floor(Math.random()*DATA.characters.length)];
+  S = newState(name, ch);
+  renderWho(); setupPlan(); show("s-plan");
+});
+$("studentName").addEventListener("keydown", e => { if (e.key === "Enter") $("btnStart").click(); });
+
+function renderWho(){
+  const c = S.ch;
+  $("whoCard").innerHTML = `
+    <div class="avatar" aria-hidden="true">${esc(c.name[0])}</div>
+    <div>
+      <div class="who-name">${esc(c.name)}, ${c.age}</div>
+      <div class="facts"><span><b>Job:</b> ${esc(c.job)}</span><span><b>City:</b> ${esc(c.city)}</span>
+        <span><b>Take-home pay:</b> ${money(c.pay)}/month</span></div>
+      <div class="facts"><span><b>Loves:</b> ${esc(c.loves.join(" and "))}</span><span><b>Doesn’t care about:</b> ${esc(c.nocare)}</span></div>
+      <div class="fictional">Fictional character · practice material</div>
+    </div>`;
+  $("mastRight").textContent = `${S.student} · playing as ${c.name}`;
+}
+
+/* ══════ PLAN ══════ */
+function amounts(){
+  const c = S.ch, fixedTotal = c.fixed + S.buffer;
+  const invest = Math.round(c.pay * S.investPct / 100), savings = Math.round(c.pay * S.savePct / 100);
+  return { fixedTotal, invest, savings, gf: c.pay - fixedTotal - invest - savings };
+}
+function setupPlan(){
+  $("rInvest").value = 10; $("rSave").value = 5; S.investPct = 10; S.savePct = 5;
+  const loveEnvNames = S.ch.loveEnv.map(e => ENV[e]).join(" and ");
+  $("loveHint").textContent = `${S.ch.name} loves ${S.ch.loves.join(" and ")}. Spend extravagantly on what you love: the ${loveEnvNames} envelope should probably get the most.`;
+  const a = amounts();
+  const third = Math.floor(a.gf / 3 / 5) * 5;
+  $("rEat").max = a.gf; $("rFun").max = a.gf;
+  $("rEat").value = third; $("rFun").value = third;
+  updatePlan();
+}
+function rangeChip(ok, txt){ return `<span class="chip ${ok ? "ok" : "warn"}">${ok ? "✓" : "!"} ${txt}</span>`; }
+function updatePlan(){
+  S.investPct = +$("rInvest").value; S.savePct = +$("rSave").value;
+  $("oInvest").value = S.investPct + "%"; $("oSave").value = S.savePct + "%";
+  const c = S.ch, a = amounts(), p = v => Math.round(v / c.pay * 100);
+  const segs = [["b-fixed", a.fixedTotal], ["b-invest", a.invest], ["b-save", a.savings], ["b-gf", a.gf]];
+  $("bar").innerHTML = segs.map(([cl, v]) => `<div class="${cl}" style="flex-basis:${v / c.pay * 100}%">${p(v) >= 6 ? p(v) + "%" : ""}</div>`).join("");
+  const checks = [
+    p(a.fixedTotal) >= 50 && p(a.fixedTotal) <= 60,
+    S.investPct >= 10,
+    S.savePct >= 5 && S.savePct <= 10,
+    p(a.gf) >= 20 && p(a.gf) <= 35,
+  ];
+  S.planOk = checks.filter(Boolean).length;
+  const B = [
+    ["Fixed costs", a.fixedTotal, "var(--navy)", `Bills ${money(c.fixed)} + 15% buffer ${money(S.buffer)}`, rangeChip(checks[0], "goal 50–60%")],
+    ["Investments", a.invest, "var(--teal)", "Paid to your future self first", rangeChip(checks[1], "goal 10%")],
+    ["Savings goals", a.savings, "var(--gold)", "Gifts, trips, emergencies", rangeChip(checks[2], "goal 5–10%")],
+    ["Guilt-free", a.gf, "var(--amber)", "Your three envelopes", rangeChip(checks[3], "goal 20–35%")],
+  ];
+  $("buckets").innerHTML = B.map(([n, v, col, sub, chip]) =>
+    `<div class="bucket" style="--c:${col}"><div class="name">${n}</div><div class="amt">${money(v)}</div>
+     <div class="pct">${p(v)}% · ${sub}</div>${chip}</div>`).join("");
+
+  // envelopes
+  const gf = Math.max(0, a.gf);
+  $("rEat").max = gf;
+  let eat = Math.min(+$("rEat").value, gf);
+  $("rFun").max = gf - eat;
+  let fun = Math.min(+$("rFun").value, gf - eat);
+  $("rEat").value = eat; $("rFun").value = fun;
+  const shop = gf - eat - fun;
+  $("oEat").value = money(eat); $("oFun").value = money(fun);
+  S.plan = { eat, fun, shop, savings:a.savings, invest:a.invest, buffer:S.buffer };
+  renderEnvs($("planEnvs"), S.plan, S.plan);
+  $("planWarn").textContent = S.planOk < 4 ? `${4 - S.planOk} bucket(s) outside Sethi’s ranges. You can still play — but will your plan hold?` : "All four buckets are in range.";
+}
+["rInvest","rSave","rEat","rFun"].forEach(id => $(id).addEventListener("input", updatePlan));
+
+function renderEnvs(el, now, base, pulseKey){
+  el.innerHTML = Object.keys(ENV).map(k => {
+    const v = now[k], b = base[k] || 1, w = Math.max(0, Math.min(100, v / b * 100));
+    return `<div class="env-wrap ${k}"><div class="env ${pulseKey === k ? "pulse" : ""}"><svg class="flap" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polygon points="0,0 100,0 50,100"/><polyline points="0,0 50,100 100,0"/></svg>
+      <div class="val ${v < 0 ? "neg" : ""}">${money(v)}</div><div class="fill" style="width:${w}%"></div></div>
+      <div class="env-label">${ENV[k].toUpperCase()}</div></div>`;
+  }).join("");
+}
+
+$("btnMonth").addEventListener("click", () => {
+  S.pots = Object.assign({}, S.plan); S.start = Object.assign({}, S.plan);
+  S.events = DATA.events.map(e => Object.assign({}, e, { options: shuffle(e.options) }));
+  S.idx = 0;
+  setupMove(); renderMonth(); show("s-month");
+});
+
+/* ══════ MONTH ══════ */
+function renderDays(){
+  const evDays = S.events.map(e => e.day), cur = S.events[S.idx] ? S.events[S.idx].day : 31;
+  $("days").innerHTML = Array.from({ length:30 }, (_, i) => {
+    const d = i + 1, cls = d === cur ? "now" : d < cur ? "done" : evDays.includes(d) ? "ev" : "";
+    return `<span class="${cls}">${d}</span>`;
+  }).join("");
+}
+function renderPots(){
+  const P = S.pots;
+  $("pots").innerHTML = [
+    ["Savings goals", P.savings], ["Investments", P.invest], ["Unexpected buffer", P.buffer], ["Card debt", -S.debt],
+  ].map(([k, v]) => `<div class="pot"><div class="k">${k}</div><div class="v ${v < 0 ? "neg" : ""}">${money(v)}</div></div>`).join("");
+}
+function fill(s){
+  const c = S.ch, li = c.loveItem;
+  return s.replace(/LOVE_TEXT/g, `${li.text}. It costs ${money(li.cost)} from your ${ENV[li.env]} envelope.`)
+          .replace(/LOVE_SHORT/g, li.short).replace(/NOCARE/g, c.nocare)
+          .replace(/SHOP_LEFT/g, money(S.pots.shop))
+          .replace(/SHOP_OPTION/g, S.pots.shop >= 60 ? "Buy it with the money in my Shopping envelope." : "Move $60 from my Eating Out envelope to Shopping, then buy it.");
+}
+function renderMonth(pulseKey){
+  renderDays(); renderPots(); renderEnvs($("monthEnvs"), S.pots, S.start, pulseKey);
+  const ev = S.events[S.idx];
+  if (!ev){ finish(); return; }
+  const title = ev.love ? `Something ${S.ch.name} loves` : ev.title;
+  $("eventCard").innerHTML = `
+    <div class="kind">${esc(ev.kind.toUpperCase())}</div>
+    <div class="daynum">Day ${ev.day}</div>
+    <h3>${esc(title)}</h3>
+    <p class="text">${esc(fill(ev.text))}</p>
+    <div class="opts">${ev.options.map((o, i) => `<button class="opt" data-i="${i}">${esc(fill(o.t))}</button>`).join("")}</div>
+    <div id="fbBox"></div>`;
+  document.querySelectorAll(".opt").forEach(b => b.addEventListener("click", () => choose(+b.dataset.i)));
+}
+
+function spend(pot, amt, notes){
+  if (pot === "invest"){ S.pots.invest -= amt; S.raided = true; return; }
+  const have = Math.max(0, S.pots[pot]);
+  const take = Math.min(have, amt);
+  S.pots[pot] -= take;
+  let rest = amt - take;
+  if (rest <= 0) return;
+  const label = ENV[pot] || POT[pot];
+  if (pot !== "savings"){
+    const fromSav = Math.min(Math.max(0, S.pots.savings), rest);
+    if (fromSav > 0){ S.pots.savings -= fromSav; rest -= fromSav; }
+    S.overspent++;
+    notes.push(`Your ${label}${ENV[pot] ? " envelope" : ""} was short by ${money(amt - take)}.${fromSav > 0 ? ` ${money(fromSav)} came out of your Savings goals.` : ""}`);
+  }
+  if (rest > 0){
+    S.pots.invest -= rest; S.raided = true;
+    notes.push(`${money(rest)} had to come out of your Investments.`);
+  }
+}
+
+function choose(i){
+  const ev = S.events[S.idx], o = ev.options[i], c = S.ch, notes = [], choiceText = fill(o.t);
+  let tag = o.tag, fb = o.fb, pulseKey = null;
+  if (o.loveTag && c.loveEnv.includes(o.loveTag)){ tag = "conscious"; fb = o.fbLove || fb; }
+  for (const [k, v] of Object.entries(o.fx)){
+    if (k === "LOVE"){ spend(c.loveItem.env, c.loveItem.cost, notes); pulseKey = c.loveItem.env; }
+    else if (k === "debtLove"){ S.debt += c.loveItem.cost; }
+    else if (k === "debt"){ S.debt += v; }
+    else if (k === "SHOP60"){
+      if (S.pots.shop >= 60){ spend("shop", 60, notes); pulseKey = "shop"; }
+      else { spend("eat", 60, notes); S.moves++; pulseKey = "eat"; }
+    }
+    else if (v > 0){ S.pots[k] += v; }
+    else { spend(k, -v, notes); if (ENV[k]) pulseKey = k; }
+  }
+  S.tags[tag]++;
+  if (o.win) S.wins.push(o.win);
+  if (ev.lang && o.correct) S.lang++;
+  if (ev.recall && o.tag === "conscious") S.review++;
+  if (o.loved) S.loved = true;
+  S.log.push({ day:ev.day, title: ev.love ? `Something ${c.name} loves` : ev.title, choice: choiceText, tag });
+
+  document.querySelectorAll(".opt").forEach((b, j) => { b.disabled = true; b.classList.add(j === i ? "picked" : "faded"); });
+  const tagName = { conscious:"Conscious choice", cheap:"Cheap choice", unconscious:"Unconscious choice", neutral:"Okay choice" }[tag];
+  $("fbBox").innerHTML = `<div class="feedback">
+      <span class="badge ${tag}">${tagName}</span>${o.win ? `<span class="badge win">★ Big Win</span>` : ""}
+      ${ev.lang ? `<span class="badge ${o.correct ? "conscious" : "unconscious"}">${o.correct ? "Best English" : "Not the best English"}</span>` : ""}
+      <p>${esc(fb)}</p>${notes.map(n => `<p class="note">${esc(n)}</p>`).join("")}
+      <button class="btn" id="btnNext">${S.idx === S.events.length - 1 ? "See my month" : "Next day"}</button></div>`;
+  renderPots(); renderEnvs($("monthEnvs"), S.pots, S.start, pulseKey);
+  $("btnNext").addEventListener("click", () => { S.idx++; renderMonth(); });
+  $("btnNext").focus();
+}
+
+/* Move money */
+function setupMove(){
+  const opts = Object.entries(ENV).map(([k, v]) => `<option value="${k}">${v}</option>`).join("");
+  $("mvFrom").innerHTML = opts; $("mvTo").innerHTML = opts; $("mvTo").value = "fun";
+}
+$("btnMove").addEventListener("click", () => {
+  const amt = +$("mvAmt").value, f = $("mvFrom").value, t = $("mvTo").value;
+  if (f === t){ $("mvMsg").textContent = "Choose two different envelopes."; return; }
+  if (S.pots[f] < amt){ $("mvMsg").textContent = `Your ${ENV[f]} envelope only has ${money(S.pots[f])}.`; return; }
+  S.pots[f] -= amt; S.pots[t] += amt; S.moves++;
+  $("mvMsg").textContent = `Moved ${money(amt)} from ${ENV[f]} to ${ENV[t]}. Your total didn’t change.`;
+  renderEnvs($("monthEnvs"), S.pots, S.start, t);
+});
+
+/* ══════ RESULTS ══════ */
+function profileOf(){
+  const T = S.tags;
+  if (S.raided || T.unconscious >= 3 || S.overspent >= 2)
+    return ["Unconscious Spender", "Money “just sort of” got spent this month. Next time, protect your investments first and let your envelopes say no for you."];
+  if (T.cheap >= 2 || !S.loved)
+    return ["Cheap", "You protected the money — but not the Rich Life. A conscious spender says a big YES to the things they love."];
+  if (T.conscious >= 8)
+    return ["Conscious Spender", "You planned ahead, spent extravagantly on what you love, and cut costs on the rest. That’s the whole chapter."];
+  return ["Almost Conscious", "Good instincts and a solid plan. Look at your “okay” choices — which ones could be Big Wins next month?"];
+}
+function finish(){
+  const [prof, why] = profileOf(), c = S.ch;
+  const investOk = !S.raided && S.pots.invest >= S.start.invest;
+  S.result = { prof, investOk };
+  const rows = S.log.map(l => `<tr><td>Day ${l.day}</td><td>${esc(l.title)}</td><td>${esc(l.choice)}</td><td><span class="badge ${l.tag}">${l.tag === "neutral" ? "okay" : l.tag}</span></td></tr>`).join("");
+  $("s-results").innerHTML = `
+    <div class="print-only print-head">
+      <div class="t">Envelope Month · Personal Finance Week 4</div>
+      <div class="m">Student: <b>${esc(S.student)}</b> · Character: <b>${esc(c.name)}</b> (fictional) · ${esc(new Date().toLocaleString("en-US", { dateStyle:"medium", timeStyle:"short" }))}</div>
+    </div>
+    <div class="panel profile brackets">
+      <div class="label">${esc(S.student.toUpperCase())} · AS ${esc(c.name.toUpperCase())}</div>
+      <h1>${prof}</h1>
+      <p class="lede" style="margin:0 auto">${why}</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="v">${S.wins.length}/3</div><div class="k">Big Wins found</div></div>
+      <div class="stat"><div class="v">${investOk ? "Yes" : "No"}</div><div class="k">Investments protected</div></div>
+      <div class="stat"><div class="v">${S.lang}/2</div><div class="k">Best English choices</div></div>
+      <div class="stat"><div class="v">${S.review}/3</div><div class="k">Weeks 1–3 review</div></div>
+      <div class="stat"><div class="v">${S.planOk}/4</div><div class="k">Buckets in range</div></div>
+      <div class="stat"><div class="v">${S.loved ? "Yes" : "No"}</div><div class="k">Spent on what you love</div></div>
+      <div class="stat"><div class="v">${S.overspent}</div><div class="k">Times an envelope ran out</div></div>
+      <div class="stat"><div class="v">${money(S.debt)}</div><div class="k">New card debt</div></div>
+    </div>
+    <div class="field no-print">
+      <button class="btn gold" id="btnPdf">Save as PDF</button>
+      <button class="btn ghost" id="btnAgain">Play again with a new character</button>
+      <p class="pdf-tip">In the print window, choose <b>Save as PDF</b> as the destination (on a phone: Share → Print → Save). Then send the file to your teacher.</p>
+    </div>
+    <div class="debrief">
+      <h3>Talk with a partner</h3>
+      <ol>
+        <li>Who was your character? What did they love?</li>
+        <li>Which choice was the hardest? Why?</li>
+        <li>Did your partner make a different “right” choice? Why was it right for them?</li>
+        <li>Try a frame: “Unlike my character, yours…” · “…whereas mine…”</li>
+      </ol>
+    </div>
+    <div class="panel"><h3>Your plan vs. the end of the month</h3><div style="overflow-x:auto"><table class="recap">
+      <tr><th>Envelope or bucket</th><th>Planned</th><th>Left on Day 30</th></tr>
+      ${[["eat","Eating out envelope"],["fun","Fun envelope"],["shop","Shopping envelope"],["savings","Savings goals"],["invest","Investments"],["buffer","Unexpected buffer"]]
+        .map(([k, n]) => `<tr><td>${n}</td><td>${money(S.start[k])}</td><td>${money(S.pots[k])}</td></tr>`).join("")}
+      <tr><td>New card debt</td><td>$0</td><td>${money(S.debt)}</td></tr></table></div></div>
+    <div class="panel"><h3>Your month</h3><div style="overflow-x:auto"><table class="recap">
+      <tr><th>Day</th><th>Event</th><th>Your choice</th><th>Type</th></tr>${rows}</table></div></div>`;
+  show("s-results");
+  $("btnPdf").addEventListener("click", savePdf);
+  $("btnAgain").addEventListener("click", () => {
+    const others = DATA.characters.filter(x => x.id !== S.ch.id);
+    S = newState(S.student, others[Math.floor(Math.random() * others.length)]);
+    renderWho(); setupPlan(); show("s-plan");
+  });
+  submitResult();
+}
+function savePdf(){
+  const old = document.title;
+  const clean = t => String(t).normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  document.title = `Envelope-Month_${clean(S.student)}_${clean(S.ch.name)}`;   // default PDF file name
+  window.addEventListener("afterprint", () => { document.title = old; }, { once:true });
+  window.print();
+}
+
+/* ══════ OPTIONAL CLASS WALL ══════ */
+const wallOn = () => CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY;
+const sbHeaders = () => ({ apikey: CONFIG.SUPABASE_ANON_KEY, Authorization: "Bearer " + CONFIG.SUPABASE_ANON_KEY, "Content-Type": "application/json" });
+function submitResult(){
+  if (!wallOn()) return;
+  fetch(`${CONFIG.SUPABASE_URL}/rest/v1/${CONFIG.TABLE}`, { method:"POST", headers: Object.assign(sbHeaders(), { Prefer:"return=minimal" }),
+    body: JSON.stringify({ class_code:CONFIG.CLASS_CODE, student:S.student, character:S.ch.name, profile:S.result.prof,
+      big_wins:S.wins.length, english:S.lang, review:S.review, invest_protected:S.result.investOk, loved:S.loved }) }).catch(() => {});
+}
+async function loadWall(){
+  const el = $("s-wall");
+  if (!wallOn()){ el.innerHTML = `<h2>Class wall is off</h2><p>Add your Supabase URL and anon key to <code>CONFIG</code> at the top of this file to turn it on.</p>`; return; }
+  try {
+    const r = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/${CONFIG.TABLE}?class_code=eq.${encodeURIComponent(CONFIG.CLASS_CODE)}&order=created_at.desc`, { headers: sbHeaders() });
+    const rows = await r.json();
+    const profs = ["Conscious Spender","Almost Conscious","Cheap","Unconscious Spender"];
+    el.innerHTML = `<h1>Class <em>wall</em></h1><p class="lede">${rows.length} results · updates every 10 seconds</p>
+      <div class="wall-grid">${profs.map(p => `<div class="stat"><div class="v">${rows.filter(x => x.profile === p).length}</div><div class="k">${p}</div></div>`).join("")}</div>
+      <div class="panel"><table class="recap"><tr><th>Student</th><th>Character</th><th>Profile</th><th>Big Wins</th><th>English</th><th>Investments protected</th></tr>
+      ${rows.map(x => `<tr><td>${esc(x.student)}</td><td>${esc(x.character)}</td><td>${esc(x.profile)}</td><td>${x.big_wins}/3</td><td>${x.english}/2</td><td>${x.invest_protected ? "yes" : "no"}</td></tr>`).join("")}</table></div>`;
+  } catch(e){ el.innerHTML = `<h2>Couldn’t load the wall</h2><p>Check the Supabase URL, key, and table name in CONFIG.</p>`; }
+}
+if (new URLSearchParams(location.search).has("wall")){ show("s-wall"); loadWall(); setInterval(loadWall, 10000); }
+</script>
+</body>
+</html>
