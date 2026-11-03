@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Host · AI Sprint · Week 5 · Missions</title>
+<link rel="stylesheet" href="styles.css">
+<script src="config.js"></script>
+<script src="content.js"></script>
+<script src="core.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.79.0/dist/umd/supabase.js"></script>
+</head>
+<body class="host">
+<header class="topbar">
+  <div class="monogram" aria-hidden="true">A</div>
+  <div class="brand-lines"><span class="course">AI SPRINT</span><span class="session">WEEK 05 · HOST</span></div>
+  <div class="spacer"></div>
+  <span class="status wait" id="status" role="status">Connecting…</span>
+</header>
+
+<section class="pin-gate" id="gate">
+  <form class="pin-card" id="pinForm" autocomplete="off">
+    <p class="eyebrow" style="color:var(--gold)">TEACHER ONLY</p>
+    <h1>Host <em>view.</em></h1>
+    <p>Enter the host PIN.</p>
+    <label class="sr-only" for="pin">Host PIN</label>
+    <input type="password" id="pin" inputmode="numeric" placeholder="••••">
+    <button class="btn gold" type="submit">Open host view</button>
+    <p class="hidden" id="pinErr" style="color:#F1A59C">That PIN is not correct.</p>
+  </form>
+</section>
+
+<div class="host-wrap hidden" id="app">
+  <section class="control">
+    <div><p class="eyebrow" id="codeLine"></p><p class="now" id="now"></p><p class="sub" id="sub"></p></div>
+    <div class="actions">
+      <button class="btn gold" id="openNext" type="button"></button>
+      <button class="btn ghost" id="undo" type="button"></button>
+      <button class="btn ghost" id="brk" type="button"></button>
+      <button class="btn ghost" id="projBtn" type="button">Projector view</button>
+    </div>
+  </section>
+  <div class="subbar" id="revealBar"></div>
+  <div class="subbar" id="gameBar"></div>
+  <div class="roster-head"><h2>Who has finished</h2><span class="legend"><span class="dot on"></span>online <span class="dot" style="margin-left:14px"></span>offline</span></div>
+  <div class="table-wrap"><table class="roster" id="roster"></table></div>
+  <div class="danger-zone">
+    <p>Finished with this class? <b>Clean session</b> clears this table, closes every mission, resets the game, and deletes saved work on every student laptop connected right now. Make sure everyone has downloaded their files first.</p>
+    <button class="btn danger" id="clean" type="button">Clean session</button>
+  </div>
+  <p class="page-footer" id="copy"></p>
+</div>
+
+<div class="proj hidden" id="proj" role="region" aria-label="Projector view">
+  <header>
+    <div style="display:flex;gap:12px;align-items:center"><div class="monogram" aria-hidden="true">A</div><div class="brand-lines"><span class="course">AI SPRINT</span><span class="session" id="pSession">WEEK 05</span></div></div>
+    <div class="timer" id="pTimer" aria-live="off"></div>
+  </header>
+  <div class="pmain" id="pMain"></div>
+  <footer>
+    <div style="display:flex;gap:8px;flex-wrap:wrap" id="pCtl"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn ghost" id="tStart" type="button">Start timer</button>
+      <button class="btn ghost" id="tReset" type="button">Reset</button>
+      <button class="btn ghost" id="pExit" type="button">Exit projector (Esc)</button>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  const { esc, md, fmtTime } = CORE;
+  const C = CORE.cfg(), W = window.WEEK, M = window.MISSIONS, G = window.GAME, BRK = window.BREAK;
+  const KEY = "aisprint.w5." + C.code + ".host", PINKEY = KEY + ".pin", GAMEKEY = "m2", TIME = 40;
+  const $ = (id) => document.getElementById(id);
+  const fresh = () => ({ active: 0, brk: false, reveals: {}, roster: {}, game: { phase: "idle", idx: 0, votes: {}, timerOn: true }, proj: false });
+  function load() { try { const v = JSON.parse(localStorage.getItem(KEY)); if (v && typeof v.active === "number") return Object.assign(fresh(), v); } catch (e) {} return fresh(); }
+  let H = load(), online = new Set();
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(H)); } catch (e) {} }
+  const revealsOf = (i) => M[i].sections.filter((s) => s.type === "reveal");
+  const gameIdx = M.findIndex((m) => m.key === GAMEKEY);
+
+  /* ---------------- PIN */
+  function unlock() { $("gate").classList.add("hidden"); $("app").classList.remove("hidden"); render(); connect(); if (H.proj) openProj(); }
+  let ok = false; try { ok = sessionStorage.getItem(PINKEY) === "ok"; } catch (e) {}
+  if (ok || !C.pin) unlock(); else $("pin").focus();
+  $("pinForm").addEventListener("submit", (e) => { e.preventDefault(); if ($("pin").value === C.pin) { try { sessionStorage.setItem(PINKEY, "ok"); } catch (x) {} unlock(); } else { $("pinErr").classList.remove("hidden"); $("pin").select(); } });
+
+  /* ---------------- game */
+  const gs = () => H.game;
+  function counts(i) { const c = { ok: 0, plag: 0 }; Object.values(gs().votes[i] || {}).forEach((x) => { if (c[x] != null) c[x]++; }); return c; }
+  function scores() { const sc = {}, g = gs(); Object.keys(H.roster).forEach((p) => (sc[p] = 0));
+    const last = g.phase === "end" ? G.length - 1 : g.phase === "reveal" ? g.idx : g.idx - 1;
+    for (let i = 0; i <= last; i++) Object.entries(g.votes[i] || {}).forEach(([p, v]) => { if (v === G[i].verdict) sc[p] = (sc[p] || 0) + 1; });
+    return sc; }
+  let deadline = null, gTick = null;
+  const secsLeft = () => (deadline ? Math.max(0, Math.ceil((deadline - Date.now()) / 1000)) : null);
+  function startVoteTimer() { clearInterval(gTick); deadline = gs().timerOn ? Date.now() + TIME * 1000 : null; if (!deadline) return;
+    gTick = setInterval(() => { const t = secsLeft(); const e = $("gTimer"); if (e) { e.textContent = t + " s"; } if (t <= 0) { clearInterval(gTick); gameStep(); } }, 250); }
+  function gameStep() {
+    const g = gs();
+    if (g.phase === "idle") { g.phase = "vote"; g.idx = 0; startVoteTimer(); }
+    else if (g.phase === "vote") { g.phase = "locked"; clearInterval(gTick); deadline = null; }
+    else if (g.phase === "locked") g.phase = "reveal";
+    else if (g.phase === "reveal") { if (g.idx < G.length - 1) { g.idx++; g.phase = "vote"; startVoteTimer(); } else g.phase = "end"; }
+    save(); sendState(); render(); renderProj();
+  }
+  function gamePayload() {
+    const g = gs(), it = G[g.idx], p = { phase: g.phase, idx: g.idx, total: G.length };
+    if (g.phase === "vote" || g.phase === "locked" || g.phase === "reveal") p.item = { tag: it.tag, situation: it.situation };
+    if (g.phase === "vote") p.secs = secsLeft();
+    if (g.phase === "reveal") { p.verdict = it.verdict; p.why = it.why; }
+    if (g.phase === "reveal" || g.phase === "end") p.scores = scores();
+    return p;
+  }
+  const GLABEL = { idle: "Start game", vote: "Lock votes", locked: "Reveal answer", reveal: "Next item", end: "Game finished" };
+
+  /* ---------------- render (control) */
+  function students() { return Object.keys(H.roster).map((id) => Object.assign({ id }, H.roster[id])).sort((a, b) => (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" })); }
+  function render() {
+    const a = H.active, cur = M[a], next = M[a + 1], list = students();
+    $("codeLine").textContent = "CLASS CODE " + C.code + " · " + list.length + " SIGNED IN · " + list.filter((s) => online.has(s.id)).length + " ONLINE";
+    $("now").innerHTML = H.brk ? "<em>Break</em> is on." : a === 0 ? "Students are <em>signing in.</em>" : "<em>" + esc(cur.tab) + "</em> is open: " + esc(cur.title.join(""));
+    const done = list.filter((s) => s.completed && s.completed[cur.key]).length;
+    $("sub").innerHTML = "<b>" + done + "/" + list.length + "</b> finished " + esc(a === 0 ? "signing in" : cur.tab) + (cur.minutes ? " · planned " + cur.minutes + " min" : "");
+    $("openNext").textContent = next ? "Open " + next.tab : "All missions are open"; $("openNext").disabled = !next;
+    $("undo").textContent = a > 0 ? "Undo: close " + cur.tab : "Undo"; $("undo").disabled = a === 0;
+    $("brk").textContent = H.brk ? "End break" : "Start break";
+    $("copy").textContent = W.copyright;
+    // reveals for the open mission (and earlier ones, smaller)
+    const rb = $("revealBar"); rb.innerHTML = "";
+    const rv = []; for (let i = 0; i <= a; i++) revealsOf(i).forEach((s) => rv.push([i, s]));
+    if (rv.length) {
+      rb.insertAdjacentHTML("beforeend", '<span class="lab">REVEAL</span>');
+      rv.forEach(([i, s]) => { const b = document.createElement("button"); b.type = "button"; b.className = "btn" + (H.reveals[s.id] ? " on" : ""); b.setAttribute("aria-pressed", !!H.reveals[s.id]);
+        b.textContent = (H.reveals[s.id] ? "\u2713 " : "") + M[i].tab.replace("Mission ", "M") + ": " + s.title; b.onclick = () => toggleReveal(s.id); rb.appendChild(b); });
+    }
+    const gb = $("gameBar"); gb.innerHTML = "";
+    if (a >= gameIdx) {
+      const g = gs(); const n = Object.keys(g.votes[g.idx] || {}).length;
+      gb.insertAdjacentHTML("beforeend", '<span class="lab">GAME</span><span>' + (g.phase === "idle" ? "Not started" : g.phase === "end" ? "Finished" : "Item " + (g.idx + 1) + "/" + G.length + " · " + g.phase + " · " + n + " votes") + "</span>");
+      const b = document.createElement("button"); b.type = "button"; b.className = "btn primary"; b.textContent = GLABEL[g.phase]; b.disabled = g.phase === "end"; b.onclick = gameStep; gb.appendChild(b);
+      const t = document.createElement("button"); t.type = "button"; t.className = "btn"; t.textContent = "Vote timer: " + (g.timerOn ? TIME + " s" : "off"); t.onclick = () => { g.timerOn = !g.timerOn; save(); if (g.phase === "vote") { if (g.timerOn) startVoteTimer(); else { clearInterval(gTick); deadline = null; } } render(); }; gb.appendChild(t);
+      const r = document.createElement("button"); r.type = "button"; r.className = "btn"; r.textContent = "Reset game"; r.onclick = () => { if (confirm("Reset the game? Votes and scores are cleared.")) { H.game = { phase: "idle", idx: 0, votes: {}, timerOn: g.timerOn }; clearInterval(gTick); deadline = null; save(); sendState(); render(); renderProj(); } }; gb.appendChild(r);
+    }
+    let h = "<thead><tr><th>Student</th>" + M.map((m, i) => '<th class="' + (i <= a ? "open-col" : "closed-col") + '">' + (i <= a ? "" : "\uD83D\uDD12 ") + esc(m.tab.replace("Mission ", "M")) + "</th>").join("") + (a >= gameIdx ? "<th>Game</th>" : "") + "</tr></thead><tbody>";
+    if (!list.length) h += '<tr><td class="empty-roster" colspan="' + (M.length + 2) + '">No students yet. They appear here when they sign in.</td></tr>';
+    const sc = a >= gameIdx ? scores() : {};
+    list.forEach((s) => {
+      h += '<tr><td class="name"><span class="dot' + (online.has(s.id) ? " on" : "") + '" title="' + (online.has(s.id) ? "Online" : "Offline") + '"></span>' + esc(s.name || "(no name)") + "</td>";
+      M.forEach((m) => { const t = s.completed && s.completed[m.key]; h += t ? '<td><span class="tick">\u2713<small>' + esc(fmtTime(t)) + "</small></span></td>" : '<td><span class="pending" aria-label="not yet">\u2013</span></td>'; });
+      if (a >= gameIdx) h += "<td>" + (sc[s.id] || 0) + "/" + G.length + "</td>";
+      h += "</tr>";
+    });
+    $("roster").innerHTML = h + "</tbody>";
+  }
+  function toggleReveal(id) { H.reveals[id] = !H.reveals[id]; save(); sendState(); render(); renderProj(); }
+  $("openNext").onclick = () => { if (H.active < M.length - 1) { H.active++; save(); sendState(); render(); resetTimer(); renderProj(); } };
+  $("undo").onclick = () => { if (H.active > 0) { H.active--; save(); sendState(); render(); resetTimer(); renderProj(); } };
+  $("brk").onclick = () => { H.brk = !H.brk; save(); sendState(); render(); resetTimer(); renderProj(); };
+
+  /* ---------------- projector */
+  let tLeft = null, tRun = null;
+  function resetTimer() { clearInterval(tRun); tRun = null; const m = M[H.active]; tLeft = H.brk ? 30 * 60 : m.minutes ? m.minutes * 60 : null; $("tStart").textContent = "Start timer"; showTimer(); }
+  function showTimer() { const e = $("pTimer"); if (tLeft == null) { e.textContent = ""; return; } const mm = Math.floor(tLeft / 60), ss = tLeft % 60; e.textContent = mm + ":" + String(ss).padStart(2, "0"); e.classList.toggle("low", tLeft <= 60); }
+  $("tStart").onclick = () => { if (tLeft == null) return; if (tRun) { clearInterval(tRun); tRun = null; $("tStart").textContent = "Start timer"; } else { tRun = setInterval(() => { tLeft = Math.max(0, tLeft - 1); showTimer(); if (!tLeft) { clearInterval(tRun); tRun = null; $("tStart").textContent = "Start timer"; } }, 1000); $("tStart").textContent = "Pause timer"; } };
+  $("tReset").onclick = resetTimer;
+  function openProj() { H.proj = true; save(); $("proj").classList.remove("hidden"); renderProj(); if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {}); }
+  function closeProj() { H.proj = false; save(); $("proj").classList.add("hidden"); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); }
+  $("projBtn").onclick = openProj; $("pExit").onclick = closeProj;
+  document.addEventListener("keydown", (e) => {
+    if ($("proj").classList.contains("hidden")) return;
+    if (e.key === "Escape") closeProj();
+    else if ((e.key === " " || e.key === "ArrowRight") && H.active === gameIdx && !H.brk && gs().phase !== "end" && e.target.tagName !== "BUTTON") { e.preventDefault(); gameStep(); }
+  });
+  function renderProj() {
+    if ($("proj").classList.contains("hidden")) return;
+    const m = M[H.active], main = $("pMain"), ctl = $("pCtl"); ctl.innerHTML = "";
+    $("pSession").textContent = "WEEK 05 · " + (H.brk ? "BREAK" : m.tab.toUpperCase());
+    if (H.brk) { main.innerHTML = '<div class="brk"><p class="peb">' + esc(BRK.title.toUpperCase()) + "</p><h1>" + esc(BRK.prompt) + "</h1><p>" + esc(BRK.sub) + "</p></div>"; return; }
+    if (H.active === gameIdx && gs().phase !== "idle") { renderProjGame(main, ctl); return; }
+    const shown = revealsOf(H.active).filter((s) => H.reveals[s.id]);
+    if (shown.length) {
+      const s = shown[shown.length - 1];
+      main.innerHTML = '<div class="rv"><div class="lab">\u2713 ' + esc(s.title.toUpperCase()) + "</div>" + window.__revealHtmlHost(s.blocks) + "</div>";
+    } else {
+      main.innerHTML = '<p class="peb">' + esc(m.eyebrow) + "</p><h1>" + esc(m.title[0]) + "<em>" + esc(m.title[1]) + "</em></h1><ol>" + (m.proj || []).map((x) => "<li>" + esc(x) + "</li>").join("") + "</ol>";
+    }
+    revealsOf(H.active).forEach((s) => { const b = document.createElement("button"); b.type = "button"; b.className = "btn " + (H.reveals[s.id] ? "gold" : "ghost"); b.textContent = (H.reveals[s.id] ? "Hide: " : "Reveal: ") + s.title; b.onclick = () => toggleReveal(s.id); ctl.appendChild(b); });
+    if (H.active === gameIdx) { const b = document.createElement("button"); b.type = "button"; b.className = "btn gold"; b.textContent = "Start game"; b.onclick = gameStep; ctl.appendChild(b); }
+  }
+  function renderProjGame(main, ctl) {
+    const g = gs(), it = G[g.idx], n = Object.keys(g.votes[g.idx] || {}).length, total = students().length;
+    const slip = (stamp) => '<div class="slip' + (stamp ? " stamped" : "") + '"><div class="tg"><span>' + esc(it.tag) + "</span><span>" + (g.idx + 1) + " / " + G.length + "</span></div><p>" + esc(it.situation) + "</p>" + (stamp || "") + "</div>";
+    if (g.phase === "vote") main.innerHTML = '<div class="pg">' + slip() + '<div class="pside"><h2>Acceptable or <em>plagiarism?</em></h2><div class="big">' + n + '</div><div>of ' + total + ' voted</div><div class="timer" id="gTimer" style="margin-top:14px;font-size:34px">' + (deadline ? secsLeft() + " s" : "") + "</div></div></div>";
+    else if (g.phase === "locked") main.innerHTML = '<div class="pg">' + slip() + '<div class="pside"><h2>Votes are in.<br>Tell your partner <em>why.</em></h2><div>' + n + " votes</div></div></div>";
+    else if (g.phase === "reveal") { const c = counts(g.idx), t = Math.max(1, c.ok + c.plag);
+      const bar = (k, l) => '<div class="bar ' + k + (it.verdict === k ? " correct" : "") + '"><span>' + l + '</span><div class="track"><div class="fill" style="width:' + Math.round(c[k] / t * 100) + '%"></div></div><span>' + c[k] + "</span></div>";
+      main.innerHTML = '<div class="pg">' + slip('<div class="stamp ' + it.verdict + '">' + (it.verdict === "ok" ? "Acceptable" : "Plagiarism") + "</div>") + '<div class="pside"><div class="bars">' + bar("ok", "Acceptable") + bar("plag", "Plagiarism") + '</div><div class="why">' + esc(it.why) + "</div></div></div>"; }
+    else { const sc = scores(), top = Object.keys(sc).sort((a, b) => sc[b] - sc[a]).slice(0, 5);
+      const acc = G.map((x, i) => { const v = g.votes[i] || {}, k = Object.keys(v).length; return { i, k, p: k ? Math.round(Object.values(v).filter((y) => y === x.verdict).length / k * 100) : null }; }).filter((a) => a.k).sort((a, b) => a.p - b.p).slice(0, 3);
+      main.innerHTML = '<div class="pend"><div><h1 style="font-size:64px">Final <em>scores.</em></h1><ol class="board">' + (top.length ? top.map((p) => "<li><span>" + esc((H.roster[p] || {}).name || "Student") + "</span><b>" + sc[p] + " / " + G.length + "</b></li>").join("") : "<li><span>No votes</span><b></b></li>") +
+        '</ol></div><div class="hard"><p class="peb">TALK ABOUT THESE · HARDEST FOR THE CLASS</p>' + acc.map((a) => "<div><b>" + (a.i + 1) + ". " + esc(G[a.i].tag) + " · " + a.p + "% correct</b><br>" + esc(G[a.i].situation) + "</div>").join("") + "</div></div>"; }
+    const b = document.createElement("button"); b.type = "button"; b.className = "btn gold"; b.textContent = GLABEL[g.phase]; b.disabled = g.phase === "end"; b.onclick = gameStep; ctl.appendChild(b);
+    const hint = document.createElement("span"); hint.style.opacity = ".7"; hint.style.alignSelf = "center"; hint.textContent = "Space / \u2192 = next step"; ctl.appendChild(hint);
+  }
+  window.__revealHtmlHost = function (blocks) {
+    const tableHtml = (head, rows) => '<table class="t"><thead><tr>' + head.map((x) => "<th>" + esc(x) + "</th>").join("") + "</tr></thead><tbody>" + rows.map((r) => "<tr>" + r.map((c) => "<td>" + md(c) + "</td>").join("") + "</tr>").join("") + "</tbody></table>";
+    return blocks.map((b) => b.kind === "p" ? "<p>" + md(b.text) + "</p>" : b.kind === "quote" ? "<blockquote>" + esc(b.text) + "</blockquote>" : b.kind === "ref" ? '<p style="padding-left:28px;text-indent:-28px;font-family:var(--serif)">' + md(b.text) + "</p>" :
+      b.kind === "list" ? (b.ordered ? "<ol>" : "<ul>") + b.items.map((x) => '<li style="font-size:22px">' + md(x) + "</li>").join("") + (b.ordered ? "</ol>" : "</ul>") : tableHtml(b.head, b.rows)).join("");
+  };
+
+  /* ---------------- clean */
+  $("clean").onclick = () => {
+    const back = document.createElement("div"); back.className = "modal-back";
+    back.innerHTML = '<div class="modal" role="dialog" aria-modal="true" aria-label="Clean session"><h3>Clean this session?</h3><p>This deletes the table, closes every mission, resets the game, and erases saved work on every student laptop that is connected now.</p><label for="confirmTxt" class="fine" style="display:block;margin:0 0 6px">Type <b>CLEAN</b> to confirm.</label><input type="text" id="confirmTxt" autocomplete="off"><div class="row"><button class="btn" type="button" id="cCancel">Cancel</button><button class="btn danger" type="button" id="cGo" disabled>Delete everything</button></div></div>';
+    document.body.appendChild(back);
+    const inp = back.querySelector("#confirmTxt"), go = back.querySelector("#cGo"); inp.focus();
+    inp.addEventListener("input", () => { go.disabled = inp.value.trim().toUpperCase() !== "CLEAN"; });
+    back.querySelector("#cCancel").onclick = () => back.remove();
+    go.onclick = () => { back.remove(); if (channel) channel.send({ type: "broadcast", event: "reset", payload: {} }); H = fresh(); online = new Set(); clearInterval(gTick); deadline = null; save(); setTimeout(sendState, 800); render(); resetTimer(); };
+  };
+
+  /* ---------------- realtime */
+  let channel = null, ready = false;
+  function setStatus(k, t) { const s = $("status"); s.className = "status " + k; s.textContent = t; }
+  function sendState() { if (channel && ready) channel.send({ type: "broadcast", event: "state", payload: { active: H.active, brk: H.brk, reveals: H.reveals, game: gamePayload() } }); }
+  function mergePresence() {
+    const st = channel.presenceState(); online = new Set();
+    Object.keys(st).forEach((k) => (st[k] || []).forEach((p) => {
+      if (!p || p.role !== "student" || !p.id) return; online.add(p.id);
+      const r = H.roster[p.id] || { name: "", completed: {} }; r.name = p.name || r.name; r.completed = Object.assign({}, r.completed || {});
+      Object.keys(p.completed || {}).forEach((x) => { r.completed[x] = r.completed[x] || p.completed[x]; }); H.roster[p.id] = r;
+    }));
+    save(); render(); renderProj();
+  }
+  function connect() {
+    const prob = CORE.problem();
+    if (prob) { setStatus("off", "Not connected"); $("status").title = prob; $("sub").innerHTML += '<br><span style="color:#F1A59C">Setup: ' + esc(prob) + "</span>"; return; }
+    channel = CORE.channel("host");
+    channel.on("presence", { event: "sync" }, mergePresence)
+      .on("broadcast", { event: "hello" }, () => sendState())
+      .on("broadcast", { event: "vote" }, ({ payload: m }) => {
+        const g = gs(); if (!m || !m.id || g.phase !== "vote" || m.idx !== g.idx || !(m.choice === "ok" || m.choice === "plag")) return;
+        if (!H.roster[m.id]) H.roster[m.id] = { name: m.name || "", completed: {} };
+        (g.votes[g.idx] = g.votes[g.idx] || {})[m.id] = m.choice; save(); render(); renderProj();
+        channel.send({ type: "broadcast", event: "ack", payload: { id: m.id, idx: m.idx, choice: m.choice } });
+      })
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") { ready = true; setStatus("on", "Connected"); channel.track({ role: "host" }).catch(() => {}); sendState(); }
+        else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") { ready = false; setStatus("wait", "Reconnecting\u2026"); }
+        else if (status === "CLOSED") { ready = false; setStatus("off", "Offline"); }
+      });
+    setInterval(sendState, 4000);
+  }
+  window.addEventListener("offline", () => setStatus("off", "Offline"));
+  if (gs().phase === "vote") startVoteTimer();
+  resetTimer();
+})();
+</script>
+</body>
+</html>

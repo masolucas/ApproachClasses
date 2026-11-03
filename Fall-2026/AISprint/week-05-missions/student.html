@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI Sprint · Week 5 · Missions</title>
+<link rel="stylesheet" href="styles.css">
+<script src="config.js"></script>
+<script src="content.js"></script>
+<script src="core.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.79.0/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@9.5.0/dist/index.iife.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="monogram" aria-hidden="true">A</div>
+  <div class="brand-lines"><span class="course">AI SPRINT</span><span class="session" id="sessionLine">WEEK 05 · MISSIONS</span></div>
+  <div class="spacer"></div>
+  <span class="who" id="who"></span>
+  <span class="status wait" id="status" role="status">Connecting…</span>
+</header>
+<div class="layout">
+  <nav class="tabs" id="tabs" aria-label="Missions"></nav>
+  <main class="panel">
+    <div id="breakView" class="hidden"></div>
+    <div id="panel"></div>
+  </main>
+</div>
+<div class="actionbar" id="actionbar">
+  <div class="in">
+    <span class="state" id="state"></span>
+    <button class="btn" id="abWord" type="button">Word</button>
+    <button class="btn" id="abPdf" type="button">PDF</button>
+    <button class="btn primary" id="abDone" type="button">Complete mission</button>
+  </div>
+</div>
+<div id="print-root" aria-hidden="true"></div>
+<script>
+(function () {
+  "use strict";
+  const { esc, md, plain, words, fmtTime } = CORE;
+  const C = CORE.cfg(), W = window.WEEK, M = window.MISSIONS, G = window.GAME, ART = window.ARTICLES, BRK = window.BREAK;
+  const KEY = "aisprint.w5." + C.code + ".student", RKEY = KEY + ".remote";
+  const $ = (id) => document.getElementById(id);
+  const today = () => new Date().toLocaleDateString([], { year: "numeric", month: "long", day: "numeric" });
+  const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+
+  /* ---------------- state */
+  const fresh = () => ({ id: uid(), name: "", date: today(), fields: {}, completed: {}, view: 0, gameLog: {}, gameDone: false });
+  function load(k, f) { try { const v = JSON.parse(localStorage.getItem(k)); if (v) return Object.assign(f(), v); } catch (e) {} return f(); }
+  let S = load(KEY, fresh);
+  let R = load(RKEY, () => ({ active: 0, brk: false, reveals: {}, game: { phase: "idle", idx: 0, total: G.length } }));
+  let saveT = null;
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function saveSoon() { clearTimeout(saveT); saveT = setTimeout(save, 250); }
+  function wipe() { try { localStorage.removeItem(KEY); localStorage.removeItem(RKEY); } catch (e) {} location.reload(); }
+  const isOpen = (i) => i === 0 || (!!S.completed.signin && i <= R.active) || !!S.completed[M[i].key];
+  const F = (id) => S.fields[id];
+
+  /* ---------------- toast + modal */
+  function toast(msg, kind, act) {
+    document.querySelectorAll(".toast").forEach((t) => t.remove());
+    const t = document.createElement("div"); t.className = "toast" + (kind ? " " + kind : ""); t.setAttribute("role", "status");
+    t.innerHTML = "<span>" + esc(msg) + "</span>";
+    if (act) { const b = document.createElement("button"); b.textContent = act.label; b.onclick = () => { t.remove(); act.fn(); }; t.appendChild(b); }
+    document.body.appendChild(t); setTimeout(() => t.remove(), 6000);
+  }
+  function modal(title, text, buttons, fine) {
+    const back = document.createElement("div"); back.className = "modal-back";
+    back.innerHTML = '<div class="modal" role="dialog" aria-modal="true" aria-label="' + esc(title) + '"><h3>' + esc(title) + "</h3><p>" + esc(text) + '</p><div class="row"></div>' + (fine ? '<p class="fine">' + esc(fine) + "</p>" : "") + "</div>";
+    const row = back.querySelector(".row");
+    const cancel = document.createElement("button"); cancel.className = "btn"; cancel.textContent = "Cancel"; cancel.onclick = () => back.remove(); row.appendChild(cancel);
+    buttons.forEach((b) => { const x = document.createElement("button"); x.className = "btn " + (b.cls || ""); x.textContent = b.label; x.onclick = () => { back.remove(); b.fn(); }; row.appendChild(x); });
+    back.addEventListener("click", (e) => { if (e.target === back) back.remove(); });
+    document.body.appendChild(back); row.lastChild.focus();
+  }
+
+  /* ---------------- tabs */
+  function renderTabs() {
+    const t = $("tabs"); t.innerHTML = "";
+    M.forEach((m, i) => {
+      const open = isOpen(i), done = !!S.completed[m.key];
+      const b = document.createElement("button"); b.type = "button";
+      b.className = "tab" + (done ? " done" : open ? " open" : " locked");
+      if (i === S.view) b.setAttribute("aria-current", "true");
+      b.innerHTML = '<span class="ic" aria-hidden="true">' + (done ? "\u2713" : open ? i || "\u2022" : "\uD83D\uDD12") + "</span><span>" + esc(m.tab) + '</span><span class="sr-only">' + (done ? " (completed)" : open ? " (open)" : " (locked)") + "</span>";
+      b.onclick = () => { if (open) go(i); else toast("This mission opens when your teacher starts it."); };
+      t.appendChild(b);
+    });
+    const all = document.createElement("button"); all.type = "button"; all.className = "btn all"; all.textContent = "Download my whole Week 5";
+    all.disabled = !S.completed.signin; all.onclick = downloadAllAsk; t.appendChild(all);
+  }
+  function go(i) { S.view = i; save(); renderTabs(); renderPanel(); window.scrollTo(0, 0); }
+
+  /* ---------------- panel */
+  function el(tag, attrs, html) { const e = document.createElement(tag); Object.entries(attrs || {}).forEach(([k, v]) => e.setAttribute(k, v)); if (html != null) e.innerHTML = html; return e; }
+  function chosenArticle() { return F("m5_article") || null; }
+  function renderPanel() {
+    const p = $("panel"), i = S.view, m = M[i];
+    p.innerHTML = "";
+    if (!isOpen(i)) { p.innerHTML = '<div class="card locked-panel"><h2>\uD83D\uDD12 ' + esc(m.tab) + "</h2><p>Your teacher will open this mission soon.</p></div>"; updateBar(); return; }
+    const head = el("div", { class: "mhead" }, '<p class="eyebrow">' + esc(m.eyebrow) + "</p><h1>" + esc(m.title[0]) + "<em>" + esc(m.title[1]) + '</em></h1><p class="meta">' + esc(m.meta) + '</p><p class="intro">' + esc(m.intro) + "</p>");
+    p.appendChild(head);
+    const card = el("div", { class: "card" }); p.appendChild(card);
+    m.sections.forEach((s) => card.appendChild(section(s, m)));
+    fillDynamic(); updateBar();
+  }
+  function section(s, m) {
+    const d = el("div", { class: "sec" });
+    switch (s.type) {
+      case "text": d.innerHTML = '<p class="text">' + md(s.body) + "</p>"; break;
+      case "heading": d.innerHTML = "<h2>" + esc(s.text) + "</h2>"; break;
+      case "subhead": d.innerHTML = "<h3>" + esc(s.text.toUpperCase()) + "</h3>"; break;
+      case "steps": d.innerHTML = '<ol class="steps">' + s.items.map((x) => "<li>" + md(x) + "</li>").join("") + "</ol>"; break;
+      case "note": d.innerHTML = '<div class="note' + (s.strong ? " strong" : "") + '"><div class="lab">' + esc(s.label.toUpperCase()) + "</div><p>" + md(s.body) + "</p></div>"; break;
+      case "source": d.innerHTML = '<div class="source"><div class="lab">' + esc(s.label.toUpperCase()) + "</div>" + md(s.body) + "</div>"; break;
+      case "learn": d.innerHTML = '<div class="learn">' + s.cards.map((c) => '<div class="lc"><div class="ico">' + esc(c.icon) + '</div><div class="lb">' + esc(c.label) + "</div>" + c.lines.map((l) => "<p>" + md(l) + "</p>").join("") + "</div>").join("") + "</div>"; break;
+      case "frames": d.innerHTML = '<div class="frames">' + s.items.map(([k, f]) => "<div><b>" + esc(k) + "</b><span>" + esc(f) + "</span></div>").join("") + "</div>"; break;
+      case "table": d.innerHTML = '<div class="tw">' + tableHtml(s.head, s.rows) + "</div>"; break;
+      case "prompt": {
+        d.innerHTML = '<div class="prompt"><div class="lab">PASTE INTO YOUR AI ASSISTANT</div><p>' + esc(s.text) + '</p><button type="button">Copy</button></div>';
+        d.querySelector("button").onclick = (e) => { const b = e.target; (navigator.clipboard ? navigator.clipboard.writeText(s.text) : Promise.reject()).then(() => { b.textContent = "Copied"; setTimeout(() => (b.textContent = "Copy"), 1500); }).catch(() => toast("Select the text and copy it.")); };
+        break;
+      }
+      case "signature": {
+        d.innerHTML = '<div class="field"><label for="sig_name">Your first and last name <span class="req">*</span></label><input type="text" id="sig_name" autocomplete="name" maxlength="60" placeholder="First and last name"></div><p class="fine">Date: ' + esc(S.date) + "</p>";
+        const inp = d.querySelector("input"); inp.value = S.name;
+        inp.addEventListener("input", () => { S.name = inp.value.trim().slice(0, 60); saveSoon(); updateBar(); });
+        break;
+      }
+      case "field": {
+        const big = (s.rows || 3) > 1;
+        d.className = "sec field";
+        d.innerHTML = '<label for="f_' + s.id + '">' + md(s.label) + (s.required ? ' <span class="req" aria-label="required">*</span>' : "") + "</label>" + (s.help ? '<p class="help">' + md(s.help) + "</p>" : "") +
+          (big ? '<textarea id="f_' + s.id + '" rows="' + s.rows + '"></textarea>' : '<input type="text" id="f_' + s.id + '">') + (s.showCount ? '<div class="count" id="c_' + s.id + '"></div>' : "");
+        const inp = d.querySelector(big ? "textarea" : "input"); inp.value = F(s.id) || "";
+        if (s.placeholder) inp.placeholder = s.placeholder;
+        inp.addEventListener("input", () => { S.fields[s.id] = inp.value; saveSoon(); countOf(s); updateBar(); });
+        setTimeout(() => countOf(s), 0);
+        break;
+      }
+      case "grid": {
+        const v = F(s.id) || {};
+        d.innerHTML = (s.label ? "<h3>" + esc(s.label.toUpperCase()) + "</h3>" : "") + '<div class="tw"><table class="t grid-in"><thead><tr><th></th>' + s.cols.map((c) => "<th>" + esc(c) + "</th>").join("") + "</tr></thead><tbody>" +
+          s.rows.map((r, ri) => "<tr><td>" + esc(r) + "</td>" + s.cols.map((c, ci) => '<td><textarea rows="2" aria-label="' + esc(r + " · " + c) + '" data-k="' + ri + "_" + ci + '"></textarea></td>').join("") + "</tr>").join("") + "</tbody></table></div>";
+        d.querySelectorAll("textarea").forEach((t) => { t.value = v[t.dataset.k] || ""; t.addEventListener("input", () => { (S.fields[s.id] = S.fields[s.id] || {})[t.dataset.k] = t.value; saveSoon(); updateBar(); }); });
+        break;
+      }
+      case "checklist": {
+        const v = F(s.id) || {};
+        d.innerHTML = "<h3>" + esc(s.label.toUpperCase()) + '</h3><div class="checks' + (s.inline ? " inline" : "") + '">' + s.items.map((x, k) => '<label><input type="checkbox" data-k="' + k + '"' + (v[k] ? " checked" : "") + "><span>" + md(x) + "</span></label>").join("") + "</div>";
+        d.querySelectorAll("input").forEach((c) => c.addEventListener("change", () => { (S.fields[s.id] = S.fields[s.id] || {})[c.dataset.k] = c.checked; saveSoon(); }));
+        break;
+      }
+      case "choice": {
+        const v = F(s.id);
+        d.innerHTML = "<h3>" + esc(s.label.toUpperCase()) + (s.required ? ' <span class="req">*</span>' : "") + '</h3><div class="choice" role="radiogroup">' + s.options.map(([val, lab]) => '<label><input type="radio" name="ch_' + s.id + '" value="' + esc(val) + '"' + (v === val ? " checked" : "") + "><span>" + esc(lab) + "</span></label>").join("") + "</div>";
+        d.querySelectorAll("input").forEach((r) => r.addEventListener("change", () => { S.fields[s.id] = r.value; save(); if (s.id === "m5_article") fillDynamic(); updateBar(); }));
+        break;
+      }
+      case "article": d.id = "articleBox"; break;
+      case "articleQs": d.id = "articleQs"; d.dataset.id = s.id; break;
+      case "sample": d.id = "sampleBox"; break;
+      case "reveal": d.dataset.reveal = s.id; d._def = s; break;
+      case "game": d.id = "gameBox"; break;
+      case "sort": d.id = "sortBox"; d._def = s; break;
+    }
+    return d;
+  }
+  function tableHtml(head, rows) { return '<table class="t"><thead><tr>' + head.map((h) => "<th>" + esc(h) + "</th>").join("") + "</tr></thead><tbody>" + rows.map((r) => "<tr>" + r.map((c) => "<td>" + md(c) + "</td>").join("") + "</tr>").join("") + "</tbody></table>"; }
+  function countOf(s) {
+    if (!s.showCount) return; const c = $("c_" + s.id); if (!c) return;
+    const n = words(F(s.id)); let t = n + " words";
+    if (s.minWords) t += " · at least " + s.minWords;
+    c.textContent = t; c.className = "count " + (s.minWords && n < s.minWords ? "bad" : n ? "good" : "");
+  }
+
+  /* dynamic parts: article, questions, sample, reveals, sort, game — updated without touching typed fields */
+  function fillDynamic() {
+    const a = chosenArticle();
+    const ab = $("articleBox");
+    if (ab) {
+      if (!a) ab.innerHTML = '<div class="waitbox">Choose your article above to see it here.</div>';
+      else if (ab.dataset.k !== a) {
+        const x = ART[a]; ab.dataset.k = a;
+        ab.innerHTML = '<div class="article"><div class="fic">' + esc(W.fictional) + "</div><h4>" + esc(x.title) + '</h4><p class="st">' + esc(x.subtitle) + '</p><p class="by">' + esc(x.byline + " · " + x.outlet + " · " + x.year + " · Vol. " + x.vol + ", No. " + x.issue + ", pp. " + x.pages) + "</p>" +
+          x.paras.map((t, k) => '<p class="pa"><b>[' + (k + 1) + "]</b>" + esc(t) + "</p>").join("") + "<dl>" + x.glossary.map(([k, v]) => "<dt>" + esc(k) + "</dt><dd>" + esc(v) + "</dd>").join("") + "</dl></div>";
+      }
+    }
+    const qb = $("articleQs");
+    if (qb && qb.dataset.k !== (a || "")) {
+      qb.dataset.k = a || ""; qb.innerHTML = "";
+      if (a) ART[a].questions.forEach((q, k) => qb.appendChild(section({ type: "field", id: qb.dataset.id + "_" + (k + 1), label: (k + 1) + ". " + q, rows: 2, required: true })));
+    }
+    const sb = $("sampleBox");
+    if (sb) sb.innerHTML = a ? '<div class="note"><div class="lab">SAMPLE AI SUMMARY · ARTICLE ' + a + ' · IT HAS 5 PROBLEMS</div><p><i>' + esc(ART[a].ai) + "</i></p></div>" : '<div class="waitbox">Choose your article to see the sample AI summary.</div>';
+    document.querySelectorAll("[data-reveal]").forEach((d) => {
+      const on = !!R.reveals[d.dataset.reveal]; if (d.dataset.on === String(on)) return; d.dataset.on = String(on);
+      d.innerHTML = on ? '<div class="reveal"><div class="lab">\u2713 ' + esc(d._def.title.toUpperCase()) + "</div>" + revealHtml(d._def.blocks) + "</div>" : '<div class="reveal locked">\uD83D\uDD12 ' + esc(d._def.title) + ": your teacher will reveal this.</div>";
+    });
+    renderSort(); renderGame();
+  }
+  function revealHtml(blocks) {
+    return blocks.map((b) => b.kind === "p" ? "<p>" + md(b.text) + "</p>" : b.kind === "quote" ? "<blockquote>" + esc(b.text) + "</blockquote>" : b.kind === "ref" ? '<p class="ref">' + md(b.text) + "</p>" :
+      b.kind === "list" ? (b.ordered ? "<ol>" : "<ul>") + b.items.map((x) => "<li>" + md(x) + "</li>").join("") + (b.ordered ? "</ol>" : "</ul>") : '<div class="tw">' + tableHtml(b.head, b.rows) + "</div>").join("");
+  }
+  window.__revealHtml = revealHtml;
+
+  /* ---------------- verb sort */
+  let armed = null;
+  function renderSort() {
+    const box = $("sortBox"); if (!box) return; const s = box._def; const v = F(s.id) || {};
+    const shown = !!R.reveals.rv_verbs;
+    const chip = (verb) => { const placed = v[verb]; const mark = shown && placed ? (s.answer[verb] === placed ? " right" : " wrong") : "";
+      return '<button type="button" class="chipv' + mark + '" data-v="' + esc(verb) + '" aria-pressed="' + (armed === verb) + '">' + esc(verb) + "</button>"; };
+    box.innerHTML = '<div class="sort"><div class="bank" aria-label="Verb bank">' + (s.verbs.filter((x) => !v[x]).map(chip).join("") || '<span class="fine">All verbs placed.</span>') + '</div><div class="cols">' +
+      s.levels.map((l) => '<div class="col" role="button" tabindex="0" data-k="' + l.k + '"' + (armed ? ' aria-label="Place ' + esc(armed) + " in " + l.k + '"' : "") + '><span class="h">' + esc(l.sym + "  " + l.k) + '</span><span class="m">' + esc(l.meaning) + "</span>" + s.verbs.filter((x) => v[x] === l.k).map(chip).join("") + "</div>").join("") + "</div></div>";
+    if (armed) box.querySelectorAll(".col").forEach((c) => c.classList.add("armed"));
+    box.querySelectorAll(".chipv").forEach((b) => b.onclick = (e) => {
+      e.stopPropagation(); const verb = b.dataset.v, col = b.closest(".col");
+      if (armed && col && armed !== verb) { v[armed] = col.dataset.k; S.fields[s.id] = v; armed = null; }   // tapping inside a column while a verb is selected places it there
+      else if (v[verb]) { delete v[verb]; S.fields[s.id] = v; armed = null; } else armed = armed === verb ? null : verb;
+      save(); renderSort(); updateBar();
+    });
+    box.querySelectorAll(".col").forEach((c) => { const put = () => { if (!armed) return; v[armed] = c.dataset.k; S.fields[s.id] = v; armed = null; save(); renderSort(); updateBar(); };
+      c.onclick = put; c.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); put(); } }; });
+  }
+
+  /* ---------------- live game */
+  let pending = null, retry = null;
+  function renderGame() {
+    const box = $("gameBox"); if (!box) return; const g = R.game || {};
+    const key = [g.phase, g.idx, (S.gameLog[g.idx] || {}).vote, JSON.stringify(g.scores || {})].join("|");
+    if (box.dataset.key === key) return; box.dataset.key = key;
+    const mine = (S.gameLog[g.idx] || {}).vote;
+    const card = g.item ? '<div class="gcard"><div class="tg"><span>' + esc(g.item.tag) + "</span><span>" + (g.idx + 1) + " / " + g.total + "</span></div><p>" + esc(g.item.situation) + "</p>" : "";
+    const btns = (dis) => '<div class="vote"><button type="button" class="ok" data-c="ok" aria-pressed="' + (mine === "ok") + '"' + (dis ? " disabled" : "") + '><span class="sym">\u2713</span>Acceptable</button><button type="button" class="plag" data-c="plag" aria-pressed="' + (mine === "plag") + '"' + (dis ? " disabled" : "") + '><span class="sym">\u2717</span>Plagiarism</button></div>';
+    const score = (g.scores || {})[S.id] || 0;
+    if (!g.phase || g.phase === "idle") box.innerHTML = '<div class="waitbox">The game starts when your teacher presses Start. Keep this page open.</div>';
+    else if (g.phase === "vote") box.innerHTML = card + btns(false) + '<div class="gstat" id="gstat">' + (mine ? (pending ? "Sending\u2026" : "Vote received. You can change it until votes lock.") : "Choose your answer.") + "</div></div>";
+    else if (g.phase === "locked") box.innerHTML = card + btns(true) + '<div class="gstat"><b>Votes are locked.</b> Tell your partner why, in one sentence.</div></div>';
+    else if (g.phase === "reveal") {
+      const right = mine === g.verdict;
+      box.innerHTML = card + '<div class="gres ' + (right ? "right" : "wrong") + '"><h4>' + esc(!mine ? "No vote this time" : right ? "Correct: " + label(g.verdict) : "Not quite. It\u2019s " + label(g.verdict)) + "</h4><p>" + esc(g.why) + '</p></div><div class="gstat">Your score: <b>' + score + "</b></div></div>";
+    } else if (g.phase === "end") box.innerHTML = '<div class="gcard"><div class="tg"><span>GAME OVER</span><span></span></div><p>Your final score: <b>' + score + " / " + g.total + "</b></p><p class=\"fine\">Now answer the question below.</p></div>";
+    box.querySelectorAll(".vote button:not([disabled])").forEach((b) => b.onclick = () => vote(b.dataset.c));
+  }
+  const label = (v) => (v === "ok" ? "Acceptable" : "Plagiarism");
+  function vote(choice) {
+    const g = R.game; if (!g || g.phase !== "vote" || !channel) return;
+    (S.gameLog[g.idx] = S.gameLog[g.idx] || {}).vote = choice; save();
+    pending = { idx: g.idx, choice }; let n = 0;
+    const fire = () => channel.send({ type: "broadcast", event: "vote", payload: { id: S.id, name: S.name, idx: pending.idx, choice: pending.choice } });
+    clearInterval(retry); fire(); renderGame();
+    retry = setInterval(() => { if (!pending || ++n > 5) { clearInterval(retry); if (pending) { const s = $("gstat"); if (s) s.textContent = "Not confirmed. Tap your answer again."; } return; } fire(); }, 1500);
+  }
+
+  /* ---------------- completion rules */
+  function missing(i) {
+    const m = M[i], out = [];
+    if (m.key === "signin") { if (S.name.split(/\s+/).filter(Boolean).length < 2) out.push("your first and last name"); return out; }
+    const chk = (s) => {
+      const v = F(s.id);
+      if (s.type === "field" && s.required) { const n = words(v); if (!String(v || "").trim()) out.push(plainLabel(s.label)); else if (s.minWords && n < s.minWords) out.push(s.minWords + " words in \u201C" + plainLabel(s.label) + "\u201D"); }
+      if (s.type === "choice" && s.required && !v) out.push(plainLabel(s.label));
+      if (s.type === "grid" && s.required) { const vv = v || {}; s.rows.forEach((r, ri) => { if (!s.cols.some((c, ci) => String(vv[ri + "_" + ci] || "").trim())) out.push("grid row \u201C" + r.split(" \u00B7 ")[0] + "\u201D"); }); }
+      if (s.type === "grid" && s.minRows) { const vv = v || {}; const n = s.rows.filter((r, ri) => s.cols.some((c, ci) => String(vv[ri + "_" + ci] || "").trim())).length; if (n < s.minRows) out.push("at least " + s.minRows + " rows in \u201C" + (s.label || "the grid") + "\u201D"); }
+      if (s.type === "sort" && s.required) { const n = s.verbs.filter((x) => (v || {})[x]).length; if (n < s.verbs.length) out.push((s.verbs.length - n) + " verbs to place"); }
+      if (s.type === "game" && !S.gameDone) out.push("the game (it finishes when your teacher ends it)");
+      if (s.type === "articleQs") { const a = chosenArticle(); if (a) ART[a].questions.forEach((q, k) => { if (!String(F(s.id + "_" + (k + 1)) || "").trim()) out.push("question " + (k + 1)); }); }
+    };
+    m.sections.forEach(chk);
+    return out;
+  }
+  const plainLabel = (s) => { const t = plain(s); return t.length > 60 ? t.slice(0, 57) + "\u2026" : t; };
+  function updateBar() {
+    const i = S.view, m = M[i], open = isOpen(i), done = S.completed[m.key];
+    const st = $("state"), bd = $("abDone");
+    const isSign = m.key === "signin";
+    $("abWord").classList.toggle("hidden", isSign || !open); $("abPdf").classList.toggle("hidden", isSign || !open);
+    bd.classList.toggle("hidden", !open);
+    if (!open) { st.textContent = "Locked"; st.className = "state"; return; }
+    const miss = missing(i);
+    bd.textContent = isSign ? (done ? "Update name" : "Sign in") : done ? "\u2713 Completed" : "Complete mission";
+    bd.disabled = miss.length > 0 || (!!done && !isSign);
+    if (done && !isSign) { st.textContent = "\u2713 Completed at " + fmtTime(done) + ". You can still edit. Download Word or PDF any time (optional)."; st.className = "state done"; }
+    else if (miss.length) { st.textContent = "Still to do: " + miss.slice(0, 3).join(", ") + (miss.length > 3 ? " (+" + (miss.length - 3) + " more)" : ""); st.className = "state"; }
+    else { st.textContent = isSign ? "Ready." : "Ready to complete."; st.className = "state"; }
+  }
+  $("abDone").onclick = () => {
+    const i = S.view, m = M[i];
+    if (missing(i).length) return;
+    if (m.key === "signin") { const first = !S.completed.signin; S.completed.signin = S.completed.signin || Date.now(); save(); track(); renderTabs(); updateBar(); $("who").textContent = S.name;
+      if (first) { const nx = M.findIndex((x, k) => k > 0 && isOpen(k) && !S.completed[x.key]); toast("Signed in. Welcome, " + S.name.split(" ")[0] + "!", null, nx > 0 ? { label: "Go to " + M[nx].tab, fn: () => go(nx) } : null); } return; }
+    const had = S.completed[m.key];
+    if (!had) S.completed[m.key] = Date.now();
+    save(); track(); renderTabs(); updateBar();
+    const nx = M.findIndex((x, k) => k > i && isOpen(k) && !S.completed[x.key]);
+    if (nx > -1) toast(m.tab + " complete. Download Word or PDF any time.", null, { label: "Go to " + M[nx].tab, fn: () => go(nx) });
+    else toast(i === M.length - 1 ? "Mission 8 complete. Download your whole Week 5 to submit." : m.tab + " complete. Wait for your teacher to open the next mission.");
+  };
+  $("abWord").onclick = () => downloadDocx([S.view], fileBase(S.view)).catch(() => toast("Word download is not available. Use PDF.", "warn"));
+  $("abPdf").onclick = () => downloadPdf([S.view], fileBase(S.view));
+  function downloadAllAsk() {
+    const list = M.map((m, i) => i).filter((i) => i > 0);
+    const left = list.filter((i) => !S.completed[M[i].key]).length;
+    modal("Download your whole Week 5", left ? left + " mission(s) are not completed yet. They will show as \u201CNot completed\u201D in the file." : "All missions are complete. This is the file you submit.",
+      [{ label: "Word (.docx)", cls: "primary", fn: () => downloadDocx(list, allBase(), false, true).catch(() => toast("Word download is not available. Use PDF.", "warn")) }, { label: "PDF", fn: () => downloadPdf(list, allBase(), true) }], "File name: " + allBase());
+  }
+  const lastName = () => (S.name.trim().split(/\s+/).slice(-1)[0] || "Student").replace(/[^A-Za-z0-9\u00C0-\u024F-]/g, "");
+  const fileBase = (i) => "Week5_" + M[i].fileTag + "_" + lastName();
+  const allBase = () => "Week5_AISprint_" + lastName();
+
+  /* ---------------- export model */
+  function blocks(i) {
+    const m = M[i], out = [];
+    const push = (s) => {
+      const v = F(s.id);
+      switch (s.type) {
+        case "heading": out.push({ t: "h2", text: s.text }); break;
+        case "subhead": out.push({ t: "h3", text: s.text }); break;
+        case "note": out.push({ t: "note", label: s.label, text: plain(s.body) }); break;
+        case "prompt": out.push({ t: "prompt", text: s.text }); break;
+        case "source": out.push({ t: "note", label: s.label, text: plain(s.body) }); break;
+        case "field": out.push({ t: "field", label: plain(s.label), value: v || "", count: s.showCount ? words(v) : null }); break;
+        case "choice": { const o = s.options.find((x) => x[0] === v); out.push({ t: "field", label: plain(s.label), value: o ? o[1] : "" }); break; }
+        case "checklist": { const vv = v || {}; out.push({ t: "field", label: s.label, value: s.items.map((x, k) => (vv[k] ? "\u2611 " : "\u2610 ") + plain(x)).join("\n") }); break; }
+        case "grid": { const vv = v || {}; out.push({ t: "table", label: s.label || "", head: [""].concat(s.cols), rows: s.rows.map((r, ri) => [r].concat(s.cols.map((c, ci) => vv[ri + "_" + ci] || ""))) }); break; }
+        case "sort": { const vv = v || {}; out.push({ t: "table", label: "My verb sort", head: ["Level", "Verbs I placed"], rows: s.levels.map((l) => [l.sym + " " + l.k, s.verbs.filter((x) => vv[x] === l.k).join(", ")]) }); break; }
+        case "articleQs": { const a = chosenArticle(); if (a) ART[a].questions.forEach((q, k) => out.push({ t: "field", label: (k + 1) + ". " + q, value: F(s.id + "_" + (k + 1)) || "" })); break; }
+        case "game": {
+          const rows = G.map((g, k) => { const l = S.gameLog[k] || {}; return [String(k + 1), g.tag, l.vote ? label(l.vote) : "\u2014", l.verdict ? label(l.verdict) : "\u2014", l.vote && l.verdict ? (l.vote === l.verdict ? "\u2713" : "\u2717") : ""]; });
+          const sc = G.filter((g, k) => S.gameLog[k] && S.gameLog[k].vote && S.gameLog[k].vote === S.gameLog[k].verdict).length;
+          out.push({ t: "table", label: "My votes · score " + sc + " / " + G.length, head: ["#", "Item", "My vote", "Answer", ""], rows }); break;
+        }
+      }
+    };
+    m.sections.forEach(push);
+    return out;
+  }
+
+  /* ---------------- Word (.docx) */
+  function saveBlob(blob, name) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
+  async function downloadDocx(list, base, strict, combined) {
+    if (!window.docx) { const e = new Error("docx library missing"); if (strict) throw e; throw e; }
+    const D = window.docx, NAVY = "0C2340", GOLD = "AE9142", GOLDK = "8C7535", INKS = "3D3D3D", RED = "C0392B";
+    const run = (text, o) => new D.TextRun(Object.assign({ text: String(text), font: "Calibri", size: 22, color: "1A1A1A" }, o || {}));
+    const P = (children, o) => new D.Paragraph(Object.assign({ children, spacing: { after: 100 } }, o || {}));
+    const lines = (text, o) => String(text || "").split("\n").map((p, k) => run(p, Object.assign(k ? { break: 1 } : {}, o)));
+    const thin = (c) => ({ style: D.BorderStyle.SINGLE, size: 6, color: c || "9AA3AF" });
+    const box = (c) => ({ style: D.BorderStyle.SINGLE, size: 6, color: c, space: 6 });
+    const cellW = (w) => ({ size: w, type: D.WidthType.DXA });
+    const table = (head, rows) => {
+      const n = head.length, first = n > 2 ? 2000 : 3000, rest = Math.floor((10080 - first) / (n - 1));
+      const widths = [first].concat(Array(n - 1).fill(rest));
+      const mk = (t, h, k) => new D.TableCell({ width: cellW(widths[k]), margins: { top: 60, bottom: 60, left: 100, right: 100 },
+        children: String(t || "").split("\n").map((ln) => P([run(ln, h ? { bold: true, size: 18, color: NAVY } : { size: 20, font: k ? "Cambria" : "Calibri" })], { spacing: { after: 20 } })) });
+      return new D.Table({ width: cellW(10080), columnWidths: widths, rows: [new D.TableRow({ tableHeader: true, children: head.map((h, k) => mk(h, true, k)) })].concat(rows.map((r) => new D.TableRow({ cantSplit: true, children: r.map((v, k) => mk(v, false, k)) }))) });
+    };
+    const kids = [];
+    const whoLine = (done) => P([run("Name: ", { bold: true, color: NAVY }), run(S.name), run("     Date: ", { bold: true, color: NAVY }), run(S.date)].concat(done ? [run("     Completed: ", { bold: true, color: NAVY }), run(fmtTime(done))] : []),
+      { border: { top: thin(NAVY), bottom: thin(NAVY) }, spacing: { before: 60, after: 240 } });
+    if (combined) {
+      kids.push(P([run("AI SPRINT \u00B7 WEEK 05 \u00B7 STUDENT SUBMISSION", { bold: true, size: 18, color: GOLDK, characterSpacing: 40 })]));
+      kids.push(P([run("Week 5 Missions", { font: "Cambria", size: 52, color: NAVY })], { spacing: { after: 40 } }));
+      kids.push(P([run(W.topic, { font: "Cambria", italics: true, color: INKS })], { spacing: { after: 160 } }));
+      kids.push(whoLine(null));
+      kids.push(P([run("WHAT\u2019S INSIDE", { bold: true, size: 18, color: GOLDK, characterSpacing: 30 })]));
+      kids.push(table(["Mission", "Title", "Status"], list.map((i) => [M[i].tab, M[i].title.join(""), S.completed[M[i].key] ? "Completed " + fmtTime(S.completed[M[i].key]) : "Not completed"])));
+      kids.push(P([run("HOW TO SUBMIT", { bold: true, size: 18, color: GOLDK, characterSpacing: 30 })], { spacing: { before: 240, after: 60 } }));
+      W.submit.forEach((t, k) => kids.push(P([run((k + 1) + ".  " + t)], { indent: { left: 240 } })));
+    }
+    list.forEach((i, n) => {
+      const m = M[i], done = S.completed[m.key];
+      kids.push(P([run("AI SPRINT \u00B7 WEEK 05 \u00B7 " + m.eyebrow, { bold: true, size: 18, color: GOLDK, characterSpacing: 40 })], { spacing: { after: 60 }, pageBreakBefore: combined || n > 0 }));
+      kids.push(P([run(m.title.join(""), { font: "Cambria", size: 44, color: NAVY })], { spacing: { after: 40 } }));
+      kids.push(P([run(m.meta, { font: "Cambria", italics: true, size: 21, color: INKS })], { spacing: { after: 160 } }));
+      if (!combined) kids.push(whoLine(done));
+      else if (!done) kids.push(P([run("Not completed", { bold: true, color: RED })]));
+      blocks(i).forEach((b) => {
+        if (b.t === "h2") kids.push(P([run(b.text, { font: "Cambria", size: 28, color: NAVY })], { spacing: { before: 240, after: 80 }, keepNext: true }));
+        else if (b.t === "h3") kids.push(P([run(b.text.toUpperCase(), { bold: true, size: 18, color: GOLDK, characterSpacing: 30 })], { spacing: { before: 160, after: 40 }, keepNext: true }));
+        else if (b.t === "prompt") kids.push(P([run("Prompt: ", { bold: true, size: 20, color: GOLDK }), run(b.text, { font: "Cambria", italics: true, size: 20, color: INKS })]));
+        else if (b.t === "note") kids.push(P([run(b.label.toUpperCase(), { bold: true, size: 17, color: GOLDK, characterSpacing: 30 }), new D.TextRun({ break: 1 })].concat(lines(b.text, { font: "Cambria", size: 20 })),
+          { border: { top: box(GOLD), bottom: box(GOLD), left: box(GOLD), right: box(GOLD) }, indent: { left: 140, right: 140 }, spacing: { before: 120, after: 160 } }));
+        else if (b.t === "field") {
+          kids.push(P([run(b.label, { bold: true, color: NAVY })], { spacing: { before: 160, after: 50 }, keepNext: true }));
+          String(b.value || "\u2014").split("\n").forEach((ln) => kids.push(P([run(ln, { font: "Cambria" })], { border: { left: { style: D.BorderStyle.SINGLE, size: 12, color: GOLD, space: 8 } }, indent: { left: 200 }, spacing: { after: 30, line: 300 } })));
+          if (b.count != null) kids.push(P([run("Word count: " + b.count, { size: 17, color: INKS })], { spacing: { before: 40, after: 100 } }));
+        } else if (b.t === "table") {
+          if (b.label) kids.push(P([run(b.label, { bold: true, color: NAVY })], { spacing: { before: 160, after: 60 }, keepNext: true }));
+          kids.push(table(b.head, b.rows)); kids.push(P([], { spacing: { after: 80 } }));
+        }
+      });
+    });
+    const doc = new D.Document({ creator: W.school, title: base, styles: { default: { document: { run: { font: "Calibri", size: 22 } } } },
+      sections: [{ properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 1000, bottom: 900, left: 1080, right: 1080 } } },
+        headers: { default: new D.Header({ children: [P([run("APPROACH INTERNATIONAL STUDENT CENTER  \u00B7  AI SPRINT  \u00B7  " + W.term.toUpperCase(), { bold: true, size: 15, color: NAVY, characterSpacing: 30 })], { border: { bottom: thin(GOLD) } })] }) },
+        footers: { default: new D.Footer({ children: [P([run(W.copyright, { size: 14, color: "7A7A7A" })])] }) },
+        children: kids }] });
+    saveBlob(await D.Packer.toBlob(doc), base + ".docx");
+  }
+
+  /* ---------------- PDF (print view) */
+  function downloadPdf(list, base, combined) {
+    let h = "";
+    if (combined) {
+      h += '<div class="ph">APPROACH INTERNATIONAL STUDENT CENTER · AI SPRINT · WEEK 05 · STUDENT SUBMISSION</div><h1>Week 5 Missions</h1><p><i>' + esc(W.topic) + '</i></p><div class="who"><b>Name:</b> ' + esc(S.name) + " &nbsp; <b>Date:</b> " + esc(S.date) + "</div>";
+      h += "<table><tr><th>Mission</th><th>Title</th><th>Status</th></tr>" + list.map((i) => "<tr><td>" + esc(M[i].tab) + "</td><td>" + esc(M[i].title.join("")) + "</td><td>" + (S.completed[M[i].key] ? "Completed " + esc(fmtTime(S.completed[M[i].key])) : "Not completed") + "</td></tr>").join("") + "</table>";
+      h += '<div class="lab">How to submit</div><ol>' + W.submit.map((t) => "<li>" + esc(t) + "</li>").join("") + "</ol>";
+    }
+    list.forEach((i, n) => {
+      const m = M[i], done = S.completed[m.key];
+      h += '<div class="' + (combined || n ? "pb" : "") + '"><div class="ph">AI SPRINT · WEEK 05 · ' + esc(m.eyebrow) + "</div><h1>" + esc(m.title.join("")) + "</h1><p><i>" + esc(m.meta) + "</i></p>";
+      h += combined ? (done ? "" : '<p style="color:#c0392b"><b>Not completed</b></p>') : '<div class="who"><b>Name:</b> ' + esc(S.name) + " &nbsp; <b>Date:</b> " + esc(S.date) + (done ? " &nbsp; <b>Completed:</b> " + esc(fmtTime(done)) : "") + "</div>";
+      blocks(i).forEach((b) => {
+        if (b.t === "h2") h += "<h2>" + esc(b.text) + "</h2>";
+        else if (b.t === "h3") h += '<div class="lab">' + esc(b.text.toUpperCase()) + "</div>";
+        else if (b.t === "prompt") h += "<p><b>Prompt:</b> <i>" + esc(b.text) + "</i></p>";
+        else if (b.t === "note") h += '<div class="lab">' + esc(b.label) + '</div><div class="ans">' + esc(b.text) + "</div>";
+        else if (b.t === "field") h += '<div class="lab">' + esc(b.label) + '</div><div class="ans">' + esc(b.value || "\u2014") + "</div>" + (b.count != null ? "<p><small>Word count: " + b.count + "</small></p>" : "");
+        else if (b.t === "table") h += (b.label ? '<div class="lab">' + esc(b.label) + "</div>" : "") + "<table><tr>" + b.head.map((x) => "<th>" + esc(x) + "</th>").join("") + "</tr>" + b.rows.map((r) => "<tr>" + r.map((x) => '<td style="white-space:pre-wrap">' + esc(x) + "</td>").join("") + "</tr>").join("") + "</table>";
+      });
+      h += "</div>";
+    });
+    h += '<p class="foot">' + esc(W.copyright) + "</p>";
+    $("print-root").innerHTML = h;
+    const old = document.title; document.title = base;
+    document.body.classList.add("printing");
+    const restore = () => { document.body.classList.remove("printing"); document.title = old; window.removeEventListener("afterprint", restore); };
+    window.addEventListener("afterprint", restore);
+    window.print(); setTimeout(restore, 1000);
+  }
+
+  /* ---------------- break overlay */
+  function renderBreak() {
+    const bv = $("breakView"), on = !!R.brk && !!S.completed.signin;
+    bv.classList.toggle("hidden", !on); $("panel").classList.toggle("hidden", on); $("actionbar").classList.toggle("hidden", on);
+    if (on && !bv.innerHTML) bv.innerHTML = '<div class="break-panel"><p class="eb">' + esc(BRK.title.toUpperCase()) + "</p><h2>" + esc(BRK.prompt) + "</h2><p>" + esc(BRK.sub) + '</p><p class="fine" style="color:#efe9d9;opacity:.8">Your work is saved on this laptop.</p></div>';
+  }
+
+  /* ---------------- realtime */
+  let channel = null, ready = false;
+  function setStatus(kind, text) { const s = $("status"); s.className = "status " + kind; s.textContent = text; }
+  function track() { if (channel && ready && S.completed.signin) channel.track({ role: "student", id: S.id, name: S.name, completed: S.completed }).catch(() => {}); }
+  function onState(p) {
+    if (!p) return;
+    const prevActive = R.active, prevPhase = (R.game || {}).phase;
+    R = Object.assign({ reveals: {}, game: {} }, p);
+    try { localStorage.setItem(RKEY, JSON.stringify(R)); } catch (e) {}
+    const g = R.game || {};
+    if (g.phase === "reveal" && g.verdict) { (S.gameLog[g.idx] = S.gameLog[g.idx] || {}).verdict = g.verdict; save(); }
+    if (g.phase === "end" && !S.gameDone) { S.gameDone = true; save(); }
+    if (g.phase !== "vote") { pending = null; clearInterval(retry); }
+    if (R.active !== prevActive) {
+      renderTabs();
+      if (!isOpen(S.view)) { let k = S.view; while (k > 0 && !isOpen(k)) k--; go(k); }
+      else { fillDynamic(); updateBar(); }
+      if (R.active > prevActive && S.completed.signin && S.view !== R.active) toast(M[R.active].tab + " is open.", null, { label: "Go to " + M[R.active].tab, fn: () => go(R.active) });
+    } else { fillDynamic(); updateBar(); }
+    renderBreak();
+  }
+  function connect() {
+    const prob = CORE.problem();
+    if (prob) { setStatus("off", "Not connected"); $("status").title = prob; console.warn(prob); return; }
+    channel = CORE.channel(S.id);
+    channel.on("broadcast", { event: "state" }, ({ payload }) => onState(payload))
+      .on("broadcast", { event: "ack" }, ({ payload: a }) => { if (a && a.id === S.id && pending && a.idx === pending.idx && a.choice === pending.choice) { pending = null; clearInterval(retry); const s = $("gstat"); if (s) s.textContent = "Vote received. You can change it until votes lock."; } })
+      .on("broadcast", { event: "reset" }, () => wipe())
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") { ready = true; setStatus("on", "Connected"); track(); channel.send({ type: "broadcast", event: "hello", payload: { id: S.id } }); }
+        else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") { ready = false; setStatus("wait", "Reconnecting\u2026"); }
+        else if (status === "CLOSED") { ready = false; setStatus("off", "Offline"); }
+      });
+  }
+  window.addEventListener("offline", () => setStatus("off", "Offline"));
+  window.addEventListener("online", () => setStatus("wait", "Reconnecting\u2026"));
+
+  if (!isOpen(S.view)) S.view = 0;
+  $("who").textContent = S.completed.signin ? S.name : "";
+  renderTabs(); renderPanel(); renderBreak(); connect();
+})();
+</script>
+</body>
+</html>
