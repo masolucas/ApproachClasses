@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sort It! Midterm Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0c2340; --gold: #ae9142; --gold-b: #d39f10;
+  --bg: #f8f4ec; --surface: #ffffff; --ink: #1a1a1a; --ink-soft: #3d3d3d; --muted: #6b6b6b;
+  --line: #e1d9c4; --slip: #ffffff; --slip-line: #c9bfa4; --tray: #edf2f9; --tray-line: #c1cddd;
+  --head-bg: #0c2340; --head-ink: #efe9d9; --accent: #ae9142;
+  --ok: #26890c; --ok-bg: #e3f2dd; --bad: #c0392b; --bad-bg: #f8dedb; --focus: #d39f10;
+  --serif: "Lora", Cambria, Georgia, "Times New Roman", serif;
+  --sans: "Montserrat", Calibri, "Segoe UI", Arial, sans-serif;
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #081629; --surface: #0f2440; --ink: #efe9d9; --ink-soft: #d8d2c2; --muted: #a8b3c4;
+    --line: #23395a; --slip: #13294a; --slip-line: #3a5378; --tray: #0c1f38; --tray-line: #2d4669;
+    --head-bg: #050f1d; --head-ink: #efe9d9; --accent: #d3b866;
+    --ok: #7fd36a; --ok-bg: #173a20; --bad: #ff8a7d; --bad-bg: #3d1a1a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #081629; --surface: #0f2440; --ink: #efe9d9; --ink-soft: #d8d2c2; --muted: #a8b3c4;
+  --line: #23395a; --slip: #13294a; --slip-line: #3a5378; --tray: #0c1f38; --tray-line: #2d4669;
+  --head-bg: #050f1d; --head-ink: #efe9d9; --accent: #d3b866;
+  --ok: #7fd36a; --ok-bg: #173a20; --bad: #ff8a7d; --bad-bg: #3d1a1a;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: inherit; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--serif); font-size: 17px; line-height: 1.5; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--head-bg); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+header.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--head-bg); color: var(--head-ink);
+  display: flex; align-items: center; gap: 1rem; padding: .7rem clamp(1rem, 3vw, 2rem); border-bottom: 3px solid var(--gold); }
+.mono { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--gold); display: grid; place-items: center;
+  font-family: var(--serif); font-style: italic; font-weight: 600; color: var(--gold); flex: none; }
+.bar .label { font-family: var(--sans); font-size: .78rem; font-weight: 600; color: var(--gold); line-height: 1.3; }
+.bar .label span { display: block; color: var(--head-ink); font-weight: 500; opacity: .85; }
+.bar .stats { margin-left: auto; display: flex; gap: 1.2rem; font-family: var(--sans); font-size: .85rem; align-items: baseline; }
+.bar .stats b { font-family: var(--serif); font-size: 1.35rem; color: var(--head-ink); font-weight: 600; }
+.bar .stats .timer.low b { color: var(--gold-b); }
+.hidden { display: none !important; }
+
+main { max-width: 1100px; margin: 0 auto; padding: clamp(1rem, 3vw, 2rem); }
+
+/* Start + results */
+.intro { max-width: 680px; margin: 2rem auto; }
+.intro h1 { font-size: clamp(2.4rem, 7vw, 4rem); line-height: 1.05; margin: 0 0 .6rem; color: var(--navy); font-weight: 400; letter-spacing: -.02em; }
+:root[data-theme="dark"] .intro h1 { color: var(--ink); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .intro h1 { color: var(--ink); } }
+.intro h1 em { color: var(--accent); }
+.intro p { color: var(--ink-soft); font-size: 1.1rem; }
+.rounds-list { list-style: none; padding: 0; margin: 1.5rem 0; border-top: 1px solid var(--line); }
+.rounds-list li { display: grid; grid-template-columns: 2.4rem 1fr auto; gap: .8rem; align-items: baseline; padding: .7rem 0; border-bottom: 1px solid var(--line); }
+.rounds-list .n { font-style: italic; color: var(--accent); font-size: 1.4rem; }
+.rounds-list .t { font-weight: 600; }
+.rounds-list .t small { display: block; font-weight: 400; color: var(--muted); font-size: .92rem; }
+.rounds-list .s { font-family: var(--sans); font-size: .85rem; color: var(--muted); }
+.howto { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--gold); padding: .9rem 1.1rem; margin: 1rem 0 1.5rem; font-size: .98rem; color: var(--ink-soft); }
+.btn { font-family: var(--sans); font-weight: 600; font-size: 1rem; padding: .8rem 1.6rem; border: 2px solid var(--navy); background: var(--navy); color: #efe9d9; cursor: pointer; border-radius: 3px; }
+.btn:hover { background: #143865; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--slip-line); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn { background: var(--gold); border-color: var(--gold); color: #081629; } }
+:root[data-theme="dark"] .btn { background: var(--gold); border-color: var(--gold); color: #081629; }
+
+/* Round */
+.round-head { display: flex; flex-wrap: wrap; align-items: end; gap: .5rem 1.5rem; margin-bottom: 1rem; }
+.round-head h2 { margin: 0; font-weight: 400; font-size: clamp(1.6rem, 4vw, 2.3rem); line-height: 1.1; color: var(--ink); }
+.round-head h2 em { color: var(--accent); }
+.round-head p { margin: 0; color: var(--ink-soft); flex: 1 1 320px; }
+
+.pool { min-height: 5rem; background: var(--surface); border: 2px dashed var(--slip-line); padding: .8rem; display: flex; flex-wrap: wrap; gap: .6rem; align-content: flex-start; margin-bottom: 1.2rem; border-radius: 4px; }
+.pool.empty::after { content: "All sorted. Press “Check my answers.”"; color: var(--muted); font-style: italic; align-self: center; padding: .4rem; }
+.pool.over, .tray.over { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 10%, var(--surface)); }
+
+.slip { background: var(--slip); border: 1px solid var(--slip-line); border-left: 4px solid var(--gold); padding: .55rem .8rem; cursor: grab; font-size: .98rem; line-height: 1.35;
+  max-width: 100%; text-align: left; border-radius: 2px; touch-action: none; user-select: none; box-shadow: 0 1px 0 var(--slip-line); }
+.slip.short { font-family: var(--sans); font-weight: 600; font-size: .95rem; }
+.slip.selected { outline: 3px solid var(--gold-b); outline-offset: 1px; }
+.slip.dragging { opacity: .3; }
+.slip.ok { border-left-color: var(--ok); background: var(--ok-bg); }
+.slip.bad { border-left-color: var(--bad); background: var(--bad-bg); }
+.slip .fix { display: block; font-family: var(--sans); font-size: .78rem; font-weight: 600; color: var(--bad); margin-top: .25rem; }
+.slip .mark { font-family: var(--sans); font-weight: 700; margin-right: .35rem; }
+.slip.ok .mark { color: var(--ok); } .slip.bad .mark { color: var(--bad); }
+.ghost { position: fixed; pointer-events: none; z-index: 50; transform: rotate(-2deg); box-shadow: 0 8px 20px rgba(0,0,0,.25); }
+
+.trays { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: .8rem; }
+.tray { background: var(--tray); border: 2px solid var(--tray-line); border-top: 5px solid var(--navy); min-height: 9rem; padding: .6rem; display: flex; flex-direction: column; gap: .5rem; border-radius: 4px; cursor: pointer; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tray { border-top-color: var(--gold); } }
+:root[data-theme="dark"] .tray { border-top-color: var(--gold); }
+.tray h3 { margin: 0 0 .2rem; font-family: var(--sans); font-size: .9rem; font-weight: 700; color: var(--ink); display: flex; justify-content: space-between; gap: .5rem; }
+.tray h3 span { font-weight: 500; color: var(--muted); }
+.tray .hint { font-size: .82rem; color: var(--muted); font-style: italic; margin: -.3rem 0 .2rem; }
+
+.actions { display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; margin-top: 1.4rem; }
+.feedback { font-family: var(--sans); font-weight: 600; }
+
+/* Results */
+.score-big { font-size: clamp(3.5rem, 12vw, 6rem); line-height: 1; color: var(--accent); font-style: italic; margin: .5rem 0; }
+.score-big small { font-size: .35em; color: var(--muted); font-style: normal; }
+.bars { margin: 1.4rem 0; }
+.bars .row { display: grid; grid-template-columns: 9rem 1fr 3.5rem; gap: .8rem; align-items: center; margin: .45rem 0; font-size: .95rem; }
+.bars .track { height: 12px; background: var(--tray); border: 1px solid var(--tray-line); border-radius: 6px; overflow: hidden; }
+.bars .fill { height: 100%; background: var(--gold); }
+.bars .num { font-family: var(--sans); font-weight: 600; text-align: right; }
+
+@media (max-width: 560px) {
+  .bar .stats { gap: .8rem; }
+  .bar .label { display: none; }
+  .bars .row { grid-template-columns: 6.5rem 1fr 3rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .slip { transition: background .2s, border-color .2s; }
+}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="mono" aria-hidden="true">A</div>
+  <div class="label">Expository Writing with AI<span>Week 6 midterm review</span></div>
+  <div class="stats hidden" id="stats">
+    <div>Round <b id="roundNum">1</b>/4</div>
+    <div class="timer" id="timerBox"><b id="timer">3:00</b></div>
+    <div>Score <b id="score">0</b></div>
+  </div>
+</header>
+
+<main>
+  <!-- START -->
+  <section id="start" class="intro">
+    <h1>Sort <em>it.</em></h1>
+    <p>Four quick rounds on everything you need for Part A of the midterm. Drag each card into the right group, then check your answers.</p>
+    <ol class="rounds-list" id="roundsList"></ol>
+    <div class="howto"><strong>How to play:</strong> drag a card into a group. On a tablet or phone, tap a card, then tap a group. You can move cards until you press “Check my answers.” About 3 minutes per round.</div>
+    <button class="btn" id="startBtn">Start round 1</button>
+  </section>
+
+  <!-- ROUND -->
+  <section id="game" class="hidden" aria-live="polite">
+    <div class="round-head">
+      <h2 id="roundTitle"></h2>
+      <p id="roundInstr"></p>
+    </div>
+    <div class="pool" id="pool" aria-label="Cards to sort"></div>
+    <div class="trays" id="trays"></div>
+    <div class="actions">
+      <button class="btn" id="checkBtn" disabled>Check my answers</button>
+      <button class="btn hidden" id="nextBtn">Next round</button>
+      <span class="feedback" id="feedback"></span>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="results" class="intro hidden">
+    <h1>Well <em>sorted.</em></h1>
+    <div class="score-big"><span id="finalScore">0</span><small> / <span id="finalMax">38</span></small></div>
+    <p id="finalMsg"></p>
+    <div class="bars" id="bars"></div>
+    <div class="howto">Look at the round with your lowest score. Before the midterm starts, check that topic in your notes or Process Journal.</div>
+    <button class="btn" id="againBtn">Play again</button>
+  </section>
+</main>
+
+<script>
+const ROUNDS = [
+  { name: "Types", title: "Which <em>type</em> is it?", instr: "Sort each excerpt by the type of expository writing.", short: false,
+    sub: "Informational, process, compare-contrast, cause-effect, analytical",
+    cats: [["Informational", "Gives facts"], ["Process", "Steps in order"], ["Compare-contrast", "Same and different"], ["Cause-effect", "Why and what happens"], ["Analytical", "Breaks down and evaluates"]],
+    items: [
+      ["The Golden Gate Bridge opened in 1937 and is about 1.7 miles long.", 0],
+      ["Public schools in the U.S. usually start the school year in late August or early September.", 0],
+      ["First, preheat the oven. Then mix the dry ingredients before you add the eggs.", 1],
+      ["To return an online order, print the label, pack the item, and drop it at a post office.", 1],
+      ["Unlike trains, buses can change their routes quickly, but they are often slower in traffic.", 2],
+      ["Both texting and email are fast, yet email is usually more formal.", 2],
+      ["Because gas prices rose, more commuters started carpooling.", 3],
+      ["Heavy rain caused flooding, which closed several highways.", 3],
+      ["The ad works because its short slogan, bright colors, and simple image all point to one message.", 4],
+      ["Looking at the plan’s cost, timeline, and staff needs shows that the timeline is its weakest part.", 4],
+    ] },
+  { name: "Thesis", title: "Strong <em>thesis</em> or not?", instr: "Sort each sentence. Only one group is a strong thesis.", short: false,
+    sub: "Strong, too broad, plain fact, announcement",
+    cats: [["Strong thesis", "Specific and arguable"], ["Too broad", "Too big to support"], ["Plain fact", "Nothing to prove"], ["Announcement", "Names the topic only"]],
+    items: [
+      ["Remote internships help international students build U.S. work experience, professional networks, and confidence.", 0],
+      ["Cities should extend library hours because working adults, students, and families need evening study space.", 0],
+      ["Education is important for everyone.", 1],
+      ["Social media affects society.", 1],
+      ["New York City has five boroughs.", 2],
+      ["Many people drink coffee in the morning.", 2],
+      ["In this essay, I will talk about recycling.", 3],
+      ["This paper is about online banking.", 3],
+    ] },
+  { name: "Evidence", title: "What kind of <em>evidence?</em>", instr: "Sort each sentence by the type of supporting evidence.", short: false,
+    sub: "Fact or statistic, example, reasoning, expert opinion",
+    cats: [["Fact or statistic", "Numbers, data"], ["Example", "A specific case"], ["Reasoning", "If… then… logic"], ["Expert opinion", "A qualified person"]],
+    items: [
+      ["Studies estimate that 30 to 40 percent of food in the U.S. is wasted.", 0],
+      ["The 2020 U.S. Census counted more than 330 million people.", 0],
+      ["For instance, one small bakery donates its unsold bread to a shelter every night.", 1],
+      ["My neighbor started composting, and now she throws away half as much trash.", 1],
+      ["If families waste less food, they spend less money and landfills fill up more slowly.", 2],
+      ["Since one bus carries many riders, each bus can take dozens of cars off the road.", 2],
+      ["A nutrition professor calls meal planning “the easiest way to cut waste.”", 3],
+      ["According to a city traffic engineer, bus lanes make trips noticeably faster.", 3],
+    ] },
+  { name: "Transitions", title: "Find the <em>transition</em> family.", instr: "Sort each transition by what it does.", short: true,
+    sub: "Addition, contrast, cause-effect, example, sequence, conclusion",
+    cats: [["Addition", "Adds an idea"], ["Contrast", "Shows a difference"], ["Cause-effect", "Shows a result"], ["Example", "Gives a case"], ["Sequence", "Shows order"], ["Conclusion", "Wraps up"]],
+    items: [
+      ["Furthermore", 0], ["Moreover", 0], ["Nevertheless", 1], ["On the other hand", 1], ["Therefore", 2], ["Consequently", 2],
+      ["For instance", 3], ["To illustrate", 3], ["Second", 4], ["Afterward", 4], ["To sum up", 5], ["Overall", 5],
+    ] },
+];
+
+const $ = (id) => document.getElementById(id);
+let r = 0, total = 0, scores = [], selected = null, timerId = null, left = 180, checked = false;
+const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+// start screen list
+$("roundsList").innerHTML = ROUNDS.map((R, i) => `<li><span class="n">${i + 1}</span><span class="t">${R.name}<small>${R.sub}</small></span><span class="s">${R.items.length} cards</span></li>`).join("");
+$("finalMax").textContent = ROUNDS.reduce((s, R) => s + R.items.length, 0);
+
+function show(id) { ["start", "game", "results"].forEach((s) => $(s).classList.toggle("hidden", s !== id)); $("stats").classList.toggle("hidden", id !== "game"); window.scrollTo(0, 0); }
+
+function startRound(i) {
+  r = i; checked = false; selected = null;
+  const R = ROUNDS[r];
+  $("roundNum").textContent = r + 1;
+  $("roundTitle").innerHTML = R.title;
+  $("roundInstr").textContent = R.instr;
+  $("feedback").textContent = "";
+  $("checkBtn").classList.remove("hidden"); $("checkBtn").disabled = true;
+  $("nextBtn").classList.add("hidden");
+  $("nextBtn").textContent = r === ROUNDS.length - 1 ? "See my results" : "Next round";
+  const pool = $("pool"); pool.innerHTML = ""; pool.classList.remove("empty");
+  shuffle(R.items).forEach(([text, cat]) => {
+    const b = document.createElement("button");
+    b.className = "slip" + (R.short ? " short" : "");
+    b.type = "button"; b.dataset.cat = cat; b.textContent = text;
+    b.setAttribute("aria-label", text + ". Press to select, then choose a group.");
+    pool.appendChild(b); bindSlip(b);
+  });
+  $("trays").innerHTML = "";
+  R.cats.forEach(([name, hint], ci) => {
+    const t = document.createElement("div");
+    t.className = "tray"; t.dataset.cat = ci; t.tabIndex = 0; t.setAttribute("role", "button");
+    t.setAttribute("aria-label", "Group: " + name);
+    t.innerHTML = `<h3>${name}<span class="count">0</span></h3><p class="hint">${hint}</p>`;
+    t.addEventListener("click", (e) => { if (e.target.closest(".slip")) return; if (selected) place(selected, t); });
+    t.addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && selected && e.target === t) { e.preventDefault(); place(selected, t); } });
+    $("trays").appendChild(t);
+  });
+  $("pool").onclick = (e) => { if (!e.target.closest(".slip") && selected) place(selected, $("pool")); };
+  left = 180; tick(); clearInterval(timerId); timerId = setInterval(() => { left = Math.max(0, left - 1); tick(); if (!left) clearInterval(timerId); }, 1000);
+  show("game");
+}
+
+function tick() {
+  const m = Math.floor(left / 60), s = String(left % 60).padStart(2, "0");
+  $("timer").textContent = left ? `${m}:${s}` : "Time!";
+  $("timerBox").classList.toggle("low", left <= 30);
+}
+
+function select(b) {
+  if (checked) return;
+  if (selected === b) { b.classList.remove("selected"); selected = null; return; }
+  if (selected) selected.classList.remove("selected");
+  selected = b; b.classList.add("selected");
+}
+
+function place(b, target) {
+  if (checked) return;
+  b.classList.remove("selected"); selected = null;
+  target.appendChild(b);
+  refresh();
+}
+
+function refresh() {
+  document.querySelectorAll(".tray").forEach((t) => t.querySelector(".count").textContent = t.querySelectorAll(".slip").length);
+  const empty = !$("pool").querySelector(".slip");
+  $("pool").classList.toggle("empty", empty);
+  $("checkBtn").disabled = !empty;
+}
+
+// Drag with pointer events (mouse, touch, pen); tap = select
+function bindSlip(b) {
+  let sx, sy, ghost = null, dragging = false, overEl = null;
+  b.addEventListener("pointerdown", (e) => {
+    if (checked || e.button > 0) return;
+    sx = e.clientX; sy = e.clientY; dragging = false;
+    b.setPointerCapture(e.pointerId);
+  });
+  b.addEventListener("pointermove", (e) => {
+    if (sx === undefined || checked) return;
+    if (!dragging && Math.hypot(e.clientX - sx, e.clientY - sy) > 6) {
+      dragging = true;
+      ghost = b.cloneNode(true); ghost.classList.add("ghost"); ghost.classList.remove("selected");
+      ghost.style.width = b.offsetWidth + "px"; document.body.appendChild(ghost);
+      b.classList.add("dragging");
+    }
+    if (dragging) {
+      ghost.style.left = e.clientX - 20 + "px"; ghost.style.top = e.clientY - 16 + "px";
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const zone = el && el.closest(".tray, .pool");
+      if (overEl !== zone) { overEl && overEl.classList.remove("over"); overEl = zone; zone && zone.classList.add("over"); }
+    }
+  });
+  const end = (e) => {
+    if (sx === undefined) return;
+    if (dragging) {
+      ghost.remove(); ghost = null; b.classList.remove("dragging");
+      overEl && overEl.classList.remove("over");
+      if (overEl) place(b, overEl);
+      overEl = null;
+    } else if (e.type === "pointerup") {
+      select(b);
+    }
+    sx = undefined; dragging = false;
+  };
+  b.addEventListener("pointerup", end);
+  b.addEventListener("pointercancel", end);
+  b.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(b); } });
+}
+
+$("checkBtn").addEventListener("click", () => {
+  checked = true; clearInterval(timerId);
+  const R = ROUNDS[r]; let right = 0;
+  document.querySelectorAll(".tray .slip").forEach((s) => {
+    const placed = +s.closest(".tray").dataset.cat, correct = +s.dataset.cat;
+    const ok = placed === correct; if (ok) right++;
+    s.classList.add(ok ? "ok" : "bad");
+    s.insertAdjacentHTML("afterbegin", `<span class="mark" aria-hidden="true">${ok ? "✓" : "✗"}</span>`);
+    if (!ok) s.insertAdjacentHTML("beforeend", `<span class="fix">Belongs in: ${R.cats[correct][0]}</span>`);
+    s.setAttribute("aria-label", s.textContent + (ok ? ". Correct." : ". Incorrect."));
+    s.style.cursor = "default";
+  });
+  scores[r] = right; total = scores.reduce((a, b) => a + b, 0);
+  $("score").textContent = total;
+  $("feedback").textContent = `${right} of ${R.items.length} correct.` + (right < R.items.length ? " Read the red cards before you move on." : " Perfect round!");
+  $("checkBtn").classList.add("hidden"); $("nextBtn").classList.remove("hidden"); $("nextBtn").focus();
+});
+
+$("nextBtn").addEventListener("click", () => { if (r < ROUNDS.length - 1) startRound(r + 1); else results(); });
+
+function results() {
+  const max = ROUNDS.reduce((s, R) => s + R.items.length, 0);
+  $("finalScore").textContent = total;
+  const pct = total / max;
+  $("finalMsg").textContent = pct >= .9 ? "Excellent. You’re ready for Part A." : pct >= .7 ? "Good work. Review the round with your lowest score." : "Keep going. Check your notes on the rounds below, then try again.";
+  $("bars").innerHTML = ROUNDS.map((R, i) => `<div class="row"><span>${R.name}</span><span class="track"><span class="fill" style="display:block;width:${(scores[i] / R.items.length) * 100}%"></span></span><span class="num">${scores[i]}/${R.items.length}</span></div>`).join("");
+  show("results");
+}
+
+$("startBtn").addEventListener("click", () => { total = 0; scores = []; $("score").textContent = 0; startRound(0); });
+$("againBtn").addEventListener("click", () => { total = 0; scores = []; $("score").textContent = 0; startRound(0); });
+</script>
+</body>
+</html>
