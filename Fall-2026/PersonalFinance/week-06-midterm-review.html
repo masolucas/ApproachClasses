@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Midterm Showdown · Personal Finance</title>
+<style>
+:root{
+  --navy:#0f2340; --navy-2:#1a3358; --gold:#c9a24b; --gold-d:#9c7b2f; --cream:#faf6ee; --paper:#ffffff;
+  --ink:#1a1a1a; --ink-s:#3d3d3d; --muted:#6f6f6f; --line:#e6dfcf;
+  --ok:#26890c; --ok-s:#e3f2dd; --bad:#c0392b; --bad-s:#f9e1df;
+  --serif:Cambria, "Caladea", Georgia, "Times New Roman", serif;
+  --sans:Calibri, "Carlito", "Segoe UI", Arial, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--cream); color:var(--ink); font-family:var(--sans); font-size:18px; line-height:1.45; min-height:100vh}
+button{font:inherit; cursor:pointer}
+:focus-visible{outline:3px solid var(--gold); outline-offset:2px}
+
+.mast{background:var(--navy); color:var(--cream); padding:14px 24px; display:flex; align-items:center; gap:14px}
+.mono{width:34px; height:34px; border-radius:50%; border:1.5px solid var(--gold); display:grid; place-items:center; font-family:var(--serif); font-style:italic; font-weight:bold; color:var(--gold); flex:none}
+.mast .t{font-weight:bold; letter-spacing:.12em; font-size:12px; color:var(--gold)}
+.mast .s{font-size:12px; letter-spacing:.08em; opacity:.85}
+.mast .who{margin-left:auto; font-family:var(--serif); font-style:italic; font-size:16px}
+
+main{max-width:820px; margin:0 auto; padding:28px 20px 60px}
+.card{background:var(--paper); border:1px solid var(--line); padding:32px; position:relative}
+.brackets::before,.brackets::after{content:""; position:absolute; width:26px; height:26px; border-color:var(--gold); border-style:solid}
+.brackets::before{top:10px; left:10px; border-width:2px 0 0 2px}
+.brackets::after{bottom:10px; right:10px; border-width:0 2px 2px 0}
+
+h1{font-family:var(--serif); font-weight:normal; font-size:clamp(40px,7vw,64px); line-height:1.02; margin:6px 0 14px; color:var(--navy); letter-spacing:-.01em}
+h1 em{color:var(--gold-d)}
+.lede{font-family:var(--serif); font-style:italic; color:var(--ink-s); font-size:19px; margin:0 0 22px}
+.facts{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:0 0 26px}
+.fact{border-top:2px solid var(--gold); padding-top:8px}
+.fact b{display:block; font-family:var(--serif); font-size:28px; font-weight:normal; color:var(--navy)}
+.fact span{font-size:14px; color:var(--muted)}
+label{display:block; font-weight:bold; color:var(--navy); margin-bottom:6px}
+input[type=text]{width:100%; font:inherit; font-size:20px; padding:12px 14px; border:1.5px solid #cfc6b2; background:#fff}
+input[type=text]:focus{border-color:var(--gold); outline:none}
+.row{display:flex; gap:12px; flex-wrap:wrap; margin-top:18px}
+.btn{border:none; padding:13px 22px; font-weight:bold; font-size:17px; background:var(--navy); color:var(--cream)}
+.btn:hover{background:var(--navy-2)}
+.btn.gold{background:var(--gold); color:var(--navy)}
+.btn.gold:hover{background:#d8b45e}
+.btn.ghost{background:transparent; color:var(--navy); border:1.5px solid var(--navy)}
+.btn:disabled{opacity:.4; cursor:not-allowed}
+.err{color:var(--bad); font-size:15px; min-height:20px; margin-top:6px}
+
+/* progress */
+.track{display:flex; gap:3px; margin-bottom:18px}
+.track i{flex:1; height:8px; background:#e4dccb}
+.track i.now{background:var(--gold)}
+.track i.ok{background:var(--ok)}
+.track i.bad{background:var(--bad)}
+.meta{display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:10px; font-size:15px; color:var(--muted)}
+.tag{color:var(--navy); font-weight:bold}
+.q{font-family:var(--serif); font-size:clamp(22px,3.4vw,27px); line-height:1.3; color:var(--navy); margin:0 0 22px}
+.opts{display:grid; gap:10px}
+.opt{display:flex; gap:14px; align-items:flex-start; text-align:left; background:#fff; border:1.5px solid #d8cfbb; padding:14px 16px; color:var(--ink)}
+.opt:hover:not(:disabled){border-color:var(--gold); background:#fffcf3}
+.opt .k{flex:none; width:28px; height:28px; display:grid; place-items:center; border:1.5px solid var(--gold); color:var(--gold-d); font-weight:bold; font-size:15px}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--ok); background:var(--ok-s)}
+.opt.right .k{background:var(--ok); border-color:var(--ok); color:#fff}
+.opt.wrong{border-color:var(--bad); background:var(--bad-s)}
+.opt.wrong .k{background:var(--bad); border-color:var(--bad); color:#fff}
+.opt.dim{opacity:.55}
+.tf{grid-template-columns:1fr 1fr}
+.fb{margin-top:20px; padding:16px 18px; border-left:4px solid var(--ok); background:#fbfaf6; display:none}
+.fb.show{display:block; animation:pop .25s ease-out}
+.fb.bad{border-left-color:var(--bad)}
+.fb h3{margin:0 0 4px; font-size:18px}
+.fb.good h3{color:var(--ok)} .fb.bad h3{color:var(--bad)}
+.fb p{margin:0; color:var(--ink-s)}
+.next{margin-top:18px; display:none}
+.next.show{display:inline-block}
+.hint{font-size:13px; color:var(--muted); margin-top:14px}
+@keyframes pop{from{transform:translateY(6px); opacity:0} to{transform:none; opacity:1}}
+@media (prefers-reduced-motion:reduce){.fb.show{animation:none}}
+
+/* results */
+.score{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin:4px 0 20px}
+.score b{font-family:var(--serif); font-weight:normal; font-size:72px; line-height:1; color:var(--navy)}
+.score span{font-family:var(--serif); font-style:italic; color:var(--ink-s); font-size:20px}
+.bars{display:grid; gap:10px; margin:6px 0 24px}
+.bar{display:grid; grid-template-columns:minmax(150px,220px) 1fr 54px; gap:12px; align-items:center; font-size:16px}
+.bar .n small{display:block; color:var(--muted); font-size:13px}
+.bar .b{height:14px; background:#ece5d5; position:relative}
+.bar .b i{position:absolute; inset:0 auto 0 0; background:var(--navy)}
+.bar.weak .b i{background:var(--bad)}
+.bar .v{text-align:right; font-weight:bold; color:var(--navy)}
+.weakbox{border:2px solid var(--gold); padding:18px 20px; margin-bottom:8px}
+.weakbox .l{font-weight:bold; color:var(--gold-d); letter-spacing:.06em; font-size:13px}
+.weakbox p{margin:4px 0 0; font-family:var(--serif); font-size:20px; color:var(--navy)}
+.hidden{display:none !important}
+@media (max-width:560px){
+  main{padding:16px 12px 40px} .card{padding:22px 18px}
+  .facts{grid-template-columns:1fr 1fr 1fr; gap:8px} .fact b{font-size:22px}
+  .bar{grid-template-columns:1fr 46px} .bar .b{grid-column:1 / -1; grid-row:2}
+  .tf{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<header class="mast">
+  <div class="mono">A</div>
+  <div><div class="t">PERSONAL FINANCE</div><div class="s">Week 6 · Midterm review</div></div>
+  <div class="who" id="who"></div>
+</header>
+
+<main>
+  <!-- START -->
+  <section class="card brackets" id="start">
+    <h1>Midterm <em>Showdown</em></h1>
+    <p class="lede">Questions from all seven midterm topics, mixed together. Answer at your own speed and read every explanation.</p>
+    <div class="facts">
+      <div class="fact"><b id="nq">28</b><span>questions</span></div>
+      <div class="fact"><b>7</b><span>topics, Weeks 1–4</span></div>
+      <div class="fact"><b>~20</b><span>minutes</span></div>
+    </div>
+    <label for="name">Your first name</label>
+    <input type="text" id="name" maxlength="30" autocomplete="given-name">
+    <div class="err" id="err" aria-live="polite"></div>
+    <div class="row"><button class="btn gold" id="go">Start</button></div>
+  </section>
+
+  <!-- QUESTION -->
+  <section class="card hidden" id="play" aria-live="polite">
+    <div class="track" id="track"></div>
+    <div class="meta"><span class="tag" id="tag"></span><span id="count"></span></div>
+    <p class="q" id="q"></p>
+    <div class="opts" id="opts"></div>
+    <div class="fb" id="fb"><h3 id="fbh"></h3><p id="fbp"></p></div>
+    <button class="btn next" id="next">Next question</button>
+    <div class="hint">Keyboard: press 1–4 to answer, Enter for the next question.</div>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="card brackets hidden" id="done">
+    <div class="score"><b id="sc"></b><span id="scl"></span></div>
+    <div class="weakbox" id="weak"><div class="l">YOUR WEAKEST TOPIC</div><p id="weakp"></p></div>
+    <p class="hint" style="margin-top:0 0 18px">Write it down. Review it in your notes during the break.</p>
+    <div class="bars" id="bars"></div>
+    <div class="row">
+      <button class="btn gold" id="redo">Practice my mistakes</button>
+      <button class="btn ghost" id="again">Play all again</button>
+    </div>
+  </section>
+</main>
+
+<script>
+const DATA = {"topics":{"W1":{"short":"Excuses","name":"Excuses for not managing money","week":"Week 1"},"W2C":{"short":"Credit cards","name":"Credit cards: APR, minimum payments, carrying a balance","week":"Week 2"},"W2D":{"short":"Getting out of debt","name":"The 5 steps to getting rid of debt","week":"Week 2"},"W2B":{"short":"Banks","name":"How banks make money and the tricks they use","week":"Week 2"},"W3I":{"short":"Investing","name":"Why investing matters: compounding, time, inflation","week":"Week 3"},"W3L":{"short":"The ladder","name":"The ladder of personal finance","week":"Week 3"},"W4":{"short":"Conscious spending","name":"Conscious spending and guilt-free spending","week":"Week 4"}},"qs":[{"topic":"W1","type":"mc","q":"Jin says, “I don’t have time to manage my money.” What is the best answer?","o":["You’re right, it takes hours every day.","You only need a little time if you focus on a few big wins.","Ask your bank to do it for you.","Wait until you retire."],"a":1,"why":"Managing money is about a few big wins, not hours of work every day."},{"topic":"W1","type":"mc","q":"Which of these is an example of focusing on a big win?","o":["Skipping one coffee to save $4","Lowering your credit card APR or avoiding $35 fees every month","Using coupons for gum","Checking your balance 10 times a day"],"a":1,"why":"Big wins save hundreds of dollars. Small cuts save very little."},{"topic":"W1","type":"tf","q":"“I’m too young to think about money” is a good reason to wait.","a":1,"why":"False. Starting young gives your money the most time to grow."},{"topic":"W1","type":"mc","q":"Why is “I’ll start next year” expensive?","o":["Banks charge you for waiting.","You lose a year of time and compounding.","It is not expensive.","Taxes go up next year."],"a":1,"why":"Time is your biggest advantage. Every year you wait costs you growth."},{"topic":"W2C","type":"mc","q":"What does APR stand for?","o":["Annual Percentage Rate","Automatic Payment Rule","Account Payment Record","Annual Price Reduction"],"a":0,"why":"APR = Annual Percentage Rate: the yearly interest rate on a balance."},{"topic":"W2C","type":"mc","q":"Ella has an $800 balance at 30% APR. About how much interest does she pay in one month?","o":["$8","$20","$24","$240"],"a":1,"why":"800 × 0.30 ÷ 12 = $20."},{"topic":"W2C","type":"tf","q":"If you carry a balance, interest is added to what you owe.","a":0,"why":"True. That is why carried balances grow."},{"topic":"W2C","type":"mc","q":"Which habit keeps your credit card interest at $0?","o":["Paying the minimum on time","Paying the full statement balance every month","Using the card only on weekends","Asking for a higher limit"],"a":1,"why":"No carried balance = no interest."},{"topic":"W2D","type":"mc","q":"Which method pays off the debt with the highest APR first?","o":["The snowball method","The standard method","The minimum method","The envelope method"],"a":1,"why":"Standard method = highest interest first. It saves the most money."},{"topic":"W2D","type":"mc","q":"Which is one of the 5 steps to getting rid of debt?","o":["Open a second card to pay the first one","Call and negotiate a lower APR","Stop opening your bills","Pay only the minimum"],"a":1,"why":"Negotiating your APR is one of the 5 steps."},{"topic":"W2D","type":"tf","q":"The snowball method gives you a quick win by paying off the smallest balance first.","a":0,"why":"True. The quick win keeps you motivated."},{"topic":"W2D","type":"mc","q":"What is the last of the 5 steps?","o":["Get started — today","Close all your cards","Wait for a raise","Ask a friend for money"],"a":0,"why":"The final step is simply to start."},{"topic":"W2B","type":"mc","q":"A bank ad says: “7% interest!” The small print says “for the first 60 days.” What trick is this?","o":["Bundling","Teaser rate","Up-selling","Minimum balance"],"a":1,"why":"A teaser rate looks great but only lasts a short time."},{"topic":"W2B","type":"mc","q":"Which account setup is best for most people?","o":["Checking and savings with high fees","No-fee checking and high-interest, no-fee savings","Only cash at home","Five checking accounts"],"a":1,"why":"No fees and higher interest on savings."},{"topic":"W2B","type":"tf","q":"Banks make a lot of money from fees, like overdraft fees.","a":0,"why":"True. Fees are a big part of how banks earn money."},{"topic":"W2B","type":"mc","q":"A bank says, “Free checking with a $2,000 minimum, or $15 a month.” What should you ask yourself?","o":["Will I always keep $2,000 in the account?","Is the logo nice?","Is the branch big?","Nothing — it’s free."],"a":0,"why":"Minimum balance accounts charge fees when you go under."},{"topic":"W3I","type":"mc","q":"$500 grows 10% a year for 2 years. How much is it worth?","o":["$550","$600","$605","$1,000"],"a":2,"why":"500 × 1.10 × 1.10 = $605."},{"topic":"W3I","type":"mc","q":"What is inflation?","o":["Prices going up over time","Your bank paying more interest","A type of credit card","Stocks going down"],"a":0,"why":"Inflation = prices rise, so money buys less."},{"topic":"W3I","type":"tf","q":"Waiting 10 years to start investing makes almost no difference.","a":1,"why":"False. Losing 10 years of compounding can cost a lot."},{"topic":"W3I","type":"mc","q":"Which is the most powerful factor for growing investments?","o":["Luck","Time","Picking one hot stock","Checking prices every day"],"a":1,"why":"Time lets compounding work."},{"topic":"W3L","type":"mc","q":"What is rung 1 of the ladder?","o":["Open a Roth IRA","Get the full employer 401(k) match","Pay off debt","Use an HSA"],"a":1,"why":"Free money comes first."},{"topic":"W3L","type":"mc","q":"What is the last rung of the ladder?","o":["Get the match","Pay off debt","A regular investment account and investing in yourself","Open a Roth IRA"],"a":2,"why":"Rung 6: a regular (taxable) account and investing in yourself."},{"topic":"W3L","type":"tf","q":"Paying off high-interest debt comes before opening a Roth IRA.","a":0,"why":"True. Rung 2 (debt) comes before rung 3 (Roth IRA)."},{"topic":"W3L","type":"mc","q":"Why is paying off a 22% APR card so high on the ladder?","o":["Investments usually earn much less than 22%","Credit cards are illegal","It improves your HSA","It doesn’t matter"],"a":0,"why":"Paying off 22% debt is like a guaranteed 22% return."},{"topic":"W4","type":"mc","q":"What does “guilt-free spending” mean?","o":["Spending without a plan","Money you planned to spend on fun, so you can enjoy it","Never spending on fun","Spending only on rent"],"a":1,"why":"It is planned, so there is no guilt."},{"topic":"W4","type":"mc","q":"Which person is cheap, not conscious?","o":["Mia spends on books she loves and saves on cars.","Leo argues for 10 minutes over $1 and feels bad buying anything nice.","Ana plans her fun money.","Raj cuts subscriptions he doesn’t use."],"a":1,"why":"Cheap people care about the cost of everything."},{"topic":"W4","type":"tf","q":"Conscious spending means spending a lot on what you love and cutting costs mercilessly on what you don’t.","a":0,"why":"True. That is Ramit’s main idea."},{"topic":"W4","type":"mc","q":"Two people spend $400 a month on eating out. Is that good or bad?","o":["Always bad","Always good","It depends — is it planned, and do they love it?","Only bad on weekends"],"a":2,"why":"Context matters: it’s fine if it’s planned and important to them."}]};
+const $ = id => document.getElementById(id);
+let S = { name: "", deck: [], i: 0, results: [], answered: false, firstRun: null };
+
+function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+// interleave: avoid the same topic twice in a row where possible
+function interleave(list){
+  let best = shuffle(list);
+  for (let t=0; t<60; t++){
+    const c = shuffle(list); let bad = 0;
+    for (let i=1;i<c.length;i++) if (c[i].topic===c[i-1].topic) bad++;
+    if (bad===0) return c;
+    let bb=0; for (let i=1;i<best.length;i++) if (best[i].topic===best[i-1].topic) bb++;
+    if (bad<bb) best=c;
+  }
+  return best;
+}
+function show(id){ ["start","play","done"].forEach(x => $(x).classList.toggle("hidden", x!==id)); window.scrollTo(0,0); }
+
+function begin(list){
+  S.deck = interleave(list); S.i = 0; S.results = [];
+  $("track").innerHTML = S.deck.map(()=>"<i></i>").join("");
+  show("play"); render();
+}
+
+function render(){
+  const q = S.deck[S.i]; S.answered = false;
+  [...$("track").children].forEach((el,k)=>{ el.className = k<S.i ? (S.results[k].ok?"ok":"bad") : (k===S.i?"now":""); });
+  const t = DATA.topics[q.topic];
+  $("tag").textContent = t.week + " · " + t.short;
+  $("count").textContent = (S.i+1) + " of " + S.deck.length;
+  $("q").textContent = q.q;
+  const opts = q.type==="tf" ? ["True","False"] : q.o;
+  $("opts").className = "opts" + (q.type==="tf" ? " tf" : "");
+  $("opts").innerHTML = "";
+  opts.forEach((o,k)=>{
+    const b = document.createElement("button"); b.className="opt"; b.dataset.k=k;
+    b.innerHTML = '<span class="k">'+(q.type==="tf" ? (k?"F":"T") : "ABCD"[k])+'</span><span></span>';
+    b.lastChild.textContent = o;
+    b.onclick = () => answer(k);
+    $("opts").appendChild(b);
+  });
+  $("fb").className="fb"; $("next").className="btn next";
+  $("next").textContent = S.i===S.deck.length-1 ? "See my results" : "Next question";
+  $("opts").firstChild.focus({preventScroll:true});
+}
+
+function answer(k){
+  if (S.answered) return; S.answered = true;
+  const q = S.deck[S.i], ok = k===q.a;
+  S.results.push({ q, ok });
+  [...$("opts").children].forEach((b,j)=>{ b.disabled=true;
+    if (j===q.a) b.classList.add("right"); else if (j===k) b.classList.add("wrong"); else b.classList.add("dim"); });
+  $("fbh").textContent = ok ? "Correct." : "Not quite.";
+  $("fbp").textContent = q.why;
+  $("fb").className = "fb show " + (ok?"good":"bad");
+  $("next").className = "btn next show"; $("next").focus({preventScroll:true});
+  $("track").children[S.i].className = ok?"ok":"bad";
+}
+
+function next(){ if(!S.answered) return; S.i++; if (S.i<S.deck.length) render(); else finish(); }
+
+function finish(){
+  const right = S.results.filter(r=>r.ok).length, total = S.results.length;
+  $("sc").textContent = right + "/" + total;
+  $("scl").textContent = S.name + ", " + (right/total>=.85 ? "you’re ready." : right/total>=.6 ? "good work — now fix the gaps." : "keep going — review and try again.");
+  const by = {};
+  S.results.forEach(r=>{ const t=r.q.topic; by[t]=by[t]||{ok:0,n:0}; by[t].n++; if(r.ok) by[t].ok++; });
+  const keys = Object.keys(DATA.topics).filter(k=>by[k]);
+  let weakK = keys.slice().sort((a,b)=> (by[a].ok/by[a].n)-(by[b].ok/by[b].n) || by[b].n-by[a].n)[0];
+  const allPerfect = keys.every(k=>by[k].ok===by[k].n);
+  $("weak").classList.toggle("hidden", allPerfect);
+  if (!allPerfect){ const t=DATA.topics[weakK]; $("weakp").textContent = t.week + " · " + t.name + " (" + by[weakK].ok + " of " + by[weakK].n + " right)"; }
+  $("bars").innerHTML = keys.map(k=>{ const t=DATA.topics[k], p=Math.round(by[k].ok/by[k].n*100);
+    return '<div class="bar'+(k===weakK&&!allPerfect?" weak":"")+'"><div class="n">'+t.short+'<small>'+t.week+'</small></div><div class="b"><i style="width:'+p+'%"></i></div><div class="v">'+by[k].ok+'/'+by[k].n+'</div></div>'; }).join("");
+  const missed = S.results.filter(r=>!r.ok).map(r=>r.q);
+  $("redo").classList.toggle("hidden", missed.length===0);
+  $("redo").textContent = "Practice my mistakes (" + missed.length + ")";
+  S.missed = missed;
+  show("done");
+}
+
+$("go").onclick = () => {
+  const n = $("name").value.trim();
+  if (!n){ $("err").textContent = "Type your first name to start."; $("name").focus(); return; }
+  S.name = n; $("who").textContent = n; $("err").textContent = ""; begin(DATA.qs);
+};
+$("name").addEventListener("keydown", e => { if (e.key==="Enter") $("go").click(); });
+$("next").onclick = next;
+$("redo").onclick = () => begin(S.missed);
+$("again").onclick = () => begin(DATA.qs);
+document.addEventListener("keydown", e => {
+  if ($("play").classList.contains("hidden")) return;
+  if (!S.answered && /^[1-4]$/.test(e.key)){ const b=$("opts").children[+e.key-1]; if (b) b.click(); }
+  else if (S.answered && e.key==="Enter"){ e.preventDefault(); next(); }
+});
+$("nq").textContent = DATA.qs.length;
+</script>
+</body>
+</html>

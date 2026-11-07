@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Week 6 Review Game Hub · Midterm</title>
+<style>
+:root{
+  --navy:#0C2340; --gold:#AE9142; --gold-b:#D39F10; --teal:#0E6B6B; --red:#C0392B; --green:#26890C;
+  --bg:#FFFFFF; --surface:#EDF2F9; --ink:#1A1A1A; --ink-s:#3D3D3D; --muted:#6B6B6B; --line:#D5DAE2; --accent:#0E6B6B; --title:#0C2340;
+  --ok-bg:#D4EDDA; --glow:rgba(211,159,16,.30); color-scheme: light;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#0C2340; --surface:#143865; --ink:#EFE9D9; --ink-s:#D9D2C1; --muted:#A9B4C6; --line:#2A4A78; --accent:#5FB3B3; --title:#EFE9D9; --ok-bg:#1E4A2A; --glow:rgba(211,159,16,.35); color-scheme: dark; }
+}
+:root[data-theme="dark"]{ --bg:#0C2340; --surface:#143865; --ink:#EFE9D9; --ink-s:#D9D2C1; --muted:#A9B4C6; --line:#2A4A78; --accent:#5FB3B3; --title:#EFE9D9; --ok-bg:#1E4A2A; --glow:rgba(211,159,16,.35); color-scheme: dark; }
+:root[data-theme="light"]{ color-scheme: light; }
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px); height:100%}
+body{margin:0; min-height:100%; background:var(--bg); color:var(--ink); font-family:Cambria, "Hoefler Text", Georgia, "Times New Roman", serif; -webkit-font-smoothing:antialiased}
+.sans{font-family:Calibri, "Segoe UI", "Helvetica Neue", Arial, sans-serif}
+header{display:flex; align-items:center; gap:1.2rem; flex-wrap:wrap; padding:1rem clamp(1rem,3vw,2.5rem); border-bottom:1px solid var(--line)}
+.mono{width:2.1rem;height:2.1rem;border:1.5px solid var(--gold);border-radius:50%;display:grid;place-items:center;color:var(--gold);font-style:italic;font-weight:700;font-size:1.15rem;flex:none}
+.brand{line-height:1.15}
+.brand b{display:block;font-size:.78rem;letter-spacing:.18em;color:var(--gold)}
+.brand span{font-size:.8rem;color:var(--muted)}
+nav{display:flex; gap:.35rem; margin-left:auto; flex-wrap:wrap}
+nav button{font-family:Calibri,"Segoe UI",Arial,sans-serif; font-size:1rem; padding:.5rem .9rem; border:1px solid var(--line); background:transparent; color:var(--ink); border-radius:6px; cursor:pointer}
+nav button[aria-selected="true"]{background:var(--title); color:var(--bg); border-color:var(--title)}
+nav button kbd{font-family:Consolas,monospace;font-size:.75rem;opacity:.6;margin-right:.35rem}
+.iconbtn{background:transparent;border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:.45rem .7rem;cursor:pointer;font-size:1rem}
+button:focus-visible{outline:3px solid var(--gold-b); outline-offset:2px}
+main{padding:clamp(1rem,3vw,2.5rem); max-width:1400px; margin:0 auto}
+.meta{display:flex;align-items:baseline;gap:1rem;flex-wrap:wrap;margin-bottom:1.2rem}
+.meta h1{margin:0;font-weight:400;font-size:clamp(1.8rem,3.4vw,3rem);color:var(--title)}
+.meta h1 em{color:var(--gold)}
+.count{font-family:Consolas,monospace;color:var(--muted);font-size:1.05rem}
+.tag{display:inline-block;font-family:Calibri,"Segoe UI",Arial,sans-serif;font-size:.85rem;font-weight:700;letter-spacing:.12em;padding:.2rem .55rem;border:1px solid currentColor;border-radius:4px;color:var(--accent);text-transform:uppercase}
+.stage{min-height:46vh; display:flex; flex-direction:column; justify-content:center; gap:1.4rem; padding:clamp(1rem,3vw,2.5rem) 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line)}
+.prompt{font-size:clamp(1.7rem,3.6vw,3.2rem); line-height:1.3; margin:0}
+.focus{background:radial-gradient(ellipse at 50% 55%, var(--glow) 0%, transparent 72%); padding:0 .2em; border-bottom:3px solid var(--gold-b); font-weight:700}
+.answer{font-size:clamp(1.4rem,2.9vw,2.5rem); line-height:1.3; margin:0; color:var(--accent); font-style:italic; opacity:0; transform:translateY(.4rem); transition:opacity .35s ease, transform .35s ease}
+.answer.show{opacity:1; transform:none}
+.why{font-size:clamp(1rem,1.6vw,1.35rem); color:var(--ink-s); margin:0; opacity:0; transition:opacity .35s ease}
+.why.show{opacity:1}
+.opts{display:grid; grid-template-columns:repeat(auto-fit,minmax(16rem,1fr)); gap:1rem}
+.opt{border:2px solid var(--line); border-radius:8px; padding:1rem 1.2rem; font-size:clamp(1.2rem,2.2vw,1.9rem); display:flex; gap:.8rem; align-items:baseline; transition:background .3s, border-color .3s, opacity .3s}
+.opt b{font-family:Calibri,"Segoe UI",Arial,sans-serif; color:var(--gold); font-size:1.1em}
+.opt.right{border-color:var(--green); background:var(--ok-bg)}
+.opt.dim{opacity:.45}
+.controls{display:flex; gap:.6rem; align-items:center; flex-wrap:wrap; margin-top:1.2rem}
+.btn{font-family:Calibri,"Segoe UI",Arial,sans-serif; font-size:1.1rem; padding:.7rem 1.3rem; border-radius:6px; border:1px solid var(--line); background:transparent; color:var(--ink); cursor:pointer}
+.btn.primary{background:var(--gold); border-color:var(--gold); color:#0C2340; font-weight:700}
+.timer{margin-left:auto; font-family:Consolas,monospace; font-size:1.6rem; color:var(--muted); min-width:4.5ch; text-align:right}
+.timer.low{color:var(--red)}
+.board{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.6rem; margin-top:1.6rem}
+.team{border:1px solid var(--line); border-radius:8px; padding:.6rem .8rem; display:flex; align-items:center; justify-content:space-between; gap:.4rem}
+.team .nm{font-family:Calibri,"Segoe UI",Arial,sans-serif; color:var(--muted); font-size:.95rem}
+.team .sc{font-size:2rem; color:var(--title); min-width:2ch; text-align:center}
+.team button{width:2rem; height:2rem; border-radius:50%; border:1px solid var(--line); background:transparent; color:var(--ink); cursor:pointer; font-size:1.1rem; line-height:1}
+.hint{color:var(--muted); font-size:.95rem; margin-top:1rem}
+@media (max-width:720px){ .board{grid-template-columns:repeat(2,minmax(0,1fr))} nav{margin-left:0} }
+@media (prefers-reduced-motion: reduce){ .answer,.why,.opt{transition:none} }
+</style>
+</head>
+<body>
+<header>
+  <div class="mono" aria-hidden="true">A</div>
+  <div class="brand sans"><b>APPLIED GRAMMAR · PROFICIENT</b><span>Week 6 · Midterm Review Game</span></div>
+  <nav role="tablist" aria-label="Rounds">
+    <button role="tab" data-mode="aspect"><kbd>1</kbd>Aspect</button>
+    <button role="tab" data-mode="passive"><kbd>2</kbd>Passive</button>
+    <button role="tab" data-mode="clefts"><kbd>3</kbd>Clefts</button>
+    <button role="tab" data-mode="speed"><kbd>4</kbd>Speed round</button>
+  </nav>
+  <button class="iconbtn sans" id="theme" aria-label="Switch light or dark">◐</button>
+</header>
+<main>
+  <div class="meta"><h1 id="title"></h1><span class="count" id="count"></span><span class="tag" id="tag"></span></div>
+  <section class="stage" id="stage" aria-live="polite"></section>
+  <div class="controls">
+    <button class="btn" id="prev">← Back</button>
+    <button class="btn primary" id="reveal">Reveal</button>
+    <button class="btn" id="next">Next →</button>
+    <button class="btn" id="tbtn">Timer</button>
+    <button class="btn" id="reset">Reset scores</button>
+    <span class="timer" id="timer"></span>
+  </div>
+  <div class="board" id="board"></div>
+  <p class="hint sans">Keys: 1–4 change round · Space reveals · ← → move · T starts the timer · Correct = 1 point, fastest correct team = +1.</p>
+</main>
+<script>
+const DATA = {"aspect":[{"q":"I ___ (live) in Houston since 2020.","a":"have lived / have been living","why":"Present perfect (continuous): since + a starting point, still true."},{"q":"When the fire alarm rang, we ___ (eat) lunch.","a":"were eating","why":"Past continuous: the action in progress when something happened."},{"q":"She’s tired because she ___ (study) all night.","a":"has been studying","why":"Present perfect continuous: a long activity with a result now (tired)."},{"q":"By the time the bus arrived, I ___ (wait) for 30 minutes.","a":"had been waiting","why":"Past perfect continuous: duration up to a past moment."},{"q":"I ___ (know) my best friend for ten years.","a":"have known","why":"State verb (know): no continuous form."},{"q":"This time next week, I ___ (fly) to Chicago.","a":"will be flying","why":"Future continuous: in progress at a future time."}],"passive":[{"q":"My car ___ (repair) right now.","a":"is being repaired","why":"Present continuous passive: is / are being + pp."},{"q":"The museum ___ (build) in 1920.","a":"was built","why":"Past simple passive."},{"q":"Many jobs ___ (create) since the new factory opened.","a":"have been created","why":"Present perfect passive: since + past time."},{"q":"I need to get my hair ___ (cut).","a":"cut","why":"Causative: get + object + past participle (cut → cut)."},{"q":"The meeting ___ (should / cancel). Nobody came!","a":"should have been cancelled","why":"Modal perfect passive: a past mistake."},{"q":"People report that prices will rise again. → It ___ that prices will rise again.","a":"is reported","why":"Reporting verb, Frame 1: It + passive + that."}],"clefts":[{"q":"[Ana] found my keys.","a":"It was Ana who found my keys.","why":"It-cleft, person → who."},{"q":"We met [at a coffee shop].","a":"It was at a coffee shop that we met.","why":"It-cleft, place → that."},{"q":"[The weather] surprised me most.","a":"What surprised me most was the weather.","why":"Wh-cleft: What + clause + was + focus."},{"q":"The new rules started [in January].","a":"It was in January that the new rules started.","why":"It-cleft, time → that (not when)."},{"q":"[The price of rent] worries me.","a":"What worries me is the price of rent.","why":"Wh-cleft: What + clause + is + focus."},{"q":"The flight was delayed [because of the fog].","a":"It was because of the fog that the flight was delayed.","why":"It-cleft, reason → that. The passive stays the same."}],"speed":[{"q":"I ___ here since Monday.","o":["am working","have been working","work"],"a":1,"tag":"Aspect"},{"q":"Which is correct?","o":["It was the students which planned the trip.","It was the students who planned the trip.","It were the students who planned the trip."],"a":1,"tag":"Cleft"},{"q":"The report ___ yet.","o":["hasn’t been finished","hasn’t finished","isn’t finishing"],"a":0,"tag":"Passive"},{"q":"What I need ___ a long weekend.","o":["are","is","be"],"a":1,"tag":"Cleft"},{"q":"I’m going to have my car ___.","o":["wash","washing","washed"],"a":2,"tag":"Passive"},{"q":"While I ___ dinner, the power went out.","o":["cooked","was cooking","have cooked"],"a":1,"tag":"Aspect"},{"q":"It was in May ___ we moved here.","o":["when","which","that"],"a":2,"tag":"Cleft"},{"q":"The suspect is believed ___ the city last night.","o":["to have left","to leave","leaving"],"a":0,"tag":"Passive"}]};
+const MODES = {
+  aspect:  { title: "Round 1 · <em>Aspect</em>", items: DATA.aspect, secs: 45, tag: "Aspect" },
+  passive: { title: "Round 2 · <em>Passive</em>", items: DATA.passive, secs: 45, tag: "Passive" },
+  clefts:  { title: "Round 3 · <em>Clefts</em>", items: DATA.clefts, secs: 60, tag: "Cleft" },
+  speed:   { title: "Round 4 · <em>Speed round</em>", items: DATA.speed, secs: 25 },
+};
+const state = { mode: "aspect", idx: { aspect:0, passive:0, clefts:0, speed:0 }, shown: false, scores: [0,0,0,0,0], t: null, left: 0 };
+try { const s = JSON.parse(localStorage.getItem("w6hub") || "null"); if (s && Array.isArray(s.scores) && s.scores.length === 5) state.scores = s.scores; } catch (e) {}
+function persist(){ try { localStorage.setItem("w6hub", JSON.stringify({ scores: state.scores })); } catch (e) {} }
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;" }[c]));
+const focusify = (s) => esc(s).replace(/\[([^\]]+)\]/g, '<span class="focus">$1</span>');
+function render(){
+  const m = MODES[state.mode], i = state.idx[state.mode], it = m.items[i];
+  document.querySelectorAll("nav button").forEach(b => b.setAttribute("aria-selected", b.dataset.mode === state.mode));
+  $("title").innerHTML = m.title; $("count").textContent = (i + 1) + " / " + m.items.length;
+  let h;
+  if (state.mode === "speed") {
+    $("tag").textContent = it.tag;
+    h = '<p class="prompt">' + esc(it.q) + '</p><div class="opts">' + it.o.map((o, k) => '<div class="opt" data-k="' + k + '"><b>' + "ABC"[k] + '</b><span>' + esc(o) + '</span></div>').join("") + '</div>';
+  } else {
+    $("tag").textContent = m.tag;
+    h = '<p class="prompt">' + focusify(it.q) + '</p><p class="answer">' + esc(it.a) + '</p><p class="why">' + esc(it.why) + '</p>';
+  }
+  $("stage").innerHTML = h; state.shown = false; $("reveal").textContent = "Reveal";
+  stopTimer(); $("timer").textContent = "";
+}
+function reveal(){
+  state.shown = !state.shown;
+  const it = MODES[state.mode].items[state.idx[state.mode]];
+  document.querySelectorAll(".answer,.why").forEach(e => e.classList.toggle("show", state.shown));
+  if (state.mode === "speed") document.querySelectorAll(".opt").forEach(e => { const ok = +e.dataset.k === it.a; e.classList.toggle("right", state.shown && ok); e.classList.toggle("dim", state.shown && !ok); });
+  $("reveal").textContent = state.shown ? "Hide" : "Reveal";
+  if (state.shown) stopTimer();
+}
+function move(d){ const m = MODES[state.mode]; state.idx[state.mode] = Math.max(0, Math.min(m.items.length - 1, state.idx[state.mode] + d)); render(); }
+function setMode(k){ state.mode = k; render(); }
+function stopTimer(){ if (state.t) { clearInterval(state.t); state.t = null; } $("timer").classList.remove("low"); }
+function startTimer(){ stopTimer(); state.left = MODES[state.mode].secs; tick(); state.t = setInterval(() => { state.left--; tick(); if (state.left <= 0) stopTimer(); }, 1000); }
+function tick(){ const s = Math.max(0, state.left); $("timer").textContent = Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); $("timer").classList.toggle("low", s <= 10); }
+function board(){
+  $("board").innerHTML = state.scores.map((s, i) => '<div class="team"><button aria-label="Team ' + (i + 1) + ' minus one" data-t="' + i + '" data-d="-1">−</button><div style="text-align:center"><div class="nm">Team ' + (i + 1) + '</div><div class="sc">' + s + '</div></div><button aria-label="Team ' + (i + 1) + ' plus one" data-t="' + i + '" data-d="1">+</button></div>').join("");
+}
+$("board").addEventListener("click", e => { const b = e.target.closest("button[data-t]"); if (!b) return; const t = +b.dataset.t; state.scores[t] = Math.max(0, state.scores[t] + (+b.dataset.d)); persist(); board(); });
+document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
+$("prev").onclick = () => move(-1); $("next").onclick = () => move(1); $("reveal").onclick = reveal; $("tbtn").onclick = startTimer;
+$("reset").onclick = () => { if (confirm("Reset all team scores to 0?")) { state.scores = [0,0,0,0,0]; persist(); board(); } };
+$("theme").onclick = () => { const r = document.documentElement; const dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; r.dataset.theme = dark ? "light" : "dark"; };
+document.addEventListener("keydown", e => {
+  if (e.target.closest && e.target.closest("button") && (e.key === " " || e.key === "Enter")) return;
+  const map = { "1":"aspect", "2":"passive", "3":"clefts", "4":"speed" };
+  if (map[e.key]) setMode(map[e.key]);
+  else if (e.key === " ") { e.preventDefault(); reveal(); }
+  else if (e.key === "ArrowRight") move(1);
+  else if (e.key === "ArrowLeft") move(-1);
+  else if (e.key === "t" || e.key === "T") startTimer();
+});
+board(); render();
+</script>
+</body>
+</html>
