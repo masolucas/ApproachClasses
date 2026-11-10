@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI Sprint · Week 6 · Midterm</title>
+<link rel="stylesheet" href="styles.css">
+<script src="config.js"></script>
+<script src="content.js"></script>
+<script src="core.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.79.0/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@9.5.0/dist/index.iife.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="monogram" aria-hidden="true">A</div>
+  <div class="brand-lines"><span class="course">AI SPRINT</span><span class="session" id="sessionLine">WEEK 06 · MIDTERM</span></div>
+  <div class="spacer"></div>
+  <span class="who" id="who"></span>
+  <span class="status wait" id="status" role="status">Connecting…</span>
+</header>
+<div class="warnbar hidden" id="warnbar" role="alert"><b>30 minutes left.</b> Finish Part 3, upload your PDF to QuickSchools, and start Part 4 now.</div>
+<div class="layout">
+  <nav class="tabs" id="tabs" aria-label="Parts"></nav>
+  <main class="panel">
+    <div id="breakView" class="hidden"></div>
+    <div id="panel"></div>
+  </main>
+</div>
+<div class="actionbar" id="actionbar">
+  <div class="in">
+    <span class="state" id="state"></span>
+    <button class="btn" id="abWord" type="button">Word</button>
+    <button class="btn" id="abPdf" type="button">PDF</button>
+    <button class="btn primary" id="abDone" type="button">Complete part</button>
+  </div>
+</div>
+<div id="print-root" aria-hidden="true"></div>
+<script>
+(function () {
+  "use strict";
+  const { esc, md, plain, words, fmtTime } = CORE;
+  const C = CORE.cfg(), W = window.WEEK, M = window.MISSIONS, CS = window.CASES, BRK = window.BREAK;
+  const KEY = "aisprint.w6.midterm." + C.code + ".student", RKEY = KEY + ".remote";
+  const $ = (id) => document.getElementById(id);
+  const today = () => new Date().toLocaleDateString([], { year: "numeric", month: "long", day: "numeric" });
+  const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+  const EXPORT = [1, 2, 3];
+
+  /* ---------------- state */
+  const fresh = () => ({ id: uid(), name: "", room: "", date: today(), fields: {}, completed: {}, view: 0 });
+  function load(k, f) { try { const v = JSON.parse(localStorage.getItem(k)); if (v) return Object.assign(f(), v); } catch (e) {} return f(); }
+  let S = load(KEY, fresh);
+  const urlRoom = CORE.cleanRoom(new URLSearchParams(location.search).get("room"));
+  let roomDraft = S.room || (CORE.roomOk(urlRoom) ? urlRoom : "");
+  let R = load(RKEY, () => ({ brk: false, warn: false }));
+  let saveT = null, wiping = false;
+  function save() { if (wiping) return; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function saveSoon() { clearTimeout(saveT); saveT = setTimeout(save, 250); }
+  function wipe() { wiping = true; clearTimeout(saveT); try { localStorage.removeItem(KEY); localStorage.removeItem(RKEY); } catch (e) {} location.reload(); }
+  const F = (id) => S.fields[id];
+  const caseOf = () => (F("case") === "A" || F("case") === "B" ? F("case") : null);
+  // Sign-in is always open. Parts 1–3 open as soon as the student signs in. Part 4 opens when Parts 1–3 are all completed.
+  const isOpen = (i) => i === 0 || !!S.completed[M[i].key] || (!!S.completed.signin && (M[i].key !== "p4" || p13done()));
+  const lockMsg = (i) => !S.completed.signin ? "Sign in first." : "Complete Parts 1, 2, and 3 first. Then Part 4 opens.";
+  const gateOk = () => { const g = F("p4_gate") || {}; return !!g[0] && !!g[1]; };
+  const p13done = () => EXPORT.every((i) => !!S.completed[M[i].key]);
+
+  /* ---------------- toast + modal */
+  function toast(msg, kind, act) {
+    document.querySelectorAll(".toast").forEach((t) => t.remove());
+    const t = document.createElement("div"); t.className = "toast" + (kind ? " " + kind : ""); t.setAttribute("role", "status");
+    t.innerHTML = "<span>" + esc(msg) + "</span>";
+    if (act) { const b = document.createElement("button"); b.textContent = act.label; b.onclick = () => { t.remove(); act.fn(); }; t.appendChild(b); }
+    document.body.appendChild(t); setTimeout(() => t.remove(), 6000);
+  }
+  function modal(title, text, buttons, fine) {
+    const back = document.createElement("div"); back.className = "modal-back";
+    back.innerHTML = '<div class="modal" role="dialog" aria-modal="true" aria-label="' + esc(title) + '"><h3>' + esc(title) + "</h3><p>" + esc(text) + '</p><div class="row"></div>' + (fine ? '<p class="fine">' + esc(fine) + "</p>" : "") + "</div>";
+    const row = back.querySelector(".row");
+    const cancel = document.createElement("button"); cancel.className = "btn"; cancel.textContent = "Cancel"; cancel.onclick = () => back.remove(); row.appendChild(cancel);
+    buttons.forEach((b) => { const x = document.createElement("button"); x.className = "btn " + (b.cls || ""); x.textContent = b.label; x.onclick = () => { back.remove(); b.fn(); }; row.appendChild(x); });
+    back.addEventListener("click", (e) => { if (e.target === back) back.remove(); });
+    document.body.appendChild(back); row.lastChild.focus();
+  }
+
+  /* ---------------- tabs */
+  function renderTabs() {
+    const t = $("tabs"); t.innerHTML = "";
+    M.forEach((m, i) => {
+      const open = isOpen(i), done = !!S.completed[m.key];
+      const b = document.createElement("button"); b.type = "button";
+      b.className = "tab" + (done ? " done" : open ? " open" : " locked");
+      if (i === S.view) b.setAttribute("aria-current", "true");
+      b.innerHTML = '<span class="ic" aria-hidden="true">' + (done ? "\u2713" : open ? i || "\u2022" : "\uD83D\uDD12") + "</span><span>" + esc(m.tab) + (i === 4 ? ' <small class="noai">NO AI</small>' : "") + '</span><span class="sr-only">' + (done ? " (completed)" : open ? " (open)" : " (locked)") + "</span>";
+      b.onclick = () => { if (open) go(i); else toast(lockMsg(i)); };
+      t.appendChild(b);
+    });
+    const all = document.createElement("button"); all.type = "button"; all.className = "btn all"; all.id = "allBtn"; all.textContent = "Download my midterm (Parts 1\u20133)";
+    all.disabled = !S.completed.signin; all.onclick = downloadAllAsk; t.appendChild(all);
+  }
+  function go(i) { S.view = i; save(); renderTabs(); renderPanel(); window.scrollTo(0, 0); }
+
+  /* ---------------- panel */
+  function el(tag, attrs, html) { const e = document.createElement(tag); Object.entries(attrs || {}).forEach(([k, v]) => e.setAttribute(k, v)); if (html != null) e.innerHTML = html; return e; }
+  function renderPanel() {
+    const p = $("panel"), i = S.view, m = M[i];
+    p.innerHTML = "";
+    if (!isOpen(i)) { p.innerHTML = '<div class="card locked-panel"><h2>\uD83D\uDD12 ' + esc(m.tab) + "</h2><p>" + esc(lockMsg(i)) + "</p></div>"; updateBar(); return; }
+    const head = el("div", { class: "mhead" }, '<p class="eyebrow">' + esc(m.eyebrow) + "</p><h1>" + esc(m.title[0]) + "<em>" + esc(m.title[1]) + '</em></h1><p class="meta">' + esc(m.meta) + '</p><p class="intro">' + esc(m.intro) + "</p>");
+    p.appendChild(head);
+    const card = el("div", { class: "card" }); p.appendChild(card);
+    m.sections.forEach((s) => card.appendChild(section(s, m)));
+    fillDynamic(); updateBar();
+  }
+  function section(s, m) {
+    const d = el("div", { class: "sec" });
+    switch (s.type) {
+      case "text": d.innerHTML = '<p class="text">' + md(s.body) + "</p>"; break;
+      case "heading": d.innerHTML = "<h2>" + esc(s.text) + "</h2>"; break;
+      case "subhead": d.innerHTML = "<h3>" + esc(s.text.toUpperCase()) + "</h3>"; break;
+      case "steps": d.innerHTML = '<ol class="steps">' + s.items.map((x) => "<li>" + md(x) + "</li>").join("") + "</ol>"; break;
+      case "note": d.innerHTML = '<div class="note' + (s.strong ? " strong" : "") + '"><div class="lab">' + esc(s.label.toUpperCase()) + "</div><p>" + md(s.body) + "</p></div>"; break;
+      case "frames": d.innerHTML = '<div class="frames">' + s.items.map(([k, f]) => "<div><b>" + esc(k) + "</b><span>" + esc(f) + "</span></div>").join("") + "</div>"; break;
+      case "signature": {
+        d.innerHTML = '<div class="field"><label for="sig_room">Room code <span class="req">*</span></label><p class="help">The 4 letters on your teacher\u2019s screen.</p><input type="text" id="sig_room" class="roomin" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="4" placeholder="ABCD"></div>' +
+          '<div class="field"><label for="sig_name">Your first and last name <span class="req">*</span></label><input type="text" id="sig_name" autocomplete="name" maxlength="60" placeholder="First and last name"></div><p class="fine">Date: ' + esc(S.date) + "</p>";
+        const inp = d.querySelector("#sig_name"); inp.value = S.name;
+        inp.addEventListener("input", () => { S.name = inp.value.trim().slice(0, 60); saveSoon(); updateBar(); });
+        const rin = d.querySelector("#sig_room"); rin.value = roomDraft;
+        rin.addEventListener("input", () => { const v = CORE.cleanRoom(rin.value); if (rin.value !== v) rin.value = v; roomDraft = v; updateBar(); });
+        break;
+      }
+      case "field": {
+        const big = (s.rows || 3) > 1;
+        d.className = "sec field";
+        d.innerHTML = '<label for="f_' + s.id + '">' + md(s.label) + (s.required ? ' <span class="req" aria-label="required">*</span>' : "") + "</label>" + (s.help ? '<p class="help">' + md(s.help) + "</p>" : "") +
+          (big ? '<textarea id="f_' + s.id + '" rows="' + s.rows + '"></textarea>' : '<input type="text" id="f_' + s.id + '">') + (s.showCount ? '<div class="count" id="c_' + s.id + '"></div>' : "");
+        const inp = d.querySelector(big ? "textarea" : "input"); inp.value = F(s.id) || "";
+        inp.addEventListener("input", () => { S.fields[s.id] = inp.value; saveSoon(); countOf(s); updateBar(); });
+        setTimeout(() => countOf(s), 0);
+        break;
+      }
+      case "checklist": {
+        const v = F(s.id) || {};
+        d.innerHTML = "<h3>" + esc(s.label.toUpperCase()) + (s.requireAll ? ' <span class="req">*</span>' : "") + '</h3><div class="checks">' + s.items.map((x, k) => '<label><input type="checkbox" data-k="' + k + '"' + (v[k] ? " checked" : "") + "><span>" + md(x) + "</span></label>").join("") + "</div>";
+        d.querySelectorAll("input").forEach((c) => c.addEventListener("change", () => { (S.fields[s.id] = S.fields[s.id] || {})[c.dataset.k] = c.checked; save(); updateBar(); }));
+        break;
+      }
+      case "choice": {
+        const v = F(s.id);
+        d.innerHTML = "<h3>" + esc(s.label.toUpperCase()) + (s.required ? ' <span class="req">*</span>' : "") + '</h3><div class="choice" role="radiogroup" aria-label="' + esc(s.label) + '">' + s.options.map(([val, lab]) => '<label><input type="radio" name="ch_' + s.id + '" value="' + esc(val) + '"' + (v === val ? " checked" : "") + "><span>" + esc(lab) + "</span></label>").join("") + "</div>";
+        d.querySelectorAll("input").forEach((r) => r.addEventListener("change", () => {
+          // switching case after starting Part 2 would mismatch the claims already verified
+          if (s.id === "case" && v && r.value !== F("case") && Object.keys(S.fields).some((k) => k.indexOf("p2_") === 0 && String(S.fields[k] || "").trim()) &&
+            !confirm("You already started Part 2 with Case " + F("case") + ". If you change your case, your verified claims will not match. Change anyway?")) {
+            d.querySelector('input[value="' + F("case") + '"]').checked = true; return; }
+          S.fields[s.id] = r.value; save(); if (s.id === "case") track(); fillDynamic(); updateBar(); }));
+        break;
+      }
+      case "claims": d.id = "claimsBox"; break;
+      case "spec": d.id = "specBox"; break;
+      case "gate": d.id = "gateBox"; break;
+    }
+    return d;
+  }
+  function countOf(s) {
+    if (!s.showCount) return; const c = $("c_" + s.id); if (!c) return;
+    const n = words(F(s.id)); let t = n + " words";
+    if (s.minWords) t += " · target 300\u2013400 (at least " + s.minWords + ")";
+    c.textContent = t; c.className = "count " + (s.minWords && n < s.minWords ? "bad" : n ? "good" : "");
+  }
+
+  /* ---------------- case-dependent parts */
+  const needCase = '<div class="note"><div class="lab">CHOOSE YOUR CASE FIRST</div><p>Go to Part 1 and choose Case A or Case B.</p></div>';
+  function claimsHtml(k) {
+    const c = CS[k];
+    return '<div class="source"><div class="lab">CLAIMS TO CHECK \u00B7 ' + esc(c.label.toUpperCase()) + "</div><p>" + esc(window.CLAIMS_INTRO) + '</p><ol class="claims">' + c.claims.map((x) => "<li>\u201C" + esc(x.text) + "\u201D</li>").join("") + '</ol><p class="fine">Verdicts: True \u00B7 False \u00B7 Partly true \u00B7 Cannot verify</p></div>';
+  }
+  function specHtml(k) {
+    const c = CS[k];
+    return '<div class="source"><div class="lab">YOUR TASK \u00B7 ' + esc(c.label.toUpperCase()) + "</div>" +
+      '<div class="tw"><table class="t"><tbody>' + c.role.map(([a, b]) => "<tr><td><b>" + esc(a) + "</b></td><td>" + esc(b) + "</td></tr>").join("") + "</tbody></table></div>" +
+      c.options.map((o) => "<p><b>" + esc(o.name) + "</b> \u00B7 <i>" + esc(o.words) + "</i></p><ul>" + o.structure.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul>").join("") +
+      "<p><b>Must include:</b> two recommendations \u00B7 at least one number from the data \u00B7 at least two facts you verified in Part 2 \u00B7 a tone that fits your reader.</p></div>";
+  }
+  function gateHtml() {
+    const g = F("p4_gate") || {}, ready = p13done(), url = CORE.part4Ready();
+    let h = '<div class="checks gate">' +
+      '<label><input type="checkbox" data-k="0"' + (g[0] ? " checked" : "") + (ready ? "" : " disabled") + "><span><b>I have already submitted my Parts 1\u20133 PDF to QuickSchools.</b></span></label>" +
+      '<label><input type="checkbox" data-k="1"' + (g[1] ? " checked" : "") + (ready ? "" : " disabled") + "><span><b>I have closed my AI tool, my notes, and other tabs.</b></span></label></div>";
+    if (!ready) h += '<p class="fine gate-msg">Complete Parts 1, 2, and 3 first.</p>';
+    else if (!(g[0] && g[1])) h += '<p class="fine gate-msg">Check both boxes to see the Part 4 link.</p>';
+    else if (!url) h += '<p class="fine gate-msg bad">Your teacher has not added the Part 4 link yet. Raise your hand.</p>';
+    else h += '<a class="btn primary big" id="p4link" href="' + esc(C.part4) + '" target="_blank" rel="noopener">Open Part 4: Quiz &amp; Reflection \u2197</a><p class="fine">Part 4 is AI-free. You may look at this page to remember your prompts and edits.</p>';
+    return h;
+  }
+  function fillDynamic() {
+    const k = caseOf();
+    const cb = $("claimsBox"); if (cb) cb.innerHTML = k ? claimsHtml(k) : needCase;
+    const sb = $("specBox"); if (sb) sb.innerHTML = k ? specHtml(k) : needCase;
+    const gb = $("gateBox");
+    if (gb) {
+      gb.innerHTML = gateHtml();
+      gb.querySelectorAll("input").forEach((c) => c.addEventListener("change", () => { (S.fields.p4_gate = S.fields.p4_gate || {})[c.dataset.k] = c.checked; save(); track(); fillDynamic(); updateBar(); }));
+      const a = $("p4link"); if (a) a.addEventListener("click", () => { if (!S.completed.p4) { S.completed.p4 = Date.now(); save(); track(); renderTabs(); updateBar(); } });
+    }
+  }
+
+  /* ---------------- completion rules */
+  const plainLabel = (s) => { const t = plain(s); return t.length > 60 ? t.slice(0, 57) + "\u2026" : t; };
+  function missing(i) {
+    const m = M[i], out = [];
+    if (m.key === "signin") { if (!CORE.roomOk(roomDraft)) out.push("the 4-letter room code"); if (S.name.split(/\s+/).filter(Boolean).length < 2) out.push("your first and last name"); return out; }
+    if (m.key === "p4") { if (!p13done()) out.push("Parts 1\u20133"); if (!gateOk()) out.push("the two boxes"); return out; }
+    if (m.key === "p2" || m.key === "p3") { if (!caseOf()) out.push("choose your case in Part 1"); }
+    m.sections.forEach((s) => {
+      const v = F(s.id);
+      if (s.type === "field" && s.required) { const n = words(v); if (!String(v || "").trim()) out.push(plainLabel(s.label)); else if (s.minWords && n < s.minWords) out.push(s.minWords + " words in \u201C" + plainLabel(s.label) + "\u201D"); }
+      if (s.type === "choice" && s.required && !v) out.push(plainLabel(s.label));
+      if (s.type === "checklist" && s.requireAll) { const vv = v || {}; const n = s.items.filter((x, k) => vv[k]).length; if (n < s.items.length) out.push((s.items.length - n) + " self-check box(es)"); }
+    });
+    if (m.key === "p3" && F("p3_format") === "email" && caseOf() === "B") out.push("Case B uses the one-page brief (change your format)");
+    return out;
+  }
+  function updateBar() {
+    const i = S.view, m = M[i], open = isOpen(i), done = S.completed[m.key];
+    const st = $("state"), bd = $("abDone");
+    const isSign = m.key === "signin", isP4 = m.key === "p4";
+    $("abWord").classList.toggle("hidden", isSign || isP4 || !open); $("abPdf").classList.toggle("hidden", isSign || isP4 || !open);
+    bd.classList.toggle("hidden", !open || isP4);
+    if (!open) { st.textContent = "Locked"; st.className = "state"; return; }
+    if (isP4) { st.textContent = done ? "\u2713 Part 4 opened at " + fmtTime(done) + ". Good luck!" : !p13done() ? "Complete Parts 1\u20133 first." : gateOk() ? "Ready. Open Part 4." : "Submit your PDF, then check both boxes."; st.className = "state" + (done ? " done" : ""); return; }
+    const miss = missing(i);
+    bd.textContent = isSign ? (done ? "Update" : "Sign in") : done ? "\u2713 Completed" : "Complete " + m.tab;
+    bd.disabled = miss.length > 0 || (!!done && !isSign);
+    if (done && !isSign) { st.textContent = "\u2713 Completed at " + fmtTime(done) + ". You can still edit this part."; st.className = "state done"; }
+    else if (miss.length) { st.textContent = "Still to do: " + miss.slice(0, 3).join(", ") + (miss.length > 3 ? " (+" + (miss.length - 3) + " more)" : ""); st.className = "state"; }
+    else { st.textContent = isSign ? "Ready." : "Ready to complete."; st.className = "state"; }
+  }
+  $("abDone").onclick = () => {
+    const i = S.view, m = M[i];
+    if (missing(i).length) return;
+    if (m.key === "signin") { const first = !S.completed.signin, moved = S.room !== roomDraft; S.room = roomDraft; S.completed.signin = S.completed.signin || Date.now(); save(); renderTabs(); updateBar(); showWho();
+      if (moved || !channel) connect(); else track();
+      if (!first && moved) toast("Room changed to " + S.room + ".");
+      if (first) toast("Signed in. Welcome, " + S.name.split(" ")[0] + "! Parts 1\u20133 are open.", null, { label: "Go to Part 1", fn: () => go(1) }); return; }
+    if (!S.completed[m.key]) S.completed[m.key] = Date.now();
+    save(); track(); renderTabs(); updateBar();
+    const nx = EXPORT.find((k) => !S.completed[M[k].key]);
+    if (nx == null) toast("Parts 1\u20133 complete. Part 4 is open. First download ONE PDF of Parts 1\u20133 and upload it to QuickSchools.", null, { label: "Download PDF", fn: downloadAllAsk });
+    else toast(m.tab + " complete. Still to do: " + M[nx].tab + ".", null, { label: "Go to " + M[nx].tab, fn: () => go(nx) });
+  };
+  $("abWord").onclick = () => downloadDocx([S.view], fileBase(S.view)).catch(() => toast("Word download is not available. Use PDF.", "warn"));
+  $("abPdf").onclick = () => downloadPdf([S.view], fileBase(S.view));
+  function downloadAllAsk() {
+    const left = EXPORT.filter((i) => !S.completed[M[i].key]).length;
+    modal("Download your midterm (Parts 1\u20133)", left ? left + " part(s) are not completed yet. They will show as \u201CNot completed\u201D in the file." : "Parts 1\u20133 are complete. Save it as a PDF and upload it to QuickSchools.",
+      [{ label: "Word (.docx)", fn: () => downloadDocx(EXPORT, allBase(), false, true).catch(() => toast("Word download is not available. Use PDF.", "warn")) }, { label: "PDF", cls: "primary", fn: () => downloadPdf(EXPORT, allBase(), true) }], "File name: " + allBase() + "  \u00B7  In the print window, choose \u201CSave as PDF\u201D.");
+  }
+  const lastName = () => (S.name.trim().split(/\s+/).slice(-1)[0] || "Student").replace(/[^A-Za-z0-9\u00C0-\u024F-]/g, "");
+  const fileBase = (i) => "Week6_Midterm_" + M[i].fileTag + "_" + lastName();
+  const allBase = () => "Week6_Midterm_" + lastName();
+
+  /* ---------------- export model */
+  function blocks(i) {
+    const m = M[i], out = [];
+    m.sections.forEach((s) => {
+      const v = F(s.id);
+      switch (s.type) {
+        case "heading": out.push({ t: "h2", text: s.text }); break;
+        case "subhead": out.push({ t: "h3", text: s.text }); break;
+        case "field": out.push({ t: "field", label: plain(s.label), value: v || "", count: s.showCount ? words(v) : null }); break;
+        case "choice": { const o = s.options.find((x) => x[0] === v); out.push({ t: "field", label: plain(s.label), value: o ? o[1] : "" }); break; }
+        case "checklist": { const vv = v || {}; out.push({ t: "field", label: s.label, value: s.items.map((x, k) => (vv[k] ? "\u2611 " : "\u2610 ") + plain(x)).join("\n") }); break; }
+        case "claims": { const k = caseOf(); if (k) out.push({ t: "note", label: "Claims to check \u00B7 " + CS[k].label, text: CS[k].claims.map((x) => x.n + ". " + x.text).join("\n") }); break; }
+        case "spec": { const k = caseOf(); if (k) out.push({ t: "note", label: "Task \u00B7 " + CS[k].label, text: CS[k].role.map(([a, b]) => a + ": " + b).join("\n") }); break; }
+      }
+    });
+    return out;
+  }
+
+  /* ---------------- Word (.docx) */
+  function saveBlob(blob, name) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
+  async function downloadDocx(list, base, strict, combined) {
+    if (!window.docx) { const e = new Error("docx library missing"); if (strict) throw e; throw e; }
+    const D = window.docx, NAVY = "0C2340", GOLD = "AE9142", GOLDK = "8C7535", INKS = "3D3D3D", RED = "C0392B";
+    const run = (text, o) => new D.TextRun(Object.assign({ text: String(text), font: "Calibri", size: 22, color: "1A1A1A" }, o || {}));
+    const P = (children, o) => new D.Paragraph(Object.assign({ children, spacing: { after: 100 } }, o || {}));
+    const lines = (text, o) => String(text || "").split("\n").map((p, k) => run(p, Object.assign(k ? { break: 1 } : {}, o)));
+    const thin = (c) => ({ style: D.BorderStyle.SINGLE, size: 6, color: c || "9AA3AF" });
+    const box = (c) => ({ style: D.BorderStyle.SINGLE, size: 6, color: c, space: 6 });
+    const cellW = (w) => ({ size: w, type: D.WidthType.DXA });
+    const table = (head, rows) => {
+      const n = head.length, first = n > 2 ? 2000 : 3000, rest = Math.floor((10080 - first) / (n - 1));
+      const widths = [first].concat(Array(n - 1).fill(rest));
+      const mk = (t, h, k) => new D.TableCell({ width: cellW(widths[k]), margins: { top: 60, bottom: 60, left: 100, right: 100 },
+        children: String(t || "").split("\n").map((ln) => P([run(ln, h ? { bold: true, size: 18, color: NAVY } : { size: 20, font: k ? "Cambria" : "Calibri" })], { spacing: { after: 20 } })) });
+      return new D.Table({ width: cellW(10080), columnWidths: widths, rows: [new D.TableRow({ tableHeader: true, children: head.map((h, k) => mk(h, true, k)) })].concat(rows.map((r) => new D.TableRow({ cantSplit: true, children: r.map((v, k) => mk(v, false, k)) }))) });
+    };
+    const kids = [];
+    const whoLine = (done) => P([run("Name: ", { bold: true, color: NAVY }), run(S.name), run("     Date: ", { bold: true, color: NAVY }), run(S.date)].concat(done ? [run("     Completed: ", { bold: true, color: NAVY }), run(fmtTime(done))] : []),
+      { border: { top: thin(NAVY), bottom: thin(NAVY) }, spacing: { before: 60, after: 240 } });
+    if (combined) {
+      kids.push(P([run("AI SPRINT \u00B7 WEEK 06 \u00B7 MIDTERM \u00B7 PARTS 1\u20133", { bold: true, size: 18, color: GOLDK, characterSpacing: 40 })]));
+      kids.push(P([run("Week 6 Midterm", { font: "Cambria", size: 52, color: NAVY })], { spacing: { after: 40 } }));
+      kids.push(P([run(W.topic, { font: "Cambria", italics: true, color: INKS })], { spacing: { after: 160 } }));
+      kids.push(whoLine(null));
+      if (caseOf()) kids.push(P([run("Case: ", { bold: true, color: NAVY }), run(CS[caseOf()].label + " \u00B7 " + CS[caseOf()].org)]));
+      kids.push(P([run("WHAT\u2019S INSIDE", { bold: true, size: 18, color: GOLDK, characterSpacing: 30 })]));
+      kids.push(table(["Part", "Title", "Status"], list.map((i) => [M[i].tab, M[i].title.join(""), S.completed[M[i].key] ? "Completed " + fmtTime(S.completed[M[i].key]) : "Not completed"])));
+      kids.push(P([run("HOW TO SUBMIT", { bold: true, size: 18, color: GOLDK, characterSpacing: 30 })], { spacing: { before: 240, after: 60 } }));
+      W.submit.forEach((t, k) => kids.push(P([run((k + 1) + ".  " + t)], { indent: { left: 240 } })));
+    }
+    list.forEach((i, n) => {
+      const m = M[i], done = S.completed[m.key];
+      kids.push(P([run("AI SPRINT \u00B7 WEEK 06 \u00B7 " + m.eyebrow, { bold: true, size: 18, color: GOLDK, characterSpacing: 40 })], { spacing: { after: 60 }, pageBreakBefore: combined || n > 0 }));
+      kids.push(P([run(m.title.join(""), { font: "Cambria", size: 44, color: NAVY })], { spacing: { after: 40 } }));
+      kids.push(P([run(m.meta, { font: "Cambria", italics: true, size: 21, color: INKS })], { spacing: { after: 160 } }));
+      if (!combined) kids.push(whoLine(done));
+      else if (!done) kids.push(P([run("Not completed", { bold: true, color: RED })]));
+      blocks(i).forEach((b) => {
+        if (b.t === "h2") kids.push(P([run(b.text, { font: "Cambria", size: 28, color: NAVY })], { spacing: { before: 240, after: 80 }, keepNext: true }));
+        else if (b.t === "h3") kids.push(P([run(b.text.toUpperCase(), { bold: true, size: 18, color: GOLDK, characterSpacing: 30 })], { spacing: { before: 160, after: 40 }, keepNext: true }));
+        else if (b.t === "prompt") kids.push(P([run("Prompt: ", { bold: true, size: 20, color: GOLDK }), run(b.text, { font: "Cambria", italics: true, size: 20, color: INKS })]));
+        else if (b.t === "note") kids.push(P([run(b.label.toUpperCase(), { bold: true, size: 17, color: GOLDK, characterSpacing: 30 }), new D.TextRun({ break: 1 })].concat(lines(b.text, { font: "Cambria", size: 20 })),
+          { border: { top: box(GOLD), bottom: box(GOLD), left: box(GOLD), right: box(GOLD) }, indent: { left: 140, right: 140 }, spacing: { before: 120, after: 160 } }));
+        else if (b.t === "field") {
+          kids.push(P([run(b.label, { bold: true, color: NAVY })], { spacing: { before: 160, after: 50 }, keepNext: true }));
+          String(b.value || "\u2014").split("\n").forEach((ln) => kids.push(P([run(ln, { font: "Cambria" })], { border: { left: { style: D.BorderStyle.SINGLE, size: 12, color: GOLD, space: 8 } }, indent: { left: 200 }, spacing: { after: 30, line: 300 } })));
+          if (b.count != null) kids.push(P([run("Word count: " + b.count, { size: 17, color: INKS })], { spacing: { before: 40, after: 100 } }));
+        } else if (b.t === "table") {
+          if (b.label) kids.push(P([run(b.label, { bold: true, color: NAVY })], { spacing: { before: 160, after: 60 }, keepNext: true }));
+          kids.push(table(b.head, b.rows)); kids.push(P([], { spacing: { after: 80 } }));
+        }
+      });
+    });
+    const doc = new D.Document({ creator: W.school, title: base, styles: { default: { document: { run: { font: "Calibri", size: 22 } } } },
+      sections: [{ properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 1000, bottom: 900, left: 1080, right: 1080 } } },
+        headers: { default: new D.Header({ children: [P([run("APPROACH INTERNATIONAL STUDENT CENTER  \u00B7  AI SPRINT  \u00B7  " + W.term.toUpperCase(), { bold: true, size: 15, color: NAVY, characterSpacing: 30 })], { border: { bottom: thin(GOLD) } })] }) },
+        footers: { default: new D.Footer({ children: [P([run(W.copyright, { size: 14, color: "7A7A7A" })])] }) },
+        children: kids }] });
+    saveBlob(await D.Packer.toBlob(doc), base + ".docx");
+  }
+
+  /* ---------------- PDF (print view) */
+  function downloadPdf(list, base, combined) {
+    let h = "";
+    if (combined) {
+      h += '<div class="ph">APPROACH INTERNATIONAL STUDENT CENTER · AI SPRINT · WEEK 06 · MIDTERM · PARTS 1–3</div><h1>Week 6 Midterm</h1><p><i>' + esc(W.topic) + '</i></p><div class="who"><b>Name:</b> ' + esc(S.name) + " &nbsp; <b>Date:</b> " + esc(S.date) + "</div>" + (caseOf() ? "<p><b>Case:</b> " + esc(CS[caseOf()].label + " · " + CS[caseOf()].org) + "</p>" : "");
+      h += "<table><tr><th>Part</th><th>Title</th><th>Status</th></tr>" + list.map((i) => "<tr><td>" + esc(M[i].tab) + "</td><td>" + esc(M[i].title.join("")) + "</td><td>" + (S.completed[M[i].key] ? "Completed " + esc(fmtTime(S.completed[M[i].key])) : "Not completed") + "</td></tr>").join("") + "</table>";
+      h += '<div class="lab">How to submit</div><ol>' + W.submit.map((t) => "<li>" + esc(t) + "</li>").join("") + "</ol>";
+    }
+    list.forEach((i, n) => {
+      const m = M[i], done = S.completed[m.key];
+      h += '<div class="' + (combined || n ? "pb" : "") + '"><div class="ph">AI SPRINT · WEEK 06 · ' + esc(m.eyebrow) + "</div><h1>" + esc(m.title.join("")) + "</h1><p><i>" + esc(m.meta) + "</i></p>";
+      h += combined ? (done ? "" : '<p style="color:#c0392b"><b>Not completed</b></p>') : '<div class="who"><b>Name:</b> ' + esc(S.name) + " &nbsp; <b>Date:</b> " + esc(S.date) + (done ? " &nbsp; <b>Completed:</b> " + esc(fmtTime(done)) : "") + "</div>";
+      blocks(i).forEach((b) => {
+        if (b.t === "h2") h += "<h2>" + esc(b.text) + "</h2>";
+        else if (b.t === "h3") h += '<div class="lab">' + esc(b.text.toUpperCase()) + "</div>";
+        else if (b.t === "prompt") h += "<p><b>Prompt:</b> <i>" + esc(b.text) + "</i></p>";
+        else if (b.t === "note") h += '<div class="lab">' + esc(b.label) + '</div><div class="ans">' + esc(b.text) + "</div>";
+        else if (b.t === "field") h += '<div class="lab">' + esc(b.label) + '</div><div class="ans">' + esc(b.value || "\u2014") + "</div>" + (b.count != null ? "<p><small>Word count: " + b.count + "</small></p>" : "");
+        else if (b.t === "table") h += (b.label ? '<div class="lab">' + esc(b.label) + "</div>" : "") + "<table><tr>" + b.head.map((x) => "<th>" + esc(x) + "</th>").join("") + "</tr>" + b.rows.map((r) => "<tr>" + r.map((x) => '<td style="white-space:pre-wrap">' + esc(x) + "</td>").join("") + "</tr>").join("") + "</table>";
+      });
+      h += "</div>";
+    });
+    h += '<p class="foot">' + esc(W.copyright) + "</p>";
+    $("print-root").innerHTML = h;
+    const old = document.title; document.title = base;
+    document.body.classList.add("printing");
+    const restore = () => { document.body.classList.remove("printing"); document.title = old; window.removeEventListener("afterprint", restore); };
+    window.addEventListener("afterprint", restore);
+    window.print(); setTimeout(restore, 1000);
+  }
+
+  /* ---------------- break + warning */
+  function renderBreak() {
+    const bv = $("breakView"), on = !!R.brk && !!S.completed.signin;
+    bv.classList.toggle("hidden", !on); $("panel").classList.toggle("hidden", on); $("actionbar").classList.toggle("hidden", on);
+    if (on && !bv.innerHTML) bv.innerHTML = '<div class="break-panel"><p class="eb">' + esc(BRK.title.toUpperCase()) + "</p><h2>" + esc(BRK.prompt) + "</h2><p>" + esc(BRK.sub) + '</p><p class="fine" style="color:#efe9d9;opacity:.8">Your work is saved on this laptop.</p></div>';
+    $("warnbar").classList.toggle("hidden", !(R.warn && S.completed.signin && !S.completed.p4));
+  }
+
+  /* ---------------- realtime */
+  let channel = null, ready = false;
+  function showWho() { $("who").textContent = S.completed.signin ? S.name + (S.room ? "  \u00B7  Room " + S.room : "") : ""; }
+  let hostSeen = false, hostTimer = null;
+  function setStatus(kind, text) { const s = $("status"); s.className = "status " + kind; s.textContent = text; }
+  function track() { if (channel && ready && S.completed.signin) channel.track({ role: "student", id: S.id, name: S.name, completed: S.completed, kase: caseOf() || "", pdf: !!(F("p4_gate") || {})[0] }).catch(() => {}); }
+  function onState(p) {
+    if (!p) return;
+    if (!hostSeen) { hostSeen = true; clearTimeout(hostTimer); setStatus("on", "Connected"); $("status").title = "Room " + S.room; }
+    const wasWarn = !!R.warn;
+    R = { brk: !!p.brk, warn: !!p.warn };
+    try { localStorage.setItem(RKEY, JSON.stringify(R)); } catch (e) {}
+    if (R.warn && !wasWarn && S.completed.signin && !S.completed.p4) toast("30 minutes left. Start Part 4 soon.", "warn");
+    renderBreak();
+  }
+  function connect() {
+    const prob = CORE.problem();
+    if (prob) { setStatus("off", "Not connected"); $("status").title = prob; console.warn(prob); return; }
+    if (channel) { CORE.drop(channel); channel = null; ready = false; }
+    hostSeen = false; clearTimeout(hostTimer);
+    if (!S.completed.signin || !CORE.roomOk(S.room)) { setStatus("wait", "Enter room code"); return; }
+    channel = CORE.channel(S.id, S.room);
+    channel.on("broadcast", { event: "state" }, ({ payload }) => onState(payload))
+      .on("broadcast", { event: "reset" }, () => wipe())
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") { ready = true; if (!hostSeen) setStatus("wait", "Looking for room " + S.room + "\u2026"); track(); channel.send({ type: "broadcast", event: "hello", payload: { id: S.id } });
+          clearTimeout(hostTimer); hostTimer = setTimeout(() => { if (!hostSeen) { setStatus("off", "Room " + S.room + " not found"); toast("No teacher found in room " + S.room + ". Check the code. Your work is still saved on this laptop.", "warn", { label: "Change code", fn: () => go(0) }); } }, 7000); }
+        else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") { ready = false; setStatus("wait", "Reconnecting\u2026"); }
+        else if (status === "CLOSED") { ready = false; setStatus("off", "Offline"); }
+      });
+  }
+  // never lose the last keystrokes: flush the pending save when the page is hidden or closed
+  window.addEventListener("pagehide", () => { clearTimeout(saveT); save(); });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) { clearTimeout(saveT); save(); } });
+  window.addEventListener("offline", () => setStatus("off", "Offline"));
+  window.addEventListener("online", () => setStatus("wait", "Reconnecting\u2026"));
+
+  if (!isOpen(S.view)) S.view = 0;
+  showWho();
+  renderTabs(); renderPanel(); renderBreak(); connect();
+})();
+</script>
+</body>
+</html>

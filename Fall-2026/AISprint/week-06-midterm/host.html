@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Host · AI Sprint · Week 6 · Midterm</title>
+<link rel="stylesheet" href="styles.css">
+<script src="config.js"></script>
+<script src="content.js"></script>
+<script src="core.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.79.0/dist/umd/supabase.js"></script>
+</head>
+<body class="host">
+<header class="topbar">
+  <div class="monogram" aria-hidden="true">A</div>
+  <div class="brand-lines"><span class="course">AI SPRINT</span><span class="session">WEEK 06 · MIDTERM · HOST</span></div>
+  <div class="spacer"></div>
+  <span class="status wait" id="status" role="status">Connecting…</span>
+</header>
+
+<section class="pin-gate" id="gate">
+  <form class="pin-card" id="pinForm" autocomplete="off">
+    <p class="eyebrow" style="color:var(--gold)">TEACHER ONLY</p>
+    <h1>Host <em>view.</em></h1>
+    <p>Enter the host PIN.</p>
+    <label class="sr-only" for="pin">Host PIN</label>
+    <input type="password" id="pin" inputmode="numeric" placeholder="••••">
+    <button class="btn gold" type="submit">Open host view</button>
+    <p class="hidden" id="pinErr" style="color:#F1A59C">That PIN is not correct.</p>
+  </form>
+</section>
+
+<div class="host-wrap hidden" id="app">
+  <section class="control">
+    <div class="roombox"><span class="lab">ROOM CODE</span><b id="roomCode"></b><button class="btn ghost small" id="newRoom" type="button">New code</button></div>
+    <div><p class="eyebrow" id="codeLine"></p><p class="now" id="now"></p><p class="sub" id="sub"></p><p class="sub" id="joinLine"></p></div>
+    <div class="actions">
+      <button class="btn ghost" id="brk" type="button"></button>
+      <button class="btn ghost" id="warn" type="button"></button>
+      <button class="btn ghost" id="projBtn" type="button">Projector view</button>
+    </div>
+  </section>
+  <div class="subbar" id="linkBar"></div>
+  <div class="roster-head"><h2>Who is where</h2><span class="legend"><span class="dot on"></span>online <span class="dot" style="margin-left:14px"></span>offline · <b>PDF</b> = student says it is uploaded</span></div>
+  <div class="table-wrap"><table class="roster" id="roster"></table></div>
+  <div class="danger-zone">
+    <p>Finished with this class? <b>Clean session</b> clears this table and deletes saved work on every student laptop connected right now. Make sure everyone has uploaded their PDF first.</p>
+    <button class="btn danger" id="clean" type="button">Clean session</button>
+  </div>
+  <p class="page-footer" id="copy"></p>
+</div>
+
+<div class="proj hidden" id="proj" role="region" aria-label="Projector view">
+  <header>
+    <div style="display:flex;gap:12px;align-items:center"><div class="monogram" aria-hidden="true">A</div><div class="brand-lines"><span class="course">AI SPRINT</span><span class="session" id="pSession">WEEK 06 · MIDTERM</span></div></div>
+    <div style="display:flex;gap:28px;align-items:center"><div class="proom" id="pRoom"></div><div class="timer" id="pTimer" aria-live="off"></div></div>
+  </header>
+  <div class="pmain" id="pMain"></div>
+  <footer>
+    <div style="display:flex;gap:8px;flex-wrap:wrap" id="pCtl"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn ghost" data-min="15" type="button">15 min</button>
+      <button class="btn ghost" data-min="30" type="button">30 min</button>
+      <button class="btn ghost" data-min="90" type="button">90 min</button>
+      <button class="btn ghost" id="tStart" type="button">Start timer</button>
+      <button class="btn ghost" id="pExit" type="button">Exit projector (Esc)</button>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  const { esc, md, fmtTime } = CORE;
+  const C = CORE.cfg(), W = window.WEEK, M = window.MISSIONS, BRK = window.BREAK, RU = window.RULES;
+  const KEY = "aisprint.w6.midterm." + C.code + ".host", PINKEY = KEY + ".pin";
+  const $ = (id) => document.getElementById(id);
+  const fresh = () => ({ room: CORE.newRoom(), brk: false, warn: false, roster: {}, proj: false });
+  function load() { try { const v = JSON.parse(localStorage.getItem(KEY)); if (v && v.roster && CORE.roomOk(v.room)) return Object.assign(fresh(), v); } catch (e) {} return fresh(); }
+  let H = load(), online = new Set();
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(H)); } catch (e) {} }
+
+  /* ---------------- PIN */
+  function unlock() { $("gate").classList.add("hidden"); $("app").classList.remove("hidden"); render(); connect(); if (H.proj) openProj(); }
+  let ok = false; try { ok = sessionStorage.getItem(PINKEY) === "ok"; } catch (e) {}
+  if (ok || !C.pin) unlock(); else $("pin").focus();
+  $("pinForm").addEventListener("submit", (e) => { e.preventDefault(); if ($("pin").value === C.pin) { try { sessionStorage.setItem(PINKEY, "ok"); } catch (x) {} unlock(); } else { $("pinErr").classList.remove("hidden"); $("pin").select(); } });
+
+  /* ---------------- control view */
+  const COLS = [["signin", "Signed in"], ["p1", "Part 1"], ["p2", "Part 2"], ["p3", "Part 3"], ["pdf", "PDF"], ["p4", "Part 4"]];
+  function students() { return Object.keys(H.roster).map((id) => Object.assign({ id }, H.roster[id])).sort((a, b) => (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" })); }
+  function where(s) { const c = s.completed || {}, n = ["p1", "p2", "p3"].filter((k) => c[k]).length; if (c.p4) return "Part 4"; if (n === 3) return s.pdf ? "PDF uploaded" : "Uploading PDF"; return n + "/3 parts done"; }
+  function render() {
+    const list = students(), n = list.length;
+    $("roomCode").textContent = H.room;
+    $("joinLine").innerHTML = "Students open <b>" + esc(joinUrl()) + "</b> and type room code <b>" + esc(H.room) + "</b>.";
+    $("codeLine").textContent = "ROOM " + H.room + " · " + n + " SIGNED IN · " + list.filter((s) => online.has(s.id)).length + " ONLINE";
+    $("now").innerHTML = H.brk ? "<em>Break</em> is on. Student screens are covered." : "The midterm is <em>open.</em> Parts 1\u20133 open when students sign in." + (H.warn ? " 30-minute warning is on." : "");
+    const cnt = (k) => list.filter((s) => (k === "pdf" ? s.pdf : s.completed && s.completed[k])).length;
+    $("sub").innerHTML = ["p1", "p2", "p3", "pdf", "p4"].map((k) => "<b>" + cnt(k) + "/" + n + "</b> " + (k === "pdf" ? "PDF" : k.replace("p", "Part "))).join(" · ") +
+      " · Case A: " + list.filter((s) => s.kase === "A").length + " · Case B: " + list.filter((s) => s.kase === "B").length;
+    $("brk").textContent = H.brk ? "End break" : "Start break";
+    $("warn").textContent = H.warn ? "Clear 30-minute warning" : "Send 30-minute warning";
+    $("copy").textContent = W.copyright;
+    $("linkBar").innerHTML = CORE.part4Ready() ? '<span class="lab">PART 4 LINK</span><span>' + esc(C.part4) + "</span>" : '<span class="lab" style="color:#F1A59C">PART 4 LINK MISSING</span><span>Add PART4_URL in config.js. Students cannot open Part 4 until you do.</span>';
+    let h = "<thead><tr><th>Student</th><th>Case</th><th>Now</th>" + COLS.map(([, l]) => "<th>" + esc(l) + "</th>").join("") + "</tr></thead><tbody>";
+    if (!n) h += '<tr><td class="empty-roster" colspan="' + (COLS.length + 3) + '">No students yet. They appear here when they sign in.</td></tr>';
+    list.forEach((s) => {
+      h += '<tr><td class="name"><span class="dot' + (online.has(s.id) ? " on" : "") + '" title="' + (online.has(s.id) ? "Online" : "Offline") + '"></span>' + esc(s.name || "(no name)") + "</td><td>" + esc(s.kase || "\u2013") + "</td><td>" + esc(where(s)) + "</td>";
+      COLS.forEach(([k]) => { const t = k === "pdf" ? s.pdf : s.completed && s.completed[k]; h += t ? '<td><span class="tick">\u2713' + (k === "pdf" ? "" : "<small>" + esc(fmtTime(t)) + "</small>") + "</span></td>" : '<td><span class="pending" aria-label="not yet">\u2013</span></td>'; });
+      h += "</tr>";
+    });
+    $("roster").innerHTML = h + "</tbody>";
+  }
+  const push = () => { save(); sendState(); render(); renderProj(); };
+  const joinUrl = () => location.href.split(/[?#]/)[0].replace(/host\.html$/, "student.html");
+  $("newRoom").onclick = () => {
+    if (Object.keys(H.roster).length && !confirm("Make a new room code? Students already signed in stay in room " + H.room + " until they type the new code.")) return;
+    H.room = CORE.newRoom(); H.roster = {}; online = new Set(); save(); connect(); render(); renderProj();
+  };
+  $("brk").onclick = () => { H.brk = !H.brk; push(); if (H.brk) setTimer(30); };
+  $("warn").onclick = () => { H.warn = !H.warn; push(); };
+
+  /* ---------------- projector */
+  let tLeft = null, tRun = null;
+  function setTimer(min) { clearInterval(tRun); tRun = null; tLeft = min * 60; $("tStart").textContent = "Start timer"; showTimer(); }
+  function showTimer() { const e = $("pTimer"); if (tLeft == null) { e.textContent = ""; return; } const mm = Math.floor(tLeft / 60), ss = tLeft % 60; e.textContent = mm + ":" + String(ss).padStart(2, "0"); e.classList.toggle("low", tLeft <= 60); }
+  document.querySelectorAll("[data-min]").forEach((b) => (b.onclick = () => setTimer(+b.dataset.min)));
+  $("tStart").onclick = () => { if (tLeft == null) return; if (tRun) { clearInterval(tRun); tRun = null; $("tStart").textContent = "Start timer"; } else { tRun = setInterval(() => { tLeft = Math.max(0, tLeft - 1); showTimer(); if (!tLeft) { clearInterval(tRun); tRun = null; $("tStart").textContent = "Start timer"; } }, 1000); $("tStart").textContent = "Pause timer"; } };
+  function openProj() { H.proj = true; save(); $("proj").classList.remove("hidden"); renderProj(); if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {}); }
+  function closeProj() { H.proj = false; save(); $("proj").classList.add("hidden"); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); }
+  $("projBtn").onclick = openProj; $("pExit").onclick = closeProj;
+  document.addEventListener("keydown", (e) => { if (!$("proj").classList.contains("hidden") && e.key === "Escape") closeProj(); });
+  function renderProj() {
+    if ($("proj").classList.contains("hidden")) return;
+    const main = $("pMain"), ctl = $("pCtl"); ctl.innerHTML = "";
+    $("pSession").textContent = "WEEK 06 · MIDTERM" + (H.brk ? " · BREAK" : "");
+    $("pRoom").innerHTML = '<span>ROOM CODE</span><b>' + esc(H.room) + "</b>";
+    if (H.brk) { main.innerHTML = '<div class="brk"><p class="peb">' + esc(BRK.title.toUpperCase()) + "</p><h1>" + esc(BRK.prompt) + "</h1><p>" + esc(BRK.sub) + "</p></div>"; return; }
+    const warn = H.warn ? '<div class="pwarn"><b>30 minutes left.</b> Finish Part 3 \u2192 upload your PDF \u2192 start Part 4 now.</div>' : "";
+    main.innerHTML = warn + '<p class="peb">MIDTERM PROJECT \u00B7 WORK ALONE</p><h1>Four parts. <em>Part 4 is last.</em></h1><table class="pparts"><tbody>' +
+      RU.parts.map((x) => "<tr><td><b>" + esc(x.part) + "</b></td><td>" + esc(x.name) + '</td><td class="' + (x.ai === "Yes" ? "ai-yes" : "ai-no") + '">' + (x.ai === "Yes" ? "\u2713 AI allowed" : "\u2717 NO AI") + "</td><td>" + x.pts + " pts</td></tr>").join("") +
+      '</tbody></table><p class="pnote">Open <b>' + esc(joinUrl()) + '</b> \u00B7 room code <b>' + esc(H.room) + '</b> \u00B7 sign in with your full name. Parts 1\u20133 open right away. Part 4 opens when Parts 1\u20133 are complete.</p><p class="pnote">Before Part 4: download ONE PDF of Parts 1\u20133 \u2192 upload it to QuickSchools \u2192 close your AI tool.</p>';
+  }
+
+  /* ---------------- clean */
+  $("clean").onclick = () => {
+    const back = document.createElement("div"); back.className = "modal-back";
+    back.innerHTML = '<div class="modal" role="dialog" aria-modal="true" aria-label="Clean session"><h3>Clean this session?</h3><p>This deletes the table, closes the midterm, and erases saved work on every student laptop that is connected now.</p><label for="confirmTxt" class="fine" style="display:block;margin:0 0 6px">Type <b>CLEAN</b> to confirm.</label><input type="text" id="confirmTxt" autocomplete="off"><div class="row"><button class="btn" type="button" id="cCancel">Cancel</button><button class="btn danger" type="button" id="cGo" disabled>Delete everything</button></div></div>';
+    document.body.appendChild(back);
+    const inp = back.querySelector("#confirmTxt"), go = back.querySelector("#cGo"); inp.focus();
+    inp.addEventListener("input", () => { go.disabled = inp.value.trim().toUpperCase() !== "CLEAN"; });
+    back.querySelector("#cCancel").onclick = () => back.remove();
+    go.onclick = () => { back.remove(); if (channel) channel.send({ type: "broadcast", event: "reset", payload: {} }); const proj = H.proj; H = fresh(); H.proj = proj; online = new Set(); save(); setTimeout(() => { connect(); render(); renderProj(); }, 800); render(); renderProj(); };
+  };
+
+  /* ---------------- realtime */
+  let channel = null, ready = false, beat = null;
+  function setStatus(k, t) { const s = $("status"); s.className = "status " + k; s.textContent = t; }
+  function sendState() { if (channel && ready) channel.send({ type: "broadcast", event: "state", payload: { brk: H.brk, warn: H.warn } }); }
+  function mergePresence() {
+    const st = channel.presenceState(); online = new Set();
+    Object.keys(st).forEach((k) => (st[k] || []).forEach((p) => {
+      if (!p || p.role !== "student" || !p.id) return; online.add(p.id);
+      const r = H.roster[p.id] || { name: "", completed: {} }; r.name = p.name || r.name; r.kase = p.kase || r.kase || ""; r.pdf = !!p.pdf;
+      r.completed = Object.assign({}, r.completed || {});
+      Object.keys(p.completed || {}).forEach((x) => { r.completed[x] = r.completed[x] || p.completed[x]; }); H.roster[p.id] = r;
+    }));
+    save(); render(); renderProj();
+  }
+  function connect() {
+    const prob = CORE.problem();
+    if (prob) { setStatus("off", "Not connected"); $("status").title = prob; $("sub").innerHTML += '<br><span style="color:#F1A59C">Setup: ' + esc(prob) + "</span>"; return; }
+    if (channel) { CORE.drop(channel); channel = null; ready = false; }
+    channel = CORE.channel("host", H.room);
+    channel.on("presence", { event: "sync" }, mergePresence)
+      .on("broadcast", { event: "hello" }, () => sendState())
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") { ready = true; setStatus("on", "Connected"); channel.track({ role: "host" }).catch(() => {}); sendState(); }
+        else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") { ready = false; setStatus("wait", "Reconnecting\u2026"); }
+        else if (status === "CLOSED") { ready = false; setStatus("off", "Offline"); }
+      });
+    if (!beat) beat = setInterval(sendState, 4000);
+  }
+  window.addEventListener("offline", () => setStatus("off", "Offline"));
+})();
+</script>
+</body>
+</html>
