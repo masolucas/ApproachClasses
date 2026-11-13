@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Memory Match · Teacher view</title>
+<style>
+
+:root {
+  color-scheme: light;
+  --navy: #0C2340; --gold: #AE9142; --gold-b: #D39F10;
+  --bg: #FFFFFF; --surface: #EDF2F9; --ink: #0C2340; --ink-s: #3D3D3D; --muted: #6B7280;
+  --face: #FFFFFF; --face-line: #C1CDDD; --word-face: #FBF7EA;
+  --good: #26890C; --back: #0C2340; --back-line: #AE9142; --overlay: rgba(12,35,64,.55);
+  --serif: Cambria, "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --sans: Calibri, "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { color-scheme: dark;
+    --bg: #081629; --surface: #0F2747; --ink: #EFE9D9; --ink-s: #CFC8B6; --muted: #9AA6B8;
+    --face: #13294A; --face-line: #2C4A72; --word-face: #1B2E4A;
+    --good: #6CCB57; --back: #0C2340; --back-line: #D39F10; --overlay: rgba(0,0,0,.6); }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--sans);
+  padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px); }
+.wrap { max-width: 640px; margin: 0 auto; padding: 16px 14px 28px; }
+header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.mono { width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid var(--gold); display: grid; place-items: center;
+  font: italic 700 20px/1 var(--serif); color: var(--gold); flex: none; }
+h1 { font: 400 28px/1.1 var(--serif); margin: 0; letter-spacing: -.3px; }
+.sub { font-size: 14px; color: var(--muted); margin-top: 2px; }
+
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+.step { border: 1.5px solid var(--face-line); color: var(--muted); font: 600 15px var(--sans); padding: 8px 4px; border-radius: 999px; text-align: center; }
+.step.now { background: var(--navy); border-color: var(--gold); color: #EFE9D9; }
+.step.done { border-color: var(--good); color: var(--good); }
+.step.done::before { content: "✓ "; }
+.bar { display: flex; align-items: stretch; gap: 8px; margin-bottom: 12px; }
+.player { flex: 1; border-radius: 10px; padding: 8px 12px; border: 2px solid transparent; background: var(--surface); transition: border-color .2s; }
+.player.on { border-color: var(--gold); }
+.player .name { font-size: 14px; color: var(--muted); }
+.player .pts { font: 400 26px/1.1 var(--serif); }
+.player.on .name { color: var(--gold); font-weight: 700; }
+.mode { border: 1.5px solid var(--face-line); background: transparent; color: var(--ink); border-radius: 10px; padding: 0 12px; font: 600 14px var(--sans); cursor: pointer; }
+
+.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; perspective: 900px; }
+.card { aspect-ratio: 3 / 4; border: 0; padding: 0; background: none; cursor: pointer; position: relative; transform-style: preserve-3d;
+  transition: transform .45s cubic-bezier(.2,.7,.2,1); border-radius: 10px; }
+.card.flip, .card.done { transform: rotateY(180deg); }
+.side { position: absolute; inset: 0; border-radius: 10px; backface-visibility: hidden; -webkit-backface-visibility: hidden; display: grid; place-items: center; padding: 6px; }
+.back { background: var(--back); border: 2px solid var(--back-line); }
+.back::after { content: "A"; font: italic 700 clamp(24px, 7vw, 36px)/1 var(--serif); color: var(--back-line); }
+.back::before { content: ""; position: absolute; inset: 6px; border: 1px solid rgba(174,145,66,.45); border-radius: 6px; }
+.front { transform: rotateY(180deg); background: var(--face); border: 2px solid var(--face-line); color: var(--ink); }
+.front.word { background: var(--word-face); }
+.card.done .front { border-color: var(--good); }
+.card.done { cursor: default; }
+.card.done .front::after { content: "✓"; position: absolute; top: 4px; right: 7px; font: 700 14px var(--sans); color: var(--good); }
+.emoji { font-size: clamp(30px, 10vw, 46px); line-height: 1; }
+.phrase { font: 400 clamp(14px, 4.2vw, 20px)/1.15 var(--serif); text-align: center; overflow-wrap: anywhere; }
+.phrase.long { font-size: clamp(12px, 3.5vw, 17px); }
+.stack, .row { display: flex; align-items: center; justify-content: center; font-size: clamp(22px, 7.5vw, 34px); line-height: 1; }
+.stack { flex-direction: column; gap: 0; }
+.row { gap: 2px; }
+.row .hl, .stack .hl { filter: drop-shadow(0 0 0 transparent); }
+.tag { border: 2px solid var(--gold); border-radius: 6px; padding: 4px 6px; font: 700 clamp(15px, 4.6vw, 22px) var(--sans); color: var(--ink); }
+.card:focus-visible { outline: 3px solid var(--gold-b); outline-offset: 3px; }
+
+.foot { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; color: var(--muted); font-size: 15px; gap: 10px; }
+.btn { border: 0; background: var(--navy); color: #EFE9D9; font: 700 16px var(--sans); padding: 11px 18px; border-radius: 10px; cursor: pointer; border: 1.5px solid var(--gold); }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--face-line); }
+.btn:focus-visible, .mode:focus-visible { outline: 3px solid var(--gold-b); outline-offset: 2px; }
+
+.scrim { position: fixed; inset: 0; background: var(--overlay); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 5; }
+.scrim.open { display: flex; }
+.sheet { background: var(--bg); color: var(--ink); width: min(420px, 100%); border-radius: 16px; padding: 22px 20px 20px; text-align: center; border: 2px solid var(--gold);
+  animation: pop .25s ease-out; }
+@keyframes pop { from { transform: scale(.92); opacity: 0; } to { transform: none; opacity: 1; } }
+.sheet .big { margin: 6px auto 4px; min-height: 64px; display: grid; place-items: center; }
+.sheet .big .emoji { font-size: 60px; }
+.sheet .big .stack, .sheet .big .row { font-size: 46px; }
+.sheet .big .tag { font-size: 28px; }
+.sheet h2 { font: 400 32px/1.15 var(--serif); margin: 6px 0 4px; }
+.sheet p { margin: 6px 0 16px; color: var(--ink-s); font-size: 17px; line-height: 1.4; }
+.sheet .actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.kicker { color: var(--good); font-weight: 700; font-size: 16px; }
+@media (prefers-reduced-motion: reduce) { .card { transition: none; } .sheet { animation: none; } }
+@media (min-width: 560px) { .grid { gap: 12px; } }
+.board { width: 100%; border-collapse: collapse; margin: 4px 0 16px; font-size: 16px; }
+.board th { font: 600 13px var(--sans); color: var(--muted); padding: 6px 4px; border-bottom: 1.5px solid var(--face-line); }
+.board td { padding: 9px 4px; border-bottom: 1px solid var(--face-line); text-align: center; }
+.board td.who { text-align: left; font-weight: 700; }
+.board td.tot { font: 400 22px/1 var(--serif); color: var(--ink); }
+.board tr.first td.who::before { content: "🏆 "; }
+.board th:first-child { text-align: left; }
+.round-note { font-size: 15px; color: var(--muted); margin: -8px 0 14px; }
+
+.wrap { max-width: 1120px; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.live { display: inline-flex; align-items: center; gap: 8px; font-size: 16px; color: var(--muted); }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
+.dot.on { background: var(--good); animation: blink 2s infinite; }
+@keyframes blink { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .dot.on { animation: none; } }
+.stats { display: flex; gap: 22px; margin-bottom: 14px; flex-wrap: wrap; }
+.stat b { font: 400 34px/1 var(--serif); display: block; }
+.stat span { color: var(--muted); font-size: 15px; }
+h2.sec { font: 400 26px/1.2 var(--serif); margin: 26px 0 12px; padding-bottom: 6px; border-bottom: 1.5px solid var(--gold); }
+.rooms { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.room { border: 1.5px solid var(--face-line); border-radius: 14px; padding: 14px; background: var(--face); }
+.room.final { border-color: var(--good); }
+.room.stale { opacity: .55; }
+.rhead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 8px; }
+.rcode { font: 700 18px var(--sans); letter-spacing: 4px; }
+.pill { font: 600 13px var(--sans); padding: 4px 10px; border-radius: 999px; border: 1.5px solid var(--face-line); color: var(--ink-s); white-space: nowrap; }
+.pill.play { border-color: var(--gold); color: var(--gold); }
+.pill.fin { border-color: var(--good); color: var(--good); }
+.prow { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+.prow .av { font-size: 30px; line-height: 1; width: 36px; text-align: center; }
+.prow .nm { flex: 1; font: 400 19px/1.15 var(--serif); overflow-wrap: anywhere; }
+.prow .sc { font: 400 28px/1 var(--serif); min-width: 34px; text-align: right; }
+.prow.turn .nm::after { content: "  ← turn"; font: 600 13px var(--sans); color: var(--gold); }
+.prow.off .nm { color: var(--muted); }
+.prow.off .nm::after { content: "  offline"; font: 600 13px var(--sans); color: var(--muted); }
+.prow.win .nm::before { content: "🏆 "; }
+.vs { text-align: center; color: var(--muted); font-size: 13px; margin: -2px 0; }
+.wk { display: flex; gap: 4px; margin-top: 10px; }
+.wk span { flex: 1; height: 6px; border-radius: 3px; background: var(--face-line); }
+.wk span.d { background: var(--good); }
+.wk span.n { background: var(--gold); }
+.empty { color: var(--muted); font-size: 17px; padding: 18px; border: 2px dashed var(--face-line); border-radius: 14px; text-align: center; }
+.lb { width: 100%; border-collapse: collapse; font-size: 18px; }
+.lb th { text-align: center; font: 600 14px var(--sans); color: var(--muted); padding: 8px 6px; border-bottom: 1.5px solid var(--face-line); }
+.lb th.l, .lb td.l { text-align: left; }
+.lb td { padding: 10px 6px; border-bottom: 1px solid var(--face-line); text-align: center; }
+.lb td.rk { font: 400 22px var(--serif); width: 48px; }
+.lb td.pl { font: 400 21px var(--serif); }
+.lb td.pl .av { font-size: 26px; margin-right: 8px; vertical-align: -3px; }
+.lb td.tot { font: 400 26px/1 var(--serif); }
+.lb td.res { font: 600 14px var(--sans); color: var(--muted); }
+.lb td.res.w { color: var(--good); }
+.lbwrap { overflow-x: auto; }
+.tools { display: flex; gap: 8px; flex-wrap: wrap; }
+.setup { border: 2px solid #C0392B; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <header style="margin:0">
+      <div class="mono" aria-hidden="true">A</div>
+      <div><h1>Memory Match · Teacher view</h1><div class="sub">English Fluency · Weeks 1–4</div></div>
+    </header>
+    <div class="live"><span class="dot" id="dot"></span><span id="liveTxt">Connecting…</span></div>
+  </div>
+  <div class="setup" id="setup">The game is not set up yet. Add your Supabase URL and anon key to <b>memory-match-config.js</b>.</div>
+
+  <div class="stats">
+    <div class="stat"><b id="nRooms">0</b><span>rooms</span></div>
+    <div class="stat"><b id="nPlayers">0</b><span>students playing</span></div>
+    <div class="stat"><b id="nDone">0</b><span>games finished</span></div>
+  </div>
+
+  <h2 class="sec">Who is playing</h2>
+  <div class="rooms" id="rooms"></div>
+
+  <h2 class="sec">Final leaderboard</h2>
+  <div class="lbwrap" id="board"></div>
+  <div class="tools" style="margin-top:14px">
+    <button class="btn ghost" id="clearDone">Clear finished games</button>
+    <button class="btn ghost" id="clearAll">Clear everything</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="memory-match-config.js"></script>
+<script>
+const CFG = window.MM_CONFIG || {};
+const CLASS_ID = CFG.CLASS_ID || "approach";
+const STALE_MS = 30000, HIDE_MS = 10 * 60000;
+const $ = id => document.getElementById(id);
+const esc = t => String(t ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const KEY = "mm-teacher-" + CLASS_ID;
+let data = { rooms: {}, results: {} };
+try { data = Object.assign(data, JSON.parse(localStorage.getItem(KEY)) || {}); } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} };
+
+let client = null;
+function setupOk() {
+  if (window.MM_TRANSPORT) return true;
+  if (!CFG.SUPABASE_URL || !CFG.SUPABASE_ANON_KEY || /YOUR-/.test(CFG.SUPABASE_URL + CFG.SUPABASE_ANON_KEY) || !window.supabase) return false;
+  client = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
+  return true;
+}
+function openChannel(name, key, h) {
+  if (window.MM_TRANSPORT) return window.MM_TRANSPORT(name, key, h);
+  const ch = client.channel(name, { config: { broadcast: { self: false }, presence: { key } } });
+  (h.events || []).forEach(ev => ch.on("broadcast", { event: ev }, msg => h.onMessage && h.onMessage(ev, msg.payload)));
+  ch.subscribe(status => {
+    if (status === "SUBSCRIBED") h.onReady && h.onReady();
+    else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") h.onError && h.onError(status);
+  });
+  return { send: (event, payload) => ch.send({ type: "broadcast", event, payload }), close: () => client.removeChannel(ch) };
+}
+
+function onRoom(r) {
+  if (!r || !r.code) return;
+  r.seen = Date.now();
+  data.rooms[r.code] = r;
+  if (r.phase === "final" && r.players && r.players[0] && r.players[1]) {
+    data.results[r.code + "#" + r.game] = { code: r.code, players: r.players, totals: r.totals, perRound: r.perRound, ts: r.ts };
+  }
+  save(); render();
+}
+
+function status(r, stale) {
+  if (r.phase === "closed") return ["Closed", ""];
+  if (stale) return ["Offline", ""];
+  if (r.phase === "waiting") return ["Waiting for a partner", ""];
+  if (r.phase === "final") return ["Finished 🏁", "fin"];
+  if (r.phase === "round-end") return ["Week " + (r.round + 1) + " done", "play"];
+  return ["Week " + (r.round + 1) + " of 4", "play"];
+}
+
+function render() {
+  const now = Date.now();
+  const list = Object.values(data.rooms).filter(r => now - r.seen < HIDE_MS && !(r.phase === "closed" && now - r.seen > 120000));
+  const rank = r => ({ playing: 0, "round-end": 0, waiting: 1, final: 2, closed: 3 }[r.phase] ?? 4) + (now - r.seen > STALE_MS ? 5 : 0);
+  list.sort((a, b) => rank(a) - rank(b) || a.code.localeCompare(b.code));
+  const live = list.filter(r => now - r.seen <= STALE_MS && r.phase !== "closed");
+  $("nRooms").textContent = live.length;
+  $("nPlayers").textContent = live.reduce((n, r) => n + (r.players || []).filter(p => p && p.online !== false).length, 0);
+  $("nDone").textContent = Object.keys(data.results).length;
+
+  $("rooms").innerHTML = list.length ? list.map(r => {
+    const stale = now - r.seen > STALE_MS;
+    const [txt, cls] = status(r, stale);
+    const fin = r.phase === "final", t = r.totals || [0, 0];
+    const row = i => {
+      const p = r.players && r.players[i];
+      if (!p) return `<div class="prow off"><span class="av">·</span><span class="nm" style="color:var(--muted)">Empty seat</span><span class="sc"></span></div>`.replace(' off"', '"');
+      const c = ["prow"];
+      if (r.phase === "playing" && r.turn === i && !stale) c.push("turn");
+      if (p.online === false) c.push("off");
+      if (fin && t[i] > t[1 - i]) c.push("win");
+      return `<div class="${c.join(" ")}"><span class="av">${esc(p.emoji)}</span><span class="nm">${esc(p.name)}</span><span class="sc">${t[i] ?? 0}</span></div>`;
+    };
+    const wk = [0, 1, 2, 3].map(i => `<span class="${fin || i < r.round || (r.phase === "round-end" && i === r.round) ? "d" : (i === r.round && r.phase === "playing" ? "n" : "")}"></span>`).join("");
+    return `<div class="room${fin ? " final" : ""}${stale || r.phase === "closed" ? " stale" : ""}">
+      <div class="rhead"><span class="rcode">${esc(r.code)}</span><span class="pill ${cls}">${txt}</span></div>
+      ${row(0)}<div class="vs">vs</div>${row(1)}
+      <div class="wk" aria-hidden="true">${r.phase === "waiting" ? "" : wk}</div></div>`;
+  }).join("") : `<div class="empty">No rooms yet. Students create a room on their phones, and it appears here.</div>`;
+
+  // leaderboard
+  const rows = [];
+  Object.values(data.results).forEach(g => [0, 1].forEach(i => {
+    const p = g.players[i], o = g.players[1 - i];
+    rows.push({ p, o, total: g.totals[i], other: g.totals[1 - i], per: (g.perRound || []).map(x => x[i]), code: g.code });
+  }));
+  rows.sort((a, b) => b.total - a.total || (b.total - b.other) - (a.total - a.other) || a.p.name.localeCompare(b.p.name));
+  const medal = k => ["🥇", "🥈", "🥉"][k] || String(k + 1);
+  let prev = null, shown = 0;
+  $("board").innerHTML = rows.length ? `<table class="lb"><tr><th>#</th><th class="l">Student</th><th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>Total</th><th>Result</th><th class="l">Against</th></tr>` +
+    rows.map((r, k) => {
+      if (prev === null || r.total !== prev) shown = k; prev = r.total;
+      const res = r.total > r.other ? ["Won", "w"] : r.total < r.other ? ["Lost", ""] : ["Tie", ""];
+      return `<tr><td class="rk">${medal(shown)}</td><td class="pl l"><span class="av">${esc(r.p.emoji)}</span>${esc(r.p.name)}</td>` +
+        [0, 1, 2, 3].map(i => `<td>${r.per[i] ?? ""}</td>`).join("") +
+        `<td class="tot">${r.total}</td><td class="res ${res[1]}">${res[0]} ${r.total}–${r.other}</td><td class="l">${esc(r.o.emoji)} ${esc(r.o.name)}</td></tr>`;
+    }).join("") + "</table>"
+    : `<div class="empty">The leaderboard fills in when a pair finishes Week 4.</div>`;
+}
+
+$("clearDone").addEventListener("click", () => {
+  if (!confirm("Remove all finished games from the leaderboard?")) return;
+  data.results = {}; Object.keys(data.rooms).forEach(k => { if (data.rooms[k].phase === "final") delete data.rooms[k]; });
+  save(); render();
+});
+$("clearAll").addEventListener("click", () => {
+  if (!confirm("Clear all rooms and the leaderboard on this screen?")) return;
+  data = { rooms: {}, results: {} }; save(); render();
+});
+
+render();
+if (!setupOk()) { $("setup").style.display = "block"; $("liveTxt").textContent = "Not connected"; }
+else {
+  const lobby = openChannel("mm-lobby-" + CLASS_ID, "teacher-" + Math.random().toString(36).slice(2), {
+    events: ["room"],
+    onMessage: (ev, p) => onRoom(p),
+    onReady: () => { $("dot").classList.add("on"); $("liveTxt").textContent = "Live"; lobby.send("who", {}); },
+    onError: () => { $("dot").classList.remove("on"); $("liveTxt").textContent = "Reconnecting…"; },
+  });
+  setInterval(() => { try { lobby.send("who", {}); } catch (e) {} }, 30000);
+  setInterval(render, 5000);
+}
+</script>
+</body>
+</html>
