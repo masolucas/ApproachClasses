@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beat the Pundit</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+</head>
+<body>
+<div class="frame"><i></i><i></i><i></i><i></i></div>
+<main class="phone">
+  <header><div class="brand"><div class="mono">A</div><div><div class="t1">PERSONAL FINANCE</div><div class="t2">Beat the Pundit</div></div></div><span id="badge" class="badge">Offline</span></header>
+  <div id="app"></div>
+</main>
+<script>
+const CFG = window.BTP_CONFIG || {};
+const NAMES = { index: "Index Fund", star: "Star Fund", cash: "Cash" };
+const DESC = { index: "Follows the market. Fee about 0.1%.", star: "Rex’s favorite. Active manager. Fee 1.5%.", cash: "Safe. Earns 2% a year." };
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmt = n => "$" + Math.round(n).toLocaleString("en-US");
+const pct = r => (r >= 0 ? "+" : "−") + Math.abs(r * 100).toFixed(1).replace(/\.0$/, "") + "%";
+const qs = new URLSearchParams(location.search);
+let room = (qs.get("room") || "").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 4);
+let cid = null, name = "", ch = null, live = false, S = null, seq = 0, pending = null, status = "", lastJoinAsk = 0, picked = null, pickedYear = -1;
+
+function store(k, v) { try { v === undefined ? 0 : localStorage.setItem(k, v); return localStorage.getItem(k); } catch (e) { return v || null; } }
+function idFor(r) { let id = store("btp:cid:" + r); if (!id) id = store("btp:cid:" + r, (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now())); return id; }
+
+function enterScreen(msg) {
+  $("app").innerHTML = `<h1>Beat the <em>Pundit.</em></h1>
+    <p>You have $10,000 and 15 years. Choose where to keep your money each year.</p>
+    ${msg ? `<p class="down">${esc(msg)}</p>` : ""}
+    <label class="field">Room code<input id="rc" maxlength="4" autocapitalize="characters" autocomplete="off" value="${esc(room)}" placeholder="ABCD"></label>
+    <label class="field">Nickname (shown on the leaderboard)<input id="nm" maxlength="18" autocomplete="nickname" value="${esc(name)}" placeholder="e.g. Maria R."></label>
+    <button class="btn" id="go" style="width:100%">Join the game</button>`;
+  $("go").onclick = () => {
+    const rc = $("rc").value.toUpperCase().replace(/[^A-Z]/g, ""), nm = $("nm").value.trim();
+    if (rc.length !== 4) return enterScreen("The room code has 4 letters.");
+    if (!nm) return enterScreen("Type a nickname first.");
+    room = rc; name = nm.slice(0, 18); cid = idFor(room); store("btp:name:" + room, name);
+    history.replaceState(null, "", "?room=" + room);
+    connect();
+  };
+}
+
+function connect() {
+  if (!CFG.SUPABASE_URL || /YOUR-PROJECT/.test(CFG.SUPABASE_URL)) { $("app").innerHTML = "<p>The game isn’t set up yet. Tell your teacher.</p>"; return; }
+  $("app").innerHTML = `<p>Connecting to room <b>${esc(room)}</b>…</p>`;
+  const sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
+  ch = sb.channel("beat-the-pundit:" + room, { config: { broadcast: { self: false } } });
+  ch.on("broadcast", { event: "state" }, ({ payload }) => onState(payload));
+  ch.on("broadcast", { event: "ack" }, ({ payload }) => onAck(payload));
+  ch.subscribe(st => {
+    live = st === "SUBSCRIBED";
+    $("badge").textContent = live ? "Live" : "Reconnecting"; $("badge").className = "badge " + (live ? "live" : "off");
+    if (live) { send("join", { cid, name }); send("hello", { cid }); }
+  });
+  setTimeout(() => { if (!S) $("app").innerHTML = `<p>Connected. Waiting for the main screen…</p><p class="small">If nothing happens, check the room code: <b>${esc(room)}</b>.</p><button class="btn ghost" id="chg">Change room or nickname</button>`, $("chg") && ($("chg").onclick = () => enterScreen()); }, 4000);
+}
+function send(event, payload) { if (ch) ch.send({ type: "broadcast", event, payload }); }
+
+function onState(p) {
+  if (p.room !== room) return;
+  S = p;
+  const me = S.pl[cid];
+  if (!me && Date.now() - lastJoinAsk > 2000) { lastJoinAsk = Date.now(); send("join", { cid, name }); }
+  if (S.phase === "decide" && pickedYear !== S.year) { picked = null; status = ""; pending = null; }
+  render();
+}
+function onAck(a) {
+  if (a.cid !== cid || !pending || a.seq !== pending.seq) return;
+  clearTimeout(pending.timer); pending = null;
+  if (a.ok) status = "sent";
+  else if (a.why === "unknown") { send("join", { cid, name }); status = "retry"; }
+  else status = "closed";
+  renderStatus();
+}
+function choose(c) {
+  if (!S || S.phase !== "decide") return;
+  picked = c; pickedYear = S.year; seq++;
+  if (pending) clearTimeout(pending.timer);
+  pending = { seq, timer: setTimeout(() => { pending = null; status = "failed"; renderStatus(); }, 5000) };
+  send("choice", { cid, year: S.year, choice: c, seq });
+  status = "sending"; render();
+}
+function retry() { if (picked) choose(picked); }
+
+function renderStatus() {
+  const el = $("st"); if (!el) return;
+  el.innerHTML = status === "sending" ? "Sending…"
+    : status === "sent" ? `<span class="up">Sent ✓</span> <span class="small">You can change it until the year is revealed.</span>`
+    : status === "failed" ? `<span class="down">Didn’t reach the screen.</span><button class="retry" onclick="retry()">Try again</button>`
+    : status === "closed" ? `<span class="small">This year is already closed. Wait for the next one.</span>`
+    : status === "retry" ? `<span class="small">Reconnecting you…</span><button class="retry" onclick="retry()">Try again</button>` : "";
+}
+function wallet(me) {
+  return `<div class="wallet"><div><div class="small">${esc(name)}</div><div class="money">${fmt(me[0])}</div></div><div style="text-align:right"><div class="small">Rank</div><div class="money" style="font-size:1.6rem">${me[1]} <span class="small">of ${S.total}</span></div></div></div>`;
+}
+function render() {
+  const me = S && S.pl[cid];
+  if (!S || !me) { $("app").innerHTML = `<p>Joining room <b>${esc(room)}</b>…</p>`; return; }
+  if (S.phase === "lobby") {
+    $("app").innerHTML = `<h1>You’re <em>in!</em></h1>${wallet(me)}<p>Watch the main screen. The game starts soon.</p>
+      <div class="note"><b>How it works</b><p class="small">Before each year, Rex Rally makes a prediction. Choose Index Fund, Star Fund, or Cash. If you don’t choose, your money stays where it is. Highest balance after 15 years wins.</p></div>
+      <button class="btn ghost" id="chg" style="margin-top:1rem">Change nickname</button>`;
+    $("chg").onclick = () => enterScreen();
+  } else if (S.phase === "decide") {
+    const cur = picked && pickedYear === S.year ? picked : me[2];
+    $("app").innerHTML = `${wallet(me)}<h2 style="font-size:1.6rem">Year ${S.year + 1} <em style="font-size:1rem">of ${S.n}</em></h2>
+      <div class="tv" style="margin-top:.8rem"><div class="bug"><b>LIVE</b> MoneyBlast TV</div><div class="say">“${esc(S.head)}”</div><div class="who">Rex Rally, TV pundit</div></div>
+      <p class="small" style="margin-top:1rem">Where is your money this year?</p>
+      <div class="choices">${Object.keys(NAMES).map(k => `<button class="choice ${cur === k ? "on" : ""}" data-k="${k}" aria-pressed="${cur === k}"><b>${NAMES[k]}</b><span>${DESC[k]}</span></button>`).join("")}</div>
+      <div class="status" id="st"></div>`;
+    document.querySelectorAll(".choice").forEach(b => b.onclick = () => choose(b.dataset.k));
+    renderStatus();
+  } else if (S.phase === "reveal") {
+    const L = S.last, mine = me[2], r = mine === "index" ? L.idx : mine === "star" ? L.star : L.cash;
+    $("app").innerHTML = `${wallet(me)}<h2 style="font-size:1.6rem">Year ${L.year + 1} <em style="font-size:1rem">results</em></h2>
+      <p>Your money was in <b>${NAMES[mine]}</b>.</p><div class="big-result ${r >= 0 ? "up" : "down"}">${pct(r)}</div>
+      <p class="small">Index ${pct(L.idx)} · Star Fund ${pct(L.star)} · Cash ${pct(L.cash)} (after fees)</p>
+      <div class="note">${L.type === "crash" ? (L.rexRight ? "Rex warned of a crash, and this time he was right." : "Rex warned of a crash. He was wrong.") : "Rex promoted the Star Fund this year."}</div>
+      <p class="small" style="margin-top:1rem">Next year’s headline is coming. Watch the main screen.</p>`;
+  } else if (S.phase === "final") {
+    $("app").innerHTML = `<h1>Game <em>over.</em></h1>${wallet(me)}
+      ${S.dana ? `<div class="note reveal-in"><p>Do-Nothing Dana never moved her money from the index fund. She finished with <b class="money">${fmt(S.dana)}</b>.</p>
+        <p class="big-result" style="font-size:1.8rem">${me[0] > S.dana ? "You beat Dana! 🎉" : me[0] === S.dana ? "You tied with Dana. You did what she did!" : "Dana beat you."}</p>
+        <p class="small">Time in the market, not timing the market.</p></div>` : `<p>Watch the main screen for the final reveal.</p>`}`;
+  }
+}
+
+if (room) { name = store("btp:name:" + room) || ""; cid = idFor(room); }
+if (room && name) connect(); else enterScreen();
+</script>
+</body>
+</html>

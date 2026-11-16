@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Financial Health Check · Personal Finance</title>
+<style>
+:root { --navy:#0f2340; --navy-d:#081629; --gold:#c9a24b; --cream:#faf6ee; --ink:#1a1a1a; --soft:#4a4a4a; --line:#e3dccb; --teal:#0e6b6b; --amber:#b45309;
+  --serif: Cambria, "Caladea", Georgia, serif; --sans: Calibri, "Carlito", "Segoe UI", Arial, sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(--sans); font-size: 17px; line-height: 1.5; }
+.top { background: var(--navy); color: var(--cream); padding: 2.2rem 1.25rem 2.4rem; position: relative; }
+.top::before, .top::after { content: ""; position: absolute; width: 26px; height: 26px; border: 2px solid var(--gold); }
+.top::before { top: 12px; left: 12px; border-right: 0; border-bottom: 0; }
+.top::after { bottom: 12px; right: 12px; border-left: 0; border-top: 0; }
+.wrap { max-width: 720px; margin: 0 auto; }
+.brand { display: flex; align-items: center; gap: .6rem; font-size: .75rem; letter-spacing: .22em; color: var(--gold); font-weight: 700; }
+.mono { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--gold); display: grid; place-items: center; font-family: var(--serif); font-style: italic; letter-spacing: 0; }
+h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(2.2rem, 6vw, 3.2rem); line-height: 1.05; margin: 1rem 0 .6rem; }
+h1 em { color: var(--gold); }
+.lede { max-width: 56ch; margin: 0; opacity: .9; }
+.privacy { margin-top: 1.2rem; border: 1px solid rgba(201,162,75,.5); border-radius: 8px; padding: .8rem 1rem; font-size: .95rem; }
+main { padding: 1.5rem 1.25rem 4rem; }
+.q { border-bottom: 1px solid var(--line); padding: 1.1rem 0; display: grid; grid-template-columns: 2.2rem 1fr; gap: .2rem .6rem; }
+.q .n { font-family: var(--serif); font-style: italic; color: var(--gold); font-size: 1.4rem; line-height: 1.2; }
+.q p { margin: 0 0 .6rem; font-size: 1.08rem; }
+.opts { grid-column: 2; display: flex; flex-wrap: wrap; gap: .5rem; }
+.opts button { font: inherit; font-size: .98rem; padding: .5em 1.1em; border-radius: 99px; border: 1.5px solid #cfc6b0; background: #fff; color: var(--ink); cursor: pointer; }
+.opts button[aria-pressed="true"].yes { background: var(--teal); border-color: var(--teal); color: #fff; }
+.opts button[aria-pressed="true"].no { background: var(--amber); border-color: var(--amber); color: #fff; }
+.opts button[aria-pressed="true"].na { background: #6b6b6b; border-color: #6b6b6b; color: #fff; }
+button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.bar { position: sticky; bottom: 0; background: var(--cream); border-top: 1px solid var(--line); padding: .9rem 0; display: flex; align-items: center; gap: 1rem; margin-top: 1rem; }
+.bar .count { flex: 1; color: var(--soft); }
+.btn { font: inherit; font-weight: 700; padding: .75em 1.4em; border: 0; border-radius: 6px; background: var(--navy); color: var(--cream); cursor: pointer; }
+.btn.gold { background: var(--gold); color: var(--navy); }
+.btn.ghost { background: transparent; color: var(--navy); border: 1.5px solid var(--navy); font-weight: 400; }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+#result { display: none; }
+.band { font-family: var(--serif); font-size: clamp(2rem, 6vw, 2.8rem); color: var(--navy); margin: .3rem 0; }
+.score { color: var(--soft); }
+.meter { height: 10px; border-radius: 5px; background: #e9e2d0; overflow: hidden; margin: .8rem 0 1.2rem; }
+.meter i { display: block; height: 100%; background: var(--gold); }
+h2 { font-family: var(--serif); font-weight: 400; font-size: 1.6rem; margin: 2rem 0 .6rem; color: var(--navy); }
+.next { list-style: none; padding: 0; margin: 0; }
+.next li { border-left: 3px solid var(--amber); padding: .5rem 0 .5rem .9rem; margin-bottom: .7rem; }
+.next .wk { font-size: .8rem; letter-spacing: .12em; color: var(--amber); font-weight: 700; }
+.next .t { margin: .1rem 0; }
+.next .tip { color: var(--soft); }
+.strong { list-style: none; padding: 0; columns: 2 280px; }
+.strong li { padding: .25rem 0 .25rem 1.4rem; position: relative; break-inside: avoid; }
+.strong li::before { content: "✓"; position: absolute; left: 0; color: var(--teal); font-weight: 700; }
+.essay { border: 1.5px solid var(--navy); border-radius: 8px; padding: 1rem 1.2rem; margin-top: 1.5rem; }
+.essay b { color: var(--navy); }
+.actions { display: flex; gap: .7rem; flex-wrap: wrap; margin-top: 1.5rem; }
+.foot { margin-top: 2.5rem; font-size: .8rem; color: var(--soft); }
+.print-only { display: none; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media print {
+  body { background: #fff; font-size: 11pt; }
+  .top { background: #fff; color: var(--ink); padding: 0 0 .6rem; border-bottom: 2px solid var(--gold); }
+  .top::before, .top::after, .privacy, .lede, #quiz, .actions, .bar { display: none !important; }
+  h1 { font-size: 22pt; margin: .4rem 0 0; } h1 em { color: var(--navy); }
+  main { padding: .6rem 0 0; }
+  #result { display: block !important; }
+  .print-only { display: block; }
+  .meter { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .next li, .essay { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="brand"><span class="mono">A</span> PERSONAL FINANCE · WEEK 07</div>
+  <h1>Financial Health <em>Check</em></h1>
+  <p class="lede">14 quick questions about your money habits. Answer honestly: awareness is the first step to change.</p>
+  <div class="privacy"><b>Private.</b> Your answers stay on this device. Nothing is sent or saved, and nobody sees your result, not even your teacher. When you close this page, your answers disappear.</div>
+</div></header>
+<main><div class="wrap">
+  <section id="quiz"></section>
+  <section id="result" aria-live="polite"></section>
+  <p class="foot">Adapted for the Approach International Student Center Personal Finance course. General financial education, not personal financial advice. Copyright © 2026 Approach International Student Center, Inc. - Revised on 11/15/2026</p>
+</div></main>
+<script>
+const Q = [{"q":"I have a bank or credit union account with no monthly fees.","wk":"Week 2","tip":"Compare no-fee, high-interest accounts, or call your bank and ask to waive fees."},{"q":"I usually have enough money each month to pay my bills on time.","wk":"Week 4","tip":"List your fixed costs and check that they fit inside about 50–60% of take-home pay."},{"q":"I am building an emergency fund, even a small one.","wk":"Week 4","tip":"Start a separate savings goal for emergencies and add a small amount every month."},{"q":"I have written down at least one financial goal with a date.","wk":"Week 1","tip":"Write one goal with an amount and a date, for example “$600 by June.”"},{"q":"I know roughly how much I spend each month.","wk":"Week 4","tip":"Track one month of spending and put it into the four buckets."},{"q":"I have a spending plan that includes guilt-free spending.","wk":"Week 4","tip":"Build a conscious spending plan and decide what you love spending on."},{"q":"I save money regularly, even a small amount.","wk":"Week 4","tip":"Choose a small amount you can save every payday and make it a habit."},{"q":"I pay my credit card balance in full every month.","wk":"Week 1","na":true,"tip":"Pay the full balance, not the minimum, to avoid interest charges."},{"q":"I know my credit score, or I know how to check it.","wk":"Week 1","tip":"Learn where to check your credit score for free and look at it once a year."},{"q":"I compare at least three options before a big purchase.","wk":"Week 4","tip":"Before any big purchase, compare three sellers or options."},{"q":"I usually avoid impulse purchases.","wk":"Week 4","tip":"Try a 48-hour waiting rule before buying something you didn’t plan."},{"q":"My important money papers (bills, statements, tax forms) are organized.","wk":"Week 1","tip":"Keep one folder or app for bills, statements, and tax forms."},{"q":"I know what an expense ratio is, and I would check it before investing.","wk":"Week 7","tip":"Before you invest, find the fund’s expense ratio. Low-cost index funds are often around 0.1–0.2%."},{"q":"Before I follow money advice, I check who is giving it and how they get paid.","wk":"Week 7","tip":"Ask: Is this a fact or an opinion? Is this person a fee-only fiduciary?"}];
+const BANDS = [{"min":0.75,"name":"Strong foundation","text":"You already have many healthy money habits. Keep them going, and look at your “Not yet” answers for your next steps."},{"min":0.45,"name":"Getting there","text":"You have some good habits and some gaps. Choose two “Not yet” answers and turn them into a plan this month."},{"min":0,"name":"Bumpy road","text":"Everyone starts somewhere. Pick one small step from your “Not yet” list and start this week. Small habits add up."}];
+const A5 = {"prompt":"Check your financial health by taking the course financial health quiz. What strategies could you adopt to improve your financial health? Answer in 500 words.","due":"Week 8","weight":"5%"};
+const ans = {};
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function drawQuiz() {
+  $("quiz").innerHTML = Q.map((q, i) => `<div class="q" role="group" aria-labelledby="q${i}">
+      <span class="n">${i + 1}</span><p id="q${i}">${esc(q.q)}</p>
+      <div class="opts">
+        <button class="yes" data-i="${i}" data-v="yes" aria-pressed="${ans[i] === "yes"}">Yes</button>
+        <button class="no" data-i="${i}" data-v="no" aria-pressed="${ans[i] === "no"}">Not yet</button>
+        ${q.na ? `<button class="na" data-i="${i}" data-v="na" aria-pressed="${ans[i] === "na"}">Doesn’t apply to me</button>` : ""}
+      </div></div>`).join("") +
+    `<div class="bar"><span class="count" id="count"></span><button class="btn gold" id="see">See my result</button></div>`;
+  document.querySelectorAll(".opts button").forEach(b => b.onclick = () => {
+    ans[b.dataset.i] = b.dataset.v;
+    b.parentElement.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    count();
+  });
+  $("see").onclick = showResult; count();
+}
+function count() {
+  const n = Object.keys(ans).length;
+  $("count").textContent = n + " of " + Q.length + " answered";
+  $("see").disabled = n < Q.length;
+}
+function showResult() {
+  const yes = Q.filter((_, i) => ans[i] === "yes"), no = Q.map((q, i) => ({ q, i })).filter(x => ans[x.i] === "no");
+  const applicable = Q.filter((_, i) => ans[i] !== "na").length;
+  const share = applicable ? yes.length / applicable : 0;
+  const band = BANDS.find(b => share >= b.min);
+  const date = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  $("result").innerHTML = `
+    <p class="print-only score">Result from ${date}</p>
+    <p class="score">You answered “Yes” to ${yes.length} of ${applicable} questions that apply to you.</p>
+    <div class="band">${esc(band.name)}</div>
+    <div class="meter" aria-hidden="true"><i style="width:${Math.round(share * 100)}%"></i></div>
+    <p>${esc(band.text)}</p>
+    ${no.length ? `<h2>Your next-step ideas</h2><ul class="next">${no.map(x => `<li><div class="wk">${esc(x.q.wk.toUpperCase())}</div><div class="t">${esc(x.q.q)}</div><div class="tip">Strategy: ${esc(x.q.tip)}</div></li>`).join("")}</ul>` : `<h2>No “Not yet” answers</h2><p>Great habits. For your essay, choose strategies that would make your system even stronger.</p>`}
+    ${yes.length ? `<h2>What you already do well</h2><ul class="strong">${yes.map(q => `<li>${esc(q.q)}</li>`).join("")}</ul>` : ""}
+    <!--<div class="essay"><b>For your A5 essay (500 words, due ${esc(A5.due)}):</b> ${esc(A5.prompt)}<br><br>Choose two or three ideas from your list. For each one, explain what you will do, why it helps, and your first small step. You don’t need to share your score.</div>-->
+    <div class="actions">
+      <button class="btn" id="pdf">Save as PDF</button>
+      <button class="btn ghost" id="back">Change my answers</button>
+      <button class="btn ghost" id="reset">Start over</button>
+    </div>`;
+  $("quiz").style.display = "none"; $("result").style.display = "block"; window.scrollTo(0, 0);
+  $("pdf").onclick = () => { const t = document.title; document.title = "Financial-Health-Check_" + new Date().toISOString().slice(0, 10); window.print(); setTimeout(() => document.title = t, 500); };
+  $("back").onclick = () => { $("result").style.display = "none"; $("quiz").style.display = "block"; };
+  $("reset").onclick = () => { Object.keys(ans).forEach(k => delete ans[k]); $("result").style.display = "none"; $("quiz").style.display = "block"; drawQuiz(); window.scrollTo(0, 0); };
+}
+drawQuiz();
+</script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beat the Pundit · Host</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="config.js"></script>
+<script src="data.js"></script>
+</head>
+<body>
+<div class="frame"><i></i><i></i><i></i><i></i></div>
+<div class="host">
+  <div class="topbar">
+    <div class="brand"><div class="mono">A</div><div><div class="t1">PERSONAL FINANCE</div><div class="t2">Week 07 · Beat the Pundit</div></div></div>
+    <div class="spacer"></div>
+    <span id="room" class="small"></span>
+    <span id="count" class="small"></span>
+    <button id="showCode" class="btn ghost" hidden>Show join code</button>
+    <span id="badge" class="badge">Connecting</span>
+  </div>
+  <div class="stage" id="stage"></div>
+</div>
+<div class="overlay" id="overlay">
+  <div>
+    <div class="qr" id="qr2" style="margin:0 auto"></div>
+    <div class="code" id="code2" style="margin-top:1rem"></div>
+    <p class="url" id="url2"></p>
+    <button class="btn" onclick="overlay.classList.remove('show')">Close</button>
+  </div>
+</div>
+<script>
+const CFG = window.BTP_CONFIG || {}, D = window.BTP_DATA, N = D.years.length;
+const NAMES = { index: "Index Fund", star: "Star Fund", cash: "Cash" };
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmt = n => "$" + Math.round(n).toLocaleString("en-US");
+const pct = r => (r >= 0 ? "+" : "−") + Math.abs(r * 100).toFixed(1).replace(/\.0$/, "") + "%";
+const ret = (c, y) => c === "index" ? y.idx - D.idxFee : c === "star" ? y.star - D.starFee : D.cash;
+let S = null, ch = null, live = false, sendTimer = null;
+
+// ---------- benchmark players (computed from the data) ----------
+function bench(rule) { let b = D.start; D.years.forEach(y => b *= 1 + ret(rule(y), y)); return b; }
+const BENCH = {
+  dana: bench(() => "index"),
+  rex: bench(y => y.type === "crash" ? "cash" : "star"),
+  cash: bench(() => "cash"),
+  star: bench(() => "star"),
+};
+
+// ---------- room + persistence ----------
+function code4() { const a = "ABCDEFGHJKLMNPQRSTUVWXYZ"; let s = ""; for (let i = 0; i < 4; i++) s += a[Math.floor(Math.random() * a.length)]; return s; }
+function save() { try { localStorage.setItem("btp:host:" + S.room, JSON.stringify(S)); localStorage.setItem("btp:lastRoom", S.room); } catch (e) {} }
+function load(room) { try { return JSON.parse(localStorage.getItem("btp:host:" + room)); } catch (e) { return null; } }
+function joinUrl() { return location.href.replace(/host\.html.*$/, "join.html").split("?")[0].split("#")[0] + "?room=" + S.room; }
+
+function start() {
+  if (!CFG.SUPABASE_URL || /YOUR-PROJECT/.test(CFG.SUPABASE_URL)) {
+    $("stage").innerHTML = '<div class="center"><div><h2>Add your Supabase keys</h2><p class="small">Open <b>config.js</b> and paste your project URL and anon key.</p></div></div>';
+    $("badge").textContent = "Not configured"; $("badge").className = "badge off"; return;
+  }
+  const last = localStorage.getItem("btp:lastRoom"), old = last && load(last);
+  if (old && old.phase !== "final") {
+    $("stage").innerHTML = `<div class="center"><div><h2 class="hero-title">Welcome <em>back.</em></h2>
+      <p>Room <b>${esc(old.room)}</b> has ${Object.keys(old.players).length} players and is in year ${old.year + 1} of ${N}.</p>
+      <div class="actions" style="justify-content:center"><button class="btn" id="resume">Resume room ${esc(old.room)}</button><button class="btn ghost" id="fresh">Create a new room</button></div></div></div>`;
+    $("resume").onclick = () => { S = old; connect(); };
+    $("fresh").onclick = newRoom;
+  } else newRoom();
+}
+function newRoom() {
+  S = { room: code4(), phase: "lobby", year: 0, players: {}, last: null, dana: D.start, danaShown: false };
+  save(); connect();
+}
+
+// ---------- realtime ----------
+function connect() {
+  $("room").textContent = "Room " + S.room;
+  $("showCode").hidden = false;
+  const sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
+  ch = sb.channel("beat-the-pundit:" + S.room, { config: { broadcast: { self: false } } });
+  ch.on("broadcast", { event: "hello" }, () => pushState());
+  ch.on("broadcast", { event: "join" }, ({ payload }) => onJoin(payload));
+  ch.on("broadcast", { event: "choice" }, ({ payload }) => onChoice(payload));
+  ch.subscribe(status => {
+    live = status === "SUBSCRIBED";
+    $("badge").textContent = live ? "Live" : (status === "CLOSED" || status === "CHANNEL_ERROR" || status === "TIMED_OUT") ? "Reconnecting" : "Connecting";
+    $("badge").className = "badge " + (live ? "live" : "off");
+    if (live) pushState();
+  });
+  render();
+}
+function send(event, payload) { if (ch) ch.send({ type: "broadcast", event, payload }); }
+function ranked() {
+  return Object.entries(S.players).map(([cid, p]) => ({ cid, ...p })).sort((a, b) => b.bal - a.bal || a.name.localeCompare(b.name));
+}
+function pushState() {
+  clearTimeout(sendTimer);
+  sendTimer = setTimeout(() => {
+    const r = ranked(), pl = {};
+    r.forEach((p, i) => pl[p.cid] = [Math.round(p.bal), i + 1, p.choice, p.cy === S.year ? 1 : 0, p.name]);
+    const y = D.years[S.year];
+    send("state", { room: S.room, phase: S.phase, year: S.year, n: N, head: y ? y.head : "", last: S.last, pl, total: r.length,
+      dana: S.danaShown ? Math.round(BENCH.dana) : null });
+  }, 150);
+}
+
+// ---------- messages from phones ----------
+function cleanName(n) { return String(n || "").replace(/\s+/g, " ").trim().slice(0, 18) || "Player"; }
+function onJoin({ cid, name }) {
+  if (!cid) return;
+  if (S.players[cid]) S.players[cid].name = cleanName(name);
+  else S.players[cid] = { name: cleanName(name), bal: S.phase === "lobby" ? D.start : S.dana, choice: "index", cy: -1 };
+  save(); render(); pushState();
+}
+function onChoice({ cid, year, choice, seq }) {
+  const p = S.players[cid];
+  if (!p) return send("ack", { cid, seq, ok: false, why: "unknown" });
+  if (S.phase !== "decide" || year !== S.year || !NAMES[choice]) return send("ack", { cid, seq, ok: false, why: "closed" });
+  p.choice = choice; p.cy = S.year;
+  send("ack", { cid, seq, ok: true, choice, year });
+  save(); renderCounter(); pushState();
+}
+
+// ---------- game flow ----------
+function begin() { S.phase = "decide"; S.year = 0; save(); render(); pushState(); }
+function reveal() {
+  const y = D.years[S.year], dist = { index: 0, star: 0, cash: 0 };
+  Object.values(S.players).forEach(p => { p.bal *= 1 + ret(p.choice, y); dist[p.choice]++; });
+  S.dana *= 1 + ret("index", y);
+  S.last = { year: S.year, type: y.type, idx: ret("index", y), star: ret("star", y), cash: D.cash, rexRight: y.type === "crash" ? y.idx < 0 : null, dist };
+  S.phase = "reveal"; save(); render(); pushState();
+}
+function next() {
+  if (S.year < N - 1) { S.year++; S.phase = "decide"; } else S.phase = "final";
+  save(); render(); pushState();
+}
+function showDana() { S.danaShown = true; save(); render(); pushState(); }
+
+// ---------- rendering ----------
+function renderCounter() {
+  $("count").textContent = Object.keys(S.players).length + " players";
+  const c = $("chosen"); if (!c) return;
+  const all = Object.values(S.players), done = all.filter(p => p.cy === S.year).length;
+  c.innerHTML = `<b>${done}</b> of ${all.length} made a choice this year. <span class="small">No choice = money stays where it is.</span>`;
+}
+function progress() { return '<div class="progress">' + D.years.map((_, i) => `<span class="${i < S.year || (i === S.year && S.phase !== "decide") ? "done" : i === S.year ? "now" : ""}"></span>`).join("") + "</div>"; }
+function tv(head) { return `<div class="tv"><div class="bug"><b>LIVE</b> ${esc(D.pundit.show)}</div><div class="say">“${esc(head)}”</div><div class="who">${esc(D.pundit.name)}, TV pundit</div></div>`; }
+function board(limit, withDana) {
+  let r = ranked().map(p => ({ name: p.name, bal: p.bal }));
+  if (withDana) r.push({ name: "Do-Nothing Dana", bal: BENCH.dana, dana: true }), r.sort((a, b) => b.bal - a.bal);
+  const top = r.slice(0, limit), extra = r.length - top.length;
+  const di = r.findIndex(x => x.dana);
+  let rows = top.map((p, i) => `<li class="${p.dana ? "dana reveal-in" : ""}"><span class="rk">${i + 1}</span><span class="nm">${esc(p.name)}</span><span class="money">${fmt(p.bal)}</span></li>`).join("");
+  if (withDana && di >= limit) rows += `<li class="dana reveal-in"><span class="rk">${di + 1}</span><span class="nm">Do-Nothing Dana</span><span class="money">${fmt(BENCH.dana)}</span></li>`;
+  return `<div class="board"><h3>Leaderboard</h3><ol>${rows || '<li><span></span><span class="small">No players yet</span><span></span></li>'}</ol>${extra > 0 ? `<div class="more small">+ ${extra} more</div>` : ""}</div>`;
+}
+function qrInto(el, text) { el.innerHTML = ""; if (window.QRCode) new QRCode(el, { text, width: 252, height: 252, colorDark: "#0f2340", colorLight: "#ffffff" }); else el.textContent = "QR unavailable"; }
+
+function render() {
+  renderCounter();
+  const st = $("stage");
+  if (S.phase === "lobby") {
+    const names = Object.values(S.players).map(p => `<span class="chip">${esc(p.name)}</span>`).join("");
+    st.innerHTML = `<div class="lobby"><div class="qr" id="qr"></div><div>
+      <h1 class="hero-title">Beat the <em>Pundit.</em></h1>
+      <p style="font-size:1.25rem;max-width:40ch">You have $10,000 and 15 years. TV pundit ${esc(D.pundit.name)} will tell you what to do. Will you listen?</p>
+      <div class="code">${S.room}</div><p class="url">${esc(joinUrl())}</p>
+      <div class="chips">${names || '<span class="small">Waiting for players…</span>'}</div>
+      <div class="actions"><button class="btn" id="go" ${Object.keys(S.players).length ? "" : "disabled"}>Start the game</button></div></div></div>`;
+    qrInto($("qr"), joinUrl()); $("go").onclick = begin;
+  } else if (S.phase === "decide") {
+    st.innerHTML = `<div class="play"><div>
+      <div class="yearline"><h2>Year ${S.year + 1}</h2><span class="of">of ${N}</span></div>${progress()}
+      ${tv(D.years[S.year].head)}
+      <p class="counter" id="chosen"></p>
+      <div class="actions"><button class="btn" id="rev">Lock choices and reveal Year ${S.year + 1}</button></div></div>
+      ${board(8)}</div>`;
+    $("rev").onclick = reveal; renderCounter();
+  } else if (S.phase === "reveal") {
+    const L = S.last;
+    const v = L.type === "crash"
+      ? (L.rexRight ? `Rex said “get out.” This time he was <em>right</em>: the market fell.` : `Rex said “get out.” The market went <em>up ${pct(L.idx)}</em>.`)
+      : `Rex pushed the Star Fund. After fees it did <em>${pct(L.star)}</em>; the index did <em>${pct(L.idx)}</em>.`;
+    const tot = Object.values(L.dist).reduce((a, b) => a + b, 0) || 1;
+    st.innerHTML = `<div class="play"><div>
+      <div class="yearline"><h2>Year ${L.year + 1}</h2><span class="of">results</span></div>${progress()}
+      <div class="results">
+        <div class="res"><div class="k">INDEX FUND</div><div class="v ${L.idx >= 0 ? "up" : "down"}">${pct(L.idx)}</div><div class="n">${Math.round(100 * L.dist.index / tot)}% of you</div></div>
+        <div class="res"><div class="k">STAR FUND</div><div class="v ${L.star >= 0 ? "up" : "down"}">${pct(L.star)}</div><div class="n">${Math.round(100 * L.dist.star / tot)}% of you</div></div>
+        <div class="res"><div class="k">CASH</div><div class="v up">${pct(L.cash)}</div><div class="n">${Math.round(100 * L.dist.cash / tot)}% of you</div></div>
+      </div>
+      <p class="verdict">${v}</p>
+      <p class="small">Returns are after fees: index 0.1%, Star Fund 1.5%. Simulated market for class practice.</p>
+      <div class="actions"><button class="btn" id="nx">${S.year < N - 1 ? "Next: Year " + (S.year + 2) : "Final results"}</button></div></div>
+      ${board(8)}</div>`;
+    $("nx").onclick = next;
+  } else if (S.phase === "final") {
+    const players = ranked(), beat = players.filter(p => p.bal > BENCH.dana).length;
+    const rexRight = D.years.filter(y => y.type === "crash" && y.idx < 0).length, rexCalls = D.years.filter(y => y.type === "crash").length;
+    st.innerHTML = `<div class="play"><div>
+      <h2 class="final-hero">After 15 years, <em>who beat the pundit?</em></h2>
+      ${S.danaShown ? `<div class="reveal-in"><p style="font-size:1.3rem;margin-top:1.2rem">Do-Nothing Dana kept her money in the index fund for all 15 years. She ignored every headline.</p>
+        <p class="verdict"><em>${beat}</em> of ${players.length} players beat Dana.</p>
+        <div class="stats">
+          <div class="res"><div class="k">FOLLOWED REX</div><div class="v money">${fmt(BENCH.rex)}</div><div class="n">cash on every warning, Star Fund on every tip</div></div>
+          <div class="res"><div class="k">STAR FUND ONLY</div><div class="v money">${fmt(BENCH.star)}</div><div class="n">1.5% fee every year</div></div>
+          <div class="res"><div class="k">CASH ONLY</div><div class="v money">${fmt(BENCH.cash)}</div><div class="n">safe, but slow</div></div>
+        </div>
+        <p class="verdict">Rex predicted a crash ${rexCalls} times and was right ${rexRight} times. <em>Time in the market, not timing the market.</em></p></div>`
+      : `<p style="font-size:1.3rem;margin-top:1.2rem">Before we celebrate, one more player wants to join the leaderboard…</p>
+         <div class="actions"><button class="btn" id="dana">Reveal one more player</button></div>`}
+      </div>${board(10, S.danaShown)}</div>`;
+    if (!S.danaShown) $("dana").onclick = showDana;
+  }
+}
+$("showCode").onclick = () => { $("overlay").classList.add("show"); qrInto($("qr2"), joinUrl()); $("code2").textContent = S.room; $("url2").textContent = joinUrl(); };
+window.addEventListener("keydown", e => { if (e.key === "Escape") $("overlay").classList.remove("show"); });
+start();
+</script>
+</body>
+</html>
