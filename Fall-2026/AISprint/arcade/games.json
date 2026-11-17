@@ -59,7 +59,7 @@
       "team": "Maria Dandara, Janaina Ferreira, Karolina Capela, & Luciene Coutinho",
       "story": "An astronaut collects falling stars in space while avoiding dangerous rocks. The goal is to collect 20 stars before losing all three lives.",
       "howto": "First, use the left and right arrow keys to move the astronaut. Next, catch falling stars to earn points. Then, press Space to activate a shield for two seconds when rocks get close. Finally, collect 20 stars to win, and watch out for rocks!",
-      "controls": "keyboard",
+      "controls": "gesture",
       "gestures": "Left arrow → Move left. Right arrow → Move right. Space → Activate the shield for two seconds.",
       "changed": "",
       "file": "star-catcher.html"
@@ -89,7 +89,7 @@
       "team": "Patrick",
       "story": "",
       "howto": "TBD",
-      "controls": "gesture",
+      "controls": "keyboard",
       "gestures": "TBD",
       "changed": "",
       "file": "neon-delivery.html"
