@@ -73,6 +73,16 @@
       "gestures": "TBD",
       "changed": "",
       "file": "imigrant-odyssey.html"
+    },
+    {
+      "title": "Kung Fu Master",
+      "team": "Jia",
+      "story": "",
+      "howto": "TBD",
+      "controls": "keyboard",
+      "gestures": "TBD",
+      "changed": "",
+      "file": "kung-fu-master.html"
     }
   ]
 }
