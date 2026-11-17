@@ -27,10 +27,10 @@
     {
       "title": "Pong Challenge",
       "team": "Augusto & Sandro",
-      "story": "",
-      "howto": "TBD",
+      "story": "Pong Challenge is a fun game where you can play against the computer or challenge a friend. The goal is to test your concentration, coordination, and reaction speed while having fun.",
+      "howto": "First, choose between single-player mode and two-player mode. Next, move your paddle to hit the ball toward your opponent. Then, try to prevent the ball from passing your paddle. Each player starts with five lives and loses one when they lose a round. After winning against the computer, you advance to the next level, which becomes more difficult. Finally, complete all ten levels to win the game!",
       "controls": "keyboard",
-      "gestures": "TBD",
+      "gestures": "Player 1: Press W to move up and S to move down; Player 2: Press the Up Arrow (↑) to move up and the Down Arrow (↓) to move down; In single-player mode, the computer controls the second paddle.",
       "changed": "",
       "file": "pong-challenge.html"
     },
@@ -53,6 +53,26 @@
       "gestures": "Left arrow — move left. Right arrow — move right. Space bar — jump over foxes.",
       "changed": "",
       "file": "acorn-chase.html"
+    },
+    {
+      "title": "Star Catcher",
+      "team": "Maria Dandara, Janaina Ferreira, Karolina Capela, & Luciene Coutinho",
+      "story": "An astronaut collects falling stars in space while avoiding dangerous rocks. The goal is to collect 20 stars before losing all three lives.",
+      "howto": "First, use the left and right arrow keys to move the astronaut. Next, catch falling stars to earn points. Then, press Space to activate a shield for two seconds when rocks get close. Finally, collect 20 stars to win, and watch out for rocks!",
+      "controls": "keyboard",
+      "gestures": "Left arrow → Move left. Right arrow → Move right. Space → Activate the shield for two seconds.",
+      "changed": "",
+      "file": "star-catcher.html"
+    },
+    {
+      "title": "Imigrant Odyssey",
+      "team": "Valdevino, Igor, & Greta",
+      "story": "",
+      "howto": "TBD",
+      "controls": "keyboard",
+      "gestures": "TBD",
+      "changed": "",
+      "file": "imigrant-odyssey.html"
     }
   ]
 }
