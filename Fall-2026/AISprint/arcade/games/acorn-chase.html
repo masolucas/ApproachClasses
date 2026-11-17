@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Acorn Chase Maze</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#412c20,#211811 70%);color:#fff0d8;font:16px system-ui,sans-serif}main{width:min(100%,610px);margin:auto;padding:14px 16px 24px}h1{margin:0;color:#ffd384;font:bold clamp(30px,8vw,62px) Georgia,serif;letter-spacing:-.05em}p{margin:5px 0 10px;line-height:1.3}.hud{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:700;margin:10px 0;color:#ffe4ad}.board{position:relative;touch-action:none;user-select:none}canvas{display:block;width:100%;border:2px solid #976041;border-radius:16px;background:#35241a}.overlay{position:absolute;inset:0;background:#28180dd9;display:grid;place-content:center;text-align:center;border-radius:16px;padding:15px}.overlay[hidden]{display:none}h2{margin:0 0 8px;font: bold clamp(26px,6vw,43px) Georgia}button{border:1px solid #f2bf73;border-radius:11px;background:#ffd384;color:#302016;min-height:44px;font:bold 16px system-ui;touch-action:manipulation;cursor:pointer}button:active{background:#eaa15b}button:focus-visible{outline:2px solid white;outline-offset:3px}.controls{display:grid;grid-template-columns:repeat(3,52px);gap:4px;justify-content:center;margin-top:8px;touch-action:none}.controls button{font-size:22px}.up{grid-column:2}.left{grid-column:1}.hint{text-align:center;color:#ecd3b5;font-size:13px}.pause{background:transparent;color:#ffe4ad;padding:4px 12px}
+</style>
+</head>
+<body><main>
+<h1>Acorn Chase Maze</h1>
+<p>Collect 10 acorns before the foxes catch you.</p>
+<div class="hud"><span id="score">Acorns 0 / 10</span><span id="boost"></span><button type="button" class="pause" id="pause" hidden>Pause</button></div>
+<div class="board" id="board">
+<canvas id="canvas" width="540" height="396" aria-label="Autumn forest maze"></canvas>
+<div class="overlay" id="overlay"><h2 id="heading">Ready, squirrel?</h2><p id="subtitle">Grab the golden leaf to run faster for 5 seconds.</p><button type="button" id="start">Start game</button></div>
+</div>
+<div class="controls" aria-label="Movement controls">
+<button type="button" class="up" data-dir="up" aria-label="Move up">↑</button>
+<button type="button" class="left" data-dir="left" aria-label="Move left">←</button>
+<button type="button" data-dir="down" aria-label="Move down">↓</button>
+<button type="button" data-dir="right" aria-label="Move right">→</button>
+</div>
+<p class="hint">Tap an arrow, swipe on the maze, or use the keyboard.</p>
+</main>
+<script>
+'use strict';
+
+const tiles = [
+  '###############',
+  '#S.a...#...a..#',
+  '#.###..#..###.#',
+  '#...#..a..#...#',
+  '###.#.###.#.###',
+  '#a..a..L..a..a#',
+  '#.###.###.###.#',
+  '#...#..a..#...#',
+  '#.#.#.#.#.#.#.#',
+  '#a....F#F....a#',
+  '###############'
+];
+const size = 36;
+const directions = {up:[0,-1],left:[-1,0],down:[0,1],right:[1,0]};
+const canvas = document.querySelector('#canvas');
+const ctx = canvas.getContext('2d');
+const score = document.querySelector('#score');
+const boost = document.querySelector('#boost');
+const pause = document.querySelector('#pause');
+const overlay = document.querySelector('#overlay');
+const heading = document.querySelector('#heading');
+const subtitle = document.querySelector('#subtitle');
+const start = document.querySelector('#start');
+const board = document.querySelector('#board');
+const spawns = [];
+const acornPositions = [];
+let home, leafPosition;
+const key = (x,y) => y * tiles[0].length + x;
+
+for (const [y,row] of tiles.entries()) {
+  for (const [x,tile] of [...row].entries()) {
+    if (tile === 'a') acornPositions.push(key(x,y));
+    if (tile === 'F') spawns.push({x,y});
+    if (tile === 'S') home = {x,y};
+    if (tile === 'L') leafPosition = key(x,y);
+  }
+}
+const goal = acornPositions.length;
+let player, foxes, acorns, leaf, power, grace, requested, state;
+
+function reset() {
+  player = {...home, progress:0, dx:0, dy:0, facing:1};
+  foxes = spawns.map(spawn => ({...spawn,progress:0,dx:0,dy:0,facing:1}));
+  acorns = new Set(acornPositions);
+  leaf = leafPosition;
+  power = 0;
+  grace = 1.8;
+  requested = null;
+}
+
+function walkable(x,y) {
+  return Boolean(tiles[y]?.[x] && tiles[y][x] !== '#');
+}
+
+function foxDirection(fox) {
+  const queue = [{x:fox.x,y:fox.y,first:null}];
+  const seen = new Set([key(fox.x,fox.y)]);
+  for (let i=0;i<queue.length;i++) {
+    const {x,y,first} = queue[i];
+    if (x===player.x && y===player.y) return first;
+    for (const direction of Object.values(directions)) {
+      const nx=x+direction[0], ny=y+direction[1];
+      if (!walkable(nx,ny) || seen.has(key(nx,ny))) continue;
+      seen.add(key(nx,ny));
+      queue.push({x:nx,y:ny,first:first || direction});
+    }
+  }
+  return null;
+}
+
+function advance(actor, dt, speed, choose, onArrival) {
+  let distance=dt*speed;
+  while (distance>0) {
+    if (!actor.dx && !actor.dy) {
+      const direction=choose();
+      if (!direction) return;
+      [actor.dx,actor.dy]=direction;
+      if (actor.dx) actor.facing=actor.dx;
+    }
+    const remaining=1-actor.progress;
+    if (distance<remaining) {
+      actor.progress+=distance;
+      return;
+    }
+    distance-=remaining;
+    actor.x+=actor.dx;
+    actor.y+=actor.dy;
+    actor.dx=actor.dy=actor.progress=0;
+    if (onArrival && onArrival()) return;
+  }
+}
+
+let lastDirection=null;
+function playerDirection() {
+  for (const direction of [requested,lastDirection]) {
+    if (direction && walkable(player.x+direction[0],player.y+direction[1])) {
+      lastDirection=direction;
+      return direction;
+    }
+  }
+  return null;
+}
+const position = actor => [actor.x+actor.dx*actor.progress,actor.y+actor.dy*actor.progress];
+
+function finish(won) {
+  state='finished';
+  heading.textContent=won?'You win!':'A fox caught you!';
+  subtitle.textContent=won?'You collected all '+goal+' acorns.':'You collected '+(goal-acorns.size)+' out of '+goal+' acorns.';
+  start.textContent='Play again';
+  overlay.hidden=false;
+  pause.hidden=true;
+}
+
+function update(dt) {
+  power=Math.max(0,power-dt);
+  advance(player,dt,power?8.4:6,playerDirection,()=>{
+    const current=key(player.x,player.y);
+    if (current===leaf) {
+      leaf=null;
+      power=5;
+    }
+    acorns.delete(current);
+    if (!acorns.size) {
+      finish(true);
+      return true;
+    }
+    return false;
+  });
+  if (state!=='playing') return;
+  if (grace>0) {
+    if (lastDirection) grace-=dt;
+    return;
+  }
+  const [px,py]=position(player);
+  for (const [i,fox] of foxes.entries()) {
+    advance(fox,dt,i===0?3.25:2.8,()=>foxDirection(fox));
+    const [fx,fy]=position(fox);
+    if (Math.hypot(px-fx,py-fy)<.57) {
+      finish(false);
+      return;
+    }
+  }
+}
+
+function oval(x,y,rx,ry,color,angle=0) {
+  ctx.beginPath();
+  ctx.fillStyle=color;
+  ctx.ellipse(x,y,rx,ry,angle,0,Math.PI*2);
+  ctx.fill();
+}
+
+function drawAnimal(actor, squirrel) {
+  const [x,y]=position(actor);
+  ctx.save();
+  ctx.translate((x+.5)*size,(y+.5)*size);
+  ctx.scale(actor.facing,1);
+  if (squirrel && power>0) oval(0,0,17,17,'#ffe48078');
+  if (squirrel) {
+    oval(-9,-3,6,12,'#ca783f',-.5);
+    oval(0,3,9,8,'#e3a067');
+    oval(6,3,5,6,'#ffe2ab');
+    oval(7,-5,7,7,'#e3a067');
+    oval(5,-11,3,5,'#bf713b',-.25);
+    oval(11,-6,1.8,1.8,'#241610');
+  } else {
+    oval(-10,4,8,4,'#ef7540',.28);
+    oval(-15,3,4,3,'#ffe5b4',.28);
+    oval(0,4,9,6,'#ef7540');
+    oval(7,-2,8,7,'#ef7540');
+    oval(5,-9,3,6,'#ef7540',-.23);
+    oval(11,0,6,3,'#ffe5b4');
+    oval(10,-4,1.7,1.7,'#241610');
+  }
+  ctx.restore();
+}
+
+function draw() {
+  ctx.fillStyle='#38261d';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  for (const [y,row] of tiles.entries()) {
+    for (const [x,tile] of [...row].entries()) {
+      const cx=(x+.5)*size, cy=(y+.5)*size;
+      if (tile==='#') {
+        const colors=['#96422d','#af592b','#ab4a2d','#b36732'];
+        ctx.fillStyle='#683622';
+        ctx.fillRect(x*size,y*size,size,size);
+        oval(cx-7,cy+1,12,6,colors[(x+y)%4],-.5);
+        oval(cx+7,cy-6,11,6,colors[(x*2+y+1)%4],.45);
+        oval(cx+3,cy+8,12,5,colors[(x+y+2)%4],-.25);
+      } else if (acorns.has(key(x,y))) {
+        oval(cx,cy+2,5,7,'#d48b49');
+        oval(cx,cy-2,7,4,'#ffd08a');
+        oval(cx+1,cy-6,1.3,2.5,'#ffd08a',.3);
+      } else if (leaf===key(x,y)) {
+        oval(cx,cy,14,14,'#ffe07544');
+        oval(cx,cy,9,5,'#ffe66f',-.55);
+      }
+    }
+  }
+  for (const fox of foxes) drawAnimal(fox,false);
+  drawAnimal(player,true);
+  score.textContent='Acorns '+(goal-acorns.size)+' / '+goal;
+  boost.textContent=power>0?'Speed boost · '+Math.ceil(power)+'s':'';
+}
+
+function togglePause() {
+  if (state==='playing') {
+    state='paused';
+    heading.textContent='Paused';
+    subtitle.textContent='Ready to keep going?';
+    start.textContent='Resume';
+    overlay.hidden=false;
+  }
+}
+
+start.addEventListener('click',()=>{
+  if (state!=='paused') {
+    reset();
+    lastDirection=null;
+  }
+  state='playing';
+  overlay.hidden=true;
+  pause.hidden=false;
+  start.blur();
+});
+pause.addEventListener('click',togglePause);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)togglePause();});
+document.addEventListener('keydown',event=>{
+  if (state!=='playing' || !event.key.startsWith('Arrow')) return;
+  const direction=directions[event.key.slice(5).toLowerCase()];
+  if (!direction) return;
+  event.preventDefault();
+  requested=direction;
+});
+for (const button of document.querySelectorAll('[data-dir]')) {
+  button.addEventListener('click',()=>{if(state==='playing')requested=directions[button.dataset.dir];});
+}
+let swipe=null;
+board.addEventListener('pointerdown',event=>{
+  if(state==='playing') {
+    swipe={x:event.clientX,y:event.clientY,id:event.pointerId};
+    board.setPointerCapture(event.pointerId);
+  }
+});
+board.addEventListener('pointermove',event=>{
+  if (!swipe || swipe.id!==event.pointerId || state!=='playing') return;
+  const dx=event.clientX-swipe.x,dy=event.clientY-swipe.y;
+  if (Math.max(Math.abs(dx),Math.abs(dy))<16) return;
+  requested=Math.abs(dx)>Math.abs(dy)?directions[dx<0?'left':'right']:directions[dy<0?'up':'down'];
+  swipe=null;
+});
+for(const event of ['pointerup','pointercancel']) board.addEventListener(event,()=>{swipe=null;});
+
+reset();
+state='ready';
+draw();
+let previous=performance.now();
+function frame(now) {
+  if(state==='playing') update(Math.min((now-previous)/1000,.04));
+  previous=now;
+  draw();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

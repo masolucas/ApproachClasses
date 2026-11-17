@@ -43,6 +43,26 @@
       "gestures": "TBD",
       "changed": "",
       "file": "home-away-from-home.html"
+    },
+    {
+      "title": "Acorn Chase",
+      "team": "Jaqueline, Cristiane, & Marisa",
+      "story": "You are a little squirrel in a colorful fall forest. Winter is coming, so you need to collect acorns while foxes run toward you.",
+      "howto": "First, move along the forest path and collect acorns. Each acorn gives you one point. Next, jump over the foxes. If a fox touches you, you lose. Then, look for the golden leaf. When you pick it up, you run faster for five seconds. Finally, collect ten acorns to win the game.",
+      "controls": "keyboard",
+      "gestures": "Left arrow — move left. Right arrow — move right. Space bar — jump over foxes.",
+      "changed": "",
+      "file": "acorn-chase.html"
+    },
+    {
+      "title": "Approach & Survive (v2)",
+      "team": "Bianca",
+      "story": "",
+      "howto": "TBD",
+      "controls": "keyboard",
+      "gestures": "TBD",
+      "changed": "",
+      "file": "approach-survive-v2.html"
     }
   ]
 }
