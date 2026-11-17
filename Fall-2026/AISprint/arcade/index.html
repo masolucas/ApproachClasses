@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>AI Sprint Arcade · Approach International Student Center</title>
+<style>
+  :root {
+    color-scheme: light;
+    --navy: #0c2340; --navy-d: #081629; --navy-2: #143865; --gold: #ae9142; --gold-b: #d39f10; --gold-ink: #8c7535;
+    --teal: #0e6b6b; --amber: #b45309; --ink: #1f2933; --ink-2: #3d3d3d; --muted: #6b7280; --line: #dfe5ee; --wash: #f7f5ef; --paper: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--wash); color: var(--ink); font-family: Calibri, Carlito, "Segoe UI", system-ui, sans-serif; font-size: 16px; line-height: 1.5; }
+  a, button, input { font: inherit; }
+  :focus-visible { outline: 3px solid var(--gold-b); outline-offset: 2px; }
+
+  /* hero */
+  .hero { background: var(--navy); color: #efe9d9; position: relative; overflow: hidden; }
+  .hero::before, .hero::after { content: ""; position: absolute; width: 46px; height: 46px; border-color: var(--gold); border-style: solid; }
+  .hero::before { top: 22px; left: 22px; border-width: 1.5px 0 0 1.5px; }
+  .hero::after { bottom: 22px; right: 22px; border-width: 0 1.5px 1.5px 0; }
+  .hero-in { max-width: 1180px; margin: 0 auto; padding: 56px 28px 48px; }
+  .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: .18em; color: var(--gold); margin: 0 0 10px; }
+  h1 { font-family: Cambria, Caladea, Georgia, serif; font-weight: 400; font-size: clamp(44px, 7vw, 76px); line-height: 1.02; margin: 0; letter-spacing: -1.5px; }
+  h1 em { color: var(--gold); }
+  .sub { font-family: Cambria, Georgia, serif; font-style: italic; font-size: 19px; margin: 14px 0 0; max-width: 60ch; color: #dfe4ec; }
+  .stats { display: flex; gap: 28px; margin-top: 28px; flex-wrap: wrap; }
+  .stats div b { display: block; font-family: Cambria, Georgia, serif; font-size: 30px; font-weight: 400; color: #fff; }
+  .stats div span { font-size: 12px; letter-spacing: .16em; font-weight: 700; color: var(--gold); }
+
+  /* controls bar */
+  .bar { max-width: 1180px; margin: 0 auto; padding: 24px 28px 6px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  .filters { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filters button { border: 1.5px solid var(--navy); background: transparent; color: var(--navy); border-radius: 999px; padding: 6px 16px; cursor: pointer; font-weight: 700; font-size: 14px; }
+  .filters button[aria-pressed="true"] { background: var(--navy); color: #fff; }
+  .search { margin-left: auto; position: relative; flex: 0 1 300px; }
+  .search input { width: 100%; padding: 9px 14px; border: 1.5px solid #c9d1dc; border-radius: 999px; background: var(--paper); }
+
+  /* grid */
+  main { max-width: 1180px; margin: 0 auto; padding: 14px 28px 70px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; transition: transform .15s, box-shadow .15s; }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(12, 35, 64, .12); }
+  .cover { aspect-ratio: 16 / 9; position: relative; background: var(--navy); }
+  .cover svg { display: block; width: 100%; height: 100%; }
+  .badge { position: absolute; top: 12px; left: 12px; font-size: 12px; font-weight: 700; letter-spacing: .1em; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.94); }
+  .badge.gesture { color: var(--teal); }
+  .badge.keyboard { color: var(--amber); }
+  .body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .team { font-size: 12px; font-weight: 700; letter-spacing: .14em; color: var(--gold-ink); text-transform: uppercase; }
+  h2 { font-family: Cambria, Caladea, Georgia, serif; font-weight: 400; font-size: 28px; line-height: 1.1; margin: 0; color: var(--navy); }
+  .story { font-family: Cambria, Georgia, serif; font-style: italic; color: var(--ink-2); margin: 0; }
+  details { border-top: 1px solid var(--line); padding-top: 10px; }
+  summary { cursor: pointer; font-weight: 700; color: var(--navy); font-size: 15px; }
+  details p { margin: 8px 0 0; font-size: 15px; color: var(--ink-2); white-space: pre-line; }
+  .meta { font-size: 14px; color: var(--ink-2); }
+  .meta b { color: var(--navy); }
+  .play { margin-top: auto; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--gold); color: var(--navy-d); text-decoration: none; font-weight: 700; border-radius: 8px; padding: 11px 16px; }
+  .play:hover { background: var(--gold-b); }
+  .need { font-size: 13px; color: var(--muted); text-align: center; margin: -2px 0 0; }
+
+  .empty, .error { text-align: center; padding: 60px 20px; color: var(--ink-2); }
+  .empty h2, .error h2 { margin-bottom: 8px; }
+  .error code { background: #eef1f5; padding: 2px 6px; border-radius: 4px; }
+  footer { border-top: 1px solid var(--line); max-width: 1180px; margin: 0 auto; padding: 20px 28px 40px; font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  @media (max-width: 640px) { .search { margin-left: 0; flex-basis: 100%; } .hero-in { padding: 44px 22px 36px; } }
+  @media (prefers-reduced-motion: reduce) { .card { transition: none; } .card:hover { transform: none; } }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-in">
+    <p class="eyebrow" id="eyebrow">AI SPRINT · FALL 2026</p>
+    <h1 id="title">The AI Sprint <em>Arcade.</em></h1>
+    <p class="sub" id="subtitle">Browser games designed by our teams, built with AI assistants, and controlled with hand gestures or the keyboard.</p>
+    <div class="stats" id="stats" hidden>
+      <div><b id="nGames">0</b><span>GAMES</span></div>
+      <div><b id="nGesture">0</b><span>GESTURE GAMES</span></div>
+      <div><b id="nKeyboard">0</b><span>KEYBOARD GAMES</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="bar">
+  <div class="filters" role="group" aria-label="Filter games">
+    <button type="button" data-f="all" aria-pressed="true">All</button>
+    <button type="button" data-f="gesture" aria-pressed="false">Gestures</button>
+    <button type="button" data-f="keyboard" aria-pressed="false">Keyboard</button>
+  </div>
+  <label class="search"><input type="search" id="q" placeholder="Search games and teams" aria-label="Search games and teams"></label>
+</div>
+
+<main>
+  <div class="grid" id="grid" aria-live="polite"></div>
+</main>
+
+<footer>
+  <span>Copyright © 2026 Approach International Student Center, Inc. - Revised on 11/16/2026</span>
+  <span>Gesture games need a webcam and Chrome. Hands only: keep faces out of the frame.</span>
+</footer>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+let GAMES = [], filter = "all";
+
+// A small seeded random generator so every game always gets the same cover.
+function seeded(str) {
+  let h = 2166136261;
+  for (const ch of String(str)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+  return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 10000) / 10000; };
+}
+function cover(g, i) {
+  const r = seeded(g.title + "|" + g.team);
+  const palettes = [["#0c2340", "#143865"], ["#081629", "#0e6b6b"], ["#0c2340", "#3a2a5c"], ["#102a43", "#8c7535"], ["#0b1d35", "#b45309"]];
+  const [a, b] = palettes[Math.floor(r() * palettes.length)];
+  const accent = g.controls === "keyboard" ? "#f2b766" : "#7fd0cf";
+  let shapes = "";
+  for (let i = 0; i < 26; i++) {
+    const x = r() * 320, y = r() * 180, s = 1 + r() * 2.2;
+    shapes += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${s.toFixed(1)}" fill="#efe9d9" opacity="${(0.25 + r() * 0.6).toFixed(2)}"/>`;
+  }
+  for (let i = 0; i < 3; i++) {
+    const x = 40 + r() * 240, y = 30 + r() * 100, s = 8 + r() * 10;
+    let d = "";
+    for (let k = 0; k < 10; k++) { const ang = Math.PI / 5 * k - Math.PI / 2, rr = k % 2 ? s * 0.45 : s; d += (k ? "L" : "M") + (x + Math.cos(ang) * rr).toFixed(1) + " " + (y + Math.sin(ang) * rr).toFixed(1); }
+    shapes += `<path d="${d}Z" fill="#d39f10" opacity="${(0.7 + r() * 0.3).toFixed(2)}"/>`;
+  }
+  const hx = 60 + r() * 200;
+  shapes += `<rect x="${(hx - 26).toFixed(1)}" y="150" width="52" height="9" rx="2" fill="${accent}"/>`;
+  const initial = esc((g.title || "?").trim().charAt(0).toUpperCase());
+  return `<svg viewBox="0 0 320 180" role="img" aria-label="Cover art for ${esc(g.title)}" preserveAspectRatio="xMidYMid slice">
+    <defs><linearGradient id="cv${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs>
+    <rect width="320" height="180" fill="url(#cv${i})"/>${shapes}
+    <text x="300" y="168" text-anchor="end" font-family="Cambria, Georgia, serif" font-style="italic" font-size="92" fill="#efe9d9" opacity="0.14">${initial}</text></svg>`;
+}
+
+function card(g, i) {
+  const ctl = g.controls === "keyboard" ? "keyboard" : "gesture";
+  const href = "games/" + encodeURIComponent(g.file || "");
+  return `<article class="card">
+    <div class="cover">${cover(g, i)}<span class="badge ${ctl}">${ctl === "gesture" ? "✋ GESTURES" : "⌨ KEYBOARD"}</span></div>
+    <div class="body">
+      <span class="team">${esc(g.team)}</span>
+      <h2>${esc(g.title)}</h2>
+      ${g.story ? `<p class="story">${esc(g.story)}</p>` : ""}
+      ${g.howto ? `<details><summary>How to play</summary><p>${esc(g.howto)}</p></details>` : ""}
+      ${g.gestures ? `<div class="meta"><b>Controls:</b> ${esc(g.gestures)}</div>` : ""}
+      ${g.changed ? `<div class="meta"><b>What changed:</b> ${esc(g.changed)}</div>` : ""}
+      <a class="play" href="${esc(href)}" target="_blank" rel="noopener">Play ${esc(g.title)} <span aria-hidden="true">↗</span><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">(opens in a new tab)</span></a>
+      <p class="need">${ctl === "gesture" ? "Click Start camera in the game. Keyboard works too." : "Use ← → and Space. Press Enter to start."}</p>
+    </div>
+  </article>`;
+}
+
+function render() {
+  const q = $("#q").value.trim().toLowerCase();
+  const list = GAMES.filter(g => (filter === "all" || g.controls === filter) &&
+    (!q || [g.title, g.team, g.story, g.howto].join(" ").toLowerCase().includes(q)));
+  $("#grid").innerHTML = list.length ? list.map((g, i) => card(g, i)).join("") :
+    `<div class="empty" style="grid-column:1/-1"><h2>${GAMES.length ? "No games match." : "The arcade opens soon."}</h2><p>${GAMES.length ? "Try another filter or search." : "Check back after the teams publish their games."}</p></div>`;
+}
+
+document.querySelectorAll("[data-f]").forEach(b => b.addEventListener("click", () => {
+  filter = b.dataset.f;
+  document.querySelectorAll("[data-f]").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+  render();
+}));
+$("#q").addEventListener("input", render);
+
+fetch("games.json", { cache: "no-store" })
+  .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+  .then(data => {
+    const a = data.arcade || {};
+    if (a.eyebrow) $("#eyebrow").textContent = a.eyebrow;
+    if (a.subtitle) $("#subtitle").textContent = a.subtitle;
+    GAMES = (data.games || []).filter(g => g && g.title && g.file);
+    $("#nGames").textContent = GAMES.length;
+    $("#nGesture").textContent = GAMES.filter(g => g.controls !== "keyboard").length;
+    $("#nKeyboard").textContent = GAMES.filter(g => g.controls === "keyboard").length;
+    $("#stats").hidden = false;
+    render();
+  })
+  .catch(err => {
+    console.error(err);
+    $("#grid").innerHTML = `<div class="error" style="grid-column:1/-1"><h2>The game list did not load.</h2>
+      <p>Open this page from the website, not by double-clicking the file. Browsers do not let a local page read <code>games.json</code>.</p>
+      <p>On the website, check that <code>games.json</code> is in the same folder as this page and is valid JSON (open it in the editor to check).</p></div>`;
+  });
+</script>
+</body>
+</html>

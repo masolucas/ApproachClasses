@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>AI Game Lab Workbook · AI Sprint Week 7</title>
+<style>
+  :root {
+    color-scheme: light;
+    --navy: #0c2340; --navy-2: #143865; --gold: #ae9142; --gold-ink: #8c7535; --teal: #0e6b6b; --amber: #b45309;
+    --ink: #1f2933; --ink-2: #3d3d3d; --muted: #6b7280; --line: #c1cddd; --sky: #edf2f9; --paper: #ffffff; --wash: #f7f9fc;
+    --ok: #26890c; --warn: #b42318;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--wash); color: var(--ink); }
+  body { font-family: Calibri, Carlito, "Segoe UI", system-ui, sans-serif; font-size: 16px; line-height: 1.5; }
+  h1, h2, h3 { font-family: Cambria, Caladea, Georgia, serif; font-weight: 400; color: var(--navy); }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+  /* ---------- top bar ---------- */
+  .top { position: sticky; top: 0; z-index: 20; background: var(--navy); color: #efe9d9; }
+  .top-in { max-width: 1240px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .mono { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--gold); display: grid; place-items: center; font-family: Cambria, Georgia, serif; font-style: italic; font-weight: 700; color: var(--gold); flex: none; }
+  .brand b { display: block; font-size: 13px; letter-spacing: .12em; color: var(--gold); }
+  .brand span { display: block; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .saved { font-size: 13px; color: #c9d3e3; margin-left: auto; }
+  .saved.warn { color: #ffb4a8; }
+  .tools { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tbtn { background: transparent; color: #efe9d9; border: 1px solid #4a6489; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 14px; }
+  .tbtn:hover { border-color: var(--gold); color: #fff; }
+  .tbtn.gold { background: var(--gold); border-color: var(--gold); color: var(--navy); font-weight: 700; }
+
+  /* ---------- layout ---------- */
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 24px 20px 60px; display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 28px; align-items: start; }
+  nav { position: sticky; top: 76px; }
+  nav ol { list-style: none; margin: 0; padding: 0; }
+  nav button { width: 100%; text-align: left; display: grid; grid-template-columns: 26px 1fr 12px; align-items: center; gap: 8px; background: none; border: 0; border-radius: 6px; padding: 7px 10px; cursor: pointer; color: var(--ink-2); font-size: 15px; }
+  nav button:hover { background: var(--sky); }
+  nav button[aria-current="true"] { background: var(--paper); color: var(--navy); box-shadow: inset 3px 0 0 var(--gold); font-weight: 700; }
+  nav .n { font-family: Cambria, Georgia, serif; font-style: italic; color: var(--gold-ink); }
+  .dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--line); }
+  .dot.part { border-color: var(--gold); background: linear-gradient(90deg, var(--gold) 50%, transparent 50%); }
+  .dot.done { border-color: var(--teal); background: var(--teal); }
+  @media (max-width: 900px) {
+    .wrap { grid-template-columns: minmax(0, 1fr); padding: 16px 12px 40px; }
+    .saved { margin-left: 0; width: 100%; order: 3; }
+    nav { position: static; }
+    nav ol { display: flex; overflow-x: auto; gap: 4px; padding-bottom: 6px; }
+    nav button { white-space: nowrap; grid-template-columns: auto auto 10px; }
+  }
+
+  main, nav { min-width: 0; }
+  /* ---------- sections ---------- */
+  section.sec { display: none; background: var(--paper); border: 1px solid #dfe5ee; border-radius: 10px; padding: 28px 32px 32px; }
+  section.sec.on { display: block; }
+  .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--teal); margin: 0 0 4px; }
+  .sec.amber .eyebrow { color: var(--amber); }
+  section h2 { font-size: 36px; margin: 0 0 6px; letter-spacing: -.5px; line-height: 1.15; }
+  section h2 em { color: var(--teal); }
+  .sec.amber h2 em { color: var(--amber); }
+  .lead { font-family: Cambria, Georgia, serif; font-style: italic; color: var(--ink-2); margin: 0 0 22px; max-width: 70ch; }
+  h3 { font-size: 21px; margin: 28px 0 10px; }
+  .hint { font-size: 14px; color: var(--muted); margin: 4px 0 10px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 700px) { .grid2, .grid4 { grid-template-columns: 1fr; } section.sec { padding: 20px 16px; } }
+
+  label.f { display: block; margin: 0 0 14px; }
+  label.f > span { display: block; font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  input[type=text], input[type=number], input[type=url], select, textarea {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper);
+  }
+  textarea { resize: vertical; min-height: 64px; line-height: 1.45; }
+  input::placeholder, textarea::placeholder { color: #9aa4b2; font-style: italic; }
+  .check { display: flex; gap: 10px; align-items: flex-start; margin: 8px 0; cursor: pointer; }
+  .check input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--teal); flex: none; }
+  .choice { display: flex; gap: 12px; flex-wrap: wrap; }
+  .choice label { flex: 1 1 260px; border: 1.5px solid var(--line); border-radius: 8px; padding: 12px 14px; cursor: pointer; display: flex; gap: 10px; align-items: flex-start; }
+  .choice label:has(input:checked) { border-color: var(--teal); background: #f1f8f8; }
+  .choice input { accent-color: var(--teal); margin-top: 4px; }
+  .choice b { color: var(--navy); }
+
+  .card { border: 1px solid #dfe5ee; border-top: 3px solid var(--teal); border-radius: 6px; padding: 12px 14px; background: var(--sky); }
+  .sec.amber .card { border-top-color: var(--amber); background: #fef8ec; }
+  .card b { display: block; font-size: 13px; letter-spacing: .1em; color: var(--teal); margin-bottom: 4px; }
+  .sec.amber .card b { color: var(--amber); }
+  .card p { margin: 0; font-family: Cambria, Georgia, serif; font-style: italic; color: var(--ink-2); font-size: 15px; }
+  .note { border: 1.5px solid var(--amber); border-radius: 8px; padding: 12px 16px; margin: 0 0 16px; }
+  .note b { color: var(--amber); }
+  .note ul { margin: 6px 0 0; padding-left: 20px; }
+
+  .prompt { background: var(--navy); color: #efe9d9; border-radius: 8px; padding: 14px 18px; margin: 10px 0 16px; }
+  .prompt-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+  .prompt-h b { font-size: 13px; letter-spacing: .12em; color: var(--gold); }
+  .prompt p { margin: 0; font-family: Cambria, Georgia, serif; font-style: italic; }
+  .copy { background: var(--gold); color: var(--navy); border: 0; border-radius: 5px; padding: 5px 12px; font-weight: 700; font-size: 13px; cursor: pointer; flex: none; }
+  .copy.done { background: #9fe0a8; }
+
+  table.t { width: 100%; border-collapse: collapse; margin: 6px 0 12px; }
+  table.t th { text-align: left; font-size: 12px; letter-spacing: .1em; color: var(--teal); border-bottom: 2px solid var(--teal); padding: 6px 6px; font-weight: 700; }
+  .sec.amber table.t th { color: var(--amber); border-bottom-color: var(--amber); }
+  table.t td { border-bottom: 1px solid #e5eaf1; padding: 6px; vertical-align: top; }
+  table.t td.num { width: 34px; font-family: Cambria, Georgia, serif; font-style: italic; color: var(--gold-ink); font-size: 18px; padding-top: 12px; }
+  table.t td.fixed { font-weight: 700; color: var(--navy); padding-top: 14px; }
+  table.t textarea { min-height: 44px; }
+  .scroll { overflow-x: auto; }
+
+  .row-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .btn { background: var(--paper); color: var(--navy); border: 1.5px solid var(--navy); border-radius: 6px; padding: 7px 14px; cursor: pointer; font-weight: 700; font-size: 14px; }
+  .btn.primary { background: var(--navy); color: #fff; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-x { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 20px; line-height: 1; padding: 6px; }
+  .btn-x:hover { color: var(--warn); }
+  .meter { font-size: 14px; font-weight: 700; padding: 3px 10px; border-radius: 999px; border: 1.5px solid var(--line); color: var(--muted); }
+  .meter.ok { border-color: var(--ok); color: var(--ok); }
+  .meter.low { border-color: var(--amber); color: var(--amber); }
+
+  pre.code { background: #0b1d35; color: #e7edf6; padding: 14px 16px; border-radius: 8px; overflow-x: auto; font-family: Consolas, "Courier New", monospace; font-size: 14px; margin: 8px 0; }
+  .warnings { color: var(--warn); font-size: 14px; margin: 4px 0 10px; padding-left: 20px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 14px; }
+  .chips span { border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: 14px; background: var(--paper); }
+  .chips span b { color: var(--teal); }
+
+  .bank { display: none; }
+  .bank.on { display: block; }
+  .framebox { border: 1.5px solid var(--amber); border-radius: 8px; padding: 12px 16px; font-family: Cambria, Georgia, serif; font-style: italic; margin: 8px 0 12px; }
+  .frames { font-size: 14px; color: var(--muted); font-style: italic; margin: 0 0 6px; }
+
+  .ticks td { text-align: center; }
+  .ticks input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--amber); }
+
+  .model { display: none; border: 1.5px dashed var(--gold); border-radius: 8px; padding: 14px 16px; margin-top: 12px; }
+  .model.on { display: block; }
+  .model dl { margin: 0; display: grid; grid-template-columns: 170px 1fr; gap: 6px 14px; }
+  .model dt { font-weight: 700; color: var(--navy); }
+  .model dd { margin: 0; font-family: Cambria, Georgia, serif; font-style: italic; }
+
+  .rubric td, .rubric th { font-size: 14px; }
+  .rubric td b { color: var(--navy); }
+  .pts { font-size: 12px; font-weight: 700; color: var(--gold-ink); display: block; }
+
+  .pager { display: flex; justify-content: space-between; margin-top: 30px; padding-top: 18px; border-top: 1px solid #e5eaf1; }
+  .only-gesture, .only-keyboard { }
+  body.ctl-keyboard .only-gesture { display: none; }
+  body.ctl-gesture .only-keyboard { display: none; }
+  .ctl-hint { display: none; }
+  body:not(.ctl-gesture):not(.ctl-keyboard) .ctl-hint { display: block; }
+
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--navy); color: #fff; padding: 10px 18px; border-radius: 8px; font-size: 15px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 50; max-width: 90vw; }
+  .toast.on { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+  footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; font-size: 12px; color: var(--muted); }
+
+  #print { display: none; }
+  @media print {
+    @page { size: letter; margin: 0.6in; }
+    html, body { background: #fff !important; color: #000 !important; color-scheme: light; }
+    body > *:not(#print) { display: none !important; }
+    #print { display: block; font-family: Calibri, Carlito, Arial, sans-serif; font-size: 11pt; }
+    #print h1 { font-size: 20pt; margin: 0 0 2pt; }
+    #print .meta { font-size: 10pt; color: #444; margin: 0 0 12pt; padding-bottom: 6pt; border-bottom: 1.5pt solid #ae9142; }
+    #print section.sec { display: block !important; border: 0; padding: 0; margin: 0 0 14pt; break-inside: auto; }
+    #print section h2 { font-size: 16pt; margin: 14pt 0 4pt; border-bottom: 1pt solid #0c2340; padding-bottom: 2pt; }
+    #print h3 { font-size: 12.5pt; margin: 10pt 0 4pt; }
+    #print .eyebrow, #print .lead, #print p.hint, #print ul.hint, #print ol.hint, #print .no-print { display: none !important; }
+    #print td.hint { color: #333; font-size: 9.5pt; }
+    #print label.f { margin: 0 0 6pt; break-inside: avoid; }
+    #print label.f > span { font-size: 9.5pt; color: #0c2340; }
+    #print .pval { border-left: 2pt solid #c1cddd; padding: 1pt 0 1pt 8pt; white-space: pre-wrap; min-height: 12pt; }
+    #print table.t { break-inside: auto; }
+    #print table.t tr { break-inside: avoid; }
+    #print table.t td, #print table.t th { border: 0.75pt solid #c1cddd; padding: 3pt 5pt; font-size: 10pt; }
+    #print .grid2, #print .grid4 { display: block; }
+    #print .choice label { border: 0; padding: 0; }
+    #print .pfoot { font-size: 8pt; color: #666; margin-top: 16pt; border-top: 0.5pt solid #ccc; padding-top: 4pt; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <div class="mono">A</div>
+      <div><b>AI SPRINT · WEEK 7</b><span id="topTeam">AI Game Lab Workbook</span></div>
+    </div>
+    <div class="saved" id="saved" role="status">Not saved yet</div>
+    <div class="tools">
+      <button class="tbtn" id="btnExport" type="button">Export team file</button>
+      <button class="tbtn" id="btnImport" type="button">Import team file</button>
+      <button class="tbtn gold" id="btnPdf" type="button">Download PDF</button>
+      <button class="tbtn" id="btnReset" type="button">Start over</button>
+      <input type="file" id="fileIn" accept=".json,application/json" hidden>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav aria-label="Workbook sections"><ol id="nav"></ol></nav>
+  <main id="main"></main>
+</div>
+<footer>Copyright © 2026 Approach International Student Center, Inc. - Revised on 11/16/2026 · Your work is saved only on this device. Use Export team file to move it to another device.</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div id="print"></div>
+
+<script>
+const DATA = {"roles":[{"label":"DRIVER","desc":"Types and clicks. Runs the starter page and Teachable Machine."},{"label":"TRAINER","desc":"Performs the gestures and runs the model tests. Keyboard teams: runs the control test."},{"label":"PROMPTER","desc":"Writes prompts to the AI assistant and reads answers aloud."},{"label":"REPORTER","desc":"Writes the team’s answers, keeps time, leads the preview."}],"rolesNote":"Team of 3? The Prompter is also the Reporter. Rotate roles halfway through the build.","mission":"Your team will build a browser game with an AI assistant. Choose your controls: hand gestures (you train an AI model to see them) or the keyboard (you add one extra feature). Then test it with classmates, improve it, and put it in our online class arcade.","missionCards":[{"label":"TRAIN · OPTIONAL","desc":"Gesture teams teach Teachable Machine 3 gestures + Neutral. Keyboard teams add an extra feature."},{"label":"BUILD","desc":"Use your AI assistant to turn the starter game into your own game."},{"label":"TEST","desc":"Swap games with another team and improve yours with evidence."},{"label":"PITCH","desc":"Signpost your game today, and give a 5-minute pitch in Week 9."}],"privacy":[{"t":"Plain background.","d":"Hold your hand close to the camera in front of a wall or a sheet of paper."},{"t":"No faces, no classmates.","d":"Tilt the screen so only your hand is in the frame."},{"t":"No personal information.","d":"Use your team name in your game and Game Card, not full names."},{"t":"Know what goes online.","d":"When you click Upload, your trained model goes online so the game can use it. Your training photos stay in the browser unless you save the project."}],"controlsRule":"The starter gives you three controls: move LEFT, move RIGHT, and one ACTION (jump, shoot, shield, grab…). Use them with hand gestures or with the keyboard. Choose one as a team.","ideaStarters":[["Catch","Move left and right to catch falling things."],["Dodge","Avoid things that fall or fly toward you."],["Shooter","Move and fire at targets."],["Goalkeeper","Block balls before they reach the goal."],["Collector","Collect good items, avoid bad ones."],["Reaction","Use the action gesture at the right moment."]],"prompts":{"p1":{"label":"PROMPT 1 · IDEAS","time":"8 MIN","text":"Act as a creative video game designer. My team wants to build a simple browser game that we control with hand gestures in front of a webcam. The game can only use three controls: move left, move right, and one action. Suggest 6 original game ideas that beginners can build in 35 minutes. For each idea, give: the name, the story in one sentence, what the player does, and how you win or lose. Do not write any code yet."},"p2":{"label":"PROMPT 2 · DECISIONS","time":"7 MIN","text":"We chose this idea: [OUR IDEA]. Help us turn it into a simple game. Define the goal, what the player controls, the setting, what moves toward the player, how to score points, and how to lose. The player can only move left, move right, and do one action. Suggest two ways to make it more fun, but let us make the final decisions."},"p3":{"label":"PROMPT 3 · GESTURES","time":"7 MIN","text":"We will train a Google Teachable Machine image model with our webcam. Our game needs one gesture for left, one for right, and one for [OUR ACTION]. Suggest hand gestures that look very different from each other and are easy to hold steady. Explain why each one is a good choice. Also suggest how to record a “Neutral” class for when nobody is giving a command."},"p4":{"label":"PROMPT 4 · BUILD","text":"Act as a patient JavaScript game developer. I will paste our starter game file below. Change ONLY PART 3 (THE GAME) so it becomes our game: [GOAL, WHAT THE PLAYER IS, WHAT MOVES, HOW TO SCORE, HOW TO LOSE]. Left = [ ], right = [ ], action = [ ]. Do not change PARTS 1, 2 or 4. Keep game.reset, game.update, game.draw and game.score. Draw everything with canvas shapes (no image files). First explain your plan in three sentences. Then give me the complete file."},"debug":{"label":"IF IT BREAKS","text":"Our game shows this error: [PASTE THE RED MESSAGE]. Here is our PART 3: [PASTE PART 3]. Explain the problem in simple English. Then give me the corrected PART 3 only."},"improve":{"label":"IMPROVE WITH EVIDENCE","text":"In our playtest, [EVIDENCE, e.g., 3 out of 4 players lost in 10 seconds]. Change PART 3 so that [OUR IMPROVEMENT]. Change nothing else, and tell me which lines you changed."}},"trainSteps":[{"t":"Open Teachable Machine.","d":"teachablemachine.withgoogle.com → Get Started → Image Project → Standard image model."},{"t":"Make your classes.","d":"One class per gesture plus “Neutral.” Use the exact names from your Gesture Map."},{"t":"Record.","d":"Hold to record 50+ photos per class: closer, farther, slightly turned. Hands only."},{"t":"Train.","d":"Click Train Model. Keep this tab open and in front while it trains."},{"t":"Test.","d":"Each gesture 5 times with the Trainer’s hand, then 5 times with another teammate’s hand. Log it in the workbook (Section 5)."},{"t":"Upload.","d":"Export Model → Upload my model → copy the link into the workbook (Section 4)."}],"extraFeatures":["A second level","A difficulty setting","A power-up","A timer or combo bonus"],"functions4":["START","MOVE ON","SHOW","WRAP UP"],"pitch":[{"part":"1  Hook","purpose":"Get attention","phrases":["Have you ever wanted to…?","Imagine you are…","Let me start with a question."]},{"part":"2  How to play","purpose":"Goal and rules","phrases":["The goal is simple: …","To win, you need to…","First, … Then, … Finally, …"]},{"part":"3  The AI","purpose":"Gestures or AI help","phrases":["As you can see here, …","Watch what happens when I…","We trained the model with…","Our AI assistant helped us…"]},{"part":"4  What changed","purpose":"Use test evidence","phrases":["After testing, we noticed that…, so we…","According to our test, …","Our score rose sharply after we…"]},{"part":"5  Wrap up","purpose":"Finish strong","phrases":["To sum up, …","So, that’s [game name]!","We’d love to hear your questions."]}],"moveOn":["Moving on to…","Now let’s look at…","That brings us to…"],"preview":"Our game is called ___. You are ___, and you have to ___. You move with ___ and ___. Watch out for ___!","feedback":[{"label":"PRAISE","wk":"","phrases":["What worked really well was…","We liked how…"]},{"label":"EVIDENCE","wk":"WEEK 3","phrases":["In our test, the model read ___ as ___ (__ out of 5 times).","In our test, __ out of __ players lost in the first 10 seconds."]},{"label":"SUGGESTION","wk":"WEEK 4","phrases":["It might be clearer if…","Have you thought about…?","One small change could be…"]}],"improveMenu":["Make it faster or slower","Add a new obstacle","Add a second level","Fix a gesture that gets misread","Change the colors or shapes","Make the rules clearer on screen"],"arcade":[{"t":"Wave 1 · 7 min","d":"Odd-numbered teams stay and pitch (90 seconds, again and again). Even teams visit, play, and listen."},{"t":"Wave 2 · 7 min","d":"Switch. Even teams pitch. Odd teams visit."},{"t":"Listen for","d":"Visitors tick each signpost they hear in the workbook (Section 9)."}],"a6":{"title":"A6 · Team Workflow Playbook & Pitch: AI Game Lab","weight":"5% of final grade · 100 points","due":"Submit at the start of Week 9. Pitch in Week 9 (5 minutes + 3 minutes Q&A).","submit":["Game file: one HTML file named teamname_gamename.html that runs in Chrome. Gesture teams: your model link is in PART 1. Keyboard teams: your game has one extra feature.","Game Card: 100–120 words, using the template below. This becomes your arcade listing.","Build Log (your playbook): Handout B, complete, as a clear photo or scan.","AI-use statement: 3–5 sentences, using the frame below.","Week 9 pitch: 5 minutes, all five parts, with a live demo, then 3 minutes of Q&A."],"checklist":["Our file opens in Chrome (gesture teams: and the model loads).","Gesture teams: all gestures work, and Neutral does nothing. Keyboard teams: the controls feel tight, and our extra feature works.","There are no full names or personal information in the file or the Game Card.","Our Build Log shows at least 5 prompts and what we changed after each one.","We made at least one improvement based on playtest evidence.","Our Game Card uses at least 4 signposting phrases.","Our AI-use statement names the tools, the prompts, and our own decisions.","Every team member can explain how the game and the gestures work."],"statementFrame":["We used [AI assistant] and Google Teachable Machine to…","We ran [number] prompts (see our Build Log). The most useful one was… because…","We decided these things ourselves: …","We changed the AI’s code/ideas by…","We checked our game by…"],"rubric":[{"c":"Game design & creativity","pts":20,"hi":"Original idea; clear goal, rules, scoring, and way to lose.","mid":"Clear game but familiar idea, or one element unclear.","lo":"Goal or rules unclear; game feels unfinished."},{"c":"Working game & controls","pts":25,"hi":"Runs from the file. Gestures: 3 gestures + Neutral work reliably. Keyboard: tight controls + one extra feature that works.","mid":"Runs, but gestures are often misread, or the keyboard game has no working extra feature.","lo":"Does not run, or the controls do not work."},{"c":"Prompting & iteration (Build Log)","pts":20,"hi":"5+ prompts logged with clear changes; one improvement based on playtest evidence.","mid":"3–4 prompts or changes not explained; improvement not linked to evidence.","lo":"Fewer than 3 prompts or no log of changes."},{"c":"Game Card & pitch language","pts":20,"hi":"Card 100–120 words, clear and accurate; pitch signposts all 5 parts.","mid":"Some signposting; a few errors that do not block meaning.","lo":"Little signposting; errors make it hard to follow."},{"c":"Responsible use & disclosure","pts":15,"hi":"Complete AI-use statement; no personal information; gesture teams followed the hands-only rule.","mid":"Statement missing one element.","lo":"No statement, or personal information included."}],"bands":["Strong","Developing","Beginning"],"bandPts":{"15":["13–15","10–12","0–9"],"20":["18–20","14–17","0–13"],"25":["22–25","17–21","0–16"]}},"gameCard":{"fields":["Game title","Team name","The story (1–2 sentences)","How to play (signposted)","Gestures: gesture → action","What we changed after testing"],"model":[["Game title","Lantern Keeper"],["Team name","The Night Shift"],["The story","The city lights are falling from the sky, and you are the only lantern keeper left to save them."],["How to play","The goal is simple: catch the falling lanterns before they hit the river. First, move your basket with your hand. Then, watch out for storm clouds, because they cost you a life. Finally, use your lantern shield when the storm gets heavy. To win, reach 30 lanterns."],["Gestures","Open hand → left · Fist → right · Thumbs up → lantern shield · Hands down → Neutral"],["What we changed","After testing, we noticed that players lost in ten seconds, so we slowed the first level down and added a short countdown."]]},"submitWeb":["Game file: one HTML file named teamname_gamename.html that runs in Chrome. Gesture teams: your model link is in PART 1. Keyboard teams: your game has one extra feature.","Workbook PDF: click Download PDF in the workbook. It includes your Build Log (team playbook), Game Card, and AI-use statement.","Week 9 pitch: 5 minutes, all five parts, with a live demo, then 3 minutes of Q&A."]};
+
+const KEY = "aisprint-w8-gamelab-workbook-v1";
+const APP = "ai-game-lab-workbook";
+let S = {};
+let current = 0;
+
+// ---------- helpers ----------
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function getP(o, path) { return path.split(".").reduce((a, k) => (a == null ? undefined : a[k]), o); }
+function setP(o, path, v) {
+  const ks = path.split("."); let a = o;
+  ks.slice(0, -1).forEach((k, i) => { if (a[k] == null || typeof a[k] !== "object") a[k] = /^\d+$/.test(ks[i + 1]) ? [] : {}; a = a[k]; });
+  a[ks[ks.length - 1]] = v;
+}
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("on"), 2600); }
+
+function txt(k, label, o = {}) {
+  return `<label class="f"><span>${esc(label)}</span><input type="text" data-k="${k}" placeholder="${esc(o.ph || "")}"${o.opt ? ' data-opt="1"' : ""}></label>`;
+}
+function area(k, label, o = {}) {
+  return `<label class="f"><span>${esc(label)}</span><textarea data-k="${k}" rows="${o.rows || 3}" placeholder="${esc(o.ph || "")}"${o.opt ? ' data-opt="1"' : ""}></textarea></label>`;
+}
+function cellIn(k, o = {}) {
+  if (o.area) return `<textarea data-k="${k}" rows="2" aria-label="${esc(o.aria || "")}" placeholder="${esc(o.ph || "")}"${o.opt ? ' data-opt="1"' : ""}></textarea>`;
+  return `<input type="${o.type || "text"}" data-k="${k}" aria-label="${esc(o.aria || "")}" placeholder="${esc(o.ph || "")}"${o.min != null ? ` min="${o.min}" max="${o.max}"` : ""}${o.opt ? ' data-opt="1"' : ""}>`;
+}
+function prompt(p) {
+  return `<div class="prompt no-print"><div class="prompt-h"><b>${esc(p.label)}${p.time ? " · " + esc(p.time) : ""}</b><button class="copy" type="button" data-copy="${esc(p.text)}">Copy</button></div><p>${esc(p.text)}</p></div>`;
+}
+function head(n, eyebrow, title, em, lead, amber) {
+  return { open: `<section class="sec${amber ? " amber" : ""}" data-sec="${n}"><p class="eyebrow">${esc(eyebrow)}</p><h2>${esc(title)}<em>${esc(em)}</em></h2>${lead ? `<p class="lead">${esc(lead)}</p>` : ""}` };
+}
+
+// ---------- defaults ----------
+function defaults() {
+  return {
+    team: { name: "", num: "", members: ["", "", "", ""], controls: "" },
+    roles: { b1: {}, b2: {} },
+    agree: false,
+    ideas: { rctfc: {} },
+    dec: {},
+    g: [{}, {}, {}],
+    modelUrl: "",
+    extra: {},
+    train: [{}, {}, {}, {}],
+    ctest: [{}, {}, {}],
+    prompts: [{}, {}, {}, {}, {}],
+    phr: {}, bankShown: false, preview: "",
+    pt: {}, res: { mis: [{}, {}] }, imp: {},
+    arc: [{}, {}, {}],
+    card: {}, aivs: [{}, {}, {}], statement: "", chk: [],
+    reflections: {}
+  };
+}
+function merge(base, add) {
+  if (Array.isArray(base)) { const out = base.slice(); if (Array.isArray(add)) add.forEach((v, i) => { out[i] = (i < base.length) ? merge(base[i], v) : v; }); return out; }
+  if (base && typeof base === "object") { const out = Object.assign({}, base); if (add && typeof add === "object") Object.keys(add).forEach(k => { out[k] = k in base ? merge(base[k], add[k]) : add[k]; }); return out; }
+  return add === undefined ? base : add;
+}
+
+// ---------- sections ----------
+const SECTIONS = [];
+function addSec(title, html) { SECTIONS.push({ title, html }); }
+
+// 0 Team
+addSec("Team", (() => {
+  const h = head(0, "SECTION 0 · TEAM · 3 MIN", "Your ", "team.", "One workbook per team. The Reporter usually fills it in. Everything saves on this device.");
+  const roles = DATA.roles.map(r => `<tr><td class="fixed">${esc(r.label.charAt(0) + r.label.slice(1).toLowerCase())}</td><td class="hint" style="font-size:14px">${esc(r.desc.replace("Fills in Handouts A and B", "Fills in this workbook"))}</td><td>${cellIn("roles.b1." + r.label.toLowerCase(), { aria: r.label + " Block 1" })}</td><td>${cellIn("roles.b2." + r.label.toLowerCase(), { aria: r.label + " after rotation", opt: true })}</td></tr>`).join("");
+  return h.open + `
+    <div class="grid2">${txt("team.name", "Team name", { ph: "e.g., The Night Shift" })}${txt("team.num", "Team number", { ph: "e.g., 3" })}</div>
+    <h3>Members</h3>
+    <div class="grid4">${[0, 1, 2, 3].map(i => `<label class="f"><span>Member ${i + 1}</span><input type="text" data-k="team.members.${i}"${i === 3 ? ' data-opt="1" placeholder="(optional)"' : ""}></label>`).join("")}</div>
+    <h3>Roles</h3>
+    <p class="hint">${esc(DATA.rolesNote)}</p>
+    <div class="scroll"><table class="t"><thead><tr><th>ROLE</th><th>WHAT YOU DO</th><th>BLOCK 1</th><th>AFTER ROTATION</th></tr></thead><tbody>${roles}</tbody></table></div>
+    <h3>Our controls</h3>
+    <div class="choice">
+      <label><input type="radio" name="ctl" data-k="team.controls" value="gesture"><span><b>Hand gestures</b><br>We train a Teachable Machine model.</span></label>
+      <label><input type="radio" name="ctl" data-k="team.controls" value="keyboard"><span><b>Keyboard</b><br>We add one extra feature to our game.</span></label>
+    </div>
+    <p class="hint">You can switch to the keyboard later if the camera does not work. Keyboard games still need one extra feature.</p>
+  </section>`;
+})());
+
+// 1 Mission
+addSec("Mission & privacy", (() => {
+  const h = head(1, "SECTION 1 · YOUR MISSION · A6 · 5%", "Build your own ", "AI-made game.", DATA.mission);
+  return h.open + `
+    <div class="grid4 no-print">${DATA.missionCards.map(c => `<div class="card"><b>${esc(c.label)}</b><p>${esc(c.desc)}</p></div>`).join("")}</div>
+    <h3>Hands only: our privacy rule</h3>
+    <div class="note"><ul>${DATA.privacy.map(p => `<li><b>${esc(p.t)}</b> ${esc(p.d)}</li>`).join("")}</ul></div>
+    <label class="check"><input type="checkbox" data-k="agree"><span>We read the hands-only rule, and our team will follow it.</span></label>
+  </section>`;
+})());
+
+// 2 Ideas
+addSec("Ideas", (() => {
+  const h = head(2, "SECTION 2 · IDEAS · 8 MIN", "Design with AI. ", "Decide as a team.", DATA.controlsRule);
+  const r = ["Role", "Context", "Task", "Format", "Constraints"];
+  return h.open + `
+    ${area("ideas.enjoy", "Before you prompt (1 min): which games do you and your teammates enjoy? Write two.", { rows: 2 })}
+    <p class="hint no-print">Idea starters:</p>
+    <div class="chips no-print">${DATA.ideaStarters.map(i => `<span><b>${esc(i[0])}</b> · ${esc(i[1])}</span>`).join("")}</div>
+    ${prompt(DATA.prompts.p1)}
+    <h3>Week 2 check: find the five parts in Prompt 1</h3>
+    <div class="grid2">${r.map(x => txt("ideas.rctfc." + x.toLowerCase(), x, { ph: "Copy the words from Prompt 1" })).join("")}</div>
+    <h3>Our decision</h3>
+    ${area("ideas.shortlist", "Our shortlist (3 ideas from the AI)", { rows: 3 })}
+    ${txt("ideas.choice", "Our choice")}
+    ${area("ideas.why", "We chose it because…", { rows: 2 })}
+    ${area("ideas.changed", "One thing we changed from the AI's idea", { rows: 2 })}
+  </section>`;
+})());
+
+// 3 Decisions
+const DEC = [["title", "Game title"], ["goal", "Goal"], ["player", "The player is…"], ["setting", "Setting"], ["moves", "What moves toward the player"], ["score", "How to score"], ["lose", "How to lose"], ["action", "Our ACTION does…"]];
+addSec("Decisions", (() => {
+  const h = head(3, "SECTION 3 · DECISIONS · 7 MIN", "Make the ", "rules.", "Use Prompt 2. The AI suggests; your team makes the final decisions.");
+  return h.open + prompt(DATA.prompts.p2) + `<div class="grid2">${DEC.map(d => area("dec." + d[0], d[1], { rows: 2 })).join("")}</div></section>`;
+})());
+
+// 4 Controls
+addSec("Controls", (() => {
+  const h = head(4, "SECTION 4 · CONTROLS · 7 MIN", "Map your ", "controls.", "");
+  const rows = [0, 1, 2].map(i => `<tr><td>${cellIn("g." + i + ".cls", { aria: "Class name " + (i + 1), ph: "e.g., Fist" })}</td><td>${cellIn("g." + i + ".look", { aria: "What it looks like", ph: "What it looks like" })}</td><td><select data-k="g.${i}.action" aria-label="Action"><option value="">Choose…</option><option value="left">left</option><option value="right">right</option><option value="action">action</option></select></td><td>${cellIn("g." + i + ".why", { aria: "Why it is easy to see", opt: true })}</td></tr>`).join("");
+  return h.open + `
+    <p class="ctl-hint note no-print"><b>Choose your controls in Section 0</b> to see only what your team needs.</p>
+    <div class="only-gesture">
+      <h3>Gesture teams: your gesture map</h3>
+      ${prompt(DATA.prompts.p3)}
+      <div class="scroll"><table class="t"><thead><tr><th>CLASS NAME (EXACT)</th><th>WHAT THE GESTURE LOOKS LIKE</th><th>ACTION</th><th>WHY IT'S EASY TO SEE</th></tr></thead>
+      <tbody>${rows}<tr><td class="fixed">Neutral</td><td class="hint">Hands down, empty background</td><td class="fixed">none</td><td class="hint">The game does nothing.</td></tr></tbody></table></div>
+      <p class="hint">Use these exact names in Teachable Machine. Capital letters matter.</p>
+      <label class="f"><span>Our model link (after Upload in Teachable Machine)</span><input type="url" data-k="modelUrl" data-opt="1" placeholder="https://teachablemachine.withgoogle.com/models/…/"></label>
+      <h3 class="no-print">Paste this into PART 2 of the starter file</h3>
+      <div class="no-print">
+        <p class="hint">This code is made from your gesture map, so the spelling always matches.</p>
+        <ul class="warnings" id="codeWarn"></ul>
+        <pre class="code" id="codeOut"></pre>
+        <button class="btn" type="button" id="copyCode">Copy code</button>
+      </div>
+    </div>
+    <div class="only-keyboard">
+      <h3>Keyboard teams: your extra feature</h3>
+      <p class="hint">Skip Prompt 3. Your keys are ← → and Space. Choose one feature or invent your own:</p>
+      <div class="chips">${DATA.extraFeatures.map(f => `<span>${esc(f)}</span>`).join("")}</div>
+      ${txt("extra.feature", "Our extra feature")}
+      ${area("extra.how", "How it works in the game", { rows: 3 })}
+    </div>
+  </section>`;
+})());
+
+// 5 Train / Test
+addSec("Train or test", (() => {
+  const h = head(5, "SECTION 5 · TRAIN THE AI · 25 MIN", "Test your ", "controller.", "");
+  const trows = [0, 1, 2, 3].map(i => `<tr><td class="fixed" data-cls="${i}">${i === 3 ? "Neutral" : "Gesture " + (i + 1)}</td><td>${cellIn("train." + i + ".photos", { type: "number", aria: "Number of photos", min: 0, max: 999 })}</td><td>${cellIn("train." + i + ".t1", { type: "number", aria: "Trainer's hand, out of 5", min: 0, max: 5, ph: "/5" })}</td><td>${cellIn("train." + i + ".t2", { type: "number", aria: "Another hand, out of 5", min: 0, max: 5, ph: "/5" })}</td><td>${cellIn("train." + i + ".fixed", { area: true, aria: "What we fixed", opt: true })}</td></tr>`).join("");
+  const crows = [0, 1, 2].map(i => `<tr><td class="num">${i + 1}</td><td>${cellIn("ctest." + i + ".tester", { aria: "Tester" })}</td><td>${cellIn("ctest." + i + ".score", { aria: "Score" })}</td><td>${cellIn("ctest." + i + ".notes", { area: true, aria: "What felt slow or confusing" })}</td></tr>`).join("");
+  return h.open + `
+    <p class="ctl-hint note no-print"><b>Choose your controls in Section 0</b> to see only what your team needs.</p>
+    <div class="only-gesture">
+      <h3>Gesture teams: training log</h3>
+      <ol class="hint no-print">${DATA.trainSteps.map(s => `<li><b>${esc(s.t)}</b> ${esc(s.d)}</li>`).join("")}</ol>
+      <p class="hint">Test each gesture 5 times with the Trainer's hand, then 5 times with another teammate's hand. Write how many were correct.</p>
+      <div class="scroll"><table class="t"><thead><tr><th>CLASS</th><th># PHOTOS</th><th>TRAINER'S HAND</th><th>ANOTHER HAND</th><th>WHAT WE FIXED</th></tr></thead><tbody>${trows}</tbody></table></div>
+      ${area("hardest", "Which gesture was hardest for the model? Why do you think so?", { rows: 2 })}
+    </div>
+    <div class="only-keyboard">
+      <h3>Keyboard teams: control test</h3>
+      <p class="hint">Start building first (Section 6). Then three classmates from other teams play one round each.</p>
+      <div class="scroll"><table class="t"><thead><tr><th>#</th><th>TESTER</th><th>SCORE</th><th>WHAT FELT SLOW OR CONFUSING?</th></tr></thead><tbody>${crows}</tbody></table></div>
+    </div>
+  </section>`;
+})());
+
+// 6 Prompt log
+addSec("Prompt log", (() => {
+  const h = head(6, "SECTION 6 · BUILD · 35 MIN · YOUR PLAYBOOK", "Log every ", "prompt.", "Log at least 5 prompts. Prompts 1–3 count. Add your build, debug, and improve prompts.");
+  return h.open + `
+    ${prompt(DATA.prompts.p4)}
+    <details class="no-print"><summary class="hint" style="cursor:pointer">More prompts: if it breaks, improve with evidence</summary>${prompt(DATA.prompts.debug)}${prompt(DATA.prompts.improve)}</details>
+    <div class="row-actions" style="margin:14px 0 4px"><span class="meter" id="promptMeter">0 of 5</span><span class="hint">prompts logged</span></div>
+    <div class="scroll"><table class="t" id="promptTable"><thead><tr><th>#</th><th>WHO WROTE IT</th><th>WHAT WE ASKED (SHORT)</th><th>WHAT HAPPENED</th><th>WHAT WE CHANGED NEXT</th><th class="no-print"></th></tr></thead><tbody></tbody></table></div>
+    <button class="btn no-print" type="button" id="addPrompt">+ Add a prompt</button>
+  </section>`;
+})());
+
+// 7 Signposting
+addSec("Signposting", (() => {
+  const h = head(7, "SECTION 7 · SIGNPOSTING · 15 MIN", "Clear ", "signposts.", "A signpost tells the listener where you are in a talk. Write your own phrases first. Then open the bank.", true);
+  const keys = ["start", "moveon", "show", "wrapup"];
+  const bank = DATA.pitch.map(p => `<tr><td class="fixed">${esc(p.part)}</td><td class="hint">${esc(p.purpose)}</td><td>${p.phrases.map(esc).join(" · ")}</td></tr>`).join("") +
+    `<tr><td class="fixed">Between parts</td><td class="hint">Move on</td><td>${DATA.moveOn.map(esc).join(" · ")}</td></tr>`;
+  return h.open + `
+    <h3>Your phrases first</h3>
+    <div class="grid2">${DATA.functions4.map((f, i) => area("phr." + keys[i], f.charAt(0) + f.slice(1).toLowerCase(), { rows: 2, ph: "Two phrases" })).join("")}</div>
+    <div class="row-actions no-print"><button class="btn primary" type="button" id="showBank">Show the phrase bank</button><span class="hint" id="bankHint">Fill in at least three boxes first.</span></div>
+    <div class="bank" id="bank"><h3>The 5-part pitch</h3><div class="scroll"><table class="t"><thead><tr><th>PART</th><th>PURPOSE</th><th>USEFUL PHRASES</th></tr></thead><tbody>${bank}</tbody></table></div></div>
+    <h3>The 30-second preview</h3>
+    <div class="framebox no-print">${esc(DATA.preview)}</div>
+    ${area("preview", "Our version", { rows: 3 })}
+  </section>`;
+})());
+
+// 8 Playtest & improve
+addSec("Playtest & improve", (() => {
+  const h = head(8, "SECTION 8 · PLAYTEST SWAP + IMPROVE · 25 MIN", "Play it. ", "Report it.", "", true);
+  const fb = DATA.feedback.map(f => `<label class="f"><span>${esc(f.label.charAt(0) + f.label.slice(1).toLowerCase())}${f.wk ? " (" + esc(f.wk.replace("WEEK", "Week")) + ")" : ""}</span><p class="frames">${f.phrases.map(esc).join(" · ")}</p><textarea data-k="pt.${f.label.toLowerCase()}" rows="2"></textarea></label>`).join("");
+  const mis = [0, 1].map(i => `<tr><td>${cellIn("res.mis." + i + ".g", { aria: "Gesture or key", opt: i > 0 })}</td><td>${cellIn("res.mis." + i + ".as", { aria: "Misread as / problem", opt: i > 0 })}</td><td>${cellIn("res.mis." + i + ".n", { aria: "How often", ph: "__ out of __", opt: i > 0 })}</td></tr>`).join("");
+  return h.open + `
+    <h3>A · The game we tested</h3>
+    ${txt("pt.team", "We tested Team #")}
+    ${fb}
+    <h3>B · Results for our game</h3>
+    ${txt("res.by", "Our game was tested by Team #")}
+    <div class="scroll"><table class="t"><thead><tr><th>GESTURE OR KEY</th><th>MISREAD AS / PROBLEM</th><th>HOW OFTEN?</th></tr></thead><tbody>${mis}</tbody></table></div>
+    <div class="grid2">${txt("res.scores", "Testers' scores")}${txt("res.praise", "Praise we got")}</div>
+    ${txt("res.suggestion", "Suggestion we got")}
+    <h3>C · Our improvement</h3>
+    <div class="chips no-print">${DATA.improveMenu.map(m => `<span>${esc(m)}</span>`).join("")}</div>
+    ${area("imp.evidence", "The evidence (from B)", { rows: 2 })}
+    ${area("imp.change", "What we changed", { rows: 2 })}
+    ${area("imp.result", "What happened after the change", { rows: 2 })}
+  </section>`;
+})());
+
+// 9 Arcade walk
+const PARTS = ["Hook", "How to play", "The AI", "What changed", "Wrap up"];
+addSec("Arcade walk", (() => {
+  const h = head(9, "SECTION 9 · ARCADE WALK · 15 MIN", "Open the ", "arcade.", "Visit three games. Tick each signpost you hear in their pitch.", true);
+  const rows = [0, 1, 2].map(i => `<tr><td>${cellIn("arc." + i + ".team", { aria: "Team number", ph: "Team #", opt: true })}</td>${PARTS.map((p, j) => `<td><input type="checkbox" data-k="arc.${i}.t${j}" data-opt="1" aria-label="${esc(p)}"></td>`).join("")}</tr>`).join("");
+  return h.open + `<div class="grid4 no-print" style="grid-template-columns:repeat(3,1fr)">${DATA.arcade.map(a => `<div class="card"><b>${esc(a.t.toUpperCase())}</b><p>${esc(a.d.replace("on Handout C", "here"))}</p></div>`).join("")}</div>
+    <div class="scroll"><table class="t ticks"><thead><tr><th>TEAM #</th>${PARTS.map(p => `<th>${esc(p.toUpperCase())}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div></section>`;
+})());
+
+// 10 A6
+const CARD = [["title", "Game title", 1], ["team", "Team name", 1], ["story", "The story (1–2 sentences)", 2], ["howto", "How to play (use signposts)", 5], ["gestures", "Controls: gesture or key → action", 2], ["changed", "What we changed after testing", 2]];
+addSec("A6: Game Card", (() => {
+  const h = head(10, "SECTION 10 · A6 · " + DATA.a6.weight.toUpperCase(), "Game Card & ", "statement.", DATA.a6.due);
+  const r = DATA.a6.rubric.map(c => { const b = DATA.a6.bandPts[c.pts]; return `<tr><td><b>${esc(c.c)}</b></td><td>${c.pts}</td><td><span class="pts">${b[0]} pts</span>${esc(c.hi)}</td><td><span class="pts">${b[1]} pts</span>${esc(c.mid)}</td><td><span class="pts">${b[2]} pts</span>${esc(c.lo)}</td></tr>`; }).join("");
+  const aiv = [0, 1, 2].map(i => `<tr><td>${cellIn("aivs." + i + ".ai", { area: true, aria: "The AI suggested or did", opt: i > 0 })}</td><td>${cellIn("aivs." + i + ".us", { area: true, aria: "We decided or changed", opt: i > 0 })}</td></tr>`).join("");
+  return h.open + `
+    <div class="note no-print"><b>What you submit</b><ol style="margin:6px 0 0;padding-left:20px">${DATA.submitWeb.map(s => `<li>${esc(s)}</li>`).join("")}</ol></div>
+    <h3>Game Card</h3>
+    <p class="hint">100–120 words in total. Use at least four signposting phrases. Write your draft first; then compare it with the model.</p>
+    <div class="row-actions no-print" style="margin-bottom:10px"><span class="meter" id="wordMeter">0 words</span><span class="meter" id="signMeter">0 signposts</span></div>
+    ${CARD.map(c => c[2] > 1 ? area("card." + c[0], c[1], { rows: c[2] }) : txt("card." + c[0], c[1])).join("")}
+    <div class="row-actions no-print"><button class="btn" type="button" id="showModel" disabled>Compare with the model</button><span class="hint" id="modelHint">Write at least 60 words first.</span></div>
+    <div class="model no-print" id="model"><p class="hint" style="margin-top:0">Model Game Card · fictional team, practice only</p><dl>${DATA.gameCard.model.map(m => `<dt>${esc(m[0])}</dt><dd>${esc(m[1])}</dd>`).join("")}</dl></div>
+    <h3>AI did it, or we did it?</h3>
+    <div class="scroll"><table class="t"><thead><tr><th>THE AI SUGGESTED OR DID…</th><th>WE DECIDED OR CHANGED…</th></tr></thead><tbody>${aiv}</tbody></table></div>
+    <h3>AI-use statement (3–5 sentences)</h3>
+    <ul class="hint no-print">${DATA.a6.statementFrame.map(f => `<li>${esc(f)}</li>`).join("")}</ul>
+    ${area("statement", "Our AI-use statement", { rows: 5 })}
+    <h3>Submission checklist</h3>
+    ${DATA.a6.checklist.map((c, i) => `<label class="check"><input type="checkbox" data-k="chk.${i}"><span>${esc(c)}</span></label>`).join("")}
+    <h3 class="no-print">Rubric (100 points = 5%)</h3>
+    <div class="scroll no-print"><table class="t rubric"><thead><tr><th>CRITERION</th><th>PTS</th><th>STRONG</th><th>DEVELOPING</th><th>BEGINNING</th></tr></thead><tbody>${r}</tbody></table></div>
+  </section>`;
+})());
+
+// ---------- render ----------
+function render() {
+  $("#nav").innerHTML = SECTIONS.map((s, i) => `<li><button type="button" data-go="${i}"><span class="n">${i}</span><span>${esc(s.title)}</span><span class="dot" id="dot${i}"></span></button></li>`).join("");
+  $("#main").innerHTML = SECTIONS.map((s, i) => s.html.replace("</section>", pager(i) + "</section>")).join("");
+}
+function pager(i) {
+  return `<div class="pager no-print">${i > 0 ? `<button class="btn" type="button" data-go="${i - 1}">← ${esc(SECTIONS[i - 1].title)}</button>` : "<span></span>"}${i < SECTIONS.length - 1 ? `<button class="btn primary" type="button" data-go="${i + 1}">${esc(SECTIONS[i + 1].title)} →</button>` : ""}</div>`;
+}
+function renderPromptRows() {
+  const tb = $("#promptTable tbody");
+  tb.innerHTML = S.prompts.map((p, i) => `<tr><td class="num">${i + 1}</td><td>${cellIn("prompts." + i + ".who", { aria: "Who wrote prompt " + (i + 1), opt: true })}</td><td>${cellIn("prompts." + i + ".asked", { area: true, aria: "What we asked", opt: i >= 5 })}</td><td>${cellIn("prompts." + i + ".happened", { area: true, aria: "What happened", opt: i >= 5 })}</td><td>${cellIn("prompts." + i + ".changed", { area: true, aria: "What we changed next", opt: i >= 5 })}</td><td class="no-print">${i >= 5 ? `<button class="btn-x" type="button" data-del="${i}" aria-label="Remove prompt ${i + 1}">×</button>` : ""}</td></tr>`).join("");
+  fillFrom($("#promptTable"));
+}
+function fillFrom(root) {
+  $$("[data-k]", root).forEach(el => {
+    const v = getP(S, el.dataset.k);
+    if (el.type === "checkbox") el.checked = !!v;
+    else if (el.type === "radio") el.checked = (v === el.value);
+    else el.value = v == null ? "" : v;
+  });
+}
+function go(i) {
+  current = Math.max(0, Math.min(SECTIONS.length - 1, i));
+  $$("section.sec").forEach(s => s.classList.toggle("on", +s.dataset.sec === current));
+  $$("nav [data-go]").forEach(b => b.setAttribute("aria-current", +b.dataset.go === current ? "true" : "false"));
+  try { localStorage.setItem(KEY + "-sec", String(current)); } catch (e) {}
+  window.scrollTo({ top: 0 });
+}
+
+// ---------- derived UI ----------
+function words(s) { return (String(s || "").match(/[A-Za-z0-9’'\-]+/g) || []).length; }
+const SIGNS = ["have you ever", "imagine", "let me start", "the goal is", "to win", "first", "then", "finally", "as you can see", "watch what happens", "we trained", "our ai assistant", "after testing", "according to", "moving on", "now let's look", "now let’s look", "that brings us", "to sum up", "so, that's", "so, that’s", "we'd love", "we’d love"];
+function update() {
+  // controls
+  document.body.classList.toggle("ctl-gesture", S.team.controls === "gesture");
+  document.body.classList.toggle("ctl-keyboard", S.team.controls === "keyboard");
+  $("#topTeam").textContent = S.team.name ? "Team " + (S.team.num ? S.team.num + " · " : "") + S.team.name : "AI Game Lab Workbook";
+  // gesture classes into training table
+  [0, 1, 2].forEach(i => { const c = $(`[data-cls="${i}"]`); if (c) c.textContent = (S.g[i] && S.g[i].cls) || "Gesture " + (i + 1); });
+  // code
+  const lines = [], warn = [], seen = {};
+  S.g.forEach((g, i) => {
+    const n = (g && g.cls || "").trim();
+    if (!n) return;
+    if (seen[n.toLowerCase()] || n.toLowerCase() === "neutral") warn.push(`"${n}" is used twice. Each class needs a different name.`);
+    seen[n.toLowerCase()] = 1;
+    if (!g.action) warn.push(`Choose an action for "${n}".`);
+    if (n !== (g.cls || "")) warn.push(`"${g.cls}" has a space at the start or end. Remove it here and in Teachable Machine.`);
+    lines.push(`  ${JSON.stringify(n)}: ${JSON.stringify(g.action || "none")},`);
+  });
+  if (!lines.length) warn.push("Fill in your gesture map above to make the code.");
+  lines.push(`  "Neutral": "none"`);
+  $("#codeOut").textContent = "const GESTURES = {\n" + lines.join("\n") + "\n};";
+  $("#codeWarn").innerHTML = warn.map(w => `<li>${esc(w)}</li>`).join("");
+  // prompt meter
+  const n = S.prompts.filter(p => p && (p.asked || "").trim()).length;
+  const pm = $("#promptMeter"); pm.textContent = n + " of 5"; pm.className = "meter " + (n >= 5 ? "ok" : "low");
+  // bank
+  const filled = ["start", "moveon", "show", "wrapup"].filter(k => (S.phr[k] || "").trim()).length;
+  $("#showBank").disabled = !S.bankShown && filled < 3;
+  $("#bank").classList.toggle("on", !!S.bankShown);
+  $("#showBank").style.display = S.bankShown ? "none" : "";
+  $("#bankHint").textContent = S.bankShown ? "" : (filled < 3 ? "Fill in at least three boxes first." : "Ready. Compare the bank with your phrases.");
+  // card meters
+  const all = CARD.map(c => S.card[c[0]] || "").join(" ");
+  const w = words(all);
+  const wm = $("#wordMeter"); wm.textContent = w + " words"; wm.className = "meter " + (w >= 100 && w <= 120 ? "ok" : "low");
+  const low = (S.card.howto + " " + S.card.changed + " " + S.card.story).toLowerCase();
+  const sg = SIGNS.filter(x => low.includes(x)).length;
+  const sm = $("#signMeter"); sm.textContent = sg + " signpost" + (sg === 1 ? "" : "s"); sm.className = "meter " + (sg >= 4 ? "ok" : "low");
+  $("#showModel").disabled = w < 60;
+  $("#modelHint").textContent = w < 60 ? "Write at least 60 words first." : "";
+  dots();
+}
+function sectionFields(sec) {
+  return $$("[data-k]", sec).filter(el => {
+    if (el.dataset.opt) return false;
+    if (S.team.controls === "keyboard" && el.closest(".only-gesture")) return false;
+    if (S.team.controls === "gesture" && el.closest(".only-keyboard")) return false;
+    if (el.type === "radio") return el === $$(`[name="${el.name}"]`, sec)[0];
+    return true;
+  });
+}
+function dots() {
+  $$("section.sec").forEach(sec => {
+    const i = +sec.dataset.sec, d = $("#dot" + i);
+    if (!d) return;
+    const f = sectionFields(sec);
+    if (!f.length) { d.className = "dot"; return; }
+    const done = f.filter(el => el.type === "checkbox" ? el.checked : el.type === "radio" ? !!getP(S, el.dataset.k) : String(el.value || "").trim() !== "").length;
+    d.className = "dot" + (done === 0 ? "" : done === f.length ? " done" : " part");
+  });
+}
+
+// ---------- save ----------
+let saveT;
+function save() {
+  clearTimeout(saveT);
+  saveT = setTimeout(() => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(S));
+      const t = new Date();
+      $("#saved").textContent = "Saved on this device · " + t.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+      $("#saved").classList.remove("warn");
+    } catch (e) {
+      $("#saved").textContent = "Not saving on this device. Use Export team file.";
+      $("#saved").classList.add("warn");
+    }
+  }, 250);
+}
+function load() {
+  S = defaults();
+  try { const raw = localStorage.getItem(KEY); if (raw) S = merge(defaults(), JSON.parse(raw)); } catch (e) {}
+  try { current = +localStorage.getItem(KEY + "-sec") || 0; } catch (e) {}
+}
+
+// ---------- export / import ----------
+function slug(s) { return (String(s || "team").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "team"); }
+function download(name, text, type) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type }));
+  a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function exportFile() {
+  const out = { app: APP, version: 1, exported: new Date().toISOString(), data: S };
+  download(slug(S.team.name) + "_workbook.json", JSON.stringify(out, null, 2), "application/json");
+  toast("Team file downloaded. Send it to the teammate who will continue.");
+}
+function importFile(file) {
+  const r = new FileReader();
+  r.onload = () => {
+    let obj;
+    try { obj = JSON.parse(r.result); } catch (e) { toast("That file is not a workbook file."); return; }
+    if (!obj || obj.app !== APP || !obj.data) { toast("That file is not an AI Game Lab workbook file."); return; }
+    const name = obj.data.team && obj.data.team.name ? obj.data.team.name : "this team";
+    const when = obj.exported ? new Date(obj.exported).toLocaleString() : "unknown time";
+    if (!confirm(`Load the workbook for ${name} (exported ${when})?\n\nThis replaces the work on this device.`)) return;
+    S = merge(defaults(), obj.data);
+    afterReplace();
+    toast("Workbook loaded. You can continue here.");
+  };
+  r.readAsText(file);
+}
+function afterReplace() {
+  renderPromptRows();
+  fillFrom(document);
+  update(); save();
+}
+
+// ---------- print ----------
+function buildPrint() {
+  const p = $("#print");
+  const team = S.team;
+  const members = (team.members || []).filter(Boolean).join(", ");
+  let html = `<h1>AI Game Lab Workbook</h1><p class="meta">AI Sprint · Week 7 · A6 · Team ${esc(team.num || "—")}: ${esc(team.name || "—")} · ${esc(members || "—")} · Controls: ${esc(team.controls || "—")} · Printed ${esc(new Date().toLocaleDateString())}</p>`;
+  p.innerHTML = html;
+  $$("#main section.sec").forEach(sec => {
+    if (sec.classList.contains("no-print")) return;
+    const c = sec.cloneNode(true);
+    $$(".no-print, .pager, .ctl-hint", c).forEach(e => e.remove());
+    if (team.controls === "keyboard") $$(".only-gesture", c).forEach(e => e.remove());
+    if (team.controls === "gesture") $$(".only-keyboard", c).forEach(e => e.remove());
+    $$("input, textarea, select", c).forEach(el => {
+      const orig = $(`#main [data-k="${CSS.escape(el.dataset.k || "")}"]${el.type === "radio" ? `[value="${el.value}"]` : ""}`);
+      let out;
+      if (el.type === "checkbox") out = document.createTextNode(orig && orig.checked ? "☑" : "☐");
+      else if (el.type === "radio") { out = document.createTextNode(orig && orig.checked ? "◉" : "○"); }
+      else {
+        out = document.createElement("div"); out.className = "pval";
+        const v = el.tagName === "SELECT" ? (orig && orig.value) : (orig ? orig.value : "");
+        out.textContent = v && String(v).trim() ? v : "—";
+      }
+      el.replaceWith(out);
+    });
+    c.classList.add("on");
+    p.appendChild(c);
+  });
+  const f = document.createElement("p"); f.className = "pfoot";
+  f.textContent = "Copyright © 2026 Approach International Student Center, Inc. - Revised on 11/16/2026";
+  p.appendChild(f);
+}
+
+// ---------- events ----------
+function onInput(e) {
+  const el = e.target;
+  if (!el.dataset || !el.dataset.k) return;
+  let v;
+  if (el.type === "checkbox") v = el.checked;
+  else if (el.type === "radio") { if (!el.checked) return; v = el.value; }
+  else v = el.value;
+  setP(S, el.dataset.k, v);
+  update(); save();
+}
+async function copyText(text, btn) {
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {
+    const t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select();
+    try { ok = document.execCommand("copy"); } catch (e2) {} t.remove();
+  }
+  if (btn) { const o = btn.textContent; btn.textContent = ok ? "Copied" : "Select and copy"; btn.classList.toggle("done", ok); setTimeout(() => { btn.textContent = o; btn.classList.remove("done"); }, 1600); }
+}
+
+load();
+render();
+renderPromptRows();
+fillFrom(document);
+update();
+go(current);
+
+document.addEventListener("input", onInput);
+document.addEventListener("change", onInput);
+document.addEventListener("click", e => {
+  const g = e.target.closest("[data-go]"); if (g) { go(+g.dataset.go); return; }
+  const c = e.target.closest("[data-copy]"); if (c) { copyText(c.dataset.copy, c); return; }
+  const d = e.target.closest("[data-del]");
+  if (d) {
+    const i = +d.dataset.del, p = S.prompts[i] || {};
+    const has = ["who", "asked", "happened", "changed"].some(k => (p[k] || "").trim());
+    if (has && !confirm("Remove prompt " + (i + 1) + "?")) return;
+    S.prompts.splice(i, 1); renderPromptRows(); update(); save(); return;
+  }
+});
+$("#addPrompt").addEventListener("click", () => { S.prompts.push({}); renderPromptRows(); update(); save(); const last = $$("#promptTable textarea[data-k$='.asked']").pop(); if (last) last.focus(); });
+$("#copyCode").addEventListener("click", e => copyText($("#codeOut").textContent, e.currentTarget));
+$("#showBank").addEventListener("click", () => { S.bankShown = true; update(); save(); });
+$("#showModel").addEventListener("click", () => $("#model").classList.toggle("on"));
+$("#btnExport").addEventListener("click", exportFile);
+$("#btnImport").addEventListener("click", () => $("#fileIn").click());
+$("#fileIn").addEventListener("change", e => { const f = e.target.files[0]; if (f) importFile(f); e.target.value = ""; });
+$("#btnPdf").addEventListener("click", () => { buildPrint(); window.print(); });
+window.addEventListener("beforeprint", buildPrint);
+$("#btnReset").addEventListener("click", () => {
+  if (!confirm("Delete all the work in this workbook on this device?\n\nTip: click Cancel and use Export team file first if you want a copy.")) return;
+  S = defaults(); afterReplace(); go(0); toast("The workbook is empty again.");
+});
+</script>
+</body>
+</html>

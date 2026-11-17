@@ -1,0 +1,18 @@
+{
+  "arcade": {
+    "eyebrow": "AI SPRINT · FALL 2026",
+    "subtitle": "Browser games designed by our teams, built with AI assistants, and controlled with hand gestures or the keyboard."
+  },
+  "games": [
+    {
+      "title": "Star Catcher",
+      "team": "Teacher demo",
+      "story": "Stars are falling from the night sky, and only you can catch them.",
+      "howto": "The goal is simple: catch the gold stars and dodge the red rocks. First, move your basket left and right. Then, use your shield when the sky gets busy. To win, beat the best score before you lose three lives.",
+      "controls": "gesture",
+      "gestures": "Left → move left · Right → move right · Shield → 2-second shield · Hands down → nothing (or ← → Space)",
+      "changed": "After testing, we noticed that new players lost very fast, so we made the first ten seconds slower.",
+      "file": "teacher-demo_star-catcher.html"
+    }
+  ]
+}

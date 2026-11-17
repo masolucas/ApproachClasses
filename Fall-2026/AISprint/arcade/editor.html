@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="robots" content="noindex">
+<title>Arcade Editor · AI Sprint</title>
+<style>
+  :root { color-scheme: light; --navy: #0c2340; --gold: #ae9142; --gold-ink: #8c7535; --teal: #0e6b6b; --amber: #b45309; --red: #b42318;
+    --ink: #1f2933; --muted: #6b7280; --line: #d6dde7; --wash: #f4f6f9; --paper: #fff; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--wash); color: var(--ink); font-family: Calibri, Carlito, "Segoe UI", system-ui, sans-serif; font-size: 16px; line-height: 1.45; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  header { background: var(--navy); color: #efe9d9; position: sticky; top: 0; z-index: 10; }
+  .hin { max-width: 1100px; margin: 0 auto; padding: 12px 20px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  .hin h1 { font-family: Cambria, Caladea, Georgia, serif; font-weight: 400; font-size: 24px; margin: 0; }
+  .hin h1 em { color: var(--gold); }
+  .tag { font-size: 11px; font-weight: 700; letter-spacing: .14em; color: var(--gold); border: 1px solid var(--gold); border-radius: 4px; padding: 2px 6px; }
+  .tools { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .tb { background: transparent; color: #efe9d9; border: 1px solid #4a6489; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 14px; }
+  .tb:hover { border-color: var(--gold); }
+  .tb.gold { background: var(--gold); border-color: var(--gold); color: var(--navy); font-weight: 700; }
+  .status { max-width: 1100px; margin: 0 auto; padding: 10px 20px 0; font-size: 14px; color: var(--muted); display: flex; gap: 14px; flex-wrap: wrap; }
+  .status b { color: var(--ink); }
+  .dirty { color: var(--amber); font-weight: 700; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px 20px 60px; }
+  .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; margin-bottom: 16px; }
+  .panel h2 { font-family: Cambria, Caladea, Georgia, serif; font-weight: 400; color: var(--navy); margin: 0 0 10px; font-size: 22px; }
+  .help { font-size: 14px; color: var(--muted); margin: 0 0 10px; }
+  .help ol { margin: 4px 0 0; padding-left: 20px; }
+  label.f { display: block; margin-bottom: 10px; }
+  label.f span { display: block; font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 3px; }
+  input[type=text], select, textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+  textarea { resize: vertical; min-height: 60px; }
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+  @media (max-width: 720px) { .g2 { grid-template-columns: 1fr; } }
+  .entry { border-left: 4px solid var(--teal); }
+  .entry.keyboard { border-left-color: var(--amber); }
+  .entry.bad { border-left-color: var(--red); }
+  .ehead { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .ehead .n { font-family: Cambria, Georgia, serif; font-style: italic; color: var(--gold-ink); font-size: 22px; }
+  .ehead h3 { margin: 0; font-family: Cambria, Georgia, serif; font-weight: 400; font-size: 22px; color: var(--navy); flex: 1; min-width: 0; }
+  .ib { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+  .ib:hover { border-color: var(--navy); }
+  .ib.del:hover { border-color: var(--red); color: var(--red); }
+  .issues { margin: 0 0 10px; padding: 8px 12px 8px 30px; border-radius: 6px; font-size: 14px; }
+  .issues.err { background: #fdecea; color: var(--red); }
+  .issues.warn { background: #fef3e2; color: #8a4b08; }
+  .btn { background: var(--navy); color: #fff; border: 0; border-radius: 6px; padding: 9px 16px; cursor: pointer; font-weight: 700; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--navy); color: #fff; padding: 10px 18px; border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .2s; max-width: 92vw; z-index: 20; }
+  .toast.on { opacity: 1; }
+  .empty { text-align: center; color: var(--muted); padding: 30px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="hin">
+    <h1>Arcade <em>Editor</em></h1><span class="tag">TEACHER ONLY</span>
+    <div class="tools">
+      <button class="tb" type="button" id="bOpen">Open games.json</button>
+      <button class="tb" type="button" id="bWeb">Load from website</button>
+      <button class="tb" type="button" id="bImport">Import team entries</button>
+      <button class="tb" type="button" id="bAdd">+ Add a game</button>
+      <button class="tb gold" type="button" id="bDown">Download games.json</button>
+    </div>
+    <input type="file" id="fOpen" accept=".json,application/json" hidden>
+    <input type="file" id="fImport" accept=".json,application/json" multiple hidden>
+  </div>
+</header>
+<div class="status"><span><b id="count">0</b> games</span><span id="errCount"></span><span id="dirty"></span></div>
+<main>
+  <section class="panel">
+    <h2>How to update the arcade</h2>
+    <div class="help"><ol>
+      <li><b>Open games.json</b> (the file from your repo), or <b>Load from website</b> if this page is on your site.</li>
+      <li><b>Import team entries</b>: choose one or more <code>teamname_arcade.json</code> files. Workbook team files (<code>_workbook.json</code>) also work.</li>
+      <li>Fix anything in red. Check anything in orange. Also read each entry for students’ full names: team names only.</li>
+      <li><b>Download games.json</b>, then upload it to the arcade folder, next to <code>index.html</code>. Put each game file in <code>games/</code> with the file name shown on its entry.</li>
+    </ol></div>
+  </section>
+  <section class="panel">
+    <h2>Gallery text</h2>
+    <div class="g2">
+      <label class="f"><span>Eyebrow</span><input type="text" id="aEyebrow"></label>
+      <label class="f"><span>Subtitle</span><input type="text" id="aSubtitle"></label>
+    </div>
+  </section>
+  <div id="list"></div>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const KEY = "aisprint-arcade-editor-v1";
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const FIELDS = ["title", "team", "story", "howto", "controls", "gestures", "changed", "file"];
+let D = { arcade: { eyebrow: "AI SPRINT · FALL 2026", subtitle: "Browser games designed by our teams, built with AI assistants, and controlled with hand gestures or the keyboard." }, games: [] };
+let dirty = false;
+
+function toast(m) { const t = $("#toast"); t.textContent = m; t.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("on"), 3500); }
+function slug(s) { return (String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "team"); }
+function clean(g) { const o = {}; FIELDS.forEach(k => o[k] = String(g && g[k] != null ? g[k] : "").trim()); if (o.controls !== "keyboard") o.controls = "gesture"; return o; }
+function persist(markDirty) {
+  if (markDirty) dirty = true;
+  try { localStorage.setItem(KEY, JSON.stringify({ D, dirty })); } catch (e) {}
+  $("#dirty").innerHTML = dirty ? '<span class="dirty">Changes not downloaded yet</span>' : "All changes downloaded";
+}
+
+function issues(g, i) {
+  const err = [], warn = [];
+  ["title", "team", "howto", "file"].forEach(k => { if (!g[k]) err.push("Missing: " + k + "."); });
+  if (g.file && !/\.html$/i.test(g.file)) err.push("The file name must end in .html.");
+  if (g.file && /[\/\\]/.test(g.file)) err.push("Write only the file name (no folders). The gallery adds games/.");
+  if (g.file && !/^[a-z0-9-]+_[a-z0-9-]+\.html$/.test(g.file)) warn.push("The file name does not follow teamname_gamename.html (lowercase, hyphens).");
+  if (g.file && D.games.some((o, j) => j !== i && o.file.toLowerCase() === g.file.toLowerCase())) err.push("Another game uses this file name.");
+  const all = FIELDS.map(k => g[k]).join(" ");
+  if (/[\w.+-]+@[\w-]+\.[\w.]+/.test(all)) warn.push("This entry has an email address. Remove it.");
+  if (/(\+?\d[\d\s().-]{8,}\d)/.test(all)) warn.push("This entry may have a phone number. Check it.");
+  const words = (all.match(/[A-Za-z0-9'’-]+/g) || []).length;
+  if (words > 220) warn.push("This entry is long (" + words + " words). The Game Card should be 100–120 words.");
+  return { err, warn };
+}
+
+function render() {
+  $("#aEyebrow").value = D.arcade.eyebrow || "";
+  $("#aSubtitle").value = D.arcade.subtitle || "";
+  $("#count").textContent = D.games.length;
+  if (!D.games.length) { $("#list").innerHTML = '<div class="panel empty">No games yet. Open games.json, import team entries, or add a game.</div>'; updateCounts(); return; }
+  $("#list").innerHTML = D.games.map((g, i) => `
+    <section class="panel entry" data-i="${i}">
+      <div class="ehead"><span class="n">${i + 1}</span><h3>${esc(g.title || "Untitled game")}</h3>
+        <button class="ib" type="button" data-up="${i}" aria-label="Move up"${i === 0 ? " disabled" : ""}>↑</button>
+        <button class="ib" type="button" data-down="${i}" aria-label="Move down"${i === D.games.length - 1 ? " disabled" : ""}>↓</button>
+        <button class="ib del" type="button" data-del="${i}">Delete</button></div>
+      <div class="iss"></div>
+      <div class="g2">
+        <label class="f"><span>Game title</span><input type="text" data-k="title" value="${esc(g.title)}"></label>
+        <label class="f"><span>Team name</span><input type="text" data-k="team" value="${esc(g.team)}"></label>
+        <label class="f"><span>Controls</span><select data-k="controls"><option value="gesture"${g.controls !== "keyboard" ? " selected" : ""}>Gestures</option><option value="keyboard"${g.controls === "keyboard" ? " selected" : ""}>Keyboard</option></select></label>
+        <label class="f"><span>Game file name (in games/)</span><input type="text" data-k="file" value="${esc(g.file)}" spellcheck="false"></label>
+      </div>
+      <label class="f"><span>The story</span><textarea data-k="story" rows="2">${esc(g.story)}</textarea></label>
+      <label class="f"><span>How to play</span><textarea data-k="howto" rows="4">${esc(g.howto)}</textarea></label>
+      <div class="g2">
+        <label class="f"><span>Controls list</span><textarea data-k="gestures" rows="2">${esc(g.gestures)}</textarea></label>
+        <label class="f"><span>What we changed after testing</span><textarea data-k="changed" rows="2">${esc(g.changed)}</textarea></label>
+      </div>
+    </section>`).join("");
+  document.querySelectorAll(".entry").forEach(el => showIssues(+el.dataset.i));
+  updateCounts();
+}
+function showIssues(i) {
+  const el = document.querySelector(`.entry[data-i="${i}"]`); if (!el) return;
+  const g = D.games[i], { err, warn } = issues(g, i);
+  el.querySelector(".iss").innerHTML = (err.length ? `<ul class="issues err">${err.map(e => `<li>${esc(e)}</li>`).join("")}</ul>` : "") + (warn.length ? `<ul class="issues warn">${warn.map(e => `<li>${esc(e)}</li>`).join("")}</ul>` : "");
+  el.classList.toggle("bad", err.length > 0);
+  el.classList.toggle("keyboard", g.controls === "keyboard");
+  el.querySelector("h3").textContent = g.title || "Untitled game";
+}
+function updateCounts() {
+  const n = D.games.filter((g, i) => issues(g, i).err.length).length;
+  $("#count").textContent = D.games.length;
+  $("#errCount").innerHTML = n ? `<span style="color:var(--red);font-weight:700">${n} with errors</span>` : "";
+}
+
+// editing
+document.addEventListener("input", e => {
+  const el = e.target;
+  if (el.id === "aEyebrow") { D.arcade.eyebrow = el.value; persist(true); return; }
+  if (el.id === "aSubtitle") { D.arcade.subtitle = el.value; persist(true); return; }
+  const box = el.closest(".entry"); if (!box || !el.dataset.k) return;
+  const i = +box.dataset.i;
+  D.games[i][el.dataset.k] = el.dataset.k === "controls" ? el.value : el.value;
+  persist(true);
+  D.games.forEach((_, j) => showIssues(j));
+  updateCounts();
+});
+document.addEventListener("change", e => { if (e.target.dataset && e.target.dataset.k === "controls") e.target.dispatchEvent(new Event("input", { bubbles: true })); });
+document.addEventListener("click", e => {
+  const t = e.target;
+  if (t.dataset.up) { const i = +t.dataset.up; [D.games[i - 1], D.games[i]] = [D.games[i], D.games[i - 1]]; persist(true); render(); }
+  else if (t.dataset.down) { const i = +t.dataset.down; [D.games[i + 1], D.games[i]] = [D.games[i], D.games[i + 1]]; persist(true); render(); }
+  else if (t.dataset.del) { const i = +t.dataset.del; if (confirm("Delete \"" + (D.games[i].title || "this game") + "\" from the arcade?")) { D.games.splice(i, 1); persist(true); render(); } }
+});
+
+// open / load
+function loadData(obj, source) {
+  if (!obj || !Array.isArray(obj.games)) { toast("That file is not a games.json file."); return false; }
+  if (D.games.length && dirty && !confirm("Replace the games in the editor with " + source + "?\n\nYour changes that are not downloaded will be lost.")) return false;
+  D = { arcade: Object.assign({}, D.arcade, obj.arcade || {}), games: obj.games.map(clean) };
+  dirty = false; persist(false); render();
+  toast("Loaded " + D.games.length + " games from " + source + ".");
+  return true;
+}
+function readFile(file) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsText(file); }); }
+$("#bOpen").addEventListener("click", () => $("#fOpen").click());
+$("#fOpen").addEventListener("change", async e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  try { loadData(JSON.parse(await readFile(f)), f.name); } catch (err) { toast("That file is not valid JSON."); }
+});
+$("#bWeb").addEventListener("click", async () => {
+  try { const r = await fetch("games.json", { cache: "no-store" }); if (!r.ok) throw 0; loadData(await r.json(), "the website"); }
+  catch (e) { toast("Could not load games.json from the website. Use Open games.json instead."); }
+});
+
+// import team entries
+function entryFrom(obj) {
+  if (obj && obj.app === "ai-game-lab-arcade-entry" && obj.entry) return clean(obj.entry);
+  if (obj && obj.app === "ai-game-lab-workbook" && obj.data) {
+    const d = obj.data, c = d.card || {}, team = (c.team || (d.team && d.team.name) || "").trim();
+    const title = (c.title || (d.dec && d.dec.title) || "").trim();
+    return clean({ title, team, story: c.story, howto: c.howto, controls: d.team && d.team.controls, gestures: c.gestures, changed: c.changed,
+      file: slug(d.team && d.team.name || team) + "_" + slug(title || "game") + ".html" });
+  }
+  return null;
+}
+$("#bImport").addEventListener("click", () => $("#fImport").click());
+$("#fImport").addEventListener("change", async e => {
+  const files = Array.from(e.target.files); e.target.value = "";
+  let added = 0, replaced = 0, skipped = [];
+  for (const f of files) {
+    let obj; try { obj = JSON.parse(await readFile(f)); } catch (err) { skipped.push(f.name); continue; }
+    const g = entryFrom(obj);
+    if (!g) { skipped.push(f.name); continue; }
+    const j = D.games.findIndex(o => o.file && o.file.toLowerCase() === g.file.toLowerCase());
+    if (j >= 0) {
+      if (confirm(`"${g.file}" is already in the arcade (${D.games[j].title}).\n\nReplace it with the new entry from ${f.name}?`)) { D.games[j] = g; replaced++; }
+      else skipped.push(f.name + " (kept the old entry)");
+    } else { D.games.push(g); added++; }
+  }
+  persist(added + replaced > 0 || dirty); render();
+  toast(`Added ${added}, replaced ${replaced}` + (skipped.length ? `, skipped ${skipped.length}: ${skipped.join(", ")}` : "") + ".");
+});
+
+$("#bAdd").addEventListener("click", () => {
+  D.games.push(clean({ controls: "gesture" })); persist(true); render();
+  const last = document.querySelector(`.entry[data-i="${D.games.length - 1}"] input`); if (last) { last.scrollIntoView({ block: "center" }); last.focus(); }
+});
+
+$("#bDown").addEventListener("click", () => {
+  const bad = D.games.filter((g, i) => issues(g, i).err.length).length;
+  if (bad && !confirm(bad + " game(s) have errors (in red). They will not show correctly in the gallery.\n\nDownload anyway?")) return;
+  const out = { arcade: D.arcade, games: D.games.map(clean) };
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 2) + "\n"], { type: "application/json" }));
+  a.download = "games.json"; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  dirty = false; persist(false);
+  toast("games.json downloaded. Upload it to the arcade folder.");
+});
+
+// restore the last session
+try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.D && Array.isArray(s.D.games)) { D = { arcade: s.D.arcade || D.arcade, games: s.D.games.map(clean) }; dirty = !!s.dirty; } } catch (e) {}
+persist(false); render();
+window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
+</script>
+</body>
+</html>

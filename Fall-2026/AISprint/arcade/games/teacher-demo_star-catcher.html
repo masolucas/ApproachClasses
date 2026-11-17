@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Star Catcher · AI Game Lab</title>
+<!--
+  ============================================================
+  AI GAME LAB · STARTER PAGE · AI Sprint · ApproachUSA
+  ============================================================
+  This file has FOUR parts. Look for the big comment banners.
+
+    PART 1  YOUR AI MODEL     → paste your Teachable Machine link
+    PART 2  YOUR GESTURES     → match your class names to actions
+    PART 3  THE GAME          → change this part with your AI assistant
+    PART 4  THE ENGINE        → DO NOT CHANGE (camera, model, keys, screens)
+
+  Keyboard test mode always works: ← → to move, SPACE for action,
+  ENTER to start. Use it to test your game without the camera.
+  ============================================================
+-->
+<style>
+  :root {
+    --navy: #0c2340;
+    --navy-deep: #081629;
+    --ink: #eef1f6;
+    --muted: #a9b6c8;
+    --gold: #d39f10;
+    --gold-soft: #ae9142;
+    --red: #e05a4b;
+    --line: #23406a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--navy-deep);
+    color: var(--ink);
+    font-family: Calibri, "Segoe UI", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.45;
+  }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 20px; }
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+  h1 { font-family: Cambria, Georgia, serif; font-weight: 400; font-size: 34px; margin: 0; letter-spacing: -0.5px; }
+  h1 em { color: var(--gold); }
+  .howto { color: var(--muted); margin: 4px 0 0; max-width: 60ch; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; align-items: start; }
+  @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+
+  .stage { position: relative; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--navy); }
+  canvas#game { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; }
+  .overlay {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px; text-align: center; padding: 24px; background: rgba(8, 22, 41, 0.82);
+  }
+  .overlay[hidden] { display: none; }
+  .overlay h2 { font-family: Cambria, Georgia, serif; font-weight: 400; font-size: 44px; margin: 0; }
+  .overlay p { margin: 0; color: var(--muted); max-width: 46ch; }
+  .big { font-size: 22px; color: var(--ink) !important; }
+
+  button {
+    font: inherit; cursor: pointer; border-radius: 8px; padding: 9px 16px;
+    border: 1px solid var(--gold); background: var(--gold); color: var(--navy-deep); font-weight: 700;
+  }
+  button.ghost { background: transparent; color: var(--gold); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  button:focus-visible, input:focus-visible { outline: 3px solid #ffffff; outline-offset: 2px; }
+
+  .panel { border: 1px solid var(--line); border-radius: 10px; padding: 14px; background: var(--navy); }
+  .panel h3 { margin: 0 0 8px; font-size: 15px; font-weight: 700; color: var(--gold); }
+  .panel + .panel { margin-top: 14px; }
+  #camBox {
+    width: 100%; aspect-ratio: 1 / 1; border-radius: 8px; overflow: hidden; background: var(--navy-deep);
+    display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 14px; text-align: center; padding: 10px;
+  }
+  #camBox canvas { width: 100%; height: 100%; display: block; }
+  .row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  label { display: block; font-size: 14px; color: var(--muted); margin-bottom: 4px; }
+  input[type=text] {
+    width: 100%; font: inherit; font-size: 14px; padding: 8px; border-radius: 6px;
+    border: 1px solid var(--line); background: var(--navy-deep); color: var(--ink);
+  }
+  #status { font-size: 14px; color: var(--muted); margin-top: 8px; min-height: 1.4em; }
+  #status.warn { color: #ffb4a8; }
+  #status.ok { color: #9fe0a8; }
+  .bar { margin-top: 8px; font-size: 14px; }
+  .bar .label { display: flex; justify-content: space-between; gap: 8px; }
+  .bar .label span:last-child { color: var(--muted); }
+  .track { height: 8px; border-radius: 4px; background: var(--navy-deep); overflow: hidden; margin-top: 3px; }
+  .fill { height: 100%; width: 0; background: var(--gold-soft); transition: width 80ms linear; }
+  .bar.active .fill { background: var(--gold); }
+  .bar.active .label span:first-child { color: var(--gold); font-weight: 700; }
+  #nowAction { margin-top: 10px; font-size: 14px; color: var(--muted); }
+  #nowAction b { color: var(--ink); }
+  .keys { font-size: 14px; color: var(--muted); margin: 0; }
+  kbd { border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; font-family: inherit; color: var(--ink); }
+  @media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1 id="titleText">Star Catcher</h1>
+      <p class="howto" id="howtoText"></p>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div class="stage">
+      <canvas id="game" width="720" height="480" aria-label="Game screen"></canvas>
+      <div class="overlay" id="startScreen">
+        <h2 id="startTitle">Star Catcher</h2>
+        <p id="startHowto"></p>
+        <button id="playBtn" type="button">Play</button>
+        <p class="keys">or press <kbd>Enter</kbd></p>
+      </div>
+      <div class="overlay" id="overScreen" hidden>
+        <h2>Game over</h2>
+        <p class="big" id="finalScore"></p>
+        <p id="bestScore"></p>
+        <button id="againBtn" type="button">Play again</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <h3>Camera controller</h3>
+        <div id="camBox">Camera is off. Hands only: keep faces and classmates out of the frame.</div>
+        <div class="row">
+          <button id="camBtn" type="button">Start camera</button>
+        </div>
+        <div style="margin-top:12px">
+          <label for="modelUrl">Teachable Machine model link</label>
+          <input id="modelUrl" type="text" placeholder="https://teachablemachine.withgoogle.com/models/…/" spellcheck="false" autocomplete="off">
+          <div class="row"><button id="loadBtn" class="ghost" type="button">Load model</button></div>
+        </div>
+        <div id="status" role="status">No model loaded yet.</div>
+        <div id="bars"></div>
+        <div id="nowAction">Camera action: <b>none</b></div>
+      </div>
+      <div class="panel">
+        <h3>Keyboard test mode</h3>
+        <p class="keys"><kbd>←</kbd> <kbd>→</kbd> move · <kbd>Space</kbd> action · <kbd>Enter</kbd> start</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Teachable Machine libraries: pinned versions that work together. Do not change.
+     TensorFlow.js 4.22.0 matches the current version Teachable Machine's own export code uses. -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.5/dist/teachablemachine-image.min.js"></script>
+
+<script>
+/* ==================================================================
+   PART 1 · YOUR AI MODEL
+   Paste your shareable link from Teachable Machine between the quotes.
+   It looks like: "https://teachablemachine.withgoogle.com/models/AbC123xyz/"
+   Keyboard team? Leave it empty. The game works with ← → and Space.
+   ================================================================== */
+const MODEL_URL = "https://teachablemachine.withgoogle.com/models/F_5vb4lCh/"; // teacher: paste your demo model link here
+
+
+/* ==================================================================
+   PART 2 · YOUR GESTURES
+   Left side: your class names, spelled EXACTLY as in Teachable Machine
+   (capital letters matter). Right side: what each gesture does.
+   Allowed actions: "left", "right", "action", "none"
+   ================================================================== */
+const GESTURES = {
+  "Left":    "left",
+  "Right":   "right",
+  "Shield":  "action",
+  "Neutral": "none"
+};
+
+// How sure the AI must be before the game reacts (0.85 = 85%).
+// Raise it if the game reacts to the wrong gesture. Lower it if it never reacts.
+const CONFIDENCE = 0.85;
+
+// How many camera frames in a row the same gesture must appear.
+// Raise it if the game "flickers" between actions.
+const HOLD_FRAMES = 3;
+
+
+/* ==================================================================
+   PART 3 · THE GAME   ← change this part with your AI assistant
+   The engine calls these functions for you:
+     game.reset(w, h)              → start a new game
+     game.update(dt, input, w, h)  → move things; return "over" to end
+     game.draw(ctx, w, h)          → draw one frame on the canvas
+     game.score()                  → return the score (a number)
+   input.left / input.right are true while the gesture (or key) is held.
+   input.action is true for ONE frame when the action gesture starts.
+   dt = seconds since the last frame (about 0.016).
+   ================================================================== */
+const GAME_TITLE  = "Star Catcher";
+const HOW_TO_PLAY = "Catch the gold stars and dodge the red rocks. Use your shield gesture when the sky gets busy. You have three lives.";
+
+const game = {
+  reset(w, h) {
+    this.player = { x: w / 2, y: h - 46, w: 84, h: 18, speed: 430 };
+    this.items = [];
+    this.points = 0;
+    this.lives = 3;
+    this.shieldTime = 0;
+    this.shields = 3;
+    this.spawnTimer = 0;
+    this.elapsed = 0;
+    this.flash = 0;
+  },
+
+  update(dt, input, w, h) {
+    const p = this.player;
+    this.elapsed += dt;
+
+    // Move the player
+    if (input.left)  p.x -= p.speed * dt;
+    if (input.right) p.x += p.speed * dt;
+    p.x = Math.max(p.w / 2, Math.min(w - p.w / 2, p.x));
+
+    // Action: shield for 2 seconds (3 shields per game)
+    if (input.action && this.shields > 0 && this.shieldTime <= 0) {
+      this.shields -= 1;
+      this.shieldTime = 2;
+    }
+    this.shieldTime = Math.max(0, this.shieldTime - dt);
+    this.flash = Math.max(0, this.flash - dt);
+
+    // The game gets faster over time
+    const level = 1 + this.elapsed / 25;
+    this.spawnTimer -= dt;
+    if (this.spawnTimer <= 0) {
+      this.spawnTimer = Math.max(0.35, 0.9 / level);
+      const isRock = Math.random() < 0.35;
+      this.items.push({
+        x: 20 + Math.random() * (w - 40),
+        y: -20,
+        r: isRock ? 15 : 11,
+        vy: (120 + Math.random() * 80) * level,
+        rock: isRock
+      });
+    }
+
+    // Move items and check catches
+    for (const it of this.items) {
+      it.y += it.vy * dt;
+      const hit = it.y + it.r > p.y && it.y - it.r < p.y + p.h &&
+                  Math.abs(it.x - p.x) < p.w / 2 + it.r;
+      if (hit) {
+        it.gone = true;
+        if (!it.rock) this.points += 1;
+        else if (this.shieldTime <= 0) { this.lives -= 1; this.flash = 0.3; }
+      }
+      if (it.y - it.r > h) it.gone = true;
+    }
+    this.items = this.items.filter(it => !it.gone);
+
+    if (this.lives <= 0) return "over";
+    return "playing";
+  },
+
+  draw(ctx, w, h) {
+    // Sky
+    ctx.fillStyle = this.flash > 0 ? "#3a1420" : "#0c2340";
+    ctx.fillRect(0, 0, w, h);
+
+    // Falling items
+    for (const it of this.items) {
+      if (it.rock) {
+        ctx.fillStyle = "#e05a4b";
+        ctx.beginPath(); ctx.arc(it.x, it.y, it.r, 0, Math.PI * 2); ctx.fill();
+      } else {
+        drawStar(ctx, it.x, it.y, it.r, "#d39f10");
+      }
+    }
+
+    // Player
+    const p = this.player;
+    if (this.shieldTime > 0) {
+      ctx.strokeStyle = "rgba(129, 167, 193, 0.9)";
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(p.x, p.y + p.h / 2, p.w * 0.75, Math.PI, 0); ctx.stroke();
+    }
+    ctx.fillStyle = "#efe9d9";
+    ctx.fillRect(p.x - p.w / 2, p.y, p.w, p.h);
+
+    // Score bar
+    ctx.fillStyle = "#efe9d9";
+    ctx.font = "20px Calibri, sans-serif";
+    ctx.textBaseline = "top";
+    ctx.fillText("Score " + this.points, 16, 14);
+    ctx.fillText("Lives " + "♥".repeat(this.lives), 16, 40);
+    ctx.textAlign = "right";
+    ctx.fillText("Shields " + this.shields, w - 16, 14);
+    ctx.textAlign = "left";
+  },
+
+  score() { return this.points; }
+};
+
+// A helper the game uses to draw stars
+function drawStar(ctx, x, y, r, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a = Math.PI / 5 * i - Math.PI / 2;
+    const rr = i % 2 === 0 ? r : r * 0.45;
+    ctx.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+
+/* ==================================================================
+   PART 4 · THE ENGINE · DO NOT CHANGE
+   Camera, AI model, keyboard, start and game-over screens.
+   ================================================================== */
+(function engine() {
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  const $ = id => document.getElementById(id);
+
+  // Titles and instructions come from PART 3
+  document.title = GAME_TITLE + " · AI Game Lab";
+  $("titleText").textContent = GAME_TITLE;
+  $("startTitle").textContent = GAME_TITLE;
+  $("howtoText").textContent = HOW_TO_PLAY;
+  $("startHowto").textContent = HOW_TO_PLAY;
+
+  // ---------- Input: keyboard + camera ----------
+  const keys = { left: false, right: false };
+  let keyAction = false;
+  const camInput = { left: false, right: false };
+  let camAction = false;
+
+  window.addEventListener("keydown", e => {
+    if (e.target && e.target.tagName === "INPUT") return;
+    if (e.key === "ArrowLeft" || e.key === "a") { keys.left = true; e.preventDefault(); }
+    if (e.key === "ArrowRight" || e.key === "d") { keys.right = true; e.preventDefault(); }
+    if (e.key === " " || e.key === "ArrowUp") { if (!e.repeat) keyAction = true; e.preventDefault(); }
+    if (e.key === "Enter" && state !== "playing") start();
+  });
+  window.addEventListener("keyup", e => {
+    if (e.key === "ArrowLeft" || e.key === "a") keys.left = false;
+    if (e.key === "ArrowRight" || e.key === "d") keys.right = false;
+  });
+
+  // ---------- Game loop ----------
+  let state = "ready";
+  let last = performance.now();
+  let best = 0;
+
+  function start() {
+    game.reset(W, H);
+    state = "playing";
+    $("startScreen").hidden = true;
+    $("overScreen").hidden = true;
+    last = performance.now();
+  }
+  $("playBtn").addEventListener("click", start);
+  $("againBtn").addEventListener("click", start);
+
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (state === "playing") {
+      const input = {
+        left: keys.left || camInput.left,
+        right: keys.right || camInput.right,
+        action: keyAction || camAction
+      };
+      keyAction = false;
+      camAction = false;
+      let result = "playing";
+      try {
+        result = game.update(dt, input, W, H);
+        game.draw(ctx, W, H);
+      } catch (err) {
+        showError(err);
+        state = "ready";
+      }
+      if (result === "over") {
+        state = "over";
+        const s = Number(game.score()) || 0;
+        best = Math.max(best, s);
+        $("finalScore").textContent = "Score: " + s;
+        $("bestScore").textContent = "Best this session: " + best;
+        $("overScreen").hidden = false;
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function showError(err) {
+    console.error(err);
+    ctx.fillStyle = "#081629"; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "#ffb4a8"; ctx.font = "18px Calibri, sans-serif"; ctx.textBaseline = "top";
+    ctx.fillText("The game code in PART 3 has an error:", 20, 20);
+    ctx.fillText(String(err && err.message || err).slice(0, 70), 20, 48);
+    ctx.fillText("Copy this message to your AI assistant and ask it to fix PART 3.", 20, 84);
+  }
+
+  // Draw a first frame behind the start screen
+  try { game.reset(W, H); game.draw(ctx, W, H); } catch (err) { showError(err); }
+  requestAnimationFrame(frame);
+
+  // ---------- Camera + model ----------
+  const status = $("status");
+  const cam = { webcam: null, running: false, model: null, labels: [] };
+  let candidate = null, count = 0, stable = null;
+
+  function setStatus(text, kind) {
+    status.textContent = text;
+    status.className = kind || "";
+  }
+
+  function cleanUrl(u) {
+    u = (u || "").trim();
+    if (!u) return "";
+    u = u.replace(/(model\.json|metadata\.json)$/i, "");
+    if (!u.endsWith("/")) u += "/";
+    return u;
+  }
+
+  async function loadModel() {
+    const url = cleanUrl($("modelUrl").value);
+    if (!url) { setStatus("Paste your model link first (Teachable Machine → Export → Upload → Copy).", "warn"); return; }
+    if (typeof tmImage === "undefined") { setStatus("The AI library did not load. Check the internet connection and reload the page.", "warn"); return; }
+    setStatus("Loading model…");
+    $("loadBtn").disabled = true;
+    try {
+      cam.model = await tmImage.load(url + "model.json", url + "metadata.json");
+      await attachImageReader(cam.model);
+      cam.labels = cam.model.getClassLabels();
+      buildBars();
+      const missing = cam.labels.filter(l => !(l in GESTURES));
+      if (missing.length) {
+        setStatus("Model loaded, but these classes are not in PART 2: " + missing.join(", ") + ". Check the spelling.", "warn");
+      } else {
+        setStatus("Model loaded: " + cam.labels.join(", ") + ".", "ok");
+      }
+    } catch (err) {
+      console.error(err);
+      cam.model = null;
+      const msg = String(err && err.message || "");
+      if (msg === "POSE") setStatus("This is a Pose model. This game needs an Image model: in Teachable Machine choose Get Started → Image Project → Standard image model, then train and upload again.", "warn");
+      else if (msg.startsWith("FORMAT")) setStatus("This model is not a Teachable Machine Image model. Make a new Image Project (Standard image model), then train and upload again.", "warn");
+      else setStatus("Could not load the model. Check the link, and make sure you clicked Upload in Teachable Machine.", "warn");
+    }
+    $("loadBtn").disabled = false;
+  }
+
+  // Check that the link is a Teachable Machine IMAGE model (not Pose or Audio).
+  async function attachImageReader(tm) {
+    const shape = tm.model.inputs[0].shape;
+    if (shape.length === 4) return; // image model: OK
+    if (shape[1] === 14739) throw new Error("POSE");
+    throw new Error("FORMAT " + shape.join("x"));
+  }
+
+  function buildBars() {
+    const box = $("bars");
+    box.innerHTML = "";
+    cam.labels.forEach((label, i) => {
+      const d = document.createElement("div");
+      d.className = "bar";
+      d.id = "bar" + i;
+      d.innerHTML = '<div class="label"><span></span><span></span></div><div class="track"><div class="fill"></div></div>';
+      d.querySelector(".label span").textContent = label + " → " + (GESTURES[label] || "?");
+      box.appendChild(d);
+    });
+  }
+
+  async function startCamera() {
+    if (typeof tmImage === "undefined") { setStatus("The AI library did not load. Check the internet connection and reload the page.", "warn"); return; }
+    $("camBtn").disabled = true;
+    try {
+      cam.webcam = new tmImage.Webcam(240, 240, true);
+      await cam.webcam.setup();
+      await cam.webcam.play();
+      const box = $("camBox");
+      box.innerHTML = "";
+      box.appendChild(cam.webcam.canvas);
+      cam.running = true;
+      $("camBtn").textContent = "Stop camera";
+      if (!cam.model) setStatus("Camera on. Now load your model.");
+      requestAnimationFrame(camLoop);
+    } catch (err) {
+      console.error(err);
+      setStatus("The camera did not start. Allow camera access in the browser, and close other apps that use the camera.", "warn");
+    }
+    $("camBtn").disabled = false;
+  }
+
+  function stopCamera() {
+    cam.running = false;
+    if (cam.webcam) cam.webcam.stop();
+    cam.webcam = null;
+    $("camBox").textContent = "Camera is off. Hands only: keep faces and classmates out of the frame.";
+    $("camBtn").textContent = "Start camera";
+    camInput.left = camInput.right = false;
+    stable = null; candidate = null; count = 0;
+    $("nowAction").innerHTML = "Camera action: <b>none</b>";
+  }
+
+  $("camBtn").addEventListener("click", () => cam.running ? stopCamera() : startCamera());
+  $("loadBtn").addEventListener("click", loadModel);
+
+  async function camLoop() {
+    if (!cam.running || !cam.webcam) return;
+    cam.webcam.update();
+    if (cam.model) {
+      try {
+        const preds = await cam.model.predict(cam.webcam.canvas);
+        usePredictions(preds);
+      } catch (err) {
+        console.error(err);
+        cam.model = null;
+        setStatus("The model loaded but could not read the camera. Show this to your teacher: " + String(err && err.message || err).slice(0, 120), "warn");
+      }
+    }
+    if (cam.running) requestAnimationFrame(camLoop);
+  }
+
+  function usePredictions(preds) {
+    let top = preds[0];
+    preds.forEach((p, i) => {
+      if (p.probability > top.probability) top = p;
+      const bar = $("bar" + i);
+      if (bar) {
+        bar.querySelector(".fill").style.width = Math.round(p.probability * 100) + "%";
+        bar.querySelector(".label span:last-child").textContent = Math.round(p.probability * 100) + "%";
+      }
+    });
+
+    const sure = top.probability >= CONFIDENCE ? top.className : null;
+    if (sure === candidate) count += 1; else { candidate = sure; count = 1; }
+    if (count >= HOLD_FRAMES && sure !== stable) {
+      const before = stable ? GESTURES[stable] : "none";
+      stable = sure;
+      const act = stable ? (GESTURES[stable] || "none") : "none";
+      if (act === "action" && before !== "action") camAction = true;
+    }
+    const act = stable ? (GESTURES[stable] || "none") : "none";
+    camInput.left = act === "left";
+    camInput.right = act === "right";
+
+    cam.labels.forEach((label, i) => {
+      const bar = $("bar" + i);
+      if (bar) bar.classList.toggle("active", label === stable);
+    });
+    $("nowAction").innerHTML = "Camera action: <b></b>";
+    $("nowAction").querySelector("b").textContent = act + (stable ? " (" + stable + ")" : "");
+  }
+
+  // Auto-fill and auto-load the model from PART 1
+  if (MODEL_URL) {
+    $("modelUrl").value = MODEL_URL;
+    loadModel();
+  }
+})();
+</script>
+</body>
+</html>
