@@ -83,6 +83,16 @@
       "gestures": "TBD",
       "changed": "",
       "file": "kung-fu-master.html"
+    },
+    {
+      "title": "Neon Delivery",
+      "team": "Patrick",
+      "story": "",
+      "howto": "TBD",
+      "controls": "gesture",
+      "gestures": "TBD",
+      "changed": "",
+      "file": "neon-delivery.html"
     }
   ]
 }

@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Neon Delivery — Prototype</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: #090d20; color: #f5f7ff;
+    font-family: Inter, ui-rounded, system-ui, -apple-system, Segoe UI, sans-serif;
+    display: flex; align-items: center; justify-content: center; padding: 14px;
+    user-select: none; -webkit-user-select: none;
+  }
+  .shell { width: min(100%, 1000px); }
+  .top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 2px 10px; }
+  .brand { font-weight:900; letter-spacing:.08em; font-size:clamp(18px,3vw,25px); }
+  .brand span { color:#4de9ef; }
+  .sub { color:#9ca8ca; font-size:12px; margin-top:2px; }
+  .pill { border:1px solid #29365e; border-radius:99px; padding:7px 11px; color:#b8c5eb; font-size:12px; white-space:nowrap; }
+  .game-wrap { position:relative; overflow:hidden; border:1px solid #34416d; border-radius:18px; background:#111936; box-shadow:0 22px 70px #0008; }
+  canvas { display:block; width:100%; aspect-ratio:16/9; touch-action:none; }
+  .overlay {
+    position:absolute; inset:0; z-index:20; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(120deg,#080d20e6,#111b39e0); padding:22px; text-align:center;
+    pointer-events:auto;
+  }
+  .panel { max-width:540px; position:relative; z-index:21; }
+  h1 { margin:0 0 8px; font-size:clamp(28px,5vw,48px); line-height:1; }
+  h1 em { color:#55edf0; font-style:normal; }
+  .panel p { color:#c0c9e4; line-height:1.5; margin:10px 0 18px; font-size:15px; }
+  button {
+    border:0; border-radius:12px; padding:14px 24px; font-weight:900; font-size:16px;
+    color:#071323; background:#55edf0; cursor:pointer; box-shadow:0 5px 0 #1b9ba9;
+    touch-action:manipulation; position:relative; z-index:22;
+  }
+  button:hover { background:#75f3f6; }
+  button:active { transform:translateY(2px); box-shadow:0 3px 0 #1b9ba9; }
+  .hint { color:#9ca8ca; font-size:12px; margin-top:14px; }
+  .hud { display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; margin:10px 2px 0; }
+  .stat { background:#111a35; border:1px solid #26345d; padding:8px 12px; border-radius:11px; font-size:13px; color:#b8c5e8; }
+  .stat b { color:#fff; margin-left:4px; }
+  .controls { display:flex; justify-content:center; gap:10px; margin-top:12px; flex-wrap:wrap; }
+  .ctrl { min-width:104px; padding:13px 17px; border-radius:13px; background:#1a2850; color:#f4f7ff; border:1px solid #3b4b7c; box-shadow:0 4px 0 #0b122b; touch-action:none; }
+  .ctrl small { display:block; color:#9fafd9; font-size:10px; font-weight:600; margin-top:2px; }
+  .ctrl.transform { background:#6a3da7; border-color:#a77ce8; box-shadow:0 4px 0 #3e2367; }
+  .ctrl:disabled { opacity:.35; filter:grayscale(1); cursor:not-allowed; }
+  .footer { color:#7482aa; font-size:11px; text-align:center; margin-top:10px; }
+  @media (min-width:760px) { .controls { display:none; } }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="top">
+    <div><div class="brand">NEON <span>DELIVERY</span></div><div class="sub">Playable Prototype · Cartoon 2D Runner</div></div>
+    <div class="pill">AUTO-RUN · 3 ACTIONS</div>
+  </div>
+  <div class="game-wrap">
+    <canvas id="game" width="960" height="540" aria-label="Neon Delivery Game"></canvas>
+    <div class="overlay" id="overlay">
+      <div class="panel">
+        <h1>NEON <em>DELIVERY</em></h1>
+        <p>Dash through the city, dodge obstacles, and deliver packages. At the school, press <b>E</b> (or walk right in) for your student crossing.</p>
+        <button type="button" id="startBtn">START PLAYING</button>
+        <div class="hint">↑ / W / SPACE = JUMP &nbsp; · &nbsp; ↓ / S = DUCK (1 TAP) &nbsp; · &nbsp; E = TRANSFORM</div>
+      </div>
+    </div>
+  </div>
+  <div class="hud">
+    <div class="stat">PHASE <b id="phase">1</b></div>
+    <div class="stat">PACKAGES <b id="packages">0</b></div>
+    <div class="stat">LIVES <b id="lives">♥ ♥ ♥</b></div>
+    <div class="stat">SPEED <b id="speed">1.0x</b></div>
+    <div class="stat">PROGRESS <b id="progress">0%</b></div>
+  </div>
+  <div class="controls">
+    <button type="button" class="ctrl" id="jumpBtn">↑ JUMP<small>1 tap</small></button>
+    <button type="button" class="ctrl" id="duckBtn">↓ DUCK<small>1 tap</small></button>
+    <button type="button" class="ctrl transform" id="transformBtn" disabled>✦ TRANSFORM<small>at school</small></button>
+  </div>
+  <div class="footer">Tip: 1 tap on DUCK keeps the courier crouched for the exact time needed to pass under eagles and drones. The school is a 3-second crossing!</div>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const W = 960, H = 540, ground = 432;
+  const $ = id => document.getElementById(id);
+
+  // Safe polyfill for browsers that do not support roundRect
+  if (ctx && !ctx.roundRect) {
+    ctx.roundRect = function(x, y, w, h, r) {
+      const rad = Array.isArray(r) ? r[0] : (r || 0);
+      this.beginPath();
+      this.moveTo(x + rad, y);
+      this.arcTo(x + w, y, x + w, y + h, rad);
+      this.arcTo(x + w, y + h, x, y + h, rad);
+      this.arcTo(x, y + h, x, y, rad);
+      this.arcTo(x, y, x + w, y, rad);
+      this.closePath();
+      return this;
+    };
+  }
+
+  // Pacing constants: 20s per phase and 3s walking past the brick school
+  const PHASE_DURATION_SEC = 20;
+  const SCHOOL_DURATION_SEC = 3;
+  const baseSpeed = 5.4;
+
+  // Core game state
+  let state = 'title';
+  let phase = 1;
+  let phaseTime = 0;
+  let packages = 0;
+  let lives = 3;
+  let speed = baseSpeed;
+  let world = 0;
+
+  // Entities and timers
+  let obstacles = [];
+  let goodies = [];
+  let particles = [];
+  let nextWaveDist = 280;
+  let waveCount = 0;
+  let groundDesignIndex = 0;
+  let overheadDesignIndex = 0;
+  let invuln = 0;
+  let transitionTimer = 0;
+  let transformReady = false;
+  let student = false;
+  let bannerTimer = 0;
+
+  // Brick School building properties
+  let schoolX = W + 300;
+  let schoolWidth = 900;
+  let schoolWalkSpeed = 4.6;
+
+  let last = 0;
+  let elapsed = 0;
+  let score = 0;
+
+  // Well-proportioned player (~1.45x larger) with single-tap timed ducking
+  const player = {
+    x: 155,
+    y: ground - 108,
+    w: 96,
+    h: 108,
+    duckH: 56,
+    vy: 0,
+    onGround: true,
+    duckTimer: 0,
+    duckMax: 0.72,
+    tilt: 0
+  };
+
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  function getSpeedMultiplier() {
+    return 1 + (phase - 1) * 0.14;
+  }
+
+  function getCurrentSpeed() {
+    return speed * getSpeedMultiplier();
+  }
+
+  function rounded(x, y, w, h, r, color) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, r);
+    ctx.fill();
+  }
+
+  function burst(x, y, color, n) {
+    for (let i = 0; i < n; i++) {
+      particles.push({
+        x,
+        y,
+        vx: rand(-3.5, 3.5),
+        vy: rand(-4.8, 1.2),
+        life: rand(0.35, 0.75),
+        maxLife: 0.75,
+        color,
+        size: rand(3, 6)
+      });
+    }
+  }
+
+  function updateHud() {
+    $('phase').textContent = phase;
+    $('packages').textContent = packages;
+    $('lives').textContent = lives > 0 ? '♥ '.repeat(lives).trim() : '0';
+    $('speed').textContent = getSpeedMultiplier().toFixed(1) + 'x';
+    const pct = Math.min(100, Math.floor((phaseTime / PHASE_DURATION_SEC) * 100));
+    $('progress').textContent = pct + '%';
+    $('transformBtn').disabled = !(state === 'playing' && transformReady && transitionTimer <= 0);
+  }
+
+  function bindStartButton() {
+    const btn = $('startBtn');
+    if (!btn) return;
+    const handler = (e) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      reset();
+    };
+    btn.addEventListener('click', handler);
+    btn.addEventListener('pointerdown', handler);
+  }
+
+  function showOverlay(title, desc, btnLabel) {
+    const ov = $('overlay');
+    ov.innerHTML = `
+      <div class="panel">
+        <h1>${title}</h1>
+        <p>${desc}</p>
+        <button type="button" id="startBtn">${btnLabel}</button>
+        <div class="hint">↑ / W / SPACE = JUMP &nbsp; · &nbsp; ↓ / S = DUCK (1 TAP) &nbsp; · &nbsp; E = TRANSFORM</div>
+      </div>
+    `;
+    ov.style.display = 'flex';
+    bindStartButton();
+  }
+
+  function reset() {
+    state = 'playing';
+    phase = 1;
+    phaseTime = 0;
+    packages = 0;
+    lives = 3;
+    speed = baseSpeed;
+    world = 0;
+    obstacles = [];
+    goodies = [];
+    particles = [];
+    nextWaveDist = 340;
+    waveCount = 0;
+    groundDesignIndex = 0;
+    overheadDesignIndex = 0;
+    invuln = 0;
+    transitionTimer = 0;
+    transformReady = false;
+    student = false;
+    schoolX = W + 300;
+    bannerTimer = 2.2;
+    elapsed = 0;
+    score = 0;
+
+    player.y = ground - player.h;
+    player.vy = 0;
+    player.onGround = true;
+    player.duckTimer = 0;
+    player.tilt = 0;
+
+    $('overlay').style.display = 'none';
+    updateHud();
+  }
+
+  function jump() {
+    if (state !== 'playing' || transitionTimer > 0 || transformReady) return;
+    if (player.onGround) {
+      player.vy = -14.8;
+      player.onGround = false;
+      player.duckTimer = 0;
+      burst(player.x + 36, ground - 6, '#55edf0', 8);
+    }
+  }
+
+  // Single-tap ducking: calculates exact duration needed to clear overhead obstacles at current speed
+  function duckOneClick() {
+    if (state !== 'playing' || transitionTimer > 0 || transformReady) return;
+    if (!player.onGround) {
+      // Fast-fall if triggered mid-air so player ducks immediately on landing
+      player.vy = Math.max(player.vy, 11.5);
+    }
+    const currSpdPxPerSec = getCurrentSpeed() * 60;
+    const calculatedSec = clamp(245 / currSpdPxPerSec, 0.58, 0.92);
+    player.duckMax = calculatedSec;
+    player.duckTimer = calculatedSec;
+  }
+
+  function transform() {
+    if (state !== 'playing' || !transformReady || transitionTimer > 0) return;
+    transformReady = false;
+    transitionTimer = SCHOOL_DURATION_SEC; // Exact 3-second walk past the brick school
+    student = true;
+    player.duckTimer = 0;
+    player.y = ground - player.h;
+    player.vy = 0;
+    player.onGround = true;
+    player.tilt = 0;
+
+    // Speed and building width sized so auto-walk spans the entire school in 3 seconds
+    schoolWalkSpeed = Math.max(4.4, getCurrentSpeed() * 0.85);
+    schoolWidth = Math.round(schoolWalkSpeed * 60 * SCHOOL_DURATION_SEC);
+    schoolX = player.x + 12;
+
+    burst(player.x + 48, player.y + 42, '#f5d66b', 32);
+    bannerTimer = 2.0;
+    updateHud();
+  }
+
+  function hit() {
+    if (invuln > 0 || transitionTimer > 0 || transformReady) return;
+    lives--;
+    invuln = 1.45;
+    burst(player.x + 48, player.y + 44, '#ff638e', 22);
+    if (lives <= 0) {
+      state = 'gameover';
+      showOverlay(
+        'GAME OVER',
+        `You delivered <b>${packages}</b> package(s) and reached <b>Phase ${phase}</b>!`,
+        'PLAY AGAIN'
+      );
+    }
+    updateHud();
+  }
+
+  // Fair wave-based distribution: 1 clear action per element
+  function spawnWave() {
+    const currSpd = getCurrentSpeed();
+    const safeGap = Math.max(360, currSpd * 72);
+    const spawnX = W + 60;
+    const pattern = waveCount % 4;
+    waveCount++;
+
+    const groundKinds = ['squirrel', 'hydrant', 'cone', 'rabbit'];
+
+    if (pattern === 0) {
+      // Wave 1: Ground jump obstacle (alternating Squirrel, Red Hydrant, Traffic Cone, Rabbit)
+      const kind = groundKinds[groundDesignIndex % groundKinds.length];
+      groundDesignIndex++;
+      obstacles.push({
+        x: spawnX,
+        w: 54,
+        h: 56,
+        type: 'ground',
+        kind,
+        passed: false
+      });
+      nextWaveDist = safeGap;
+    } else if (pattern === 1) {
+      // Wave 2: Aerial duck obstacle (alternating Eagle and Drone)
+      const kind = (overheadDesignIndex % 2 === 0) ? 'eagle' : 'drone';
+      overheadDesignIndex++;
+      obstacles.push({
+        x: spawnX,
+        w: 114,
+        h: 58,
+        clearance: 66,
+        type: 'overhead',
+        kind,
+        phaseOffset: rand(0, Math.PI * 2),
+        passed: false
+      });
+      nextWaveDist = safeGap + 30;
+    } else if (pattern === 2) {
+      // Wave 3: Delivery package with clear space before and after
+      const highBox = Math.random() < 0.55;
+      goodies.push({
+        x: spawnX + 30,
+        y: highBox ? ground - 138 : ground - 64,
+        w: 40,
+        h: 36,
+        got: false
+      });
+      nextWaveDist = safeGap - 30;
+    } else {
+      // Wave 4: Ground jump obstacle continuing the 4-design cycle
+      const kind = groundKinds[groundDesignIndex % groundKinds.length];
+      groundDesignIndex++;
+      obstacles.push({
+        x: spawnX,
+        w: 54,
+        h: 56,
+        type: 'ground',
+        kind,
+        passed: false
+      });
+      nextWaveDist = safeGap;
+    }
+  }
+
+  function update(dtSec) {
+    if (state !== 'playing') return;
+    const dtFrames = dtSec * 60;
+    elapsed += dtSec;
+
+    if (invuln > 0) invuln = Math.max(0, invuln - dtSec);
+    if (bannerTimer > 0) bannerTimer = Math.max(0, bannerTimer - dtSec);
+
+    // 1. CONTINUOUS WALK PAST THE BRICK SCHOOL (3 seconds without pausing or countdown)
+    if (transitionTimer > 0) {
+      transitionTimer = Math.max(0, transitionTimer - dtSec);
+      world += schoolWalkSpeed * dtFrames;
+      schoolX -= schoolWalkSpeed * dtFrames;
+
+      particles.forEach(p => {
+        p.x += p.vx * dtFrames;
+        p.y += p.vy * dtFrames;
+        p.vy += 0.14 * dtFrames;
+        p.life -= dtSec;
+      });
+      particles = particles.filter(p => p.life > 0);
+
+      if (transitionTimer <= 0) {
+        student = false;
+        phase++;
+        phaseTime = 0;
+        obstacles = [];
+        goodies = [];
+        nextWaveDist = 340;
+        bannerTimer = 2.0;
+        burst(player.x + 48, player.y + 42, '#55edf0', 34);
+      }
+      updateHud();
+      return;
+    }
+
+    // 2. APPROACHING SCHOOL ENTRANCE (character keeps moving smoothly)
+    if (transformReady) {
+      const approachSpeed = Math.max(4.4, getCurrentSpeed() * 0.85);
+      world += approachSpeed * dtFrames;
+      if (schoolX > player.x + 14) {
+        schoolX -= approachSpeed * dtFrames;
+      } else {
+        // Auto-starts crossing if E is not pressed before reaching the door
+        transform();
+      }
+      updateHud();
+      return;
+    }
+
+    // 3. STANDARD PHASE RUN (20 seconds)
+    const currentSpeed = getCurrentSpeed();
+    const movePx = currentSpeed * dtFrames;
+    world += movePx;
+    phaseTime += dtSec;
+
+    // Single-tap duck timer
+    if (player.duckTimer > 0) {
+      player.duckTimer = Math.max(0, player.duckTimer - dtSec);
+    }
+    const isDucking = player.duckTimer > 0;
+
+    // Jump physics + dynamic scooter/rider tilt
+    if (!player.onGround) {
+      player.vy += 0.72 * dtFrames;
+      player.y += player.vy * dtFrames;
+      const targetTilt = clamp(-player.vy * 0.022, -0.26, 0.22);
+      player.tilt += (targetTilt - player.tilt) * Math.min(1, 0.22 * dtFrames);
+
+      if (player.y >= ground - player.h) {
+        player.y = ground - player.h;
+        player.vy = 0;
+        player.onGround = true;
+        player.tilt = 0;
+      }
+    } else {
+      player.y = ground - player.h;
+      player.tilt += (0 - player.tilt) * Math.min(1, 0.28 * dtFrames);
+    }
+
+    // Spawn waves
+    nextWaveDist -= movePx;
+    if (nextWaveDist <= 0) {
+      spawnWave();
+    }
+
+    // Forgiving player hitbox
+    const pTop = isDucking ? (ground - player.duckH) : (player.y + 10);
+    const pBottom = isDucking ? ground : (player.y + player.h - 4);
+    const pLeft = player.x + 24;
+    const pRight = player.x + player.w - 22;
+
+    // Obstacle updates & collision checks
+    obstacles.forEach(o => {
+      const extraFlight = (o.type === 'overhead') ? 1.15 : 1.0;
+      o.x -= movePx * extraFlight;
+
+      if (o.type === 'overhead') {
+        const oBottom = ground - o.clearance;
+        const oTop = oBottom - o.h;
+        const oLeft = o.x + 16;
+        const oRight = o.x + o.w - 16;
+
+        const overlapX = pRight > oLeft && pLeft < oRight;
+        const overlapY = pBottom > oTop + 8 && pTop < oBottom - 4;
+        if (overlapX && overlapY) {
+          hit();
+        }
+      } else {
+        const oTop = ground - o.h + 10;
+        const oBottom = ground;
+        const oLeft = o.x + 12;
+        const oRight = o.x + o.w - 12;
+
+        const overlapX = pRight > oLeft && pLeft < oRight;
+        const overlapY = pBottom > oTop && pTop < oBottom;
+        if (overlapX && overlapY) {
+          hit();
+        }
+      }
+
+      if (!o.passed && o.x + o.w < player.x) {
+        o.passed = true;
+        score += 10;
+      }
+    });
+    obstacles = obstacles.filter(o => o.x > -160);
+
+    // Packages
+    goodies.forEach(g => {
+      g.x -= movePx;
+      if (!g.got) {
+        const gLeft = g.x - g.w * 0.5 - 8;
+        const gRight = g.x + g.w * 0.5 + 8;
+        const gTop = g.y - g.h * 0.5 - 8;
+        const gBottom = g.y + g.h * 0.5 + 8;
+        if (pRight > gLeft && pLeft < gRight && pBottom > gTop && pTop < gBottom) {
+          g.got = true;
+          packages++;
+          score += 25;
+          burst(g.x, g.y, '#ffe36c', 14);
+        }
+      }
+    });
+    goodies = goodies.filter(g => g.x > -60 && !g.got);
+
+    // Particles
+    particles.forEach(p => {
+      p.x += p.vx * dtFrames;
+      p.y += p.vy * dtFrames;
+      p.vy += 0.14 * dtFrames;
+      p.life -= dtSec;
+    });
+    particles = particles.filter(p => p.life > 0);
+
+    // End of 20-second phase -> arrive at the brick school
+    if (phaseTime >= PHASE_DURATION_SEC) {
+      phaseTime = PHASE_DURATION_SEC;
+      transformReady = true;
+      player.duckTimer = 0;
+      obstacles = [];
+      goodies = [];
+      schoolWalkSpeed = Math.max(4.4, getCurrentSpeed() * 0.85);
+      schoolWidth = Math.round(schoolWalkSpeed * 60 * SCHOOL_DURATION_SEC);
+      schoolX = W - 150;
+      bannerTimer = 2.6;
+      burst(W - 140, ground - 110, '#b78aff', 28);
+    }
+
+    updateHud();
+  }
+
+  function drawBackground() {
+    // Dusk/night neon sky
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, '#0f1638');
+    grad.addColorStop(0.62, '#283366');
+    grad.addColorStop(1, '#d86882');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Full moon
+    ctx.fillStyle = '#fff5cf33';
+    ctx.beginPath();
+    ctx.arc(780, 92, 48, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff6d6cc';
+    ctx.beginPath();
+    ctx.arc(780, 92, 32, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Stars
+    for (let i = 0; i < 36; i++) {
+      let x = (i * 173 - world * 0.1) % W;
+      if (x < 0) x += W;
+      const y = 24 + (i * 47) % 190;
+      ctx.fillStyle = '#d6eaff88';
+      ctx.fillRect(x, y, 2.2, 2.2);
+    }
+
+    // Parallax clouds
+    for (let i = 0; i < 5; i++) {
+      let cx = ((i * 240 - world * 0.16) % (W + 220));
+      if (cx < -180) cx += W + 220;
+      const cy = 68 + (i % 3) * 36;
+      ctx.fillStyle = 'rgba(205, 222, 255, 0.10)';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 24, 0, Math.PI * 2);
+      ctx.arc(cx + 22, cy - 6, 28, 0, Math.PI * 2);
+      ctx.arc(cx + 48, cy, 22, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Distant skyline
+    for (let i = 0; i < 12; i++) {
+      const bw = 62 + (i * 19) % 58;
+      let x = ((i * 105 - world * 0.25) % (W + 130));
+      if (x < -110) x += W + 130;
+      const bh = 115 + (i * 37) % 145;
+      rounded(x, ground - bh - 24, bw, bh, 5, '#19244d');
+      for (let wy = ground - bh + 6; wy < ground - 36; wy += 22) {
+        for (let wx = x + 10; wx < x + bw - 8; wx += 18) {
+          ctx.fillStyle = ((wx + wy + i) % 3) ? '#43dce944' : '#ffd36b55';
+          ctx.fillRect(wx, wy, 7, 9);
+        }
+      }
+    }
+
+    // Midground buildings + neon signs
+    for (let i = 0; i < 8; i++) {
+      let x = ((i * 165 - world * 0.5) % (W + 190));
+      if (x < -180) x += W + 190;
+      const bw = 92 + (i * 13) % 68;
+      const bh = 155 + (i * 31) % 115;
+      rounded(x, ground - bh - 4, bw, bh, 7, i % 2 ? '#233061' : '#1c2852');
+      ctx.fillStyle = i % 2 ? '#ff6bb4' : '#4de9ef';
+      ctx.fillRect(x + 9, ground - bh + 14, 5, 28);
+      for (let wx = x + 20; wx < x + bw - 10; wx += 22) {
+        for (let wy = ground - bh + 20; wy < ground - 26; wy += 28) {
+          ctx.fillStyle = '#6deaf088';
+          ctx.fillRect(wx, wy, 9, 12);
+        }
+      }
+    }
+
+    // City trees and glowing streetlamps
+    for (let i = 0; i < 7; i++) {
+      let tx = ((i * 190 - world * 0.78) % (W + 200));
+      if (tx < -100) tx += W + 200;
+      rounded(tx - 5, ground - 48, 10, 48, 3, '#3b2b3a');
+      ctx.fillStyle = '#245863';
+      ctx.beginPath();
+      ctx.arc(tx, ground - 58, 24, 0, Math.PI * 2);
+      ctx.arc(tx - 14, ground - 48, 17, 0, Math.PI * 2);
+      ctx.arc(tx + 14, ground - 48, 17, 0, Math.PI * 2);
+      ctx.fill();
+
+      const lx = tx + 85;
+      ctx.fillStyle = '#4c5b8c';
+      ctx.fillRect(lx, ground - 96, 4, 96);
+      rounded(lx - 4, ground - 100, 16, 6, 3, '#ffe36c');
+      const lampGlow = ctx.createRadialGradient(lx + 4, ground - 96, 2, lx + 4, ground - 96, 34);
+      lampGlow.addColorStop(0, 'rgba(255, 232, 130, 0.35)');
+      lampGlow.addColorStop(1, 'rgba(255, 232, 130, 0)');
+      ctx.fillStyle = lampGlow;
+      ctx.beginPath();
+      ctx.arc(lx + 4, ground - 96, 34, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Street / Asphalt
+    ctx.fillStyle = '#151a33';
+    ctx.fillRect(0, ground, W, H - ground);
+    ctx.fillStyle = '#384670';
+    ctx.fillRect(0, ground, W, 8);
+    for (let x = -(world % 110); x < W; x += 110) {
+      ctx.fillStyle = '#f7d36a';
+      ctx.fillRect(x, ground + 58, 52, 5);
+    }
+    ctx.fillStyle = '#20284a';
+    ctx.fillRect(0, ground + 92, W, 18);
+
+    // 15% background dim overlay to make player, packages, and obstacles stand out
+    ctx.fillStyle = 'rgba(5, 8, 22, 0.15)';
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  function drawSchool() {
+    if (!transformReady && transitionTimer <= 0) return;
+    const x = schoolX;
+    const w = schoolWidth;
+    const h = 236;
+    const topY = ground - h;
+    if (x > W + 140 || x + w < -140) return;
+
+    // Main brick school building body
+    rounded(x, topY, w, h, 10, '#9c3b34');
+
+    // Exposed brick pattern
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(x + 4, topY + 4, w - 8, h - 8, 8);
+    ctx.clip();
+
+    const brickH = 14;
+    const brickW = 30;
+    for (let row = 0; row < Math.ceil(h / brickH); row++) {
+      const by = topY + row * brickH;
+      const offset = (row % 2) * (brickW * 0.5);
+      ctx.fillStyle = '#6e2520';
+      ctx.fillRect(x, by, w, 2);
+      for (let bx = x - offset; bx < x + w; bx += brickW) {
+        const tone = (row + Math.floor((bx - x) / brickW)) % 3;
+        ctx.fillStyle = tone === 0 ? '#b2463e' : (tone === 1 ? '#8c322b' : '#a33e36');
+        ctx.fillRect(bx + 2, by + 2, brickW - 3, brickH - 3);
+      }
+    }
+    ctx.restore();
+
+    // Stone cornice and foundation
+    rounded(x - 8, topY - 12, w + 16, 18, 5, '#e8dec8');
+    rounded(x - 6, topY + 6, w + 12, 6, 2, '#c9bea6');
+    ctx.fillStyle = '#d9ceb8';
+    ctx.fillRect(x - 4, ground - 16, w + 8, 16);
+
+    // Stone pilasters
+    const entranceX = x + 135;
+    for (const px of [x + 8, entranceX - 24, entranceX + 104, x + w - 26]) {
+      rounded(px, topY + 6, 18, h - 22, 3, '#e3d8c1');
+      ctx.fillStyle = '#bfb39b';
+      ctx.fillRect(px + 4, topY + 12, 3, h - 34);
+      ctx.fillRect(px + 11, topY + 12, 3, h - 34);
+    }
+
+    // Classic triangular pediment
+    ctx.fillStyle = '#822d27';
+    ctx.beginPath();
+    ctx.moveTo(entranceX - 36, topY - 10);
+    ctx.lineTo(entranceX + 49, topY - 68);
+    ctx.lineTo(entranceX + 134, topY - 10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#e8dec8';
+    ctx.lineWidth = 5;
+    ctx.stroke();
+
+    // School clock on pediment
+    ctx.fillStyle = '#fff9eb';
+    ctx.beginPath();
+    ctx.arc(entranceX + 49, topY - 32, 16, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#2d3559';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(entranceX + 49, topY - 32);
+    ctx.lineTo(entranceX + 49, topY - 42);
+    ctx.moveTo(entranceX + 49, topY - 32);
+    ctx.lineTo(entranceX + 57, topY - 32);
+    ctx.stroke();
+
+    // SCHOOL sign
+    rounded(entranceX - 18, topY + 18, 134, 30, 6, '#232b4d');
+    ctx.strokeStyle = '#ffe36c';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(entranceX - 16, topY + 20, 130, 26);
+    ctx.fillStyle = '#ffe77a';
+    ctx.font = 'bold 17px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText('SCHOOL', entranceX + 49, topY + 40);
+
+    // Double entrance doors
+    rounded(entranceX + 4, ground - 118, 90, 118, 14, '#e8dec8');
+    rounded(entranceX + 12, ground - 110, 35, 110, 6, '#5c3428');
+    rounded(entranceX + 51, ground - 110, 35, 110, 6, '#5c3428');
+    rounded(entranceX + 18, ground - 98, 23, 38, 4, '#8be6f0');
+    rounded(entranceX + 57, ground - 98, 23, 38, 4, '#8be6f0');
+    ctx.fillStyle = '#ffd36b';
+    ctx.beginPath();
+    ctx.arc(entranceX + 42, ground - 52, 3.5, 0, Math.PI * 2);
+    ctx.arc(entranceX + 56, ground - 52, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Rows of lit windows along the entire facade
+    for (let wx = entranceX + 148; wx < x + w - 70; wx += 74) {
+      rounded(wx - 3, topY + 26, 46, 66, 5, '#e8dec8');
+      rounded(wx + 2, topY + 31, 36, 56, 3, '#6ad8e6');
+      ctx.fillStyle = '#e8dec8';
+      ctx.fillRect(wx + 18, topY + 31, 4, 56);
+      ctx.fillRect(wx + 2, topY + 57, 36, 4);
+
+      rounded(wx - 3, topY + 114, 46, 68, 5, '#e8dec8');
+      rounded(wx + 2, topY + 119, 36, 58, 3, '#6ad8e6');
+      ctx.fillStyle = '#e8dec8';
+      ctx.fillRect(wx + 18, topY + 119, 4, 58);
+      ctx.fillRect(wx + 2, topY + 146, 36, 4);
+    }
+
+    if (entranceX - 92 > x + 26) {
+      const lwx = entranceX - 84;
+      rounded(lwx - 3, topY + 26, 44, 66, 5, '#e8dec8');
+      rounded(lwx + 2, topY + 31, 34, 56, 3, '#6ad8e6');
+      rounded(lwx - 3, topY + 114, 44, 68, 5, '#e8dec8');
+      rounded(lwx + 2, topY + 119, 34, 58, 3, '#6ad8e6');
+    }
+  }
+
+  function drawPackages() {
+    goodies.forEach(g => {
+      ctx.save();
+      ctx.translate(g.x, g.y + Math.sin(elapsed * 6 + g.x * 0.02) * 4);
+      ctx.rotate(Math.sin(elapsed * 5) * 0.09);
+
+      // Luminous package halo
+      const boxGlow = ctx.createRadialGradient(0, 0, 4, 0, 0, 38);
+      boxGlow.addColorStop(0, 'rgba(255, 227, 108, 0.45)');
+      boxGlow.addColorStop(1, 'rgba(255, 227, 108, 0)');
+      ctx.fillStyle = boxGlow;
+      ctx.beginPath();
+      ctx.arc(0, 0, 38, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Large detailed delivery box
+      rounded(-20, -18, 40, 36, 6, '#f5c249');
+      ctx.strokeStyle = '#fff5bd';
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.roundRect(-20, -18, 40, 36, 6);
+      ctx.stroke();
+
+      // Packing tape and shipping label
+      ctx.fillStyle = '#fff0b4';
+      ctx.fillRect(-3.5, -18, 7, 36);
+      ctx.fillRect(-20, -3.5, 40, 7);
+      rounded(6, 5, 10, 8, 2, '#ff638e');
+
+      ctx.restore();
+    });
+  }
+
+  function drawObstacles() {
+    obstacles.forEach(o => {
+      if (o.type === 'overhead') {
+        const bottom = ground - o.clearance;
+        const top = bottom - o.h;
+        const cx = o.x + o.w * 0.5;
+        const cy = top + o.h * 0.5 + Math.sin(elapsed * 7 + o.phaseOffset) * 3;
+
+        // Bright halo for instant visual readability
+        const glowGrad = ctx.createRadialGradient(cx, cy, 8, cx, cy, 76);
+        glowGrad.addColorStop(0, 'rgba(255, 225, 110, 0.34)');
+        glowGrad.addColorStop(1, 'rgba(255, 225, 110, 0)');
+        ctx.fillStyle = glowGrad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 76, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Ground shadow
+        ctx.fillStyle = 'rgba(6, 10, 24, 0.48)';
+        ctx.beginPath();
+        ctx.ellipse(cx, ground + 2, 42, 7, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (o.kind === 'eagle') {
+          // EAGLE FLYING RIGHT-TO-LEFT
+          const flap = Math.sin(elapsed * 14 + o.phaseOffset);
+
+          // Back wing
+          ctx.fillStyle = '#5c3419';
+          ctx.beginPath();
+          ctx.moveTo(cx + 4, cy - 4);
+          ctx.quadraticCurveTo(cx + 22, cy - 34 + flap * 16, cx + 46, cy - 18 + flap * 22);
+          ctx.quadraticCurveTo(cx + 24, cy - 4, cx + 10, cy + 4);
+          ctx.fill();
+
+          // Tail
+          ctx.fillStyle = '#fff3d6';
+          ctx.beginPath();
+          ctx.moveTo(cx + 26, cy + 2);
+          ctx.lineTo(cx + 54, cy - 8);
+          ctx.lineTo(cx + 52, cy + 12);
+          ctx.closePath();
+          ctx.fill();
+
+          // Body
+          ctx.fillStyle = '#7c4722';
+          ctx.strokeStyle = '#ffdf78';
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.ellipse(cx + 4, cy + 2, 28, 14, -0.08, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+
+          // White head
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(cx - 24, cy - 3, 13, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#ffe36c';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // Hooked yellow beak
+          ctx.fillStyle = '#ffbe2e';
+          ctx.beginPath();
+          ctx.moveTo(cx - 34, cy - 7);
+          ctx.quadraticCurveTo(cx - 50, cy - 5, cx - 46, cy + 6);
+          ctx.quadraticCurveTo(cx - 41, cy + 1, cx - 34, cy + 2);
+          ctx.closePath();
+          ctx.fill();
+
+          // Eye
+          ctx.fillStyle = '#14192e';
+          ctx.beginPath();
+          ctx.arc(cx - 27, cy - 4, 2.6, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Talons
+          ctx.strokeStyle = '#ffbe2e';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(cx + 6, cy + 13);
+          ctx.lineTo(cx - 2, cy + 21);
+          ctx.moveTo(cx + 14, cy + 13);
+          ctx.lineTo(cx + 6, cy + 21);
+          ctx.stroke();
+
+          // Animated front wing
+          ctx.fillStyle = '#99592b';
+          ctx.strokeStyle = '#ffe36c';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(cx - 6, cy);
+          ctx.quadraticCurveTo(cx + 10, cy - 36 - flap * 24, cx + 38, cy - 22 - flap * 30);
+          ctx.quadraticCurveTo(cx + 22, cy - 2, cx + 8, cy + 6);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          // ANIMATED DRONE FLYING RIGHT-TO-LEFT
+          ctx.strokeStyle = '#d6e4ff';
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.moveTo(cx - 38, cy - 12);
+          ctx.lineTo(cx + 38, cy - 12);
+          ctx.stroke();
+
+          ctx.fillStyle = '#38487a';
+          ctx.fillRect(cx - 41, cy - 20, 6, 10);
+          ctx.fillRect(cx + 35, cy - 20, 6, 10);
+
+          // Spinning rotors
+          const bladeSpan = 22 + Math.sin(elapsed * 45) * 6;
+          rounded(cx - 38 - bladeSpan, cy - 23, bladeSpan * 2, 4, 2, '#6cf4facc');
+          rounded(cx + 38 - bladeSpan, cy - 23, bladeSpan * 2, 4, 2, '#6cf4facc');
+
+          // Central chassis with neon outline
+          rounded(cx - 30, cy - 12, 60, 22, 10, '#222d54');
+          ctx.strokeStyle = '#55edf0';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.roundRect(cx - 30, cy - 12, 60, 22, 10);
+          ctx.stroke();
+
+          // Blinking LED
+          const blink = Math.floor(elapsed * 8) % 2 === 0;
+          rounded(cx - 24, cy - 6, 18, 9, 4, blink ? '#ff4778' : '#ffe36c');
+          ctx.fillStyle = '#55edf0';
+          ctx.beginPath();
+          ctx.arc(cx + 16, cy - 1, 4, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Landing skids and scanner camera
+          ctx.strokeStyle = '#9fb4eb';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(cx - 18, cy + 10);
+          ctx.lineTo(cx - 24, cy + 22);
+          ctx.lineTo(cx + 24, cy + 22);
+          ctx.lineTo(cx + 18, cy + 10);
+          ctx.stroke();
+
+          ctx.fillStyle = '#11172e';
+          ctx.beginPath();
+          ctx.arc(cx, cy + 14, 7, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#ff5d88';
+          ctx.beginPath();
+          ctx.arc(cx - 2, cy + 14, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        return;
+      }
+
+      // GROUND OBSTACLES: Squirrel, Red Fire Hydrant, Traffic Cone, Rabbit
+      const cx = o.x + o.w * 0.5;
+      const by = ground;
+
+      const groundGlow = ctx.createRadialGradient(cx, by - 26, 6, cx, by - 26, 56);
+      groundGlow.addColorStop(0, 'rgba(255, 232, 130, 0.36)');
+      groundGlow.addColorStop(1, 'rgba(255, 232, 130, 0)');
+      ctx.fillStyle = groundGlow;
+      ctx.beginPath();
+      ctx.arc(cx, by - 26, 56, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(6, 9, 22, 0.65)';
+      ctx.beginPath();
+      ctx.ellipse(cx, by + 2, 26, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (o.kind === 'squirrel') {
+        // SQUIRREL
+        ctx.fillStyle = '#d46b2a';
+        ctx.strokeStyle = '#ffe38a';
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.arc(cx + 14, by - 26, 17, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#f79c52';
+        ctx.beginPath();
+        ctx.arc(cx + 16, by - 28, 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#e37936';
+        ctx.beginPath();
+        ctx.ellipse(cx - 2, by - 17, 14, 17, -0.15, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffe6c2';
+        ctx.beginPath();
+        ctx.ellipse(cx - 7, by - 15, 7, 11, -0.1, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#e37936';
+        ctx.beginPath();
+        ctx.arc(cx - 8, by - 36, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.ellipse(cx - 4, by - 47, 4, 7, 0.2, 0, Math.PI * 2);
+        ctx.ellipse(cx - 11, by - 46, 4, 6, -0.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#181c30';
+        ctx.beginPath();
+        ctx.arc(cx - 12, by - 37, 2.5, 0, Math.PI * 2);
+        ctx.arc(cx - 19, by - 34, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (o.kind === 'hydrant') {
+        // RED FIRE HYDRANT
+        rounded(cx - 19, by - 10, 38, 10, 4, '#c4273b');
+        rounded(cx - 14, by - 46, 28, 38, 4, '#ff3b52');
+        ctx.strokeStyle = '#ffe38a';
+        ctx.lineWidth = 2.2;
+        ctx.strokeRect(cx - 14, by - 46, 28, 36);
+        rounded(cx - 8, by - 42, 5, 30, 2, '#ff8f9c');
+        rounded(cx - 22, by - 34, 8, 11, 3, '#d12a3f');
+        rounded(cx + 14, by - 34, 8, 11, 3, '#d12a3f');
+        ctx.fillStyle = '#ffe074';
+        ctx.beginPath();
+        ctx.arc(cx, by - 29, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ff3b52';
+        ctx.beginPath();
+        ctx.arc(cx, by - 46, 14, Math.PI, Math.PI * 2);
+        ctx.fill();
+        rounded(cx - 17, by - 48, 34, 6, 3, '#c4273b');
+        rounded(cx - 5, by - 64, 10, 6, 2, '#ffe074');
+      } else if (o.kind === 'cone') {
+        // TRAFFIC CONE
+        rounded(cx - 24, by - 9, 48, 9, 4, '#242c47');
+        ctx.fillStyle = '#ff7733';
+        ctx.strokeStyle = '#fff0a6';
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(cx - 18, by - 9);
+        ctx.lineTo(cx - 6, by - 58);
+        ctx.quadraticCurveTo(cx, by - 62, cx + 6, by - 58);
+        ctx.lineTo(cx + 18, by - 9);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(cx - 14, by - 23);
+        ctx.lineTo(cx + 14, by - 23);
+        ctx.lineTo(cx + 12, by - 32);
+        ctx.lineTo(cx - 12, by - 32);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(cx - 10, by - 41);
+        ctx.lineTo(cx + 10, by - 41);
+        ctx.lineTo(cx + 8, by - 49);
+        ctx.lineTo(cx - 8, by - 49);
+        ctx.closePath();
+        ctx.fill();
+      } else {
+        // RABBIT
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(cx + 15, by - 12, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#f5f8ff';
+        ctx.strokeStyle = '#73f0f7';
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.ellipse(cx, by - 16, 15, 16, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(cx - 6, by - 34, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#f5f8ff';
+        ctx.beginPath();
+        ctx.ellipse(cx - 3, by - 51, 4.5, 13, 0.15, 0, Math.PI * 2);
+        ctx.ellipse(cx - 10, by - 50, 4.5, 12, -0.15, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ff9ebb';
+        ctx.beginPath();
+        ctx.ellipse(cx - 3, by - 51, 2, 9, 0.15, 0, Math.PI * 2);
+        ctx.ellipse(cx - 10, by - 50, 2, 8, -0.15, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#1b2138';
+        ctx.beginPath();
+        ctx.arc(cx - 11, by - 35, 2.4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ff6b9d';
+        ctx.beginPath();
+        ctx.arc(cx - 17, by - 32, 2.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
+  }
+
+  function drawPlayer() {
+    if (invuln > 0 && Math.floor(invuln * 14) % 2 === 0) return;
+
+    const isDucking = player.duckTimer > 0;
+    const isWalking = student || transformReady;
+    const pivotX = player.x + player.w * 0.5;
+    const pivotY = player.y + player.h;
+
+    // Ground shadow scaled by jump height
+    const heightAboveGround = Math.max(0, ground - pivotY);
+    const shadowScale = clamp(1 - heightAboveGround / 280, 0.45, 1);
+    ctx.fillStyle = 'rgba(6, 10, 24, 0.55)';
+    ctx.beginPath();
+    ctx.ellipse(pivotX, ground + 3, 52 * shadowScale, 9 * shadowScale, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Subtle single-tap duck timer bar above player
+    if (isDucking && state === 'playing') {
+      const ratio = clamp(player.duckTimer / player.duckMax, 0, 1);
+      rounded(pivotX - 28, ground - player.duckH - 22, 56, 6, 3, '#0b122b');
+      rounded(pivotX - 27, ground - player.duckH - 21, 54 * ratio, 4, 2, '#55edf0');
+    }
+
+    ctx.save();
+    ctx.translate(pivotX, pivotY);
+    ctx.rotate(player.tilt);
+
+    const crouchY = isDucking ? 34 : 0;
+    const runBob = (!isDucking && player.onGround) ? Math.sin(elapsed * 16) * 2.2 : 0;
+
+    // 1. ATTACHED ELECTRIC SCOOTER (follows jump and tilts with rider)
+    if (!student) {
+      // Scooter deck
+      rounded(-44, -15, 84, 9, 4, '#24325e');
+      rounded(-42, -14, 80, 5, 3, '#4de9ef');
+
+      // Stem and handlebars
+      ctx.strokeStyle = '#6cf4fa';
+      ctx.lineWidth = 6;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(26, -13);
+      ctx.lineTo(22, -66 + crouchY * 0.35);
+      ctx.lineTo(35, -66 + crouchY * 0.35);
+      ctx.stroke();
+
+      // Front neon headlight
+      ctx.fillStyle = '#ffe36c';
+      ctx.beginPath();
+      ctx.arc(38, -66 + crouchY * 0.35, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Wheels with glowing rims
+      for (const wx of [-31, 31]) {
+        ctx.fillStyle = '#12172b';
+        ctx.beginPath();
+        ctx.arc(wx, -9, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#55edf0';
+        ctx.lineWidth = 2.6;
+        ctx.stroke();
+        ctx.fillStyle = '#ffe36c';
+        ctx.beginPath();
+        ctx.arc(wx, -9, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // 2. ARTICULATED LEGS AND SNEAKERS
+    ctx.strokeStyle = '#1f2542';
+    ctx.lineWidth = 11;
+    ctx.lineCap = 'round';
+
+    if (isDucking) {
+      ctx.beginPath();
+      ctx.moveTo(-10, -24);
+      ctx.lineTo(6, -16);
+      ctx.lineTo(18, -14);
+      ctx.stroke();
+    } else {
+      const stride = isWalking ? Math.sin(elapsed * 15) * 16 : 0;
+      ctx.beginPath();
+      ctx.moveTo(-10, -46 + runBob);
+      ctx.lineTo(-16 - stride, -10);
+      ctx.moveTo(8, -46 + runBob);
+      ctx.lineTo(14 + stride, -10);
+      ctx.stroke();
+    }
+
+    const footStride = isWalking ? Math.sin(elapsed * 15) * 16 : 0;
+    rounded(-25 - footStride, -14, 19, 9, 4, '#ffffff');
+    rounded(-25 - footStride, -9, 19, 4, 2, '#ff5d88');
+    rounded(6 + footStride, -14, 19, 9, 4, '#ffffff');
+    rounded(6 + footStride, -9, 19, 4, 2, '#ff5d88');
+
+    // 3. THERMAL DELIVERY BAG / SCHOOL BACKPACK
+    const torsoY = -82 + crouchY + runBob;
+    if (student) {
+      rounded(-34, torsoY + 6, 22, 34, 7, '#8d61d9');
+      ctx.strokeStyle = '#f3d5ff';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(-29, torsoY + 14, 12, 12);
+    } else {
+      rounded(-36, torsoY + 2, 24, 38, 7, '#1f639e');
+      rounded(-33, torsoY + 8, 18, 8, 3, '#55edf0');
+      ctx.fillStyle = '#ffe36c';
+      ctx.fillRect(-31, torsoY + 22, 14, 4);
+    }
+
+    // 4. TORSO / REFLECTIVE JACKET OR SCHOOL UNIFORM
+    rounded(-18, torsoY, 40, 42, 12, student ? '#f0ad4e' : '#ff5d88');
+    if (student) {
+      rounded(-18, torsoY + 4, 14, 36, 6, '#3b6fd8');
+      rounded(8, torsoY + 4, 14, 36, 6, '#3b6fd8');
+    } else {
+      ctx.fillStyle = '#ffe36c';
+      ctx.fillRect(-16, torsoY + 18, 36, 6);
+      ctx.fillStyle = '#55edf0';
+      ctx.fillRect(0, torsoY + 4, 6, 36);
+    }
+
+    // 5. ARM AND HAND
+    ctx.strokeStyle = student ? '#3b6fd8' : '#ff5d88';
+    ctx.lineWidth = 10;
+    ctx.beginPath();
+    ctx.moveTo(4, torsoY + 12);
+    const armSwing = isWalking ? Math.cos(elapsed * 15) * 13 : 0;
+    if (isWalking) {
+      ctx.lineTo(14 + armSwing, torsoY + 34);
+    } else {
+      ctx.lineTo(17, -66 + crouchY * 0.5);
+      ctx.lineTo(25, -64 + crouchY * 0.35);
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = '#e09b6c';
+    ctx.beginPath();
+    ctx.arc(isWalking ? 14 + armSwing : 25, isWalking ? torsoY + 36 : -64 + crouchY * 0.35, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 6. HEAD, FACE, AND HELMET WITH VISOR
+    const headY = torsoY - 14;
+    ctx.fillStyle = '#e09b6c';
+    ctx.beginPath();
+    ctx.arc(4, headY, 20, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Hair
+    ctx.fillStyle = '#25213b';
+    ctx.beginPath();
+    ctx.arc(2, headY - 6, 20, Math.PI, Math.PI * 2);
+    ctx.lineTo(22, headY + 2);
+    ctx.lineTo(-16, headY + 2);
+    ctx.fill();
+
+    if (!student) {
+      // Aerodynamic helmet with translucent visor
+      ctx.fillStyle = '#4de9ef';
+      ctx.beginPath();
+      ctx.arc(4, headY - 5, 22, Math.PI, Math.PI * 2);
+      ctx.lineTo(26, headY - 1);
+      ctx.lineTo(-18, headY - 1);
+      ctx.closePath();
+      ctx.fill();
+
+      // Visor
+      rounded(6, headY - 4, 19, 10, 4, 'rgba(18, 28, 58, 0.72)');
+      ctx.fillStyle = '#ffffff88';
+      ctx.fillRect(9, headY - 2, 10, 2.5);
+    }
+
+    // Eye and smile
+    ctx.fillStyle = '#181e36';
+    ctx.beginPath();
+    ctx.arc(13, headY + 2, 2.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#8a3e52';
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.arc(11, headY + 8, 6, 0.1, 1.15);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    drawBackground();
+    drawSchool();
+    drawPackages();
+    drawObstacles();
+    drawPlayer();
+
+    // Particles
+    particles.forEach(p => {
+      ctx.globalAlpha = clamp(p.life / p.maxLife, 0, 1);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x, p.y, p.size, p.size);
+      ctx.globalAlpha = 1;
+    });
+
+    // Top status banners
+    if (bannerTimer > 0 && state === 'playing') {
+      const txt = transformReady
+        ? 'SCHOOL AHEAD! PRESS E TO TRANSFORM'
+        : (transitionTimer > 0 ? 'STUDENT MODE!' : 'PHASE ' + phase);
+      rounded(230, 22, 500, 42, 14, '#080d20cc');
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 17px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText(txt, W / 2, 49);
+    }
+
+    if (transformReady) {
+      rounded(250, 112, 460, 96, 16, '#080d20e0');
+      ctx.fillStyle = '#ffe77a';
+      ctx.font = 'bold 22px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText('SCHOOL TIME!', W / 2, 148);
+      ctx.fillStyle = '#fff';
+      ctx.font = '15px system-ui';
+      ctx.fillText('Press E or TRANSFORM to continue', W / 2, 179);
+    }
+
+    // Visual aura during school crossing (no countdown timer)
+    if (transitionTimer > 0) {
+      const p = 1 - transitionTimer / SCHOOL_DURATION_SEC;
+      ctx.fillStyle = `rgba(160, 105, 255, ${0.08 + 0.1 * Math.sin(p * Math.PI)})`;
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 28px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText('✦ STUDENT MODE ✦', W / 2, 118);
+
+      for (let i = 0; i < 12; i++) {
+        const a = i * Math.PI / 6 + elapsed * 3.5;
+        ctx.fillStyle = '#ffe77a';
+        ctx.beginPath();
+        ctx.arc(W / 2 + Math.cos(a) * 115, H / 2 + Math.sin(a) * 70, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    if (state === 'playing' && !transformReady && transitionTimer <= 0) {
+      ctx.fillStyle = '#fffb';
+      ctx.font = 'bold 12px system-ui';
+      ctx.textAlign = 'left';
+      ctx.fillText('COURIER', 18, 26);
+    }
+  }
+
+  // Keyboard controls
+  window.addEventListener('keydown', e => {
+    if (['ArrowUp', 'ArrowDown', 'Space'].includes(e.code)) {
+      e.preventDefault();
+    }
+    if (state !== 'playing') {
+      if ((e.code === 'Space' || e.code === 'Enter') && !e.repeat) {
+        reset();
+      }
+      return;
+    }
+    if (e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Space') {
+      if (!e.repeat) jump();
+    }
+    if (e.code === 'ArrowDown' || e.code === 'KeyS') {
+      if (!e.repeat) duckOneClick();
+    }
+    if (e.code === 'KeyE' || e.code === 'Enter') {
+      if (!e.repeat) transform();
+    }
+  });
+
+  // On-screen and touch buttons
+  bindStartButton();
+  $('jumpBtn').addEventListener('pointerdown', e => { e.preventDefault(); jump(); });
+  $('duckBtn').addEventListener('pointerdown', e => { e.preventDefault(); duckOneClick(); });
+  $('transformBtn').addEventListener('pointerdown', e => { e.preventDefault(); transform(); });
+
+  // Swipe gestures on canvas for mobile
+  let touchStartY = null;
+  canvas.addEventListener('pointerdown', e => {
+    if (state !== 'playing') return;
+    touchStartY = e.clientY;
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (touchStartY === null || state !== 'playing') return;
+    const dy = e.clientY - touchStartY;
+    if (dy < -24) {
+      jump();
+      touchStartY = null;
+    } else if (dy > 24) {
+      duckOneClick();
+      touchStartY = null;
+    }
+  });
+  canvas.addEventListener('pointerup', () => { touchStartY = null; });
+  canvas.addEventListener('pointercancel', () => { touchStartY = null; });
+
+  // Main game loop
+  function loop(t) {
+    if (!last) last = t;
+    const dtSec = Math.min(0.05, Math.max(0.001, (t - last) / 1000));
+    last = t;
+    update(dtSec);
+    draw();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
