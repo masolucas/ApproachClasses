@@ -16,11 +16,11 @@
     },
     {
       "title": "Approach & Survive (v4)",
-      "team": "Bianca",
-      "story": "",
-      "howto": "TBD",
+      "team": "BG Productions",
+      "story": "Approach & Survive is a colorful retro game inspired by Snake. Students must survive a school semester by collecting academic items and avoiding funny everyday problems.",
+      "howto": "First, enter a nickname and start the game. Next, move your line of students to collect attendance, assignments, midterms, and finals to earn points. Then, avoid obstacles such as traffic, Wi-Fi problems, and distractions. Also, keep your attendance above 80% and avoid hitting walls or your own line. Finally, try to get the highest score and enter the Top 10 leaderboard.",
       "controls": "keyboard",
-      "gestures": "TBD",
+      "gestures": "Use the arrow keys or WASD to move. On tablets and smartphones, use the touch buttons on both sides of the screen. Press Pause to stop temporarily and Restart to play again.",
       "changed": "",
       "file": "approach-survive-v4.html"
     },
@@ -79,7 +79,7 @@
       "team": "Jia",
       "story": "",
       "howto": "TBD",
-      "controls": "keyboard",
+      "controls": "gesture",
       "gestures": "TBD",
       "changed": "",
       "file": "kung-fu-master.html"
