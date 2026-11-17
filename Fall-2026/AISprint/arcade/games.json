@@ -15,14 +15,14 @@
       "file": "teacher-demo_star-catcher.html"
     },
     {
-      "title": "Approach & Survive",
+      "title": "Approach & Survive (v3)",
       "team": "Bianca",
       "story": "",
       "howto": "TBD",
       "controls": "keyboard",
       "gestures": "TBD",
       "changed": "",
-      "file": "approach-survive.html"
+      "file": "approach-survive-v3.html"
     },
     {
       "title": "Pong Challenge",
@@ -53,16 +53,6 @@
       "gestures": "Left arrow — move left. Right arrow — move right. Space bar — jump over foxes.",
       "changed": "",
       "file": "acorn-chase.html"
-    },
-    {
-      "title": "Approach & Survive (v2)",
-      "team": "Bianca",
-      "story": "",
-      "howto": "TBD",
-      "controls": "keyboard",
-      "gestures": "TBD",
-      "changed": "",
-      "file": "approach-survive-v2.html"
     }
   ]
 }

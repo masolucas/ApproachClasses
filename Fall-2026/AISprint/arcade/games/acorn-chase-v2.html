@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Acorn Chase</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#292117;color:#fff1d9;font:16px Georgia,serif}main{max-width:850px;margin:auto;padding:clamp(14px,4vw,42px)}h1{font-size:clamp(42px,9vw,86px);letter-spacing:-.06em;margin:0;color:#ffd58a}p{line-height:1.5;margin:10px 0 18px}.hud,nav{display:flex;gap:12px;align-items:center;justify-content:space-between;margin:12px 0;font: bold 15px system-ui}.stage{position:relative}canvas{display:block;width:100%;border-radius:20px;background:#f1a76a}.overlay{position:absolute;inset:0;display:grid;place-content:center;text-align:center;background:#291c13aa;border-radius:20px;padding:12px}.overlay[hidden]{display:none}h2{margin:0 0 12px;font-size:clamp(25px,5vw,48px)}button{font:bold 16px system-ui;border:0;border-radius:12px;padding:12px 20px;background:#ffd58a;color:#352013;cursor:pointer;touch-action:none}button:focus-visible{outline:3px solid white;outline-offset:3px}nav{justify-content:center}nav button{min-width:65px}
+</style>
+<main>
+<h1>Acorn Chase</h1>
+<p>Collect 10 acorns for winter. Jump over the foxes and grab a golden leaf to run faster for 5 seconds.</p>
+<div class="hud"><span id="score">Acorns 0 / 10</span><span id="boost">Golden leaf · Ready to find</span></div>
+<div class="stage">
+<canvas id="field" width="800" height="370" aria-label="Autumn forest game"></canvas>
+<div id="overlay" class="overlay"><h2 id="message">Open this file in Chrome to play</h2><button id="start" type="button" hidden>Start game</button></div>
+</div>
+<nav aria-label="Touch controls"><button data-key="ArrowLeft" aria-label="Move left">←</button><button data-key="ArrowRight" aria-label="Move right">→</button><button data-key="Space">Jump</button></nav>
+<p>Use ← and → to move. Press Space to jump.</p>
+</main>
+<script>
+const canvas = document.querySelector('#field');
+const ctx = canvas.getContext('2d');
+const scoreLabel = document.querySelector('#score');
+const boostLabel = document.querySelector('#boost');
+const overlay = document.querySelector('#overlay');
+const message = document.querySelector('#message');
+const start = document.querySelector('#start');
+const keys = new Set();
+const ground = 305;
+let jump = false;
+
+function oval(x,y,rx,ry,color,tilt=0) {
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.ellipse(x,y,rx,ry,tilt,0,Math.PI*2);
+  ctx.fill();
+}
+function box(x,y,w,h,color) {
+  ctx.fillStyle=color;
+  ctx.fillRect(x,y,w,h);
+}
+
+const game = {
+  reset() {
+    this.score=0;
+    this.x=100;
+    this.y=0;
+    this.velocity=0;
+    this.facing=1;
+    this.boost=0;
+    this.elapsed=0;
+    this.nextFox=2.8;
+    this.foxes=[];
+    this.acorn={x:245,y:ground-16};
+    this.leaf={x:580,y:ground-18};
+    this.state='ready';
+  },
+  finish(won) {
+    this.state=won?'won':'lost';
+    message.textContent=won?'You win! All 10 acorns!':'A fox caught you!';
+    start.textContent='Play again';
+    overlay.hidden=false;
+    start.focus();
+  },
+  update(dt) {
+    if(this.state!=='playing') return;
+    this.elapsed+=dt;
+    this.boost=Math.max(0,this.boost-dt);
+    const direction=Number(keys.has('ArrowRight'))-Number(keys.has('ArrowLeft'));
+    if(direction) this.facing=direction;
+    this.x=Math.max(24,Math.min(776,this.x+direction*(this.boost>0?440:285)*dt));
+    if(jump && this.y===0) this.velocity=540;
+    jump=false;
+    this.velocity-=1100*dt;
+    this.y=Math.max(0,this.y+this.velocity*dt);
+    if(this.y===0) this.velocity=0;
+
+    if(this.elapsed>=this.nextFox) {
+      const fromRight=this.x<400;
+      this.foxes.push({x:fromRight?830:-30,direction:fromRight?-1:1});
+      this.nextFox+=2.7;
+    }
+    for(const fox of this.foxes) {
+      fox.x+=fox.direction*190*dt;
+      if(Math.abs(fox.x-this.x)<28 && this.y<29) {
+        this.finish(false);
+        return;
+      }
+    }
+    this.foxes=this.foxes.filter(fox=>fox.x>-50 && fox.x<850);
+
+    const near=item=>Math.abs(this.x-item.x)<23 && Math.abs(ground-this.y-16-item.y)<24;
+    if(this.leaf && near(this.leaf)) {
+      this.leaf=null;
+      this.boost=5;
+    }
+    if(near(this.acorn)) {
+      this.score++;
+      if(this.score===10) {
+        this.acorn=null;
+        this.finish(true);
+        return;
+      }
+      const locations=[470,650,390,170,310,595,720,495,230];
+      this.acorn={x:locations[this.score-1],y:ground-16};
+    }
+  },
+  draw() {
+    const sky=ctx.createLinearGradient(0,0,0,ground);
+    sky.addColorStop(0,'#a6534b');
+    sky.addColorStop(1,'#ffce83');
+    box(0,0,800,370,sky);
+    oval(645,105,50,50,'#ffe0a2');
+    oval(125,295,290,130,'#b96c50');
+    oval(660,300,325,111,'#975e48');
+    for(let i=0;i<10;i++) {
+      const x=i*89+18;
+      const h=80+(i*31)%106;
+      box(x-5,ground-h,12,h,'#633c30');
+      const colors=['#ca672f','#8d432d','#e29545','#a34d38'];
+      oval(x,ground-h-10,31,43,colors[i%4],-.2);
+      oval(x+18,ground-h+6,25,29,colors[i%4],.3);
+    }
+    box(0,ground,800,65,'#8f5032');
+    box(0,ground,800,5,'#e4a25c');
+    for(let i=0;i<37;i++) oval((i*87)%800,313+(i*29)%53,7,2,i%2?'#b96a40':'#d88948',i);
+    if(this.acorn) {
+      const {x,y}=this.acorn;
+      oval(x,y,8,11,'#632d1c');
+      oval(x,y-4,10,5,'#ffc477');
+      box(x-1,y-14,2,6,'#663323');
+    }
+    if(this.leaf) {
+      const {x,y}=this.leaf;
+      oval(x,y,19,19,'#ffdf6755');
+      oval(x,y,12,6,'#fff178',-.65);
+      box(x-7,y+3,12,2,'#c78419');
+    }
+    for(const fox of this.foxes) {
+      ctx.save();
+      ctx.translate(fox.x,ground);
+      ctx.scale(fox.direction,1);
+      oval(-19,-11,20,6,'#bd4d28',.22);
+      oval(-33,-14,6,4,'#ffe9cb',.22);
+      oval(0,-12,19,9,'#e06a33');
+      oval(15,-17,11,9,'#e06a33');
+      oval(23,-14,8,4,'#ffe9cb');
+      oval(12,-26,4,8,'#ad3b20',-.25);
+      oval(19,-19,2,2,'#281912');
+      oval(29,-15,2,2,'#281912');
+      ctx.restore();
+    }
+    ctx.save();
+    ctx.translate(this.x,ground-this.y);
+    ctx.scale(this.facing,1);
+    if(this.boost>0) oval(0,-17,30,26,'#ffed7955');
+    oval(-14,-20,12,22,'#773d26',-.57);
+    oval(-16,-24,7,15,'#aa603b',-.57);
+    oval(0,-10,12,11,'#a85b37');
+    oval(5,-10,7,8,'#eed0a2');
+    oval(8,-23,10,9,'#a85b37');
+    oval(6,-32,4,7,'#a85b37',-.25);
+    oval(12,-24,2,2,'#231812');
+    oval(17,-21,2,2,'#231812');
+    oval(7,-2,9,3,'#743b23');
+    ctx.restore();
+    scoreLabel.textContent='Acorns '+this.score+' / 10';
+    boostLabel.textContent=this.boost>0?'Speed boost · '+Math.ceil(this.boost)+'s':this.leaf?'Golden leaf · Ready to find':'Golden leaf · Used';
+  }
+};
+
+function hold(key) {
+  if(key==='Space' && !keys.has(key)) jump=true;
+  keys.add(key);
+}
+window.addEventListener('keydown',event=>{
+  if(game.state!=='playing' || !['ArrowLeft','ArrowRight','Space'].includes(event.code)) return;
+  event.preventDefault();
+  hold(event.code);
+});
+window.addEventListener('keyup',event=>keys.delete(event.code));
+window.addEventListener('blur',()=>{keys.clear();jump=false;});
+for(const button of document.querySelectorAll('[data-key]')) {
+  button.addEventListener('pointerdown',event=>{
+    event.preventDefault();
+    button.setPointerCapture(event.pointerId);
+    hold(button.dataset.key);
+  });
+  for(const name of ['pointerup','pointercancel','lostpointercapture']) {
+    button.addEventListener(name,()=>keys.delete(button.dataset.key));
+  }
+}
+start.addEventListener('click',()=>{
+  game.reset();
+  keys.clear();
+  jump=false;
+  game.state='playing';
+  overlay.hidden=true;
+  start.blur();
+});
+game.reset();
+game.draw();
+message.textContent='Ready, squirrel?';
+start.hidden=false;
+let previous=performance.now();
+function frame(now) {
+  game.update(Math.min((now-previous)/1000,.035));
+  previous=now;
+  game.draw();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</html>
