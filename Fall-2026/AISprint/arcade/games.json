@@ -13,6 +13,26 @@
       "gestures": "Left → move left · Right → move right · Shield → 2-second shield · Hands down → nothing (or ← → Space)",
       "changed": "After testing, we noticed that new players lost very fast, so we made the first ten seconds slower.",
       "file": "teacher-demo_star-catcher.html"
+    },
+    {
+      "title": "Approach & Survive",
+      "team": "Bianca",
+      "story": "",
+      "howto": "TBD",
+      "controls": "keyboard",
+      "gestures": "TBD",
+      "changed": "",
+      "file": "approach-survive.html"
+    },
+    {
+      "title": "Pong Challenge",
+      "team": "Augusto & Sandro",
+      "story": "",
+      "howto": "TBD",
+      "controls": "keyboard",
+      "gestures": "TBD",
+      "changed": "",
+      "file": "pong-challenge.html"
     }
   ]
 }
